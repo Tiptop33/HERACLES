@@ -1,0 +1,32 @@
+# Production HERACLES — l'application web seule.
+#
+# La base, l'authentification, l'API et le stockage viennent de la pile
+# Supabase auto-hébergée, installée à part dans /opt/supabase-heracles avec ses
+# propres conteneurs (préfixe « heracles- ») et son Kong sur 127.0.0.1:8100.
+# Le détail de l'installation sur le VPS arrive au lot 4 ; les valeurs à
+# respecter sont dans docs/specs/2026-08-04-heracles-cadrage.md, § 7.
+#
+# Le nom de projet ci-dessous est ce qui garantit qu'aucun conteneur, réseau ou
+# volume ne se confond avec ceux de MyCollabus sur le même VPS.
+name: heracles-prod
+
+services:
+  web:
+    build:
+      context: ../apps/web
+      args:
+        NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL}
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+        NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL}
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: "3002"
+      HOSTNAME: "0.0.0.0"
+      NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+      NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL}
+    ports:
+      # Jamais exposé directement sur Internet : Nginx fait le reverse-proxy
+      # HTTPS vers ce port.
+      - "127.0.0.1:3002:3002"

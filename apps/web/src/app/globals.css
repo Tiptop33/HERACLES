@@ -1,0 +1,135 @@
+:root {
+  --fond: #f7f8fa;
+  --surface: #ffffff;
+  --texte: #16202e;
+  --texte-doux: #5a6b7f;
+  --bordure: #dde3ea;
+  --chercheur: #1f6feb;
+  --referent: #0f8a6a;
+  --alerte: #b42318;
+  --rayon: 10px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--fond);
+  color: var(--texte);
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  line-height: 1.6;
+}
+
+a {
+  color: var(--chercheur);
+}
+
+h1,
+h2,
+h3 {
+  line-height: 1.25;
+  margin: 0 0 0.5rem;
+}
+
+.enveloppe {
+  max-width: 60rem;
+  margin: 0 auto;
+  padding: 2.5rem 1.25rem 4rem;
+}
+
+.carte {
+  background: var(--surface);
+  border: 1px solid var(--bordure);
+  border-radius: var(--rayon);
+  padding: 1.5rem;
+}
+
+.voies {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  margin-top: 2rem;
+}
+
+.voie {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  border-top: 4px solid var(--chercheur);
+}
+
+.voie--referent {
+  border-top-color: var(--referent);
+}
+
+.voie h2 {
+  font-size: 1.15rem;
+}
+
+.voie p {
+  color: var(--texte-doux);
+  margin: 0.25rem 0 0;
+}
+
+/* Formulaires */
+.champ {
+  display: block;
+  margin-bottom: 1rem;
+}
+
+.champ span {
+  display: block;
+  font-weight: 600;
+  font-size: 0.9rem;
+  margin-bottom: 0.25rem;
+}
+
+.champ input,
+.champ select,
+.champ textarea {
+  width: 100%;
+  padding: 0.6rem 0.7rem;
+  border: 1px solid var(--bordure);
+  border-radius: 8px;
+  font: inherit;
+  background: var(--surface);
+  color: inherit;
+}
+
+.bouton {
+  display: inline-block;
+  padding: 0.65rem 1.2rem;
+  border: 0;
+  border-radius: 8px;
+  background: var(--chercheur);
+  color: #fff;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.bouton:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.erreur {
+  color: var(--alerte);
+  background: #fdf3f2;
+  border: 1px solid #f3c6c2;
+  border-radius: 8px;
+  padding: 0.6rem 0.8rem;
+  margin-bottom: 1rem;
+}
+
+.discret {
+  color: var(--texte-doux);
+  font-size: 0.92rem;
+}

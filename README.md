@@ -11,23 +11,47 @@ en commun avec EKOPLAN / MyCollabus.
 Supabase auto-hébergé en Docker (PostgreSQL, auth, API, stockage) + application web Next.js,
 derrière Nginx en HTTPS sur un VPS.
 
+## Démarrer en local
+
+Il faut Docker et Node 22.
+
+```bash
+cp .env.example .env          # puis renseigner les clés affichées à l'étape suivante
+npx supabase start            # monte la pile et joue les migrations de supabase/migrations
+cd apps/web && npm install && npm run dev
+```
+
+- Application : http://localhost:3002
+- Studio Supabase : http://localhost:54333
+- Emails de test : http://localhost:54334 (rien ne part vraiment)
+
+`npx supabase start` affiche l'`API URL` et l'`anon key` : ce sont les valeurs à recopier dans
+`.env` (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`).
+
+## Vérifier
+
+```bash
+cd apps/web
+npm test          # tests unitaires (Vitest)
+npm run lint      # ESLint
+npm run build     # construction de production
+```
+
 ## Ports réservés (isolation stricte)
 
-| Service | Port |
-| --- | --- |
-| Application web | `3002` |
-| API Supabase (Kong) | `8100` |
-| PostgreSQL | `5443` |
-| Mailpit (local) | `8027` / `1027` |
+| Service | Local | Production |
+| --- | --- | --- |
+| Application web | `3002` | `127.0.0.1:3002` |
+| API Supabase (Kong) | `54331` | `127.0.0.1:8100` |
+| PostgreSQL | `54332` | interne au réseau Docker |
+| Studio | `54333` | — |
+| Boîte mail de test | `54334` | SMTP réel |
 
 Ces ports, le nom de la stack Docker (`heracles-prod`), le préfixe des conteneurs
 (`heracles-`) et la base (`heracles`) sont **distincts de ceux de MyCollabus**. Ne jamais
 réutiliser un volume, un port ou un identifiant d'un autre projet.
 
-## Démarrer en local
-
-À compléter au lot 1 (infrastructure Docker).
-
 ## Documentation
 
 - Cadrage : [`docs/specs/2026-08-04-heracles-cadrage.md`](docs/specs/2026-08-04-heracles-cadrage.md)
+- Plan du lot 1 : [`docs/plans/2026-08-04-lot1-fondations.md`](docs/plans/2026-08-04-lot1-fondations.md)

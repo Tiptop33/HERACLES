@@ -116,6 +116,30 @@ HERACLES/
 
 ---
 
+---
+
+## État au 2026-08-04
+
+**Écrit et vérifié ici** — `npm run build`, `npm run lint` et `npm test` passent :
+- socle Next.js 16 (`apps/web`), clients Supabase navigateur et serveur, `proxy.ts` ;
+- `.env.example`, `supabase/config.toml`, migration `0001_profil.sql` ;
+- inscription avec choix du rôle, connexion, retour du lien de confirmation, déconnexion ;
+- `/mon-compte` (lecture et modification), les deux espaces + une coquille d'administration ;
+- image Docker de l'app et `infra/docker-compose.prod.yml` ;
+- 6 tests unitaires sur les rôles et la redirection.
+
+> `middleware.ts` a été renommé **`proxy.ts`** : depuis Next.js 16.2 l'ancienne convention est
+> dépréciée, le build le signale.
+
+**À vérifier au premier démarrage local** — la session de développement où tout ceci a été
+écrit n'avait pas de démon Docker, la pile Supabase n'a donc pas pu tourner :
+- [ ] `npx supabase start` démarre avec les ports du tableau ;
+- [ ] la migration `0001_profil.sql` s'applique sans erreur ;
+- [ ] une inscription crée bien la ligne `profil` avec le rôle choisi ;
+- [ ] l'email de confirmation arrive dans la boîte de test et le lien connecte ;
+- [ ] un utilisateur ne lit pas le profil d'un autre (tâche 2.2, à écrire une fois la pile
+      lancée : elle demande une vraie base).
+
 ## Ce que le lot 1 ne fait pas
 
 Annuaire, demande de mise en relation, messagerie, documents, modération : lot 2 et suivants.

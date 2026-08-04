@@ -13,6 +13,11 @@ build/
 out/
 coverage/
 *.tsbuildinfo
+next-env.d.ts
+
+# Pile Supabase locale (fichiers de travail de la CLI)
+supabase/.temp/
+supabase/.branches/
 
 # Journaux
 *.log
