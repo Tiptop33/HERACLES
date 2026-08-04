@@ -150,6 +150,24 @@ nommées à une organisation. C'est la catégorie de données la plus sensible q
 
 L'ordre des lots 3 et 4 se discute : il dépend de ce qui te fait le plus gagner de temps.
 
+### Échéance : 5 décembre 2026
+
+HERACLES remplace l'application Bubble **le 5 décembre 2026**. Quatre mois, dont il faut
+retrancher le temps de vérification avant bascule.
+
+| Fin visée | Lot | Pourquoi cette date |
+| --- | --- | --- |
+| 31 août | 2 — reprise | Tant que les données ne sont pas dans HERACLES, aucun écran ne peut être éprouvé sur du réel. |
+| 30 septembre | 3 — fiche candidat | C'est l'écran de travail quotidien : il doit vivre le plus longtemps possible avant la bascule. |
+| 31 octobre | 4 — offres | Volumineux (4 539 offres) mais sans données personnelles : moins risqué, donc plaçable après. |
+| 14 novembre | 5 — loge et administration | Doit être fini avant la mise en ligne : on ne durcit pas un produit qui bouge encore. |
+| 21 novembre | 6 — mise en ligne | Laisse **deux semaines pleines** de vérification en conditions réelles. |
+| **5 décembre** | **bascule** | L'application Bubble est arrêtée. |
+
+Deux jalons ne se négocient pas : la reprise fin août — sans elle tout le reste avance à
+l'aveugle — et la mise en ligne le 21 novembre, la marge de deux semaines étant ce qui protège
+la date de bascule. Si un lot glisse, c'est le périmètre du lot qui se réduit, pas la marge.
+
 ## 11. Décisions et points ouverts
 
 **Tranché**

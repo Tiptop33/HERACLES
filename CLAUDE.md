@@ -5,6 +5,22 @@ d'alternance ou de stage sont suivis par des **référents** et des **parrains**
 **loges**. Elle remplace une application Bubble existante (`heracles-42268`), dont le modèle de
 données a été repris.
 
+## ⏳ Échéance : 5 décembre 2026
+
+HERACLES doit être **en ligne et en service le 5 décembre 2026**, en remplacement de
+l'application Bubble. Jalons visés (détail et marges dans le cadrage, § 10) :
+
+| Fin | Lot |
+| --- | --- |
+| août | 2 — reprise des données Bubble |
+| septembre | 3 — la fiche candidat |
+| octobre | 4 — les offres d'emploi |
+| 14 novembre | 5 — la loge et l'administration |
+| 21 novembre | 6 — mise en ligne, puis deux semaines de vérification |
+| **5 décembre** | **bascule depuis Bubble** |
+
+Toute décision qui décale un lot doit être signalée : la date de bascule, elle, ne bouge pas.
+
 ## Langue
 
 **Toutes les réponses sont rédigées en français.** Cela vaut pour les messages de discussion,

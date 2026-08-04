@@ -1,0 +1,13 @@
+{
+  "name": "heracles-outils",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Outils hors application : reprise des données Bubble.",
+  "scripts": {
+    "import": "node import-bubble.mjs"
+  },
+  "dependencies": {
+    "pg": "^8.13.1"
+  }
+}
