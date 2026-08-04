@@ -21,6 +21,13 @@ const TOKEN = process.env.BUBBLE_TOKEN ?? '';
 const LIMITE = process.env.LIMITE ? Number(process.env.LIMITE) : Infinity;
 const DATABASE_URL = process.env.DATABASE_URL;
 
+// L'application a deux bases distinctes : celle de l'application en service
+// (« live ») et celle de l'éditeur (« version-test »). Par défaut on reprend la
+// vraie, celle qui porte les 107 candidats.
+//   BUBBLE_VERSION=version-test  pour lire l'autre.
+const VERSION = process.env.BUBBLE_VERSION ? `/${process.env.BUBBLE_VERSION}` : '';
+const RACINE = `https://${APP}.bubbleapps.io${VERSION}/api/1.1`;
+
 if (!DATABASE_URL) {
   console.error('DATABASE_URL manquante. Exemple :');
   console.error('  DATABASE_URL=postgres://postgres:postgres@localhost:54332/postgres');
@@ -283,7 +290,7 @@ async function* lireType(type) {
   let lus = 0;
 
   while (lus < LIMITE) {
-    const url = `https://${APP}.bubbleapps.io/api/1.1/obj/${type}?limit=100&cursor=${curseur}`;
+    const url = `${RACINE}/obj/${type}?limit=100&cursor=${curseur}`;
     const reponse = await fetch(url, {
       headers: TOKEN ? { Authorization: `Bearer ${TOKEN}` } : {},
     });
@@ -412,6 +419,50 @@ for (const [logeBubble, referentBubble] of liaisons) {
   );
 }
 if (liaisons.length) console.log(`  loge_membre : ${liaisons.length} liens traités`);
+
+// Passe 3 — tout le reste, tel quel
+// L'application compte une quarantaine de types ; sept sont modélisés en tables
+// propres. Les autres sont recopiés en JSON dans bubble_brut : on ne sait pas
+// encore lesquels serviront, mais ce qui n'est pas repris disparaîtra avec
+// l'application.
+const traites = new Set(PLAN.map((e) => e.type));
+let exposes = [];
+
+try {
+  const reponse = await fetch(`${RACINE}/meta`, {
+    headers: TOKEN ? { Authorization: `Bearer ${TOKEN}` } : {},
+  });
+  if (reponse.ok) exposes = (await reponse.json()).get ?? [];
+} catch {
+  // Sans /meta, on se contente des types modélisés.
+}
+
+const restants = exposes.filter((t) => !traites.has(t));
+
+if (restants.length === 0) {
+  console.log('\nAucun autre type exposé par l\'API.');
+} else {
+  console.log(`\nTypes non modélisés, recopiés tels quels (${restants.length}) :`);
+
+  for (const type of restants) {
+    let repris = 0;
+    try {
+      for await (const objet of lireType(type)) {
+        await client.query(
+          `insert into public.bubble_brut (type_bubble, bubble_id, donnees)
+           values ($1, $2, $3)
+           on conflict (type_bubble, bubble_id) do update
+             set donnees = excluded.donnees, recupere_le = now()`,
+          [type, String(objet._id), JSON.stringify(objet)],
+        );
+        repris++;
+      }
+      console.log(`  ${type} : ${repris}`);
+    } catch (erreur) {
+      console.error(`  ! ${type} : ${erreur.message}`);
+    }
+  }
+}
 
 console.log('\nReprise terminée.');
 console.log(
