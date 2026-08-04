@@ -15,8 +15,11 @@ application Bubble, remplies avec les mêmes données.
 | Node 22 ou plus | `node --version` | nodejs.org |
 | Git | `git --version` | git-scm.com |
 
-Docker doit être **démarré** (l'icône baleine dans la barre des tâches). Sans lui, Supabase ne
-peut pas se lancer.
+Docker doit être **démarré** : la baleine apparaît dans la barre de menus (macOS) ou dans la
+barre des tâches (Windows). Sans lui, Supabase ne peut pas se lancer.
+
+> Sur un **Mac Apple Silicon** (puce M1 à M4), prends bien la version *Apple Silicon* de Docker
+> Desktop — celle pour Intel ne fonctionnera pas. Menu  → *À propos de ce Mac* pour vérifier.
 
 ## Étape 1 — Récupérer le projet
 
@@ -94,30 +97,30 @@ cd outils
 npm install
 ```
 
-Puis, en remplaçant `TON-JETON`. **Sous Windows (PowerShell)** — attention, la syntaxe
-`VAR=valeur commande` de Linux **ne fonctionne pas** ici, les variables se posent avant :
+Puis, en remplaçant `TON-JETON`. **Sur macOS ou Linux** :
+
+```bash
+export BUBBLE_TOKEN="TON-JETON"
+export DATABASE_URL="postgresql://postgres:postgres@127.0.0.1:54332/postgres"
+LIMITE=5 node import-bubble.mjs     # essai sur cinq enregistrements par table
+```
+
+Puis, pour tout reprendre — et effacer le jeton en fin de séance :
+
+```bash
+node import-bubble.mjs
+unset BUBBLE_TOKEN
+```
+
+**Sous Windows (PowerShell)**, attention : la syntaxe `VAR=valeur commande` ci-dessus **ne fait
+rien** — les variables doivent être posées avant, et effacées autrement :
 
 ```powershell
 $env:BUBBLE_TOKEN = "TON-JETON"
 $env:DATABASE_URL = "postgresql://postgres:postgres@127.0.0.1:54332/postgres"
-$env:LIMITE = "5"          # essai sur cinq enregistrements par table
+$env:LIMITE = "5"
 node import-bubble.mjs
-```
-
-Puis, pour tout reprendre, et effacer le jeton en fin de séance :
-
-```powershell
-Remove-Item Env:LIMITE
-node import-bubble.mjs
-Remove-Item Env:BUBBLE_TOKEN
-```
-
-**Sous macOS ou Linux**, tout tient sur une ligne :
-
-```bash
-LIMITE=5 BUBBLE_TOKEN=TON-JETON \
-DATABASE_URL="postgresql://postgres:postgres@127.0.0.1:54332/postgres" \
-node import-bubble.mjs
+Remove-Item Env:LIMITE, Env:BUBBLE_TOKEN
 ```
 
 Le script affiche ce qu'il fait :
