@@ -131,14 +131,23 @@ HERACLES/
 > `middleware.ts` a été renommé **`proxy.ts`** : depuis Next.js 16.2 l'ancienne convention est
 > dépréciée, le build le signale.
 
-**À vérifier au premier démarrage local** — la session de développement où tout ceci a été
-écrit n'avait pas de démon Docker, la pile Supabase n'a donc pas pu tourner :
+**La base est éprouvée pour de vrai** — `supabase/tests/executer.sh`, joué contre un
+PostgreSQL 16 nu (harnais qui reconstitue le schéma `auth`, `auth.uid()` et les rôles de
+Supabase). Treize contrôles passent :
+- la migration s'applique sans erreur, et se rejoue sans casser (idempotence) ;
+- un profil naît avec chaque compte, avec le rôle demandé ;
+- demander « admin » à l'inscription ne donne que « chercheur » ; sans métadonnées non plus ;
+- un utilisateur ne lit **que** sa ligne, et n'écrit **que** dans la sienne ;
+- `update … set role = 'admin'` envoyé directement en base reste sans effet ;
+- la clé `service_role`, elle, peut ajuster un rôle (administration) ;
+- supprimer le compte supprime le profil.
+
+**À vérifier au premier démarrage local** — faute de démon Docker dans la session, la pile
+Supabase complète (GoTrue, API, emails) n'a jamais tourné :
 - [ ] `npx supabase start` démarre avec les ports du tableau ;
-- [ ] la migration `0001_profil.sql` s'applique sans erreur ;
-- [ ] une inscription crée bien la ligne `profil` avec le rôle choisi ;
+- [ ] une inscription depuis l'écran crée bien la ligne `profil` ;
 - [ ] l'email de confirmation arrive dans la boîte de test et le lien connecte ;
-- [ ] un utilisateur ne lit pas le profil d'un autre (tâche 2.2, à écrire une fois la pile
-      lancée : elle demande une vraie base).
+- [ ] chaque rôle atterrit dans son espace, et `/mon-compte` enregistre.
 
 ## Ce que le lot 1 ne fait pas
 

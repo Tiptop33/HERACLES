@@ -37,6 +37,17 @@ npm run lint      # ESLint
 npm run build     # construction de production
 ```
 
+Et la base — migrations et règles d'accès — dans une base jetable :
+
+```bash
+PGHOST=localhost PGPORT=54332 PGUSER=postgres ./supabase/tests/executer.sh
+```
+
+Le script joue le harnais (`supabase/tests/harnais.sql`, qui reconstitue le schéma `auth` de
+Supabase), toutes les migrations, puis tous les `*.test.sql`. Il tourne aussi bien contre la
+pile Supabase locale que contre un PostgreSQL nu — pratique pour éprouver la RLS sans lancer
+les dix conteneurs.
+
 ## Ports réservés (isolation stricte)
 
 | Service | Local | Production |
