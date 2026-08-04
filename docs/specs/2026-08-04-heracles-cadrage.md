@@ -1,113 +1,111 @@
 # HERACLES — cadrage
 
 - **Date :** 2026-08-04
-- **Statut :** version 1, à valider (les points ouverts sont listés en fin de document)
-- **Porteur :** architecte D.P.L.G.
+- **Version :** 2 — révisée après le relevé de l'application Bubble existante
+- **Statut :** à valider ; les points ouverts sont listés en fin de document
 - **⚠️ Projet 100 % indépendant d'EKOPLAN / MyCollabus** (aucun code, aucune base, aucun
   conteneur, aucun domaine commun).
+
+> **Ce que cette version 2 change.** La version 1 avait été écrite sans connaître
+> l'application existante : elle décrivait un produit plausible, pas le vôtre. Le relevé du
+> modèle Bubble (voir [`2026-08-04-modele-bubble.md`](2026-08-04-modele-bubble.md)) a corrigé
+> quatre choses — le vocabulaire, l'existence des loges, la place centrale des offres d'emploi,
+> et le fait qu'il y a **deux** rôles d'accompagnement au lieu d'un.
 
 ---
 
 ## 1. À quoi sert HERACLES
 
-HERACLES met en relation des personnes **en recherche** — emploi, alternance, stage — avec des
-**référents** qui les accompagnent : conseils, relecture de candidature, préparation d'entretien,
-aide dans les démarches administratives, mise en contact.
+HERACLES accompagne des personnes en recherche d'emploi, d'alternance ou de stage. Chacune est
+suivie par un **référent** qui la conseille dans la durée, et présentée par un **parrain**. Les
+uns et les autres se rattachent à une **loge**, le groupe local qui organise les réunions et
+tient ses documents.
 
-Le cœur du produit n'est pas l'offre d'emploi : c'est **la relation d'accompagnement**. Une
-personne seule face à ses démarches trouve quelqu'un qui les connaît, et garde ce fil dans la
-durée.
+Le produit n'est pas un site d'annonces : c'est **l'outil de travail d'une association qui
+accompagne des gens**. Les offres d'emploi y servent de matière — on les rapproche des
+candidats — mais la valeur est dans le suivi.
 
-## 2. Les acteurs
+## 2. D'où l'on part
+
+Une application Bubble (`heracles-42268`) tourne déjà et porte de vraies données :
+
+| | |
+| --- | ---: |
+| Candidats suivis | 107 |
+| Comptes (référents et parrains) | 71 |
+| Loges | 3 |
+| Offres d'emploi | 4 539 |
+| Documents | 135 |
+
+HERACLES la remplace. Le modèle de données a été repris à l'identique dans la migration
+`0002_modele_bubble.sql` — la reprise des données viendra ensuite.
+
+## 3. Les acteurs
 
 | Acteur | Ce qu'il fait |
 | --- | --- |
-| **Chercheur** | Crée son profil, dit ce qu'il cherche (emploi / alternance / stage), consulte l'annuaire des référents, demande une mise en relation, échange, suit ses démarches. |
-| **Référent** | Crée son profil (domaines, type d'aide proposée, disponibilité), reçoit les demandes, accepte ou refuse, accompagne les chercheurs qu'il suit. |
-| **Administrateur** | Modère les inscriptions de référents, gère les référentiels (domaines, types de recherche), traite les signalements. |
+| **Candidat** | Tient sa fiche à jour — parcours, compétences, CV, ce qu'il cherche — consulte les offres qu'on lui propose, échange avec son référent. |
+| **Référent** | Suit les candidats qui lui sont rattachés : conseille, relit, rapproche des offres, note l'avancement. |
+| **Parrain** | Présente un candidat et l'introduit. Distinct du référent : un candidat a les deux. |
+| **Loge** | Le groupe local : ses membres, ses réunions, ses documents, sa numérotation de candidats. |
+| **Administrateur** | Gère les loges, les comptes, les nomenclatures et les modèles d'emails. |
 
-> **Vocabulaire** — « chercheur » et « référent » sont les termes retenus dans tout le produit
-> (code, base, interface). *Tranché le 2026-08-04.*
+## 4. Vocabulaire
 
-> **Pas d'organisme en v1** — un référent est **une personne**. Sa structure de rattachement
-> (mission locale, école, entreprise) n'est qu'un champ de son profil : ni table dédiée, ni
-> compte d'organisme, ni tableau de bord d'équipe. Le modèle reste ouvert : on pourra ajouter
-> les organismes plus tard sans refaire l'existant. *Tranché le 2026-08-04.*
+**candidat**, **référent**, **parrain**, **loge**, **offre**. Ces mots viennent de
+l'application existante et s'emploient partout à l'identique — interface, code, tables,
+colonnes. La version 1 disait « chercheur » : ce mot est abandonné.
 
-## 3. Les parcours
+## 5. Périmètre
 
-**Chercheur**
-1. Inscription (email + mot de passe, confirmation par email) → choisit « je cherche ».
-2. Remplit son profil : identité, ville, situation actuelle, niveau d'études.
-3. Décrit sa recherche : type (emploi / alternance / stage), domaine, métier visé, zone
-   géographique, disponibilité.
-4. Parcourt l'annuaire des référents, filtre par domaine et par zone.
-5. Envoie une demande de mise en relation, avec un mot d'explication.
-6. Une fois la demande acceptée : échange avec son référent, dépose son CV, suit ses démarches.
+**Ce que HERACLES doit savoir faire**
+- Comptes et connexion, avec les rôles candidat / référent / parrain / administrateur.
+- La fiche candidat complète : identité, parcours, compétences, permis, mobilité, documents.
+- Le rattachement candidat ↔ référent ↔ parrain ↔ loge.
+- Les offres d'emploi : réception depuis France Travail, recherche, rapprochement avec un
+  candidat.
+- Les documents d'une loge et ceux d'un candidat (CV, lettre, CV anonyme).
+- Les réglages de l'association et les modèles d'emails.
+- Une administration : loges, comptes, nomenclatures.
 
-**Référent**
-1. Inscription → choisit « j'accompagne ».
-2. Remplit son profil : structure ou bénévole, domaines d'expertise, types d'accompagnement,
-   nombre de personnes qu'il peut suivre.
-3. Reçoit les demandes, les accepte ou les refuse (avec un motif).
-4. Suit ses chercheurs : liste, échanges, points d'avancement.
-
-## 4. Périmètre
-
-**Dans la version 1 (lots 1 à 3)**
-- Comptes et authentification, avec les deux profils chercheur / référent.
-- Profils complets et modifiables, photo comprise.
-- Annuaire des référents, recherche et filtres.
-- Demande de mise en relation : envoi, acceptation, refus, clôture.
-- Messagerie simple à l'intérieur d'une relation.
-- Dépôt de documents (CV, lettre de motivation) visibles du seul référent accepté.
-- Espace d'administration minimal : modération des référents, référentiels.
-
-**Hors périmètre pour l'instant** (à rouvrir plus tard si besoin)
-- Publication d'offres d'emploi et candidature en ligne.
-- Appariement automatique chercheur ↔ référent (la v1 laisse le chercheur choisir).
-- Visioconférence intégrée, agenda synchronisé.
-- Application mobile native (le web est responsive).
+**Hors périmètre pour l'instant**
+- Candidature en ligne directement depuis HERACLES.
+- Appariement automatique candidat ↔ offre (le rapprochement reste humain).
+- Application mobile native — le web est responsive.
 - Paiement, abonnement.
 
-## 5. Modèle de données initial
+## 6. Modèle de données
 
-Sur Supabase : `auth.users` porte l'authentification, tout le reste vit dans `public`.
+Huit tables, reprises de Bubble : `candidat`, `referent`, `loge`, `loge_membre`, `entreprise`,
+`offre_emploi`, `document`, `parametre` — plus `profil`, qui porte l'identité des comptes
+HERACLES. Le détail champ par champ est dans
+[`2026-08-04-modele-bubble.md`](2026-08-04-modele-bubble.md).
 
-| Table | Contenu |
-| --- | --- |
-| `profil` | 1-1 avec `auth.users` : nom, prénom, téléphone, ville, code postal, photo, présentation, **rôle** (`chercheur` \| `referent` \| `admin`). |
-| `recherche` | Ce que cherche un chercheur : type (`emploi` \| `alternance` \| `stage`), domaine, métier visé, niveau d'études, zone, disponibilité, description. Un chercheur peut en avoir plusieurs. |
-| `referent_profil` | Complément du profil référent : structure, statut (bénévole / professionnel), domaines, types d'accompagnement, capacité, **validé** (modération). |
-| `relation` | La mise en relation : `chercheur_id`, `referent_id`, `statut` (`en_attente` \| `acceptee` \| `refusee` \| `close`), message d'accroche, motif de refus, dates. |
-| `message` | Échanges dans une relation : `relation_id`, auteur, texte, date, lu. |
-| `document` | Fichiers du chercheur (CV, lettre) dans Supabase Storage : propriétaire, type, nom, chemin. |
-| `domaine` | Référentiel des domaines / secteurs (seed). |
+**Ce qui manque encore** : une dizaine de types référencés par des champs mais non exposés par
+l'API Bubble (`PROVINCE`, `LOGES`, secteurs d'activité, métiers, codes NAF, tâches…), et les
+valeurs d'une quinzaine de listes de choix. Il faut la liste complète des types de données
+depuis l'éditeur pour finir.
 
-**Règles d'accès (RLS)** — toutes les tables portent `enable row level security` :
-- un chercheur ne voit que ses propres données ;
-- un référent ne voit un chercheur **que si une `relation` acceptée les lie** ;
-- les documents suivent la même règle que la relation ;
-- l'annuaire des référents n'expose que les profils `validé = true`, et seulement les champs
-  publics ;
-- l'administrateur passe par des routes serveur qui vérifient son rôle avant tout accès élargi.
+**Règles d'accès** — toutes les tables sont sous RLS, fermées par défaut :
+- un candidat ne voit que sa fiche ;
+- un référent ne voit que les candidats qui lui sont rattachés ;
+- un parrain, que ceux qu'il parraine ;
+- les documents suivent la règle de ce à quoi ils se rattachent ;
+- offres et réglages sont lisibles par toute personne connectée — ils ne concernent personne ;
+- l'administrateur passe par des routes serveur qui vérifient son rôle avant tout élargissement.
 
-## 6. Stack technique
-
-Identique dans ses principes à MyCollabus — c'est éprouvé — mais **déployée séparément** :
+## 7. Stack technique
 
 | Brique | Choix |
 | --- | --- |
-| Base + auth + API + stockage | **Supabase auto-hébergé** en Docker (PostgreSQL, GoTrue, PostgREST, Storage, Kong) |
+| Base, auth, API, stockage | **Supabase auto-hébergé** en Docker (PostgreSQL, GoTrue, PostgREST, Storage, Kong) |
 | Application web | **Next.js** (App Router, TypeScript), responsive, conteneurisée |
-| Accès aux données | `@supabase/ssr` côté serveur (RLS appliquée), routes API serveur pour les cas privilégiés |
-| Emails | Mailpit en local, SMTP transactionnel en production |
-| Hébergement | VPS, Docker Compose, Nginx en reverse-proxy, HTTPS Let's Encrypt |
-| Tests | Vitest pour la logique, vérification par déploiement pour l'infra |
+| Accès aux données | `@supabase/ssr` côté serveur, RLS appliquée ; routes API serveur pour les cas privilégiés |
+| Emails | boîte de test en local, SMTP transactionnel en production |
+| Hébergement | VPS, Docker Compose, Nginx, HTTPS Let's Encrypt |
+| Tests | Vitest pour la logique, scripts SQL pour la base et la RLS |
 
-## 7. Isolation vis-à-vis de MyCollabus — non négociable
-
-Les deux projets peuvent cohabiter sur le même VPS : rien ne doit se croiser.
+## 8. Isolation vis-à-vis de MyCollabus — non négociable
 
 | | MyCollabus | **HERACLES** |
 | --- | --- | --- |
@@ -116,68 +114,60 @@ Les deux projets peuvent cohabiter sur le même VPS : rien ne doit se croiser.
 | Conteneurs Supabase | `supabase-db`, `supabase-kong`… | préfixés `heracles-` (**obligatoire** : sinon collision de noms) |
 | Dossier de la stack | `/opt/supabase` | `/opt/supabase-heracles` |
 | API Supabase (Kong) | `127.0.0.1:8000` | `127.0.0.1:8100` |
-| PostgreSQL | `5432` / `5442` | `5443` |
+| PostgreSQL | `5432` / `5442` | `5443` (local : `54332`) |
 | Application web | `3001` | `3002` |
-| Mailpit (local) | `8026` / `1026` | `8027` / `1027` |
 | Base de données | `mycollabus` | `heracles` |
-| Domaine | `mycollabus.fr` | à définir (point ouvert n° 6) |
-| Volumes Docker | ceux de `mycollabus-*` | jamais réutilisés |
+| Domaine | `mycollabus.fr` | à définir (point ouvert n° 4) |
 
-Aucune donnée, aucun compte, aucun fichier ne transite d'un projet à l'autre.
+## 9. Données personnelles
 
-## 8. Données personnelles
+HERACLES manipule des parcours, des coordonnées, des CV, et le rattachement de personnes
+nommées à une organisation. C'est la catégorie de données la plus sensible qui soit.
 
-Le produit manipule des données de personnes en recherche d'emploi : identité, coordonnées,
-parcours, CV. À traiter dès la conception, pas après :
-- consentement explicite à l'inscription, et information claire sur ce qui est visible par qui ;
-- un référent ne voit un dossier **qu'après acceptation de la relation** — jamais avant ;
-- suppression du compte possible, avec effacement des documents ;
-- durée de conservation à fixer (point ouvert n° 7) ;
-- secrets hors du dépôt (`.env`), clés `service_role` jamais exposées au client.
+- **Fermé par défaut** : aucune table de données personnelles n'est lisible tant qu'un écran
+  n'a pas justifié sa policy.
+- Un référent ne voit un dossier **que s'il lui est rattaché**.
+- Consentement explicite à l'inscription, information claire sur qui voit quoi.
+- Suppression du compte possible, documents compris.
+- Durée de conservation d'un dossier inactif à fixer (point ouvert n° 5).
+- Secrets hors du dépôt, clé `service_role` jamais exposée au client.
 
-## 9. Conventions de développement
+> **Constat du 2026-08-04.** Au moment du relevé, l'API Data de l'application Bubble répondait
+> à tout Internet sans jeton : les 107 fiches candidats et les 71 comptes étaient publics. Le
+> correctif a été transmis. C'est la raison pour laquelle HERACLES est fermé par défaut, et non
+> ouvert puis restreint.
 
-- **Langue :** prose, documentation, commentaires et messages de commit en français ; le code,
-  les chemins et les commandes restent universels.
-- **Migrations :** `apps/supabase/migrations/NNNN_nom.sql`, numérotées sur 4 chiffres,
-  idempotentes, RLS incluse.
-- **Routes API :** session vérifiée d'abord, client RLS par défaut, `service_role` seulement
-  après contrôle d'accès explicite.
-- **Commits :** un commit par étape terminée, message qui dit ce que ça change pour l'usager.
-
-## 10. Découpage en lots (esquisse)
+## 10. Découpage en lots
 
 | Lot | Contenu | Résultat visible |
 | --- | --- | --- |
-| **1 — Fondations** | Infra Docker isolée, Supabase, squelette Next.js, inscription / connexion, choix du rôle, profil de base | Deux personnes peuvent créer un compte, chacune avec son rôle, et se connecter |
-| **2 — Rencontre** | Profils complets, annuaire des référents, filtres, demande de mise en relation, acceptation / refus | Un chercheur trouve un référent et obtient un accompagnement |
-| **3 — Accompagnement** | Messagerie, documents (CV), suivi des démarches, tableau de bord des deux côtés | La relation vit dans la durée |
-| **4 — Exploitation** | Administration, modération, statistiques, mise en ligne HTTPS | Le service tourne pour de vrai |
+| **1 — Fondations** ✅ | Infra isolée, comptes, connexion, profil | Deux personnes créent un compte et se connectent |
+| **2 — Reprise** | Import des données Bubble, résolution des liens, contrôle de complétude | Les 107 candidats et les 71 comptes vivent dans HERACLES |
+| **3 — La fiche candidat** | Consultation et modification, documents, RLS candidat / référent / parrain | Un référent travaille vraiment sur ses candidats |
+| **4 — Les offres** | Réception France Travail, recherche, rapprochement avec un candidat | Un référent propose une offre à un candidat |
+| **5 — La loge** | Membres, réunions, documents, administration, modèles d'emails | L'association pilote son activité |
+| **6 — Mise en ligne** | HTTPS, sauvegardes, durcissement, bascule depuis Bubble | Le service tourne pour de vrai |
+
+L'ordre des lots 3 et 4 se discute : il dépend de ce qui te fait le plus gagner de temps.
 
 ## 11. Décisions et points ouverts
 
-**Tranché le 2026-08-04**
+**Tranché**
+1. Vocabulaire : candidat, référent, parrain, loge, offre — repris de l'application existante
+   (2026-08-04, version 2).
+2. Les loges sont modélisées : ce sont des acteurs, pas un champ de profil.
+3. Les offres d'emploi sont dans le périmètre.
+4. Fermé par défaut : RLS sans policy tant qu'un écran ne la justifie pas.
 
-1. **Vocabulaire** — « chercheur » pour la personne accompagnée, « référent » pour celle qui
-   accompagne. Ces mots valent partout : interface, code, base.
-2. **Qui peut être référent** — bénévoles **et** professionnels, sans distinction de statut à
-   l'inscription. Mais un profil de référent **n'apparaît dans l'annuaire qu'après validation
-   par un administrateur** (`referent_profil.valide`). C'est la contrepartie de l'ouverture aux
-   bénévoles : le public accompagné est vulnérable, on ne laisse pas n'importe qui se présenter
-   comme référent. L'écran de modération arrive au lot 2, en même temps que l'annuaire.
-3. **Pas d'organisme** en v1 : le référent est une personne, sa structure est un champ de son
-   profil (voir § 2).
+**Ouvert**
+1. **Parrain et référent** — un candidat peut-il en avoir plusieurs de chaque ? Un référent
+   a-t-il un plafond de candidats suivis ?
+2. **Qui rattache** — le référent est-il désigné par la loge, par un administrateur, ou le
+   candidat le choisit-il ?
+3. **Les comptes candidats** — dans Bubble, les 107 candidats ne semblent pas avoir de compte
+   de connexion : les fiches sont tenues par les référents. Les candidats doivent-ils pouvoir
+   se connecter dans HERACLES, ou reste-t-on sur des fiches tenues par les référents ?
+4. **Nom de domaine** — lequel pour la mise en ligne ? Nécessaire au lot 6.
+5. **Conservation** — combien de temps garde-t-on un dossier de candidat inactif ?
 
-**Encore ouvert**
-
-4. **Combien de relations** — un chercheur peut-il être suivi par plusieurs référents en même
-   temps ? Un référent a-t-il un plafond de personnes suivies ? *Sans réponse, la v1 autorise
-   plusieurs relations simultanées et le référent déclare lui-même sa capacité, sans blocage
-   automatique.* À trancher au lot 2.
-5. **Qui choisit** — hypothèse retenue : le chercheur choisit son référent dans l'annuaire.
-   Reste à confirmer si un administrateur doit aussi pouvoir affecter directement. Lot 2.
-6. **Nom de domaine** — lequel pour la mise en ligne ? Nécessaire au lot 4, pas avant.
-7. **Conservation des données** — combien de temps garde-t-on un dossier inactif ? À fixer
-   avant la mise en ligne (lot 4).
-
-Aucun de ces quatre points ne bloque le lot 1.
+Le point n° 3 est le plus structurant : il décide de la moitié des écrans.
