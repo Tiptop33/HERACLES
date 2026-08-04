@@ -27,7 +27,12 @@ durée.
 | **Administrateur** | Modère les inscriptions de référents, gère les référentiels (domaines, types de recherche), traite les signalements. |
 
 > **Vocabulaire** — « chercheur » et « référent » sont les termes retenus dans tout le produit
-> (code, base, interface). À confirmer : voir point ouvert n° 1.
+> (code, base, interface). *Tranché le 2026-08-04.*
+
+> **Pas d'organisme en v1** — un référent est **une personne**. Sa structure de rattachement
+> (mission locale, école, entreprise) n'est qu'un champ de son profil : ni table dédiée, ni
+> compte d'organisme, ni tableau de bord d'équipe. Le modèle reste ouvert : on pourra ajouter
+> les organismes plus tard sans refaire l'existant. *Tranché le 2026-08-04.*
 
 ## 3. Les parcours
 
@@ -149,17 +154,30 @@ parcours, CV. À traiter dès la conception, pas après :
 | **3 — Accompagnement** | Messagerie, documents (CV), suivi des démarches, tableau de bord des deux côtés | La relation vit dans la durée |
 | **4 — Exploitation** | Administration, modération, statistiques, mise en ligne HTTPS | Le service tourne pour de vrai |
 
-## 11. Points à trancher
+## 11. Décisions et points ouverts
 
-1. **Vocabulaire** — « chercheur » convient-il en interface, ou préfères-tu « candidat »,
-   « accompagné », autre chose ?
-2. **Qui sont les référents** — bénévoles, professionnels d'une structure (mission locale,
-   école, entreprise), ou les deux ? Faut-il les valider avant publication ?
-3. **La structure est-elle un acteur** — faut-il modéliser les organismes (mission locale,
-   école, entreprise) en plus des personnes, avec plusieurs référents rattachés ?
+**Tranché le 2026-08-04**
+
+1. **Vocabulaire** — « chercheur » pour la personne accompagnée, « référent » pour celle qui
+   accompagne. Ces mots valent partout : interface, code, base.
+2. **Qui peut être référent** — bénévoles **et** professionnels, sans distinction de statut à
+   l'inscription. Mais un profil de référent **n'apparaît dans l'annuaire qu'après validation
+   par un administrateur** (`referent_profil.valide`). C'est la contrepartie de l'ouverture aux
+   bénévoles : le public accompagné est vulnérable, on ne laisse pas n'importe qui se présenter
+   comme référent. L'écran de modération arrive au lot 2, en même temps que l'annuaire.
+3. **Pas d'organisme** en v1 : le référent est une personne, sa structure est un champ de son
+   profil (voir § 2).
+
+**Encore ouvert**
+
 4. **Combien de relations** — un chercheur peut-il être suivi par plusieurs référents en même
-   temps ? Un référent a-t-il un plafond de personnes suivies ?
-5. **Qui choisit** — le chercheur choisit son référent dans l'annuaire (hypothèse retenue), ou
-   bien un administrateur affecte, ou le système propose ?
-6. **Nom de domaine** — lequel pour la mise en ligne ?
-7. **Conservation des données** — combien de temps garde-t-on un dossier inactif ?
+   temps ? Un référent a-t-il un plafond de personnes suivies ? *Sans réponse, la v1 autorise
+   plusieurs relations simultanées et le référent déclare lui-même sa capacité, sans blocage
+   automatique.* À trancher au lot 2.
+5. **Qui choisit** — hypothèse retenue : le chercheur choisit son référent dans l'annuaire.
+   Reste à confirmer si un administrateur doit aussi pouvoir affecter directement. Lot 2.
+6. **Nom de domaine** — lequel pour la mise en ligne ? Nécessaire au lot 4, pas avant.
+7. **Conservation des données** — combien de temps garde-t-on un dossier inactif ? À fixer
+   avant la mise en ligne (lot 4).
+
+Aucun de ces quatre points ne bloque le lot 1.
