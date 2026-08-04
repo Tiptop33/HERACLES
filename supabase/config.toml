@@ -29,6 +29,15 @@ port = 54334
 enabled = true
 file_size_limit = "50MiB"
 
+# Journaux (Logflare). Désactivés : ils ne servent qu'à l'onglet « Logs » du
+# Studio, coûtent un conteneur de plus, et leur port par défaut — 54327, non
+# déclaré dans les sections ci-dessus — entrait en conflit avec une autre pile
+# Supabase de la machine. Le port est fixé malgré tout : si on les réactive un
+# jour, ce sera sans marcher sur les plates-bandes d'un autre projet.
+[analytics]
+enabled = false
+port = 54337
+
 [auth]
 enabled = true
 site_url = "http://localhost:3002"
