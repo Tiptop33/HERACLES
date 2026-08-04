@@ -94,15 +94,25 @@ cd outils
 npm install
 ```
 
-Puis, en remplaçant `TON-JETON` :
+Puis, en remplaçant `TON-JETON`. **Sous Windows (PowerShell)** — attention, la syntaxe
+`VAR=valeur commande` de Linux **ne fonctionne pas** ici, les variables se posent avant :
 
-```bash
-BUBBLE_TOKEN=TON-JETON \
-DATABASE_URL="postgresql://postgres:postgres@127.0.0.1:54332/postgres" \
+```powershell
+$env:BUBBLE_TOKEN = "TON-JETON"
+$env:DATABASE_URL = "postgresql://postgres:postgres@127.0.0.1:54332/postgres"
+$env:LIMITE = "5"          # essai sur cinq enregistrements par table
 node import-bubble.mjs
 ```
 
-**Essaie d'abord sur cinq enregistrements par table**, pour voir que tout se passe bien :
+Puis, pour tout reprendre, et effacer le jeton en fin de séance :
+
+```powershell
+Remove-Item Env:LIMITE
+node import-bubble.mjs
+Remove-Item Env:BUBBLE_TOKEN
+```
+
+**Sous macOS ou Linux**, tout tient sur une ligne :
 
 ```bash
 LIMITE=5 BUBBLE_TOKEN=TON-JETON \
@@ -177,5 +187,6 @@ auras exposés à l'étape 4, dis-le moi et j'ajoute les tables correspondantes.
 | `port is already allocated` | Un autre projet occupe un port. Les nôtres sont 54331-54334 et 3002 ; vérifie qu'aucune autre pile Supabase ne tourne. |
 | `HTTP 401` ou `403` à l'import | Jeton absent, mal copié, ou type non exposé (étape 4). |
 | `HTTP 400 invalid appname` | Le nom de l'application est faux. Il se lit dans l'URL de l'éditeur Bubble. |
-| `DATABASE_URL manquante` | La commande a été coupée : les trois lignes forment **une seule** commande, garde les `\` en fin de ligne. |
+| `DATABASE_URL manquante` | Sous PowerShell, la ligne `$env:DATABASE_URL = "…"` n'a pas été validée : recolle-la seule, puis Entrée. Sous macOS/Linux, les trois lignes forment **une seule** commande — garde les `\` en fin de ligne. |
+| `ECONNREFUSED` à l'import | Supabase est arrêté. Reviens dans le dossier `HERACLES` et refais `npx supabase start`. |
 | `relation "candidat" does not exist` | Les migrations n'ont pas tourné. Reprends l'étape 2. |
