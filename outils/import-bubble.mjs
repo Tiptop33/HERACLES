@@ -28,6 +28,12 @@ const DATABASE_URL = process.env.DATABASE_URL;
 const VERSION = process.env.BUBBLE_VERSION ? `/${process.env.BUBBLE_VERSION}` : '';
 const RACINE = `https://${APP}.bubbleapps.io${VERSION}/api/1.1`;
 
+// SEULEMENT_BRUT=1 : ne reprendre que les types non modélisés, sans toucher aux
+// sept tables déjà remplies. Sert quand les deux bases de Bubble ne sont pas au
+// même niveau — on prend les tables métier dans la base en service, et les
+// référentiels dans celle de l'éditeur, sans que la seconde écrase la première.
+const SEULEMENT_BRUT = process.env.SEULEMENT_BRUT === '1';
+
 if (!DATABASE_URL) {
   console.error('DATABASE_URL manquante. Exemple :');
   console.error('  DATABASE_URL=postgres://postgres:postgres@localhost:54332/postgres');
@@ -361,7 +367,7 @@ const liaisons = [];
 const compteurs = {};
 
 // Passe 1 — les lignes
-for (const etape of PLAN) {
+for (const etape of SEULEMENT_BRUT ? [] : PLAN) {
   let repris = 0;
   let erreurs = 0;
 
@@ -387,8 +393,8 @@ for (const etape of PLAN) {
 }
 
 // Passe 2 — les rattachements
-console.log('\nRattachements :');
-for (const [table, colonneBubble, cible, colonneId] of LIENS) {
+if (!SEULEMENT_BRUT) console.log('\nRattachements :');
+for (const [table, colonneBubble, cible, colonneId] of SEULEMENT_BRUT ? [] : LIENS) {
   const { rowCount } = await client.query(
     `update public.${table} t
         set ${colonneId} = c.id
