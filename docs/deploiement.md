@@ -24,6 +24,50 @@ Deux noms sont supposés dans tout ce document — à remplacer partout :
 | `heracles.example.fr` | l'application web |
 | `api.heracles.example.fr` | l'API Supabase |
 
+
+## L'instance d'essai — à faire avant la vraie
+
+Avant d'approcher les 107 dossiers réels, il vaut mieux voir l'application
+vivre en conditions réelles : vrai HTTPS, vrais emails, vrais navigateurs, sur
+une base vide. Une seule commande la monte :
+
+```bash
+sudo ./infra/essai/deployer.sh essai.mondomaine.fr api-essai.mondomaine.fr
+```
+
+Elle clone la pile officielle, **fabrique les secrets sur place** — y compris
+les deux JWT `anon` et `service_role`, signés localement plutôt que par un
+générateur en ligne —, joue les migrations, construit l'application, écrit la
+configuration Nginx, et vous dit ce qu'il reste à faire à la main : le
+certificat et le premier administrateur.
+
+Elle est rejouable : relancée, elle complète ce qui manque sans rien casser, et
+ne régénère jamais des secrets déjà posés.
+
+**Elle s'arrête si `SMTP_HOST` est vide.** C'est délibéré : sans email, aucune
+invitation ne part, donc personne ne peut entrer — l'instance serait inutile.
+
+### Rien ne se croise
+
+| | Essai | Production | MyCollabus |
+| --- | --- | --- | --- |
+| Dossier | `/opt/supabase-heracles-essai` | `/opt/supabase-heracles` | `/opt/supabase` |
+| Projet Docker | `heracles-essai` | `heracles-supabase` | `mycollabus-prod` |
+| Conteneurs | `heracles-essai-*` | `heracles-*` | `supabase-*` |
+| Kong | `127.0.0.1:8101` | `127.0.0.1:8100` | `127.0.0.1:8000` |
+| Application | `127.0.0.1:3003` | `127.0.0.1:3002` | `127.0.0.1:3001` |
+| Base | `heracles_essai` | `heracles` | `mycollabus` |
+
+Ce cloisonnement a été éprouvé : la même surcharge, avec deux jeux de
+variables, produit deux piles qui ne partagent ni un nom de conteneur ni un
+port. Le seul port publié, dans les deux cas, est celui de Kong — et toujours
+sur `127.0.0.1`, jamais sur l'adresse publique.
+
+### Quand l'essai a fait son office
+
+`docker compose -p heracles-essai down -v` la démonte, volumes compris. Ne le
+faites qu'une fois la production en place et vérifiée.
+
 ## 0. Ce qui est réservé à HERACLES
 
 Rien ici ne doit croiser MyCollabus. Ces valeurs viennent du cadrage, § 8.

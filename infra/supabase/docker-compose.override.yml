@@ -1,22 +1,21 @@
 # Surcharge de la pile Supabase officielle, pour HERACLES.
 #
 # On ne recopie pas le `docker-compose.yml` de Supabase : il change à chaque
-# version, et une copie divergerait en silence. On le cloner tel quel, et ce
+# version, et une copie divergerait en silence. On le clone tel quel, et ce
 # fichier vient par-dessus imposer ce qui doit être propre à HERACLES.
 #
-#   cd /opt/supabase-heracles
-#   git clone --depth 1 https://github.com/supabase/supabase tmp
-#   cp -r tmp/docker/* . && rm -rf tmp
-#   cp /chemin/vers/HERACLES/infra/supabase/docker-compose.override.yml .
-#   cp /chemin/vers/HERACLES/infra/supabase/.env.example .env   # puis le renseigner
-#   docker compose -p heracles-supabase up -d
+# Deux variables, lues dans le `.env` du même dossier, permettent au même
+# fichier de servir la production et l'instance d'essai sur un seul VPS :
 #
-# Ce que cette surcharge garantit — et c'est la raison d'être du fichier :
+#   HERACLES_PREFIXE    heracles        (essai : heracles-essai)
+#   HERACLES_KONG_PORT  8100            (essai : 8101)
 #
-#   * chaque conteneur porte le préfixe `heracles-`, donc aucun ne peut se
-#     confondre avec ceux de MyCollabus sur le même VPS ;
-#   * Kong écoute sur 127.0.0.1:8100 et **jamais** sur l'adresse publique :
-#     c'est Nginx qui expose, en HTTPS, et lui seul ;
+# Ce que cette surcharge garantit — et c'est sa raison d'être :
+#
+#   * chaque conteneur porte le préfixe, donc aucun ne peut se confondre avec
+#     ceux de MyCollabus, ni l'essai avec la production ;
+#   * Kong écoute sur 127.0.0.1 et **jamais** sur l'adresse publique : c'est
+#     Nginx qui expose, en HTTPS, et lui seul ;
 #   * PostgreSQL n'est pas publié du tout — on l'atteint par le réseau Docker,
 #     ou par un tunnel SSH le temps d'une migration ;
 #   * Studio n'est pas publié non plus. Un panneau d'administration ouvert sur
@@ -24,48 +23,48 @@
 
 services:
   db:
-    container_name: heracles-db
+    container_name: ${HERACLES_PREFIXE:-heracles}-db
     # Aucun `ports:` — volontairement. La base ne sort pas du réseau Docker.
     ports: !override []
 
   kong:
-    container_name: heracles-kong
+    container_name: ${HERACLES_PREFIXE:-heracles}-kong
     ports: !override
-      - "127.0.0.1:8100:8000/tcp"
+      - "127.0.0.1:${HERACLES_KONG_PORT:-8100}:8000/tcp"
 
   auth:
-    container_name: heracles-auth
+    container_name: ${HERACLES_PREFIXE:-heracles}-auth
 
   rest:
-    container_name: heracles-rest
+    container_name: ${HERACLES_PREFIXE:-heracles}-rest
 
   realtime:
-    container_name: heracles-realtime
+    container_name: ${HERACLES_PREFIXE:-heracles}-realtime
 
   storage:
-    container_name: heracles-storage
+    container_name: ${HERACLES_PREFIXE:-heracles}-storage
 
   imgproxy:
-    container_name: heracles-imgproxy
+    container_name: ${HERACLES_PREFIXE:-heracles}-imgproxy
 
   meta:
-    container_name: heracles-meta
+    container_name: ${HERACLES_PREFIXE:-heracles}-meta
 
   functions:
-    container_name: heracles-functions
+    container_name: ${HERACLES_PREFIXE:-heracles}-functions
 
   analytics:
-    container_name: heracles-analytics
+    container_name: ${HERACLES_PREFIXE:-heracles}-analytics
 
   vector:
-    container_name: heracles-vector
+    container_name: ${HERACLES_PREFIXE:-heracles}-vector
 
   supavisor:
-    container_name: heracles-supavisor
+    container_name: ${HERACLES_PREFIXE:-heracles}-supavisor
     ports: !override []
 
   studio:
-    container_name: heracles-studio
+    container_name: ${HERACLES_PREFIXE:-heracles}-studio
     # Studio ne s'expose pas. Pour y accéder depuis votre machine :
     #   ssh -L 3010:127.0.0.1:3000 <vps>
     ports: !override []
