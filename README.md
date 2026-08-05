@@ -44,6 +44,31 @@ cd apps/web && npm install && npm run dev
 `npx supabase start` affiche l'`API URL` et l'`anon key` : ce sont les valeurs à recopier dans
 `.env` (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`).
 
+## Essayer l'espace référent
+
+Un jeu de personnes inventées, à poser sur la base locale — jamais sur la vraie :
+
+```bash
+PGPASSWORD=postgres psql -h 127.0.0.1 -p 54332 -U postgres -d postgres \
+  -f supabase/demo/jeu-d-essai.sql
+```
+
+Puis créez un compte sur http://localhost:3002/inscription en choisissant **« accompagner des
+personnes en recherche »**, avec l'une de ces trois adresses :
+
+| Adresse | Ce qu'elle donne à voir |
+| --- | --- |
+| `bernard@example.org` | la loge de Bordeaux, 5 candidats — un à contacter, un clôturé |
+| `claire@example.org` | la loge de Toulouse, 2 autres candidats |
+| `michel@example.org` | seulement les 2 candidats qu'il parraine, dans deux loges différentes |
+
+L'email de confirmation arrive dans la boîte de test : http://localhost:54334. L'adresse suffit à
+rattacher le compte à sa fiche de référent — c'est ce que fait la migration `0006`.
+
+**Pour éprouver l'isolation vous-même** : connectez-vous avec Bernard, copiez l'adresse d'une de
+ses fiches, déconnectez-vous, reconnectez-vous avec Claire et collez cette adresse. Vous obtenez
+une page introuvable. Ce n'est pas la page qui refuse — c'est la base qui ne renvoie rien.
+
 ## Vérifier
 
 ```bash
