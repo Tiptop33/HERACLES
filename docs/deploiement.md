@@ -63,6 +63,50 @@ variables, produit deux piles qui ne partagent ni un nom de conteneur ni un
 port. Le seul port publié, dans les deux cas, est celui de Kong — et toujours
 sur `127.0.0.1`, jamais sur l'adresse publique.
 
+
+### Déployer sans toucher au serveur
+
+Une fois l'installation initiale faite, les mises à jour passent par GitHub
+Actions : [`.github/workflows/deployer-essai.yml`](../.github/workflows/deployer-essai.yml).
+
+Le workflow **ne déploie rien qui n'ait passé** lint, tests unitaires,
+construction, et toute la suite SQL — contrôles de RLS compris. Une règle
+d'accès cassée n'atteint pas le serveur.
+
+Quatre secrets à créer une fois, dans *Réglages → Secrets and variables →
+Actions* :
+
+| Secret | Ce que c'est |
+| --- | --- |
+| `VPS_HOTE` | l'adresse du serveur |
+| `VPS_UTILISATEUR` | un compte dédié au déploiement — surtout pas `root` |
+| `VPS_CLE_SSH` | la clé privée de ce compte, et de lui seul |
+| `VPS_EMPREINTE` | la ligne `known_hosts`, obtenue par `ssh-keyscan <hote>` |
+
+`VPS_EMPREINTE` n'est pas un détail : sans elle, la première connexion accepte
+n'importe quel serveur qui répond à ce nom.
+
+Le compte de déploiement doit pouvoir lancer une seule commande en `sudo` —
+`mettre-a-jour.sh` — et rien d'autre. Dans `visudo` :
+
+```
+deploiement ALL=(root) NOPASSWD: /opt/heracles-essai-depot/infra/essai/mettre-a-jour.sh
+```
+
+Si cette clé fuit, elle ne donne pas le serveur : elle donne le droit de
+redéployer HERACLES.
+
+Le même script se lance à la main le jour où le workflow ne suffit pas :
+
+```bash
+sudo /opt/heracles-essai-depot/infra/essai/mettre-a-jour.sh
+```
+
+Il rejoue toutes les migrations — elles sont idempotentes par construction —
+puis reconstruit l'application, et **s'arrête avant de reconstruire** si une
+migration échoue : l'instance continue alors de tourner sur l'ancienne version
+plutôt que sur une base à moitié migrée.
+
 ### Quand l'essai a fait son office
 
 `docker compose -p heracles-essai down -v` la démonte, volumes compris. Ne le
