@@ -143,7 +143,7 @@ nommées à une organisation. C'est la catégorie de données la plus sensible q
 | --- | --- | --- |
 | **1 — Fondations** ✅ | Infra isolée, comptes, connexion, profil | Deux personnes créent un compte et se connectent |
 | **2 — Reprise** ✅ | Import des données Bubble, résolution des liens, contrôle de complétude | Les 107 candidats et les 71 comptes vivent dans HERACLES — fait le 2026-08-04, [relevé](../reprise-bubble-releve.md) |
-| **3 — La fiche candidat** | Consultation et modification, documents, RLS candidat / référent / parrain | Un référent travaille vraiment sur ses candidats |
+| **3 — L'espace référent** | Liste de ses candidats, fiche complète en consultation et modification, documents, RLS référent / parrain | Un référent travaille vraiment sur ses candidats |
 | **4 — Les offres** | Réception France Travail, recherche, rapprochement avec un candidat | Un référent propose une offre à un candidat |
 | **5 — La loge** | Membres, réunions, documents, administration, modèles d'emails | L'association pilote son activité |
 | **6 — Mise en ligne** | HTTPS, sauvegardes, durcissement, bascule depuis Bubble | Le service tourne pour de vrai |
@@ -182,10 +182,17 @@ la date de bascule. Si un lot glisse, c'est le périmètre du lot qui se réduit
    a-t-il un plafond de candidats suivis ?
 2. **Qui rattache** — le référent est-il désigné par la loge, par un administrateur, ou le
    candidat le choisit-il ?
-3. **Les comptes candidats** — dans Bubble, les 107 candidats ne semblent pas avoir de compte
-   de connexion : les fiches sont tenues par les référents. Les candidats doivent-ils pouvoir
-   se connecter dans HERACLES, ou reste-t-on sur des fiches tenues par les référents ?
-4. **Nom de domaine** — lequel pour la mise en ligne ? Nécessaire au lot 6.
-5. **Conservation** — combien de temps garde-t-on un dossier de candidat inactif ?
+3. **Nom de domaine** — lequel pour la mise en ligne ? Nécessaire au lot 6.
+4. **Conservation** — combien de temps garde-t-on un dossier de candidat inactif ?
 
-Le point n° 3 est le plus structurant : il décide de la moitié des écrans.
+**Tranché par les faits le 2026-08-04 — les candidats ne se connectent pas.**
+
+La question était : les candidats doivent-ils avoir un compte, ou leur fiche reste-t-elle tenue
+par leur référent ? Les données répondent. Sur les **107 candidats**, tous ont une adresse
+email, mais **2 seulement** possèdent un compte de connexion. Les **71 comptes** existants
+appartiennent aux référents et aux parrains — et tous se sont déjà connectés.
+
+Conséquence pour la construction : **l'espace référent passe devant**. C'est l'écran de travail
+quotidien — un référent ouvre la fiche d'un candidat, la complète, la suit. Un accès direct pour
+les candidats reste possible plus tard, mais ce n'est pas ce que l'usage réclame aujourd'hui, et
+le construire d'abord reviendrait à bâtir pour personne.
