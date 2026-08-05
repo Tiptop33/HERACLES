@@ -1,6 +1,6 @@
-# Wireframes HERACLES.dc — ce qui en a été retenu
+# Maquette « espace référent » (artefact Claude) — ce qui en a été retenu
 
-- **Maquette :** [`Wireframes HERACLES.dc.html`](<Wireframes HERACLES.dc.html>)
+- **Maquette :** [`espace-referent-artefact-claude.html`](<espace-referent-artefact-claude.html>)
 - **Lot :** 3 — l'espace référent
 - **Construit le :** 2026-08-05
 

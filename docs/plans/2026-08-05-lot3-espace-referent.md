@@ -2,8 +2,8 @@
 
 - **Date :** 2026-08-05
 - **Spec :** [`docs/specs/2026-08-04-heracles-cadrage.md`](../specs/2026-08-04-heracles-cadrage.md) (§ 10)
-- **Maquette :** [`docs/maquettes/Wireframes HERACLES.dc.html`](<../maquettes/Wireframes HERACLES.dc.html>)
-  et ses [notes de construction](<../maquettes/Wireframes HERACLES.dc-notes.md>)
+- **Maquette :** [`docs/maquettes/espace-referent-artefact-claude.html`](<../maquettes/espace-referent-artefact-claude.html>)
+  et ses [notes de construction](<../maquettes/espace-referent-artefact-claude-notes.md>)
 - **Échéance visée :** 30 septembre 2026
 - **But :** un référent se connecte, voit ses candidats, ouvre une fiche, la complète. Et il ne
   voit que les siens — pas parce qu'une page filtre, parce que la base refuse.
