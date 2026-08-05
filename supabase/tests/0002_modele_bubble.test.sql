@@ -26,10 +26,22 @@ select public.verifier(
                         'entreprise', 'offre_emploi', 'document', 'parametre')),
   'la RLS est active sur les huit tables');
 
+-- Cette migration-ci n'ouvre rien. Depuis, le lot 3 (migration 0006) a ouvert
+-- `candidat`, `referent` et `loge` — au seul référent qui accompagne, et son
+-- test le prouve en devenant chaque personne. Ce qui se vérifie ici, c'est que
+-- l'ouverture s'est arrêtée là : les tables qu'aucun écran ne réclame encore
+-- restent sans la moindre policy.
 select public.verifier(
   (select count(*) from pg_policies
-    where schemaname = 'public' and tablename in ('candidat', 'referent', 'loge', 'document')) = 0,
-  'aucune policy sur les données personnelles : donc rien n''est lisible');
+    where schemaname = 'public'
+      and tablename in ('document', 'entreprise', 'loge_membre')) = 0,
+  'documents, entreprises et membres de loge : toujours aucune policy, donc rien de lisible');
+
+select public.verifier(
+  (select count(*) from pg_policies
+    where schemaname = 'public' and tablename = 'candidat'
+      and cmd in ('INSERT', 'DELETE')) = 0,
+  'personne ne peut créer ni supprimer un candidat depuis l''application');
 
 \echo '— les liens tiennent'
 insert into public.loge (bubble_id, nom) values ('loge-1', 'Loge d''essai');
@@ -78,11 +90,13 @@ end
 $$;
 
 \echo '— ce que voit une personne simplement connectée'
+-- Alice, inscrite au test 0001, n'accompagne personne : aucune fiche de
+-- référent ne porte son compte.
 begin;
   set local role authenticated;
   set local request.jwt.claims = '{"sub":"11111111-1111-1111-1111-111111111111"}';
   select public.verifier((select count(*) from public.candidat) = 0,
-    'aucun candidat visible — la table est fermée');
+    'aucun candidat visible — être connecté ne donne accès à personne');
   select public.verifier((select count(*) from public.referent) = 0,
     'aucun référent visible');
   select public.verifier((select count(*) from public.parametre) = 1,

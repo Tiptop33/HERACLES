@@ -44,12 +44,27 @@ as $$
   )::uuid
 $$;
 
--- Privilèges par défaut du schéma public. Supabase les pose une fois pour
--- toutes à l'installation : c'est pour cela qu'une migration n'écrit jamais de
--- GRANT — seule la RLS décide ensuite qui voit quoi.
+-- Privilèges par défaut du schéma public, reproduits **tels que Supabase les
+-- pose pour le rôle `postgres`** — celui qui joue les migrations.
+--
+-- Ce détail a son importance. On avait d'abord écrit ici « grant all », en
+-- croyant qu'une migration n'a jamais à poser de GRANT. C'est faux : pour une
+-- table créée par `postgres`, Supabase ne donne à `anon` et `authenticated` que
+-- `truncate`, `references` et `trigger`. Pas de `select`. Le harnais, trop
+-- généreux, laissait passer des tests qui échouaient en vrai.
+--
+-- Il reproduit donc maintenant la vraie parcimonie : c'est aux migrations
+-- d'ouvrir ce dont elles ont besoin (voir 0007_droits_tables.sql), et un test
+-- de RLS n'a de valeur que si le GRANT qui le précède est celui de production.
 grant usage on schema public to anon, authenticated, service_role;
 grant usage on schema auth to anon, authenticated, service_role;
+
 alter default privileges in schema public
-  grant all on tables to anon, authenticated, service_role;
+  grant truncate, references, trigger on tables to anon, authenticated, service_role;
 alter default privileges in schema public
-  grant all on sequences to anon, authenticated, service_role;
+  grant update on sequences to anon, authenticated, service_role;
+
+-- Chez Supabase, une fonction créée par `postgres` n'est pas exécutable par
+-- `anon` ni `authenticated` sans GRANT explicite. Or une policy qui appelle une
+-- fonction l'évalue avec les droits de l'appelant.
+alter default privileges in schema public revoke execute on functions from public;
