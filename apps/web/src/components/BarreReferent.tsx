@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Logo from '@/components/Logo';
 import { initiales, nomComplet } from '@/lib/format';
 import type { Profil } from '@/lib/profil';
 
@@ -15,6 +16,7 @@ export default function BarreReferent({ profil, loge }: { profil: Profil; loge: 
     <header className="barre">
       <div className="barre-dedans">
         <Link href="/espace/referent" className="marque">
+          <Logo taille="petit" />
           HERACLES <span>· espace référent</span>
         </Link>
 

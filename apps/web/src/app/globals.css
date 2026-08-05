@@ -264,16 +264,44 @@ h3 {
   margin-bottom: 1.8rem;
 }
 
-.entree-logo {
-  width: 4.4rem;
-  height: 4.4rem;
-  border-radius: 50%;
-  background: var(--surface-creuse);
+.logo {
+  width: 4.6rem;
+  height: 4.6rem;
   display: grid;
   place-items: center;
+  flex: none;
+}
+
+.logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* Le logo est un trait noir sur fond clair. En thème sombre, il disparaîtrait :
+   on l'inverse pour qu'il redevienne un trait clair sur fond sombre. */
+@media (prefers-color-scheme: dark) {
+  .logo img {
+    filter: invert(1);
+  }
+}
+
+.logo--petit {
+  width: 2rem;
+  height: 2rem;
+}
+
+/* Avant que le fichier soit déposé. */
+.logo--absent {
+  border-radius: 50%;
+  background: var(--surface-creuse);
   font-family: var(--titre);
   font-size: 1.5rem;
   color: var(--encre-tres-douce);
+}
+
+.logo--petit.logo--absent {
+  font-size: 0.85rem;
 }
 
 .entree-marque h1 {
@@ -399,6 +427,9 @@ h3 {
 }
 
 .marque {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   font-weight: 700;
   letter-spacing: 0.02em;
   color: inherit;

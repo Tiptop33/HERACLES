@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Logo from '@/components/Logo';
 import FormulaireOubli from './FormulaireOubli';
 
 export const metadata = { title: 'Mot de passe oublié — HERACLES' };
@@ -14,9 +15,7 @@ export default async function MotDePasseOublie({
     <main className="entree">
       <div className="entree-carte">
         <div className="entree-marque">
-          <span className="entree-logo" aria-hidden="true">
-            H
-          </span>
+          <Logo />
           <h1>HERACLES</h1>
         </div>
 

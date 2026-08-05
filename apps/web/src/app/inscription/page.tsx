@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Logo from '@/components/Logo';
 import FormulaireInscription from './FormulaireInscription';
 import VerifierBoiteMail from './VerifierBoiteMail';
 import { estRoleInscription, type RoleInscription } from '@/lib/roles';
@@ -34,9 +35,7 @@ export default async function Inscription({
     <main className="entree">
       <div className="entree-carte">
         <div className="entree-marque">
-          <span className="entree-logo" aria-hidden="true">
-            H
-          </span>
+          <Logo />
           <h1>HERACLES</h1>
         </div>
 

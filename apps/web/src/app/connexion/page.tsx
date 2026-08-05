@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Logo from '@/components/Logo';
 import FormulaireConnexion from './FormulaireConnexion';
 
 export const metadata = { title: 'Se connecter — HERACLES' };
@@ -29,9 +30,7 @@ export default async function Connexion({
     <main className="entree">
       <div className="entree-carte">
         <div className="entree-marque">
-          <span className="entree-logo" aria-hidden="true">
-            H
-          </span>
+          <Logo />
           <h1>HERACLES</h1>
         </div>
 
