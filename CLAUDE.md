@@ -125,6 +125,11 @@ les données d'un autre projet.
 
 Stack Docker `heracles-prod`, conteneurs préfixés `heracles-`, base `heracles`.
 
+L'isolation vaut aussi pour l'**apparence** : HERACLES a sa propre identité visuelle. Ne pas
+reprendre la charte de MyCollabus — ni ses couleurs, ni ses composants. Ce sont deux produits
+pour deux publics : des professionnels du bâtiment d'un côté, des personnes en recherche
+d'emploi et leurs accompagnants de l'autre.
+
 ## Commits
 
 Un commit par étape terminée. Le message dit **ce que ça change pour la personne qui s'en
