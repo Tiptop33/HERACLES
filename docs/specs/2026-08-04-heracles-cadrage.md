@@ -142,7 +142,7 @@ nommées à une organisation. C'est la catégorie de données la plus sensible q
 | Lot | Contenu | Résultat visible |
 | --- | --- | --- |
 | **1 — Fondations** ✅ | Infra isolée, comptes, connexion, profil | Deux personnes créent un compte et se connectent |
-| **2 — Reprise** | Import des données Bubble, résolution des liens, contrôle de complétude | Les 107 candidats et les 71 comptes vivent dans HERACLES |
+| **2 — Reprise** ✅ | Import des données Bubble, résolution des liens, contrôle de complétude | Les 107 candidats et les 71 comptes vivent dans HERACLES — fait le 2026-08-04, [relevé](../reprise-bubble-releve.md) |
 | **3 — La fiche candidat** | Consultation et modification, documents, RLS candidat / référent / parrain | Un référent travaille vraiment sur ses candidats |
 | **4 — Les offres** | Réception France Travail, recherche, rapprochement avec un candidat | Un référent propose une offre à un candidat |
 | **5 — La loge** | Membres, réunions, documents, administration, modèles d'emails | L'association pilote son activité |
