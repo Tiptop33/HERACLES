@@ -57,6 +57,36 @@ Trois choses ont changé :
 
 Toute table créée par une migration future naît fermée et devra s'ouvrir explicitement.
 
+### Le second défaut : un mot de passe dans l'adresse
+
+Trouvé en pilotant un vrai navigateur. Nos formulaires sont soumis par `fetch` depuis un
+composant client — mais entre l'affichage de la page et la fin de l'hydratation, ce gestionnaire
+n'existe pas encore. Un `<form>` sans `method` part alors **en GET**, et tout ce qu'il contient
+atterrit dans l'adresse.
+
+Pour la connexion, cela voulait dire un mot de passe en clair dans l'URL : historique du
+navigateur, journaux du serveur, en-tête `Referer` de la page suivante. Quelques centaines de
+millisecondes sur une machine de bureau — bien davantage sur un téléphone en 3G, c'est-à-dire
+exactement les personnes que HERACLES accompagne.
+
+La correction va au-delà du colmatage : **connexion et inscription fonctionnent désormais sans
+JavaScript**, ce qui est aussi la meilleure garantie qu'elles fonctionnent pendant qu'il charge.
+
+- `apps/web/src/lib/formulaire.ts` — les routes lisent les deux formes, le JSON de `fetch` et les
+  champs d'un envoi natif, et répondent à chacune dans sa langue : du JSON, ou une redirection 303.
+- L'issue d'un envoi natif revient par un **code** dans l'adresse (`?erreur=identifiants`), jamais
+  par un message. Un message porté par l'adresse, c'est un lien fabriqué qui fait dire ce qu'il
+  veut à nos propres pages.
+- La redirection est une `NextResponse`, dont les en-têtes restent modifiables : une réponse
+  native scellerait la redirection sans les cookies de session, et la connexion réussirait sans
+  connecter personne.
+- Le paramètre `suite` est validé côté serveur — `//ailleurs.example` est une adresse absolue
+  déguisée, qui emmènerait la personne hors du site juste après sa connexion.
+
+Les formulaires du profil et de la fiche candidat, dont la route est en `PATCH` — qu'un formulaire
+natif ne sait pas émettre — reçoivent au minimum `method="post"` : leur contenu, nom, téléphone et
+adresse, ne peut plus finir dans l'historique du navigateur.
+
 ### L'application
 
 ```

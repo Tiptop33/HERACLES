@@ -21,6 +21,17 @@ export default async function Connexion({
         </p>
       )}
 
+      {/* Envoi sans JavaScript : l'issue revient par un code dans l'adresse, et
+          c'est ici qu'on la met en mots. Un message porté par l'adresse
+          laisserait un lien fabriqué afficher ce qu'il veut sur nos pages. */}
+      {erreur === 'identifiants' && (
+        <p className="erreur">Adresse email ou mot de passe incorrect.</p>
+      )}
+
+      {erreur === 'formulaire' && (
+        <p className="erreur">Renseignez votre adresse email et votre mot de passe.</p>
+      )}
+
       <div className="carte" style={{ marginTop: '1.5rem' }}>
         <FormulaireConnexion suite={suite} />
       </div>

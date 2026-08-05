@@ -75,7 +75,11 @@ export default function FormulaireCandidat({ candidat }: { candidat: FicheCandid
   const derniere = depuis(enregistre ?? candidat.maj_le);
 
   return (
-    <form onSubmit={soumettre}>
+    // `method="post"` sans `action` : la route d'enregistrement est en PATCH,
+    // qu'un formulaire natif ne sait pas émettre. Ce qui compte ici est qu'un
+    // envoi parti avant l'hydratation ne recopie pas la fiche d'un candidat —
+    // nom, téléphone, adresse — dans l'adresse du navigateur.
+    <form onSubmit={soumettre} method="post">
       <div className="corps">
         <p className="fil">
           <Link href="/espace/referent">Mes candidats</Link> <span aria-hidden="true">›</span>{' '}

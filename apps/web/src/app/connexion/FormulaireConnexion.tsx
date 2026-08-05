@@ -46,8 +46,14 @@ export default function FormulaireConnexion({ suite }: { suite?: string }) {
   }
 
   return (
-    <form onSubmit={soumettre}>
+    // `action` et `method` ne servent jamais quand JavaScript a pris la main —
+    // `soumettre` retient l'envoi. Ils servent pendant les quelques instants où
+    // il n'a pas encore chargé : sans eux, le navigateur partirait en GET et
+    // écrirait le mot de passe dans l'adresse.
+    <form onSubmit={soumettre} action="/api/connexion" method="post">
       {erreur && <p className="erreur">{erreur}</p>}
+
+      {suite && <input type="hidden" name="suite" value={suite} />}
 
       <label className="champ">
         <span>Adresse email</span>

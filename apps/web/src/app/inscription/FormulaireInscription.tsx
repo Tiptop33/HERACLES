@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import type { RoleInscription } from '@/lib/roles';
+import VerifierBoiteMail from './VerifierBoiteMail';
 
 export default function FormulaireInscription({
   roleInitial,
@@ -47,20 +48,13 @@ export default function FormulaireInscription({
     }
   }
 
-  if (envoye) {
-    return (
-      <div>
-        <h2>Vérifiez votre boîte mail</h2>
-        <p className="discret">
-          Un email de confirmation vient de partir. Ouvrez-le et cliquez sur le lien pour
-          activer votre compte. Pensez à regarder dans les indésirables.
-        </p>
-      </div>
-    );
-  }
+  if (envoye) return <VerifierBoiteMail />;
 
   return (
-    <form onSubmit={soumettre}>
+    // Voir FormulaireConnexion : `action` et `method` ne servent que tant que
+    // JavaScript n'a pas chargé — mais sans eux, le mot de passe choisi partirait
+    // dans l'adresse.
+    <form onSubmit={soumettre} action="/api/inscription" method="post">
       {erreur && <p className="erreur">{erreur}</p>}
 
       <label className="champ">

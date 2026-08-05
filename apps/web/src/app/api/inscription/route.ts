@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { supabaseServer } from '@/lib/supabase-server';
 import { ROLES_INSCRIPTION } from '@/lib/roles';
+import { lireCorps, retourAvecCode, vientDUnFormulaire } from '@/lib/formulaire';
 
 const Formulaire = z.object({
   role: z.enum(ROLES_INSCRIPTION),
@@ -12,10 +13,15 @@ const Formulaire = z.object({
 });
 
 export async function POST(requete: Request) {
-  const brut = await requete.json().catch(() => null);
+  // Même raison qu'à la connexion : tant que JavaScript n'a pas pris la main,
+  // c'est le navigateur qui envoie le formulaire — et un envoi en GET écrirait
+  // le mot de passe choisi dans l'adresse.
+  const natif = vientDUnFormulaire(requete);
+  const brut = await lireCorps(requete);
   const lu = Formulaire.safeParse(brut);
 
   if (!lu.success) {
+    if (natif) return retourAvecCode(requete, '/inscription', { erreur: 'formulaire' });
     return NextResponse.json(
       { erreur: lu.error.issues[0]?.message ?? 'Formulaire incomplet.' },
       { status: 400 },
@@ -38,12 +44,18 @@ export async function POST(requete: Request) {
 
   if (error) {
     // Message volontairement neutre : ne pas révéler si l'adresse existe déjà.
-    const message =
-      error.status === 429
-        ? 'Trop de tentatives. Réessayez dans quelques minutes.'
-        : "L'inscription n'a pas abouti. Vérifiez l'adresse et réessayez.";
+    const trop = error.status === 429;
+    const message = trop
+      ? 'Trop de tentatives. Réessayez dans quelques minutes.'
+      : "L'inscription n'a pas abouti. Vérifiez l'adresse et réessayez.";
+
+    if (natif) {
+      return retourAvecCode(requete, '/inscription', { erreur: trop ? 'trop' : 'echec' });
+    }
     return NextResponse.json({ erreur: message }, { status: 400 });
   }
+
+  if (natif) return retourAvecCode(requete, '/inscription', { envoye: '1' });
 
   return NextResponse.json({ ok: true });
 }
