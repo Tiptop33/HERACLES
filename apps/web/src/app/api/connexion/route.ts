@@ -10,8 +10,11 @@ import {
 } from '@/lib/formulaire';
 
 const Formulaire = z.object({
-  email: z.email("L'adresse email n'est pas valide."),
+  email: z.email("L'adresse e-mail n'est pas valide."),
   motDePasse: z.string().min(1, 'Le mot de passe est requis.'),
+  // Case « Rester connecté ». Cochée par défaut ; décochée, la session meurt
+  // avec le navigateur.
+  rester: z.string().optional(),
 });
 
 export async function POST(requete: Request) {
@@ -26,13 +29,19 @@ export async function POST(requete: Request) {
 
   if (!lu.success) {
     if (natif) return retourAvecCode(requete, '/connexion', { erreur: 'formulaire', suite });
+    const souci = lu.error.issues[0];
     return NextResponse.json(
-      { erreur: lu.error.issues[0]?.message ?? 'Formulaire incomplet.' },
+      {
+        erreur: souci?.message ?? 'Formulaire incomplet.',
+        // Le champ fautif voyage avec le message : la page l'affiche sous
+        // celui-là, et pas dans une fenêtre surgissante.
+        champ: souci?.path?.[0] === 'motDePasse' ? 'motDePasse' : 'email',
+      },
       { status: 400 },
     );
   }
 
-  const supabase = await supabaseServer();
+  const supabase = await supabaseServer({ sessionNavigateur: !lu.data.rester });
   const { data, error } = await supabase.auth.signInWithPassword({
     email: lu.data.email,
     password: lu.data.motDePasse,
@@ -43,7 +52,7 @@ export async function POST(requete: Request) {
     // sinon le formulaire dit qui est inscrit.
     if (natif) return retourAvecCode(requete, '/connexion', { erreur: 'identifiants', suite });
     return NextResponse.json(
-      { erreur: 'Adresse email ou mot de passe incorrect.' },
+      { erreur: 'Adresse e-mail ou mot de passe incorrect.', champ: 'motDePasse' },
       { status: 401 },
     );
   }

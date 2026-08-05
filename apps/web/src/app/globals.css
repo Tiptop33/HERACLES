@@ -25,6 +25,9 @@
   /* Le texte posé sur --candidat. En thème sombre, ce bleu s'éclaircit : du
      blanc dessus deviendrait illisible, c'est l'encre qui reprend la main. */
   --sur-candidat: #ffffff;
+  /* La couleur d'action des écrans d'entrée, telle que dessinée sur la maquette. */
+  --marque: #3f9fc2;
+  --sur-marque: #ffffff;
   --attention: #92400e;
   --attention-clair: #fdf1e0;
   --clos: #6b5b95;
@@ -57,6 +60,8 @@
     --candidat: #7aaefc;
     --candidat-clair: #14243a;
     --sur-candidat: #0d141c;
+    --marque: #56b3d4;
+    --sur-marque: #06222e;
     --attention: #e0a95e;
     --attention-clair: #2b2114;
     --clos: #b0a2d8;
@@ -231,6 +236,144 @@ h3 {
   border-radius: var(--rayon);
   padding: 0.6rem 0.8rem;
   margin-bottom: 1rem;
+}
+
+/* ————— Les écrans d'entrée : connexion, inscription ————— */
+
+.entree {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: var(--pas);
+}
+
+.entree-carte {
+  width: 100%;
+  max-width: 26rem;
+  background: var(--surface);
+  border: 1px solid var(--bordure);
+  border-radius: 14px;
+  padding: 2.2rem 2rem 2rem;
+}
+
+.entree-marque {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.9rem;
+  margin-bottom: 1.8rem;
+}
+
+.entree-logo {
+  width: 4.4rem;
+  height: 4.4rem;
+  border-radius: 50%;
+  background: var(--surface-creuse);
+  display: grid;
+  place-items: center;
+  font-family: var(--titre);
+  font-size: 1.5rem;
+  color: var(--encre-tres-douce);
+}
+
+.entree-marque h1 {
+  font-family: var(--corps);
+  font-size: 1.35rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  margin: 0;
+}
+
+.entree-carte .champ {
+  margin-bottom: 1.1rem;
+}
+
+.entree-carte .champ > span:first-child,
+.entree-carte .champ > label {
+  font-size: 0.95rem;
+  font-weight: 400;
+  color: var(--encre-douce);
+  margin-bottom: 0.15rem;
+}
+
+.entree-carte .champ input {
+  padding: 0.85rem 0.9rem;
+  border-radius: 9px;
+  border-color: var(--bordure);
+  background: var(--surface-creuse);
+}
+
+.entree-carte .champ input:focus-visible {
+  outline: 2px solid var(--marque);
+  outline-offset: 1px;
+}
+
+/* Une erreur se lit sous le champ qu'elle concerne, en rouge — jamais dans une
+   fenêtre surgissante qu'il faut chasser avant de corriger. */
+.erreur-champ {
+  display: block;
+  color: var(--alerte);
+  font-size: 0.85rem;
+  margin-top: 0.3rem;
+}
+
+.champ--faux input {
+  border-color: var(--alerte);
+}
+
+.entree-ligne {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin: 0.2rem 0 1.4rem;
+  font-size: 0.95rem;
+}
+
+.entree-ligne label {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  color: var(--encre-douce);
+  cursor: pointer;
+}
+
+.entree-ligne input[type='checkbox'] {
+  width: 1.1rem;
+  height: 1.1rem;
+  accent-color: var(--marque);
+}
+
+.entree-ligne a {
+  color: var(--marque);
+  text-decoration: none;
+}
+
+.entree-ligne a:hover {
+  text-decoration: underline;
+}
+
+.bouton--pleine-largeur {
+  display: block;
+  width: 100%;
+  text-align: center;
+  padding: 0.95rem 1rem;
+  font-size: 1rem;
+  border-radius: 9px;
+}
+
+.bouton--marque {
+  background: var(--marque);
+  border-color: var(--marque);
+  color: var(--sur-marque);
+}
+
+.entree-pied {
+  margin: 1.4rem 0 0;
+  text-align: center;
+  font-size: 0.95rem;
+  color: var(--encre-douce);
 }
 
 /* ————— L'espace référent ————— */
