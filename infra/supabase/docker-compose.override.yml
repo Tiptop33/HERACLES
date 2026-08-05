@@ -1,0 +1,71 @@
+# Surcharge de la pile Supabase officielle, pour HERACLES.
+#
+# On ne recopie pas le `docker-compose.yml` de Supabase : il change à chaque
+# version, et une copie divergerait en silence. On le cloner tel quel, et ce
+# fichier vient par-dessus imposer ce qui doit être propre à HERACLES.
+#
+#   cd /opt/supabase-heracles
+#   git clone --depth 1 https://github.com/supabase/supabase tmp
+#   cp -r tmp/docker/* . && rm -rf tmp
+#   cp /chemin/vers/HERACLES/infra/supabase/docker-compose.override.yml .
+#   cp /chemin/vers/HERACLES/infra/supabase/.env.example .env   # puis le renseigner
+#   docker compose -p heracles-supabase up -d
+#
+# Ce que cette surcharge garantit — et c'est la raison d'être du fichier :
+#
+#   * chaque conteneur porte le préfixe `heracles-`, donc aucun ne peut se
+#     confondre avec ceux de MyCollabus sur le même VPS ;
+#   * Kong écoute sur 127.0.0.1:8100 et **jamais** sur l'adresse publique :
+#     c'est Nginx qui expose, en HTTPS, et lui seul ;
+#   * PostgreSQL n'est pas publié du tout — on l'atteint par le réseau Docker,
+#     ou par un tunnel SSH le temps d'une migration ;
+#   * Studio n'est pas publié non plus. Un panneau d'administration ouvert sur
+#     Internet, c'est l'erreur que l'application Bubble a déjà commise.
+
+services:
+  db:
+    container_name: heracles-db
+    # Aucun `ports:` — volontairement. La base ne sort pas du réseau Docker.
+    ports: !override []
+
+  kong:
+    container_name: heracles-kong
+    ports: !override
+      - "127.0.0.1:8100:8000/tcp"
+
+  auth:
+    container_name: heracles-auth
+
+  rest:
+    container_name: heracles-rest
+
+  realtime:
+    container_name: heracles-realtime
+
+  storage:
+    container_name: heracles-storage
+
+  imgproxy:
+    container_name: heracles-imgproxy
+
+  meta:
+    container_name: heracles-meta
+
+  functions:
+    container_name: heracles-functions
+
+  analytics:
+    container_name: heracles-analytics
+
+  vector:
+    container_name: heracles-vector
+
+  supavisor:
+    container_name: heracles-supavisor
+    ports: !override []
+
+  studio:
+    container_name: heracles-studio
+    # Studio ne s'expose pas. Pour y accéder depuis votre machine :
+    #   ssh -L 3010:127.0.0.1:3000 <vps>
+    ports: !override []

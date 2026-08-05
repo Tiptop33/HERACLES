@@ -126,3 +126,4 @@ réutiliser un volume, un port ou un identifiant d'un autre projet.
 - Plan du lot 1 : [`docs/plans/2026-08-04-lot1-fondations.md`](docs/plans/2026-08-04-lot1-fondations.md)
 - Plan du lot 3 : [`docs/plans/2026-08-05-lot3-espace-referent.md`](docs/plans/2026-08-05-lot3-espace-referent.md)
 - Maquettes : [`docs/maquettes/`](docs/maquettes/) — le dessin d'origine et ce qui en a été retenu
+- Mise en ligne : [`docs/deploiement.md`](docs/deploiement.md) — le VPS, pas à pas
