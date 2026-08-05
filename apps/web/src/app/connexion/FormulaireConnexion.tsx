@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import BoutonGoogle from '@/components/BoutonGoogle';
 
 /** Sur quel champ porte l'erreur — pour l'afficher sous celui-là, et pas ailleurs. */
 type Erreur = { champ: 'email' | 'motDePasse' | null; message: string };
@@ -85,7 +86,10 @@ export default function FormulaireConnexion({
 
       <div className="entree-ligne">
         <label>
-          <input type="checkbox" name="rester" value="oui" defaultChecked />
+          {/* Décochée par défaut, comme sur la maquette : la session meurt à la
+              fermeture du navigateur tant qu'on ne demande pas le contraire.
+              C'est le bon défaut sur un poste partagé. */}
+          <input type="checkbox" name="rester" value="oui" />
           Rester connecté
         </label>
         <Link href="/mot-de-passe-oublie">Mot de passe oublié ?</Link>
@@ -98,6 +102,8 @@ export default function FormulaireConnexion({
       >
         {envoi ? 'Connexion…' : 'Se connecter'}
       </button>
+
+      <BoutonGoogle />
     </form>
   );
 }
