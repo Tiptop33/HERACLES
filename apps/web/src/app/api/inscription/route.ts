@@ -22,8 +22,14 @@ export async function POST(requete: Request) {
 
   if (!lu.success) {
     if (natif) return retourAvecCode(requete, '/inscription', { erreur: 'formulaire' });
+    const souci = lu.error.issues[0];
     return NextResponse.json(
-      { erreur: lu.error.issues[0]?.message ?? 'Formulaire incomplet.' },
+      {
+        erreur: souci?.message ?? 'Formulaire incomplet.',
+        // Le champ fautif voyage avec le message : la page l'affiche sous
+        // celui-là, et pas dans une fenêtre surgissante.
+        champ: typeof souci?.path?.[0] === 'string' ? souci.path[0] : null,
+      },
       { status: 400 },
     );
   }
@@ -52,7 +58,7 @@ export async function POST(requete: Request) {
     if (natif) {
       return retourAvecCode(requete, '/inscription', { erreur: trop ? 'trop' : 'echec' });
     }
-    return NextResponse.json({ erreur: message }, { status: 400 });
+    return NextResponse.json({ erreur: message, champ: trop ? null : 'email' }, { status: 400 });
   }
 
   if (natif) return retourAvecCode(requete, '/inscription', { envoye: '1' });
