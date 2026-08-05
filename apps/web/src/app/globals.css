@@ -463,6 +463,54 @@ h3 {
   text-decoration: line-through;
 }
 
+/* Qui invite : le bloc dessiné en tête de l'écran 5. */
+.invitation-qui {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 0.9rem 1rem;
+  border: 1px dashed var(--bordure-nette);
+  border-radius: 10px;
+  margin-bottom: 1.2rem;
+}
+
+.invitation-pastille {
+  width: 2.8rem;
+  height: 2.8rem;
+  border-radius: 50%;
+  background: var(--surface-creuse);
+  flex: none;
+}
+
+.invitation-qui div {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.invitation-qui span {
+  font-size: 0.9rem;
+  overflow-wrap: anywhere;
+}
+
+/* Les trois étapes de la création du compte. */
+.etapes {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+  margin-bottom: 1.2rem;
+}
+
+.etapes span {
+  height: 5px;
+  border-radius: 3px;
+  background: var(--surface-creuse);
+}
+
+.etapes span.plein {
+  background: var(--marque);
+}
+
 .separateur-ou {
   display: flex;
   align-items: center;

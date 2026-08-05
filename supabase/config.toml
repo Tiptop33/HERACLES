@@ -41,7 +41,11 @@ port = 54337
 [auth]
 enabled = true
 site_url = "http://localhost:3002"
-additional_redirect_urls = ["http://localhost:3002/auth/callback"]
+additional_redirect_urls = [
+  "http://localhost:3002/auth/callback",
+  # Le lien d'invitation mène droit à l'écran d'invitation.
+  "http://localhost:3002/invitation/**",
+]
 jwt_expiry = 3600
 enable_refresh_token_rotation = true
 refresh_token_reuse_interval = 10

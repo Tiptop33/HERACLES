@@ -65,17 +65,22 @@ PGPASSWORD=postgres psql -h 127.0.0.1 -p 54332 -U postgres -d postgres \
   -f supabase/demo/jeu-d-essai.sql
 ```
 
-Puis créez un compte sur http://localhost:3002/inscription en choisissant **« accompagner des
-personnes en recherche »**, avec l'une de ces trois adresses :
+Puis créez les comptes d'essai — l'inscription libre est fermée, on n'entre qu'invité :
+
+```bash
+node outils/comptes-essai.mjs
+```
+
+Quatre comptes, tous avec le mot de passe `HeraclesEssai2026` :
 
 | Adresse | Ce qu'elle donne à voir |
 | --- | --- |
+| `patron@example.org` | administrateur — le seul à pouvoir inviter |
 | `bernard@example.org` | la loge de Bordeaux, 5 candidats — un à contacter, un clôturé |
 | `claire@example.org` | la loge de Toulouse, 2 autres candidats |
 | `michel@example.org` | seulement les 2 candidats qu'il parraine, dans deux loges différentes |
 
-L'email de confirmation arrive dans la boîte de test : http://localhost:54334. L'adresse suffit à
-rattacher le compte à sa fiche de référent — c'est ce que fait la migration `0006`.
+Les emails partent dans la boîte de test : http://localhost:54334.
 
 **Pour éprouver l'isolation vous-même** : connectez-vous avec Bernard, copiez l'adresse d'une de
 ses fiches, déconnectez-vous, reconnectez-vous avec Claire et collez cette adresse. Vous obtenez

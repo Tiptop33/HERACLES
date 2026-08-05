@@ -1,62 +1,37 @@
 import Link from 'next/link';
 import Logo from '@/components/Logo';
-import FormulaireInscription from './FormulaireInscription';
-import VerifierBoiteMail from './VerifierBoiteMail';
-import { estRoleInscription, type RoleInscription } from '@/lib/roles';
 
-export const metadata = { title: 'Créer un compte — HERACLES' };
+export const metadata = { title: 'Rejoindre HERACLES — HERACLES' };
 
 /**
- * Les codes que la route renvoie quand le formulaire est parti sans
- * JavaScript. Chacun sait sous quel champ il s'affiche : une erreur se lit là
- * où elle se corrige.
+ * L'inscription libre est fermée.
+ *
+ * HERACLES porte les dossiers de personnes vulnérables : l'appartenance à une
+ * loge et le droit d'accompagner ne se déclarent pas soi-même, ils se donnent.
+ * On n'entre qu'invité par un administrateur — c'est le point d'entrée n°1 de
+ * la maquette, et la migration 0009 le fait tenir côté base.
  */
-const ERREURS: Record<string, { champ: string | null; message: string }> = {
-  formulaire: {
-    champ: 'motDePasse',
-    message: 'Il manque quelque chose : nom, prénom, adresse valide, et 8 caractères au minimum.',
-  },
-  trop: { champ: null, message: 'Trop de tentatives. Réessayez dans quelques minutes.' },
-  echec: {
-    champ: 'email',
-    message: "L'inscription n'a pas abouti. Vérifiez l'adresse et réessayez.",
-  },
-};
-
-export default async function Inscription({
-  searchParams,
-}: {
-  searchParams: Promise<{ role?: string; erreur?: string; envoye?: string }>;
-}) {
-  const { role, erreur, envoye } = await searchParams;
-  const roleInitial: RoleInscription = estRoleInscription(role) ? role : 'chercheur';
-
+export default function Inscription() {
   return (
     <main className="entree">
       <div className="entree-carte">
         <div className="entree-marque">
           <Logo />
-          <h1>HERACLES</h1>
         </div>
 
-        {envoye ? (
-          <VerifierBoiteMail />
-        ) : (
-          <FormulaireInscription
-            roleInitial={roleInitial}
-            erreurInitiale={erreur ? (ERREURS[erreur] ?? null) : null}
-          />
-        )}
-
-        <p className="entree-pied">
-          {envoye ? (
-            <Link href="/connexion">Aller à la connexion</Link>
-          ) : (
-            <>
-              Déjà un compte ? <Link href="/connexion">Se connecter</Link>
-            </>
-          )}
+        <h1 className="entree-titre">On entre sur invitation</h1>
+        <p className="entree-chapo">
+          HERACLES ne se rejoint pas de soi-même. Un administrateur vous invite dans une loge, avec
+          un rôle : vous recevez alors un e-mail contenant votre lien d&apos;entrée.
         </p>
+        <p className="entree-chapo">
+          Vous avez reçu cet e-mail ? Ouvrez son lien. Vous n&apos;avez rien reçu ? Demandez à
+          l&apos;administrateur de votre loge — et pensez à regarder dans les indésirables.
+        </p>
+
+        <Link href="/connexion" className="bouton bouton--marque bouton--pleine-largeur">
+          J&apos;ai déjà un compte
+        </Link>
       </div>
     </main>
   );

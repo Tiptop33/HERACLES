@@ -7,15 +7,17 @@
 --     -f supabase/demo/jeu-d-essai.sql
 --
 -- Il est bâti pour qu'on puisse éprouver l'isolation soi-même, et pas seulement
--- la croire sur parole. Trois comptes à créer depuis /inscription, en
--- choisissant « accompagner des personnes en recherche » :
+-- la croire sur parole. Les comptes se créent avec `node outils/comptes-essai.mjs`
+-- — l'inscription libre est fermée depuis la migration 0009 :
 --
+--   patron@example.org   → administrateur : le seul à pouvoir inviter
 --   bernard@example.org  → loge de Bordeaux, référent de 5 candidats
 --   claire@example.org   → loge de Toulouse, référente de 2 autres
 --   michel@example.org   → parrain d'Alice et de Théo, et de personne d'autre
 --
--- L'adresse suffit : à l'inscription, le compte rejoint la fiche de référent qui
--- porte la même (migration 0006). Connectez-vous avec l'un, puis avec l'autre :
+-- L'adresse suffit : à la création du compte, celui-ci rejoint la fiche de
+-- référent qui porte la même (migration 0006). Connectez-vous avec l'un, puis
+-- avec l'autre :
 -- les deux listes n'ont aucun candidat en commun. Et l'adresse d'une fiche de
 -- Claire, recopiée dans le navigateur de Bernard, ne donne rien — ce n'est pas
 -- la page qui refuse, c'est la base.
@@ -149,6 +151,16 @@ begin
   end loop;
 end
 $$;
+
+
+-- ---------------------------------------------------------------------------
+-- Un administrateur, pour éprouver les invitations
+--   Seul un administrateur peut inviter (migration 0009). Le rôle « admin » ne
+--   se choisit pas à l'inscription : on le pose ici, ce que seule la clé
+--   d'administration peut faire.
+-- ---------------------------------------------------------------------------
+update public.profil set role = 'admin'
+ where id in (select id from auth.users where lower(email) = 'patron@example.org');
 
 -- ---------------------------------------------------------------------------
 -- Ce qui a été posé
