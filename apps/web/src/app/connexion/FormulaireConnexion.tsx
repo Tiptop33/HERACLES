@@ -59,7 +59,7 @@ export default function FormulaireConnexion({ suite }: { suite?: string }) {
         <input name="motDePasse" type="password" autoComplete="current-password" required />
       </label>
 
-      <button className="bouton" type="submit" disabled={envoi}>
+      <button className="bouton bouton--fort" type="submit" disabled={envoi}>
         {envoi ? 'Connexion…' : 'Se connecter'}
       </button>
     </form>

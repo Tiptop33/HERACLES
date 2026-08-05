@@ -87,7 +87,7 @@ export default function FormulaireProfil({ profil }: { profil: Profil }) {
         <span className="discret">Quelques lignes sur votre parcours ou votre recherche.</span>
       </label>
 
-      <button className="bouton" type="submit" disabled={envoi}>
+      <button className="bouton bouton--fort" type="submit" disabled={envoi}>
         {envoi ? 'Enregistrement…' : 'Enregistrer'}
       </button>
     </form>

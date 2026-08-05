@@ -94,7 +94,11 @@ raccordées) ne disent rien du travail d'accompagnement.
    arrondi — c'est le procédé d'une maquette, qui montre « voici l'écran ». Dans le produit, la
    barre du haut tient toute la largeur et le contenu se centre sous elle. L'intérieur, lui, est
    identique.
-7. **Deux libellés perdent leur genre.** Le dessin dit « Ce qu'**elle** cherche » et « Candidate
+7. **Le bouton plein devient lisible en thème sombre.** La maquette pose `color: #fff` sur le
+   bleu `--candidat` ; en sombre, ce bleu s'éclaircit à `#7aaefc` et le blanc dessus tombe à un
+   contraste d'environ 2:1 — illisible. Un jeton `--sur-candidat` porte donc la couleur du texte :
+   blanc en clair, encre foncée en sombre.
+8. **Deux libellés perdent leur genre.** Le dessin dit « Ce qu'**elle** cherche » et « Candidate
    n° 108 · suivi**e** depuis » : la candidate de l'exemple est une femme, et rien dans le modèle
    ne dit le genre des 107 autres. Deviennent « **Sa recherche** » et « **Fiche** n° 108 · suivie
    depuis » — l'accord porte alors sur « fiche », et l'écran est juste pour tout le monde.

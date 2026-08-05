@@ -102,7 +102,7 @@ export default function FormulaireInscription({
         <span className="discret">8 caractères au minimum.</span>
       </label>
 
-      <button className="bouton" type="submit" disabled={envoi}>
+      <button className="bouton bouton--fort" type="submit" disabled={envoi}>
         {envoi ? 'Création…' : 'Créer mon compte'}
       </button>
     </form>

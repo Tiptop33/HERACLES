@@ -14,7 +14,7 @@ en commun avec EKOPLAN / MyCollabus.
 | --- | --- |
 | 1 — Fondations : comptes, connexion, profil | ✅ |
 | 2 — Reprise des données Bubble | ✅ 17 700 enregistrements, [relevé](docs/reprise-bubble-releve.md) |
-| 3 — L'espace référent : liste des candidats, fiche, modification | en cours |
+| 3 — L'espace référent : liste des candidats, fiche, modification | ✅ [plan](docs/plans/2026-08-05-lot3-espace-referent.md) |
 | 4 — Les offres d'emploi | 31 octobre |
 | 5 — La loge et l'administration | 14 novembre |
 | 6 — Mise en ligne | 21 novembre |
@@ -82,3 +82,5 @@ réutiliser un volume, un port ou un identifiant d'un autre projet.
 
 - Cadrage : [`docs/specs/2026-08-04-heracles-cadrage.md`](docs/specs/2026-08-04-heracles-cadrage.md)
 - Plan du lot 1 : [`docs/plans/2026-08-04-lot1-fondations.md`](docs/plans/2026-08-04-lot1-fondations.md)
+- Plan du lot 3 : [`docs/plans/2026-08-05-lot3-espace-referent.md`](docs/plans/2026-08-05-lot3-espace-referent.md)
+- Maquettes : [`docs/maquettes/`](docs/maquettes/) — le dessin d'origine et ce qui en a été retenu
