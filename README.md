@@ -6,6 +6,22 @@ Mise en relation de personnes en recherche — **emploi, alternance, stage** —
 Projet **indépendant** : aucun code, aucune base de données, aucun conteneur et aucun domaine
 en commun avec EKOPLAN / MyCollabus.
 
+## Où en est le projet
+
+**Échéance : 5 décembre 2026**, remplacement de l'application Bubble `heracles-42268`.
+
+| Lot | État |
+| --- | --- |
+| 1 — Fondations : comptes, connexion, profil | ✅ |
+| 2 — Reprise des données Bubble | ✅ 17 700 enregistrements, [relevé](docs/reprise-bubble-releve.md) |
+| 3 — L'espace référent : liste des candidats, fiche, modification | en cours |
+| 4 — Les offres d'emploi | 31 octobre |
+| 5 — La loge et l'administration | 14 novembre |
+| 6 — Mise en ligne | 21 novembre |
+
+Les fichiers (CV, photos, PDF) sont encore hébergés chez Bubble : `outils/rapatrier-fichiers.mjs`
+les rapatrie, à faire avant la bascule.
+
 ## Stack
 
 Supabase auto-hébergé en Docker (PostgreSQL, auth, API, stockage) + application web Next.js,
