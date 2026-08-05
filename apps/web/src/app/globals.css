@@ -1,8 +1,13 @@
 /* Identité visuelle de HERACLES.
  *
- * Reprise de la maquette du lot 3 (docs/maquettes/Wireframes HERACLES.dc.html) :
- * encre bleu nuit, vert pour le référent, bleu pour le candidat, ambre pour ce
- * qui attend, violet pour ce qui est clos. Titres en serif, texte en sans.
+ * Reprise des écrans 1 à 6 de « Wireframes HERACLES.dc » : titres en sans-serif
+ * gras, un accent cyan et un seul, champs à fond plein aux coins ronds, cartes
+ * largement arrondies, erreurs en rouge sous le champ qu'elles concernent.
+ *
+ * Trois couleurs s'y ajoutent, que la maquette ne dessine pas parce qu'elle ne
+ * montre pas ces écrans : le vert d'un suivi en cours, l'ambre de ce qui
+ * attend, le violet de ce qui est clos. Elles disent un état, jamais une
+ * action — l'action, c'est le cyan, partout.
  *
  * Rien ici ne vient de MyCollabus : ce sont deux produits pour deux publics.
  * L'isolation vaut aussi pour l'apparence.
@@ -20,14 +25,16 @@
   --encre-tres-douce: #8494a5;
   --referent: #0f6b52;
   --referent-clair: #e4f2ed;
-  --candidat: #1f5fbf;
-  --candidat-clair: #e8effb;
-  /* Le texte posé sur --candidat. En thème sombre, ce bleu s'éclaircit : du
-     blanc dessus deviendrait illisible, c'est l'encre qui reprend la main. */
-  --sur-candidat: #ffffff;
-  /* La couleur d'action des écrans d'entrée, telle que dessinée sur la maquette. */
+  /* L'accent unique de la maquette. `--candidat` en est l'alias : la teinte des
+     initiales, de la jauge et des liens est la même que celle des boutons —
+     une seule couleur d'action dans toute l'application, pas deux. */
   --marque: #3f9fc2;
   --sur-marque: #ffffff;
+  --candidat: #3f9fc2;
+  --candidat-clair: #e4f1f7;
+  /* Le texte posé sur l'accent. En thème sombre, le cyan s'éclaircit : du blanc
+     dessus deviendrait illisible, c'est l'encre qui reprend la main. */
+  --sur-candidat: #ffffff;
   --attention: #92400e;
   --attention-clair: #fdf1e0;
   --clos: #6b5b95;
@@ -37,7 +44,6 @@
   --alerte-bordure: #f3c6c2;
 
   --pas: clamp(0.9rem, 0.5rem + 1.2vw, 1.4rem);
-  --titre: 'Iowan Old Style', Georgia, 'Palatino Linotype', serif;
   --corps: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   --mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
   --rayon: 4px;
@@ -57,11 +63,11 @@
     --encre-tres-douce: #74879b;
     --referent: #5ec8a4;
     --referent-clair: #0f2a22;
-    --candidat: #7aaefc;
-    --candidat-clair: #14243a;
-    --sur-candidat: #0d141c;
     --marque: #56b3d4;
     --sur-marque: #06222e;
+    --candidat: #56b3d4;
+    --candidat-clair: #102b36;
+    --sur-candidat: #06222e;
     --attention: #e0a95e;
     --attention-clair: #2b2114;
     --clos: #b0a2d8;
@@ -96,9 +102,9 @@ a {
 h1,
 h2,
 h3 {
-  font-family: var(--titre);
-  font-weight: 400;
-  line-height: 1.2;
+  font-family: var(--corps);
+  font-weight: 700;
+  line-height: 1.25;
   margin: 0 0 0.5rem;
 }
 
@@ -175,11 +181,18 @@ h3 {
   font: inherit;
   font-size: 0.92rem;
   width: 100%;
-  padding: 0.45rem 0.6rem;
-  border: 1px solid var(--bordure-nette);
-  border-radius: var(--rayon);
-  background: var(--surface);
+  padding: 0.6rem 0.7rem;
+  border: 1px solid var(--bordure);
+  border-radius: 9px;
+  background: var(--surface-creuse);
   color: inherit;
+}
+
+.champ input:focus-visible,
+.champ select:focus-visible,
+.champ textarea:focus-visible {
+  outline: 2px solid var(--marque);
+  outline-offset: 1px;
 }
 
 .champ textarea {
@@ -203,9 +216,9 @@ h3 {
   font: inherit;
   font-size: 0.88rem;
   font-weight: 600;
-  padding: 0.45rem 0.9rem;
+  padding: 0.55rem 1rem;
   border: 1px solid var(--bordure-nette);
-  border-radius: var(--rayon);
+  border-radius: 9px;
   background: var(--surface);
   color: var(--encre);
   text-decoration: none;
@@ -295,8 +308,8 @@ h3 {
 .logo--absent {
   border-radius: 50%;
   background: var(--surface-creuse);
-  font-family: var(--titre);
   font-size: 1.5rem;
+  font-weight: 700;
   color: var(--encre-tres-douce);
 }
 
@@ -629,6 +642,7 @@ h3 {
 
 .entete-liste h1 {
   font-size: 1.5rem;
+  font-weight: 800;
   margin: 0;
 }
 
@@ -679,7 +693,7 @@ h3 {
 .tableau-enveloppe {
   overflow-x: auto;
   border: 1px solid var(--bordure);
-  border-radius: var(--rayon);
+  border-radius: 12px;
   background: var(--surface);
 }
 
@@ -880,6 +894,7 @@ tbody tr:focus-within {
 
 .fiche-entete h1 {
   font-size: 1.6rem;
+  font-weight: 800;
   margin: 0 0 0.15rem;
 }
 
@@ -903,13 +918,12 @@ tbody tr:focus-within {
 
 .bloc {
   border: 1px solid var(--bordure);
-  border-radius: var(--rayon);
-  padding: 0.9rem 1rem;
+  border-radius: 12px;
+  padding: 1rem 1.1rem;
   background: var(--surface);
 }
 
 .bloc h2 {
-  font-family: var(--corps);
   font-size: 0.72rem;
   letter-spacing: 0.11em;
   text-transform: uppercase;
