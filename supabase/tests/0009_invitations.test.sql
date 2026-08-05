@@ -19,14 +19,22 @@ update public.profil set role = 'admin' where id = :'patron';
 insert into public.loge (bubble_id, nom) values ('loge-guyenne', 'Guyenne et Gascogne')
 on conflict do nothing;
 
-\echo '— la table est fermée'
+\echo '— la table ne s ecrit jamais directement'
+-- Cette migration-ci n'ouvre rien. Depuis, l'écran d'administration
+-- (migration 0010) a ouvert la **lecture** aux seuls administrateurs, et son
+-- test le prouve. Ce qui se vérifie ici, c'est que l'écriture, elle, est restée
+-- fermée à tout le monde : émettre et révoquer passent par des fonctions qui
+-- vérifient le droit. Une policy d'écriture permettrait de fabriquer une
+-- invitation sans ce contrôle.
 select public.verifier(
   (select count(*) from pg_policies
-    where schemaname = 'public' and tablename = 'invitation') = 0,
-  'aucune policy sur les invitations');
+    where schemaname = 'public' and tablename = 'invitation'
+      and cmd in ('INSERT', 'UPDATE', 'DELETE')) = 0,
+  'aucune policy d''écriture sur les invitations');
+
 select public.verifier(
-  public.refuse('authenticated', 'invitation') and public.refuse('anon', 'invitation'),
-  'ni un visiteur ni une personne connectée ne peuvent la lire');
+  public.refuse('anon', 'invitation'),
+  'sans être connecté, la table n''est même pas adressable');
 
 \echo '— seul un administrateur invite'
 do $$

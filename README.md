@@ -82,6 +82,10 @@ Quatre comptes, tous avec le mot de passe `HeraclesEssai2026` :
 
 Les emails partent dans la boîte de test : http://localhost:54334.
 
+**Pour inviter quelqu'un** : connectez-vous avec `patron@example.org` — c'est l'administrateur.
+L'écran d'administration liste les invitations et permet d'en émettre. Un référent qui tenterait
+d'y aller est renvoyé chez lui.
+
 **Pour éprouver l'isolation vous-même** : connectez-vous avec Bernard, copiez l'adresse d'une de
 ses fiches, déconnectez-vous, reconnectez-vous avec Claire et collez cette adresse. Vous obtenez
 une page introuvable. Ce n'est pas la page qui refuse — c'est la base qui ne renvoie rien.
