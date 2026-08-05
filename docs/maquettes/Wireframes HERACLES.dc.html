@@ -1,0 +1,707 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>HERACLES — l'espace référent (maquette)</title>
+
+<style>
+  :root {
+    color-scheme: light;
+    --fond: #f2f4f7;
+    --surface: #ffffff;
+    --surface-creuse: #eaeef3;
+    --bordure: #dbe1e9;
+    --bordure-nette: #b6c1cf;
+    --encre: #16202e;
+    --encre-douce: #5a6b7f;
+    --encre-tres-douce: #8494a5;
+    --referent: #0f6b52;
+    --referent-clair: #e4f2ed;
+    --candidat: #1f5fbf;
+    --candidat-clair: #e8effb;
+    --attention: #92400e;
+    --attention-clair: #fdf1e0;
+    --clos: #6b5b95;
+    --clos-clair: #efecf6;
+    --pas: clamp(0.9rem, 0.5rem + 1.2vw, 1.4rem);
+    --titre: "Iowan Old Style", Georgia, "Palatino Linotype", serif;
+    --corps: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      color-scheme: dark;
+      --fond: #0d141c;
+      --surface: #141e29;
+      --surface-creuse: #1a2733;
+      --bordure: #283747;
+      --bordure-nette: #3c4f63;
+      --encre: #e7eef6;
+      --encre-douce: #9dadbe;
+      --encre-tres-douce: #74879b;
+      --referent: #5ec8a4;
+      --referent-clair: #0f2a22;
+      --candidat: #7aaefc;
+      --candidat-clair: #14243a;
+      --attention: #e0a95e;
+      --attention-clair: #2b2114;
+      --clos: #b0a2d8;
+      --clos-clair: #221d30;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --fond: #0d141c;
+    --surface: #141e29;
+    --surface-creuse: #1a2733;
+    --bordure: #283747;
+    --bordure-nette: #3c4f63;
+    --encre: #e7eef6;
+    --encre-douce: #9dadbe;
+    --encre-tres-douce: #74879b;
+    --referent: #5ec8a4;
+    --referent-clair: #0f2a22;
+    --candidat: #7aaefc;
+    --candidat-clair: #14243a;
+    --attention: #e0a95e;
+    --attention-clair: #2b2114;
+    --clos: #b0a2d8;
+    --clos-clair: #221d30;
+  }
+
+  :root[data-theme="light"] {
+    color-scheme: light;
+    --fond: #f2f4f7;
+    --surface: #ffffff;
+    --surface-creuse: #eaeef3;
+    --bordure: #dbe1e9;
+    --bordure-nette: #b6c1cf;
+    --encre: #16202e;
+    --encre-douce: #5a6b7f;
+    --encre-tres-douce: #8494a5;
+    --referent: #0f6b52;
+    --referent-clair: #e4f2ed;
+    --candidat: #1f5fbf;
+    --candidat-clair: #e8effb;
+    --attention: #92400e;
+    --attention-clair: #fdf1e0;
+    --clos: #6b5b95;
+    --clos-clair: #efecf6;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--fond);
+    color: var(--encre);
+    font-family: var(--corps);
+    line-height: 1.55;
+  }
+
+  /* ————— Cadre de maquette ————— */
+  .commentaire {
+    max-width: 72rem;
+    margin: 0 auto;
+    padding: calc(var(--pas) * 1.6) var(--pas) 0;
+  }
+  .commentaire .surtitre {
+    font-size: 0.74rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--encre-tres-douce);
+    font-weight: 600;
+  }
+  .commentaire h1 {
+    font-family: var(--titre);
+    font-weight: 400;
+    font-size: clamp(1.7rem, 1.3rem + 1.8vw, 2.4rem);
+    line-height: 1.15;
+    margin: 0.3rem 0 0.5rem;
+    text-wrap: balance;
+  }
+  .commentaire p { color: var(--encre-douce); max-width: 60ch; margin: 0 0 0.4rem; }
+
+  .ecran-titre {
+    max-width: 72rem;
+    margin: calc(var(--pas) * 2) auto calc(var(--pas) * 0.7);
+    padding: 0 var(--pas);
+    display: flex;
+    align-items: baseline;
+    gap: 0.8rem;
+    border-bottom: 1px solid var(--bordure);
+    padding-bottom: 0.5rem;
+  }
+  .ecran-titre .num {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    background: var(--encre);
+    color: var(--surface);
+    padding: 0.15rem 0.45rem;
+    border-radius: 3px;
+  }
+  .ecran-titre h2 {
+    font-family: var(--titre);
+    font-weight: 400;
+    font-size: 1.2rem;
+    margin: 0;
+  }
+  .ecran-titre .note { color: var(--encre-tres-douce); font-size: 0.85rem; margin-left: auto; }
+
+  /* ————— L'application ————— */
+  .app {
+    max-width: 72rem;
+    margin: 0 auto;
+    padding: 0 var(--pas);
+  }
+  .fenetre {
+    background: var(--surface);
+    border: 1px solid var(--bordure-nette);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+
+  .barre {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.7rem 1.1rem;
+    border-bottom: 1px solid var(--bordure);
+    background: var(--surface);
+    flex-wrap: wrap;
+  }
+  .marque { font-weight: 700; letter-spacing: 0.02em; }
+  .marque span { color: var(--encre-tres-douce); font-weight: 400; }
+  .barre .droite { margin-left: auto; display: flex; align-items: center; gap: 0.9rem; font-size: 0.9rem; }
+  .pastille {
+    width: 1.9rem; height: 1.9rem;
+    border-radius: 50%;
+    background: var(--referent-clair);
+    color: var(--referent);
+    display: grid; place-items: center;
+    font-size: 0.78rem; font-weight: 700;
+  }
+
+  .corps { padding: 1.1rem; display: flex; flex-direction: column; gap: 1rem; }
+
+  .entete-liste { display: flex; align-items: flex-end; gap: 1rem; flex-wrap: wrap; }
+  .entete-liste h3 {
+    font-family: var(--titre); font-weight: 400; font-size: 1.5rem; margin: 0;
+  }
+  .entete-liste .compte { color: var(--encre-douce); font-size: 0.9rem; }
+
+  .filtres { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-left: auto; }
+  .filtre {
+    font: inherit; font-size: 0.85rem;
+    padding: 0.35rem 0.7rem;
+    border: 1px solid var(--bordure-nette);
+    background: var(--surface);
+    color: var(--encre-douce);
+    border-radius: 2rem;
+    cursor: pointer;
+  }
+  .filtre[aria-pressed="true"] {
+    background: var(--encre); color: var(--surface); border-color: var(--encre);
+  }
+  .recherche {
+    font: inherit; font-size: 0.9rem;
+    padding: 0.4rem 0.7rem;
+    border: 1px solid var(--bordure-nette);
+    border-radius: 4px;
+    background: var(--surface); color: inherit;
+    min-width: 12rem;
+  }
+
+  /* ————— Tableau ————— */
+  .tableau-enveloppe { overflow-x: auto; border: 1px solid var(--bordure); border-radius: 4px; }
+  table { border-collapse: collapse; width: 100%; font-size: 0.92rem; }
+  thead th {
+    text-align: left;
+    font-size: 0.72rem;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--encre-tres-douce);
+    font-weight: 600;
+    padding: 0.55rem 0.8rem;
+    background: var(--surface-creuse);
+    border-bottom: 1px solid var(--bordure);
+    white-space: nowrap;
+  }
+  tbody td { padding: 0.6rem 0.8rem; border-bottom: 1px solid var(--bordure); vertical-align: middle; }
+  tbody tr:last-child td { border-bottom: 0; }
+  tbody tr { cursor: pointer; }
+  tbody tr:hover { background: var(--surface-creuse); }
+  tbody tr:focus-visible { outline: 2px solid var(--candidat); outline-offset: -2px; }
+  .nom-cellule { display: flex; align-items: center; gap: 0.65rem; }
+  .initiales {
+    width: 2.1rem; height: 2.1rem; border-radius: 50%;
+    background: var(--candidat-clair); color: var(--candidat);
+    display: grid; place-items: center; font-size: 0.76rem; font-weight: 700; flex: none;
+  }
+  .nom-cellule strong { font-weight: 600; }
+  .nom-cellule small { display: block; color: var(--encre-tres-douce); font-size: 0.78rem; }
+  .num-candidat { font-family: var(--mono); font-size: 0.82rem; color: var(--encre-tres-douce); }
+  .maigre { color: var(--encre-douce); }
+
+  .etat {
+    display: inline-block;
+    font-size: 0.76rem; font-weight: 600;
+    padding: 0.15rem 0.55rem; border-radius: 2rem;
+    white-space: nowrap;
+  }
+  .etat--suivi { background: var(--referent-clair); color: var(--referent); }
+  .etat--attente { background: var(--attention-clair); color: var(--attention); }
+  .etat--clos { background: var(--clos-clair); color: var(--clos); }
+
+  .jauge { display: flex; align-items: center; gap: 0.5rem; }
+  .jauge-piste { width: 3.2rem; height: 5px; background: var(--surface-creuse); border-radius: 3px; overflow: hidden; }
+  .jauge-part { height: 100%; background: var(--candidat); }
+  .jauge span { font-size: 0.78rem; color: var(--encre-tres-douce); font-variant-numeric: tabular-nums; }
+
+  /* ————— Fiche ————— */
+  .fil { font-size: 0.88rem; color: var(--encre-douce); display: flex; gap: 0.4rem; align-items: center; }
+  .fil a { color: var(--candidat); text-decoration: none; }
+  .fil a:hover { text-decoration: underline; }
+
+  .fiche-entete {
+    display: flex; gap: 1rem; align-items: flex-start; flex-wrap: wrap;
+    padding-bottom: 1rem; border-bottom: 1px solid var(--bordure);
+  }
+  .portrait {
+    width: 4.2rem; height: 4.2rem; border-radius: 6px;
+    background: var(--candidat-clair); color: var(--candidat);
+    display: grid; place-items: center; font-size: 1.2rem; font-weight: 700; flex: none;
+  }
+  .fiche-entete h3 { font-family: var(--titre); font-weight: 400; font-size: 1.6rem; margin: 0 0 0.15rem; }
+  .fiche-entete .sous { color: var(--encre-douce); font-size: 0.92rem; }
+  .fiche-actions { margin-left: auto; display: flex; gap: 0.5rem; align-items: center; }
+
+  .bouton {
+    font: inherit; font-size: 0.88rem; font-weight: 600;
+    padding: 0.45rem 0.9rem; border-radius: 4px;
+    border: 1px solid var(--bordure-nette); background: var(--surface); color: var(--encre);
+    cursor: pointer;
+  }
+  .bouton--fort { background: var(--candidat); border-color: var(--candidat); color: #fff; }
+  .bouton:focus-visible { outline: 2px solid var(--candidat); outline-offset: 2px; }
+
+  .blocs { display: grid; grid-template-columns: repeat(auto-fit, minmax(19rem, 1fr)); gap: 1rem; }
+  .bloc { border: 1px solid var(--bordure); border-radius: 4px; padding: 0.9rem 1rem; }
+  .bloc h4 {
+    font-size: 0.72rem; letter-spacing: 0.11em; text-transform: uppercase;
+    color: var(--encre-tres-douce); margin: 0 0 0.7rem; font-weight: 700;
+  }
+  .bloc--large { grid-column: 1 / -1; }
+
+  .champs { display: grid; grid-template-columns: auto 1fr; gap: 0.4rem 1rem; font-size: 0.92rem; }
+  .champs dt { color: var(--encre-tres-douce); white-space: nowrap; }
+  .champs dd { margin: 0; }
+  .champs dd.vide { color: var(--encre-tres-douce); font-style: italic; }
+
+  .prose { font-size: 0.92rem; color: var(--encre); margin: 0; white-space: pre-line; }
+
+  .etiquettes { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+  .etiquette {
+    font-size: 0.8rem; padding: 0.15rem 0.55rem;
+    background: var(--surface-creuse); border-radius: 3px; color: var(--encre-douce);
+  }
+
+  .fichiers { display: flex; flex-direction: column; gap: 0.45rem; }
+  .fichier {
+    display: flex; align-items: center; gap: 0.65rem;
+    padding: 0.5rem 0.65rem; border: 1px solid var(--bordure); border-radius: 4px;
+    font-size: 0.9rem;
+  }
+  .fichier .type {
+    font-family: var(--mono); font-size: 0.68rem; font-weight: 700;
+    padding: 0.15rem 0.4rem; border-radius: 3px;
+    background: var(--candidat-clair); color: var(--candidat);
+  }
+  .fichier .poids { margin-left: auto; color: var(--encre-tres-douce); font-size: 0.8rem; }
+  .fichier--absent { border-style: dashed; color: var(--encre-tres-douce); }
+
+  /* ————— Édition ————— */
+  .ligne-edition { display: grid; grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); gap: 0.7rem; }
+  .champ { display: flex; flex-direction: column; gap: 0.2rem; }
+  .champ label { font-size: 0.78rem; color: var(--encre-tres-douce); font-weight: 600; }
+  .champ input, .champ select, .champ textarea {
+    font: inherit; font-size: 0.92rem;
+    padding: 0.45rem 0.6rem;
+    border: 1px solid var(--bordure-nette); border-radius: 4px;
+    background: var(--surface); color: inherit;
+    width: 100%;
+  }
+  .champ textarea { resize: vertical; min-height: 5.5rem; }
+  .champ--verrouille input { background: var(--surface-creuse); color: var(--encre-tres-douce); }
+  .champ .aide { font-size: 0.76rem; color: var(--encre-tres-douce); }
+
+  .barre-enregistrement {
+    display: flex; align-items: center; gap: 0.8rem;
+    padding: 0.7rem 1.1rem; border-top: 1px solid var(--bordure);
+    background: var(--surface-creuse);
+    font-size: 0.88rem;
+  }
+  .barre-enregistrement .etat-sauvegarde { color: var(--encre-tres-douce); }
+  .barre-enregistrement .droite { margin-left: auto; display: flex; gap: 0.5rem; }
+
+  /* ————— Encart de règle ————— */
+  .regle {
+    max-width: 72rem; margin: 1rem auto 0; padding: 0 var(--pas);
+  }
+  .regle-boite {
+    border-left: 3px solid var(--referent);
+    background: var(--referent-clair);
+    padding: 0.8rem 1rem; border-radius: 0 4px 4px 0;
+    font-size: 0.92rem;
+  }
+  .regle-boite strong { color: var(--referent); }
+  .regle-boite p { margin: 0; max-width: 68ch; }
+
+  .pied {
+    max-width: 72rem; margin: calc(var(--pas) * 2.5) auto;
+    padding: var(--pas) var(--pas) calc(var(--pas) * 3);
+    border-top: 1px solid var(--bordure);
+    color: var(--encre-douce); font-size: 0.92rem;
+  }
+  .pied h3 { font-family: var(--titre); font-weight: 400; font-size: 1.2rem; color: var(--encre); margin: 0 0 0.5rem; }
+  .pied ul { margin: 0.3rem 0 0; padding-left: 1.1rem; max-width: 62ch; }
+  .pied li + li { margin-top: 0.25rem; }
+
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+
+<div class="commentaire">
+  <span class="surtitre">HERACLES · lot 3 · maquette</span>
+  <h1>L'espace référent</h1>
+  <p>
+    Trois écrans, dessinés sur les champs réels de tes tables — pas sur une idée de ce qu'ils
+    pourraient contenir. Les personnes affichées sont inventées ; la structure, elle, est celle
+    de tes 107 fiches.
+  </p>
+</div>
+
+<!-- ————————————————————————— ÉCRAN 1 ————————————————————————— -->
+<div class="ecran-titre">
+  <span class="num">01</span>
+  <h2>Mes candidats</h2>
+  <span class="note">ce que voit un référent en se connectant</span>
+</div>
+
+<div class="app">
+  <div class="fenetre">
+    <div class="barre">
+      <span class="marque">HERACLES <span>· espace référent</span></span>
+      <div class="droite">
+        <span class="maigre">Loge de Bordeaux</span>
+        <span class="pastille">BD</span>
+      </div>
+    </div>
+
+    <div class="corps">
+      <div class="entete-liste">
+        <div>
+          <h3>Mes candidats</h3>
+          <span class="compte">9 suivis · 2 en attente de premier contact</span>
+        </div>
+        <div class="filtres">
+          <button class="filtre" aria-pressed="true" type="button">Tous</button>
+          <button class="filtre" aria-pressed="false" type="button">En recherche</button>
+          <button class="filtre" aria-pressed="false" type="button">Clôturés</button>
+          <input class="recherche" type="search" placeholder="Chercher un nom, un métier…" />
+        </div>
+      </div>
+
+      <div class="tableau-enveloppe">
+        <table>
+          <thead>
+            <tr>
+              <th>Candidat</th>
+              <th>N°</th>
+              <th>Recherche</th>
+              <th>Secteur visé</th>
+              <th>Fiche</th>
+              <th>Suivi</th>
+              <th>Dernière activité</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr tabindex="0">
+              <td><div class="nom-cellule"><span class="initiales">AM</span><span><strong>Alice Martin</strong><small>33 ans · Bordeaux</small></span></div></td>
+              <td class="num-candidat">108</td>
+              <td class="maigre">Alternance</td>
+              <td class="maigre">Comptabilité</td>
+              <td><div class="jauge"><div class="jauge-piste"><div class="jauge-part" style="width:86%"></div></div><span>86 %</span></div></td>
+              <td><span class="etat etat--suivi">Suivi</span></td>
+              <td class="maigre">il y a 2 jours</td>
+            </tr>
+            <tr tabindex="0">
+              <td><div class="nom-cellule"><span class="initiales">KB</span><span><strong>Karim Benali</strong><small>24 ans · Mérignac</small></span></div></td>
+              <td class="num-candidat">106</td>
+              <td class="maigre">Emploi</td>
+              <td class="maigre">Logistique</td>
+              <td><div class="jauge"><div class="jauge-piste"><div class="jauge-part" style="width:62%"></div></div><span>62 %</span></div></td>
+              <td><span class="etat etat--suivi">Suivi</span></td>
+              <td class="maigre">il y a 5 jours</td>
+            </tr>
+            <tr tabindex="0">
+              <td><div class="nom-cellule"><span class="initiales">SL</span><span><strong>Sophie Lemaire</strong><small>19 ans · Talence</small></span></div></td>
+              <td class="num-candidat">104</td>
+              <td class="maigre">Stage</td>
+              <td class="maigre">Communication</td>
+              <td><div class="jauge"><div class="jauge-piste"><div class="jauge-part" style="width:41%"></div></div><span>41 %</span></div></td>
+              <td><span class="etat etat--attente">À contacter</span></td>
+              <td class="maigre">jamais</td>
+            </tr>
+            <tr tabindex="0">
+              <td><div class="nom-cellule"><span class="initiales">PD</span><span><strong>Paul Dubois</strong><small>47 ans · Pessac</small></span></div></td>
+              <td class="num-candidat">99</td>
+              <td class="maigre">Emploi</td>
+              <td class="maigre">Maintenance industrielle</td>
+              <td><div class="jauge"><div class="jauge-piste"><div class="jauge-part" style="width:94%"></div></div><span>94 %</span></div></td>
+              <td><span class="etat etat--suivi">Suivi</span></td>
+              <td class="maigre">hier</td>
+            </tr>
+            <tr tabindex="0">
+              <td><div class="nom-cellule"><span class="initiales">NF</span><span><strong>Nadia Fournier</strong><small>29 ans · Bègles</small></span></div></td>
+              <td class="num-candidat">91</td>
+              <td class="maigre">Alternance</td>
+              <td class="maigre">Ressources humaines</td>
+              <td><div class="jauge"><div class="jauge-piste"><div class="jauge-part" style="width:78%"></div></div><span>78 %</span></div></td>
+              <td><span class="etat etat--clos">Clôturé — embauché</span></td>
+              <td class="maigre">il y a 1 mois</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="regle">
+  <div class="regle-boite">
+    <p>
+      <strong>La colonne « Fiche »</strong> dit quelle part des champs est renseignée. Sur tes
+      données reprises, la moyenne tourne autour de 60 % : c'est l'indicateur qui montre où le
+      travail reste à faire, sans avoir à ouvrir chaque dossier.
+    </p>
+  </div>
+</div>
+
+<!-- ————————————————————————— ÉCRAN 2 ————————————————————————— -->
+<div class="ecran-titre">
+  <span class="num">02</span>
+  <h2>La fiche d'un candidat</h2>
+  <span class="note">tout ce qui a été repris de Bubble, en lecture</span>
+</div>
+
+<div class="app">
+  <div class="fenetre">
+    <div class="barre">
+      <span class="marque">HERACLES <span>· espace référent</span></span>
+      <div class="droite">
+        <span class="maigre">Loge de Bordeaux</span>
+        <span class="pastille">BD</span>
+      </div>
+    </div>
+
+    <div class="corps">
+      <p class="fil"><a href="#">Mes candidats</a> › <span>Alice Martin</span></p>
+
+      <div class="fiche-entete">
+        <span class="portrait">AM</span>
+        <div>
+          <h3>Alice Martin</h3>
+          <div class="sous">Candidate n° 108 · suivie depuis le 12 mars 2026</div>
+          <div class="etiquettes" style="margin-top:0.5rem">
+            <span class="etat etat--suivi">Suivi</span>
+            <span class="etiquette">Alternance</span>
+            <span class="etiquette">Comptabilité</span>
+            <span class="etiquette">Permis B · véhiculée</span>
+          </div>
+        </div>
+        <div class="fiche-actions">
+          <button class="bouton" type="button">Imprimer</button>
+          <button class="bouton bouton--fort" type="button">Modifier</button>
+        </div>
+      </div>
+
+      <div class="blocs">
+        <div class="bloc">
+          <h4>Identité et contact</h4>
+          <dl class="champs">
+            <dt>Âge</dt><dd>33 ans</dd>
+            <dt>Situation</dt><dd>Mariée, 2 enfants</dd>
+            <dt>Téléphone</dt><dd>07 65 73 03 85</dd>
+            <dt>Email</dt><dd>a.martin@example.org</dd>
+            <dt>Adresse</dt><dd>Bordeaux (33000)</dd>
+          </dl>
+        </div>
+
+        <div class="bloc">
+          <h4>Ce qu'elle cherche</h4>
+          <dl class="champs">
+            <dt>Type</dt><dd>Alternance</dd>
+            <dt>Métier</dt><dd>Assistante comptable</dd>
+            <dt>Mobilité</dt><dd>Bordeaux Métropole</dd>
+            <dt>Disponible</dt><dd>1<sup>er</sup> septembre 2026</dd>
+            <dt>Secteur</dt><dd>Comptabilité, gestion</dd>
+          </dl>
+        </div>
+
+        <div class="bloc">
+          <h4>Accompagnement</h4>
+          <dl class="champs">
+            <dt>Référent</dt><dd>Bernard Delorme</dd>
+            <dt>Parrain</dt><dd>Michel Aubert</dd>
+            <dt>Loge</dt><dd>Bordeaux</dd>
+            <dt>Appréciation</dt><dd>Très motivée</dd>
+            <dt>Clôture</dt><dd class="vide">non clôturé</dd>
+          </dl>
+        </div>
+
+        <div class="bloc bloc--large">
+          <h4>Parcours</h4>
+          <p class="prose">BTS Comptabilité et gestion (2014) · Titre professionnel Assistante de gestion (2019)
+
+Six ans en cabinet comptable, puis trois ans en PME du bâtiment : saisie, rapprochements bancaires, déclarations de TVA, préparation des bilans.</p>
+          <div class="etiquettes" style="margin-top:0.8rem">
+            <span class="etiquette">Sage</span>
+            <span class="etiquette">Excel avancé</span>
+            <span class="etiquette">Cegid</span>
+            <span class="etiquette">Rigoureuse</span>
+            <span class="etiquette">Autonome</span>
+          </div>
+        </div>
+
+        <div class="bloc">
+          <h4>Documents</h4>
+          <div class="fichiers">
+            <div class="fichier"><span class="type">PDF</span> CV — mars 2026 <span class="poids">213 Ko</span></div>
+            <div class="fichier"><span class="type">PDF</span> Lettre de motivation <span class="poids">88 Ko</span></div>
+            <div class="fichier fichier--absent"><span class="type">—</span> CV anonyme — non fourni</div>
+          </div>
+        </div>
+
+        <div class="bloc">
+          <h4>Historique</h4>
+          <dl class="champs">
+            <dt>Créée le</dt><dd>12 mars 2026</dd>
+            <dt>Modifiée le</dt><dd>2 août 2026</dd>
+            <dt>Origine</dt><dd>Reprise Bubble</dd>
+          </dl>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="regle">
+  <div class="regle-boite">
+    <p>
+      <strong>Un référent ne voit que ses candidats.</strong> Pas par filtre d'affichage : c'est
+      la base de données elle-même qui refuse de montrer les autres. Même en modifiant l'adresse
+      dans le navigateur, la fiche d'un candidat qui n'est pas rattaché à lui reste inaccessible —
+      exactement comme on l'a déjà vérifié pour les profils.
+    </p>
+  </div>
+</div>
+
+<!-- ————————————————————————— ÉCRAN 3 ————————————————————————— -->
+<div class="ecran-titre">
+  <span class="num">03</span>
+  <h2>La modification</h2>
+  <span class="note">le même écran, en saisie</span>
+</div>
+
+<div class="app">
+  <div class="fenetre">
+    <div class="barre">
+      <span class="marque">HERACLES <span>· espace référent</span></span>
+      <div class="droite">
+        <span class="maigre">Loge de Bordeaux</span>
+        <span class="pastille">BD</span>
+      </div>
+    </div>
+
+    <div class="corps">
+      <p class="fil"><a href="#">Mes candidats</a> › <a href="#">Alice Martin</a> › <span>Modification</span></p>
+
+      <div class="blocs">
+        <div class="bloc bloc--large">
+          <h4>Identité et contact</h4>
+          <div class="ligne-edition">
+            <div class="champ"><label for="m-prenom">Prénom</label><input id="m-prenom" value="Alice" /></div>
+            <div class="champ"><label for="m-nom">Nom</label><input id="m-nom" value="Martin" /></div>
+            <div class="champ"><label for="m-tel">Téléphone</label><input id="m-tel" value="07 65 73 03 85" /></div>
+            <div class="champ"><label for="m-email">Email</label><input id="m-email" type="email" value="a.martin@example.org" /></div>
+            <div class="champ"><label for="m-ville">Ville</label><input id="m-ville" value="Bordeaux" /></div>
+            <div class="champ"><label for="m-cp">Code postal</label><input id="m-cp" value="33000" inputmode="numeric" /></div>
+          </div>
+        </div>
+
+        <div class="bloc bloc--large">
+          <h4>Ce qu'elle cherche</h4>
+          <div class="ligne-edition">
+            <div class="champ">
+              <label for="m-type">Type de recherche</label>
+              <select id="m-type"><option>Alternance</option><option>Emploi</option><option>Stage</option></select>
+            </div>
+            <div class="champ"><label for="m-metier">Métier visé</label><input id="m-metier" value="Assistante comptable" /></div>
+            <div class="champ"><label for="m-mobilite">Mobilité</label><input id="m-mobilite" value="Bordeaux Métropole" /></div>
+            <div class="champ"><label for="m-dispo">Disponible à partir du</label><input id="m-dispo" type="date" value="2026-09-01" /></div>
+          </div>
+        </div>
+
+        <div class="bloc bloc--large">
+          <h4>Parcours</h4>
+          <div class="champ">
+            <label for="m-exp">Expériences</label>
+            <textarea id="m-exp">Six ans en cabinet comptable, puis trois ans en PME du bâtiment : saisie, rapprochements bancaires, déclarations de TVA, préparation des bilans.</textarea>
+          </div>
+        </div>
+
+        <div class="bloc">
+          <h4>Accompagnement</h4>
+          <div class="champ champ--verrouille">
+            <label for="m-ref">Référent</label>
+            <input id="m-ref" value="Bernard Delorme" readonly />
+            <span class="aide">Le rattachement se change depuis l'administration de la loge.</span>
+          </div>
+        </div>
+
+        <div class="bloc">
+          <h4>Suivi</h4>
+          <div class="champ">
+            <label for="m-appreciation">Appréciation</label>
+            <input id="m-appreciation" value="Très motivée" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="barre-enregistrement">
+      <span class="etat-sauvegarde">Dernière modification enregistrée il y a 2 jours</span>
+      <div class="droite">
+        <button class="bouton" type="button">Annuler</button>
+        <button class="bouton bouton--fort" type="button">Enregistrer</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="pied">
+  <h3>Ce qui reste à décider</h3>
+  <ul>
+    <li><strong>Les listes de choix.</strong> « Type de recherche », « Situation », « Clôture », « Appréciation » sont aujourd'hui du texte libre venant de Bubble. En faire de vraies listes évite les fautes de saisie — mais il me faut leurs valeurs exactes.</li>
+    <li><strong>Le taux de remplissage.</strong> Utile, ou gadget ? Il indique où le travail reste à faire, mais il peut aussi donner l'impression de noter les référents.</li>
+    <li><strong>L'état du suivi.</strong> « Suivi / À contacter / Clôturé » est déduit des champs `cloture` et `archive`. Si tes référents raisonnent avec d'autres étapes, dis-les-moi.</li>
+    <li><strong>Ce qui manque à l'écran ?</strong> C'est la question qui compte le plus : qu'est-ce qu'un référent fait tous les jours qu'on ne voit pas ici ?</li>
+  </ul>
+</div>
+
+</body>
+</html>
