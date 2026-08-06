@@ -103,7 +103,6 @@ if [[ ! -f "$DOSSIER/.env" ]]; then
 
   sed \
     -e "s|^POSTGRES_PASSWORD=.*|POSTGRES_PASSWORD=$MDP|" \
-    -e "s|^POSTGRES_DB=.*|POSTGRES_DB=heracles_essai|" \
     -e "s|^JWT_SECRET=.*|JWT_SECRET=$JWT|" \
     -e "s|^ANON_KEY=.*|ANON_KEY=$ANON|" \
     -e "s|^SERVICE_ROLE_KEY=.*|SERVICE_ROLE_KEY=$SERVICE|" \
@@ -207,7 +206,7 @@ cat <<FIN
 
   Application   https://$APP
   API           https://$API
-  Base          heracles_essai, vide — et qu'elle le reste
+  Base          vide — et qu'elle le reste
 
   Certificat (si ce n'est pas déjà fait) :
     certbot --nginx -d $APP -d $API
