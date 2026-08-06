@@ -67,8 +67,28 @@ if [[ $ZERO -eq 1 ]]; then
     fi
   fi
 
-  [[ -d "$DOSSIER" ]] && ( cd "$DOSSIER" && docker compose -p "$PROJET" down -v --remove-orphans >/dev/null 2>&1 || true )
-  ( cd "$DEPOT" && docker compose -p "$PROJET-web" down --remove-orphans >/dev/null 2>&1 || true )
+  if [[ -d "$DOSSIER" ]]; then
+    ( cd "$DOSSIER" && docker compose -p "$PROJET" down -v --remove-orphans >/dev/null 2>&1 ) || true
+  fi
+
+  # `compose down` ne retrouve ses conteneurs que si la composition et les
+  # variables d'alors sont encore lisibles — ce qui n'est pas garanti quand
+  # c'est justement le `.env` qu'on vient réparer. Le repêchage par étiquette,
+  # lui, ne dépend d'aucun fichier : Docker sait de quel projet vient chaque
+  # conteneur. Sans lui, un reste tient le port et le script s'arrête dessus.
+  for projet in "$PROJET" "$PROJET-web"; do
+    restes="$(docker ps -aq --filter "label=com.docker.compose.project=$projet" 2>/dev/null || true)"
+    if [[ -n "$restes" ]]; then
+      # shellcheck disable=SC2086
+      docker rm -f $restes >/dev/null 2>&1 || true
+    fi
+    volumes="$(docker volume ls -q --filter "label=com.docker.compose.project=$projet" 2>/dev/null || true)"
+    if [[ -n "$volumes" ]]; then
+      # shellcheck disable=SC2086
+      docker volume rm -f $volumes >/dev/null 2>&1 || true
+    fi
+  done
+
   rm -f "$DOSSIER/.env"
   vert "pile arrêtée, volumes effacés, .env retiré"
 fi
@@ -76,7 +96,14 @@ fi
 # Les ports de l'essai doivent être libres — et surtout pas ceux d'un autre.
 for port in "$KONG_PORT" "$WEB_PORT"; do
   if ss -lnt "sport = :$port" 2>/dev/null | grep -q LISTEN; then
-    rouge "Le port $port est déjà pris. Un autre service l'occupe : arrêtez-le, ou changez ce script."
+    rouge "Le port $port est déjà pris."
+    tenant="$(docker ps --filter "publish=$port" --format '{{.Names}}' 2>/dev/null | head -1 || true)"
+    if [[ -n "$tenant" ]]; then
+      echo "Il est tenu par le conteneur « $tenant »."
+      echo "Si c'est une pile d'essai à remplacer, relancez avec --repartir-de-zero."
+    else
+      echo "Aucun conteneur ne le publie : c'est un service du système. Arrêtez-le, ou changez ce script."
+    fi
     exit 1
   fi
 done

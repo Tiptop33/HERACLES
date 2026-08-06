@@ -29,7 +29,19 @@ Deux noms sont supposés dans tout ce document — à remplacer partout :
 
 Avant d'approcher les 107 dossiers réels, il vaut mieux voir l'application
 vivre en conditions réelles : vrai HTTPS, vrais emails, vrais navigateurs, sur
-une base vide. Une seule commande la monte :
+une base vide.
+
+Le dépôt s'obtient sur le VPS par un **clone**, jamais par une copie déposée
+là. Une copie ne sait pas d'où elle vient : `git pull` y répond « not a git
+repository », on croit avoir la dernière version et on tourne sur l'ancienne —
+avec des messages d'erreur qui décrivent un code qui n'est plus.
+
+```bash
+git clone -b <branche> https://github.com/Tiptop33/HERACLES.git /root/HERACLES
+cd /root/HERACLES
+```
+
+Une seule commande monte ensuite l'instance :
 
 ```bash
 sudo ./infra/essai/deployer.sh essai.mondomaine.fr api-essai.mondomaine.fr
