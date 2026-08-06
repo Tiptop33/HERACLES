@@ -68,7 +68,12 @@ else
   vert "pile déjà présente, on la garde"
 fi
 
-cp "$DEPOT/infra/supabase/docker-compose.override.yml" "$DOSSIER/"
+# La surcharge est calculée à partir de la composition réellement clonée : la
+# liste des services de Supabase change d'une version à l'autre, et nommer un
+# service absent fait échouer tout le démarrage.
+node "$DEPOT/infra/supabase/composer-surcharge.mjs" \
+  "$DOSSIER/docker-compose.yml" "$PREFIXE" "$KONG_PORT" \
+  > "$DOSSIER/docker-compose.override.yml"
 
 # ————— Les secrets, fabriqués ici et nulle part ailleurs —————
 etape "Secrets"

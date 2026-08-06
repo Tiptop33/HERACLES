@@ -17,6 +17,7 @@ set -euo pipefail
 DOSSIER=/opt/supabase-heracles-essai
 PREFIXE=heracles-essai
 PROJET=heracles-essai
+KONG_PORT=8101
 DEPOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 
 rouge() { printf '\033[31m%s\033[0m\n' "$*"; }
@@ -35,8 +36,12 @@ fi
 set -a; source "$DOSSIER/.env"; set +a
 
 etape "Pile Supabase"
-# La surcharge peut avoir changé dans le dépôt : on la redépose avant tout.
-cp "$DEPOT/infra/supabase/docker-compose.override.yml" "$DOSSIER/"
+# La surcharge est recalculée à partir de la composition réellement clonée : la
+# liste des services de Supabase change d'une version à l'autre, et nommer un
+# service absent fait échouer tout le démarrage.
+node "$DEPOT/infra/supabase/composer-surcharge.mjs" \
+  "$DOSSIER/docker-compose.yml" "$PREFIXE" "$KONG_PORT" \
+  > "$DOSSIER/docker-compose.override.yml"
 ( cd "$DOSSIER" && docker compose -p "$PROJET" up -d )
 
 printf 'attente de la base'
