@@ -89,8 +89,23 @@ if [[ $ZERO -eq 1 ]]; then
     fi
   done
 
+  # Le gros de la base n'est pas dans un volume Docker mais dans un dossier
+  # monté — `volumes/db/data`. `compose down -v` ne le touche donc jamais, et
+  # un cluster survivant garde les mots de passe de rôles d'avant. Le service
+  # d'authentification se voit alors refuser l'entrée par la base même :
+  #
+  #   password authentication failed for user "supabase_auth_admin"
+  #
+  # Ces mots de passe ne sont posés qu'à la toute première initialisation, à
+  # partir de POSTGRES_PASSWORD. Refaire le `.env` sans refaire le cluster,
+  # c'est changer la serrure en gardant l'ancienne clé.
+  #
+  # Le reste de `volumes/` est la configuration livrée avec la pile — les
+  # scripts d'amorçage, la déclaration des routes de Kong. On n'y touche pas.
+  rm -rf "$DOSSIER/volumes/db/data" "$DOSSIER/volumes/storage"
+
   rm -f "$DOSSIER/.env"
-  vert "pile arrêtée, volumes effacés, .env retiré"
+  vert "pile arrêtée, base et fichiers effacés, .env retiré"
 fi
 
 # Les ports de l'essai doivent être libres — et surtout pas ceux d'un autre.
@@ -220,8 +235,13 @@ if [ "${presence// /}" != "1" ]; then
   echo  "Voici ce qu'il dit :"
   docker logs --tail 20 "$PREFIXE-auth" 2>&1 | sed 's/^/  /' || true
   echo
-  echo  "Une ligne « converting '' to type bool » désigne une variable vide dans"
-  echo  "$DOSSIER/.env. Le nom figure dans le message, juste après GOTRUE_."
+  echo
+  echo  "Deux causes reviennent :"
+  echo  "  « converting '' to type bool »  → une variable vide dans $DOSSIER/.env,"
+  echo  "    nommée dans le message, juste après GOTRUE_."
+  echo  "  « password authentication failed » → le cluster PostgreSQL est plus ancien"
+  echo  "    que le .env : ses mots de passe de rôles datent d'avant. Relancez avec"
+  echo  "    --repartir-de-zero, qui refait les deux ensemble."
   exit 1
 fi
 vert "schéma auth en place"
