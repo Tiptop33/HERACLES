@@ -333,7 +333,23 @@ fi
 ln -sf "$CONF" /etc/nginx/sites-enabled/heracles-essai
 
 if nginx -t 2>/dev/null; then
-  systemctl reload nginx
+  # Recharger suppose qu'il tourne. Ce n'est pas acquis : une configuration
+  # antérieure — celle qui réclamait un certificat absent — a pu l'empêcher de
+  # démarrer, et il est resté couché depuis.
+  if systemctl is-active --quiet nginx; then
+    systemctl reload nginx
+  elif ! systemctl start nginx; then
+    rouge "nginx refuse de démarrer :"
+    systemctl status nginx --no-pager -l 2>&1 | tail -15 | sed 's/^/  /' || true
+    echo
+    echo "Qui tient le port 80 :"
+    ss -lntp 'sport = :80' 2>/dev/null | sed 's/^/  /' || true
+    echo
+    echo "Un « Address already in use » désigne un autre serveur en façade —"
+    echo "Traefik, par exemple. C'est alors à lui de porter ces deux noms."
+    exit 1
+  fi
+
   if [[ $CERT_PRET -eq 1 ]]; then
     vert "nginx rechargé — l'instance est servie en HTTPS"
   else
