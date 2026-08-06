@@ -116,13 +116,6 @@ if [[ ! -f "$DOSSIER/.env" ]]; then
     -e "s|^DASHBOARD_PASSWORD=.*|DASHBOARD_PASSWORD=$(openssl rand -hex 12)|" \
     "$DEPOT/infra/supabase/.env.example" > "$DOSSIER/.env"
 
-  {
-    echo ""
-    echo "# Lus par docker-compose.override.yml"
-    echo "HERACLES_PREFIXE=$PREFIXE"
-    echo "HERACLES_KONG_PORT=$KONG_PORT"
-  } >> "$DOSSIER/.env"
-
   chmod 600 "$DOSSIER/.env"
   vert "secrets fabriqués sur place, .env en 600"
 else

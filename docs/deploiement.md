@@ -142,9 +142,15 @@ rm -rf tmp
 Puis, depuis une copie du dépôt HERACLES :
 
 ```bash
-cp infra/supabase/docker-compose.override.yml /opt/supabase-heracles/
 cp infra/supabase/.env.example /opt/supabase-heracles/.env
+node infra/supabase/composer-surcharge.mjs \
+  /opt/supabase-heracles/docker-compose.yml heracles 8100 \
+  > /opt/supabase-heracles/docker-compose.override.yml
 ```
+
+La surcharge est **calculée**, jamais recopiée : la liste des services de
+Supabase change d'une version à l'autre, et en nommer un qui n'existe pas fait
+échouer tout le démarrage.
 
 Renseignez `/opt/supabase-heracles/.env`. Les secrets se fabriquent sur place :
 
