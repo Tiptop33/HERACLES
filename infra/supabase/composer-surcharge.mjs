@@ -19,10 +19,13 @@
 
 import { readFileSync } from 'node:fs';
 
-const [, , chemin, prefixe, portKong] = process.argv;
+const [, , chemin, prefixe, portKong, domaineApi, certresolver, routeur] = process.argv;
 
 if (!chemin || !prefixe || !portKong) {
-  console.error('Usage : composer-surcharge.mjs <docker-compose.yml> <prefixe> <port-kong>');
+  console.error(
+    'Usage : composer-surcharge.mjs <docker-compose.yml> <prefixe> <port-kong>' +
+      ' [domaine-api] [certresolver] [nom-routeur]',
+  );
   process.exit(1);
 }
 
@@ -59,16 +62,48 @@ const lignes = [
   'services:',
 ];
 
+// Les seuls chemins de l'API que l'application emprunte. Tout le reste est
+// hors de la liste, donc hors d'atteinte — et c'est bien le sujet : Kong sert
+// **Studio sur `/`**. Interdire `/studio` ne servait à rien, l'administration
+// de la base était à la racine. Une liste blanche referme d'un coup ce
+// qu'une liste noire laisse toujours entrouvert.
+const CHEMINS = ['/auth/v1', '/rest/v1', '/storage/v1'];
+
 for (const service of services) {
   lignes.push(`  ${service}:`);
   lignes.push(`    container_name: ${prefixe}-${service}`);
   if (service === 'kong') {
     lignes.push('    ports: !override');
     lignes.push(`      - "127.0.0.1:${portKong}:8000/tcp"`);
+    if (domaineApi) lignes.push(...etiquettesTraefik());
   } else {
     // Rien d'autre ne sort. Un service qui ne publiait rien n'en souffre pas.
     lignes.push('    ports: !override []');
   }
+}
+
+// Quand un autre serveur tient déjà le port 80 du VPS, c'est lui la façade et
+// Nginx n'a pas de place. Traefik découvre les services par les étiquettes de
+// leurs conteneurs : on lui déclare le nôtre ici, plutôt que d'aller modifier
+// sa configuration à lui — ce qui toucherait aux autres sites de la machine.
+function etiquettesTraefik() {
+  const nom = routeur || prefixe;
+  const resolveur = certresolver || 'letsencrypt';
+  const regle = `Host(\`${domaineApi}\`) && (${CHEMINS.map((c) => `PathPrefix(\`${c}\`)`).join(' || ')})`;
+  const entetes = `${nom}-api-entetes`;
+
+  return [
+    '    labels:',
+    '      - "traefik.enable=true"',
+    `      - "traefik.http.routers.${nom}-api.rule=${regle}"`,
+    `      - "traefik.http.routers.${nom}-api.entrypoints=websecure"`,
+    `      - "traefik.http.routers.${nom}-api.tls.certresolver=${resolveur}"`,
+    `      - "traefik.http.routers.${nom}-api.middlewares=${entetes}"`,
+    `      - "traefik.http.services.${nom}-api.loadbalancer.server.port=8000"`,
+    `      - "traefik.http.middlewares.${entetes}.headers.stsSeconds=31536000"`,
+    `      - "traefik.http.middlewares.${entetes}.headers.stsIncludeSubdomains=true"`,
+    `      - "traefik.http.middlewares.${entetes}.headers.contentTypeNosniff=true"`,
+  ];
 }
 
 console.log(lignes.join('\n'));

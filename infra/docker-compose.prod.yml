@@ -1,13 +1,12 @@
-# Production HERACLES — l'application web seule.
+# HERACLES — l'application web seule.
 #
 # La base, l'authentification, l'API et le stockage viennent de la pile
-# Supabase auto-hébergée, installée à part dans /opt/supabase-heracles avec ses
-# propres conteneurs (préfixe « heracles- ») et son Kong sur 127.0.0.1:8100.
-# Le détail de l'installation sur le VPS arrive au lot 4 ; les valeurs à
-# respecter sont dans docs/specs/2026-08-04-heracles-cadrage.md, § 7.
+# Supabase auto-hébergée, installée à part avec ses propres conteneurs et son
+# Kong sur la boucle locale.
 #
 # Le nom de projet ci-dessous est ce qui garantit qu'aucun conteneur, réseau ou
-# volume ne se confond avec ceux de MyCollabus sur le même VPS.
+# volume ne se confond avec ceux de MyCollabus sur le même VPS. L'instance
+# d'essai le remplace par le sien, avec `-p`.
 name: heracles-prod
 
 services:
@@ -21,12 +20,33 @@ services:
     restart: unless-stopped
     environment:
       NODE_ENV: production
-      PORT: "3002"
+      # Le port vient du fichier d'environnement, et pas d'ici : la production
+      # et l'essai tournent sur la même machine, et un port en dur les ferait
+      # se marcher dessus. 3002 en production, 3003 à l'essai.
+      PORT: "${WEB_PORT}"
       HOSTNAME: "0.0.0.0"
       NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL}
       NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY}
       NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL}
     ports:
-      # Jamais exposé directement sur Internet : Nginx fait le reverse-proxy
-      # HTTPS vers ce port.
-      - "127.0.0.1:3002:3002"
+      # Jamais exposé directement sur Internet : la façade — Nginx ou Traefik —
+      # fait le reverse-proxy HTTPS vers ce port. Publié sur la boucle locale
+      # seulement, ce qui permet de l'interroger depuis le VPS pour vérifier.
+      - "127.0.0.1:${WEB_PORT}:${WEB_PORT}"
+
+    # Étiquettes lues par Traefik, quand c'est lui la façade du VPS. Inertes
+    # sinon : `traefik.enable=false` suffit à ce qu'il ignore tout le reste.
+    labels:
+      - "traefik.enable=${TRAEFIK_ENABLE:-false}"
+      - "traefik.http.routers.${TRAEFIK_ROUTEUR:-heracles}-web.rule=Host(`${APP_DOMAIN:-exemple.invalid}`)"
+      - "traefik.http.routers.${TRAEFIK_ROUTEUR:-heracles}-web.entrypoints=websecure"
+      - "traefik.http.routers.${TRAEFIK_ROUTEUR:-heracles}-web.tls.certresolver=${TRAEFIK_CERTRESOLVER:-letsencrypt}"
+      - "traefik.http.routers.${TRAEFIK_ROUTEUR:-heracles}-web.middlewares=${TRAEFIK_ROUTEUR:-heracles}-entetes"
+      - "traefik.http.services.${TRAEFIK_ROUTEUR:-heracles}-web.loadbalancer.server.port=${WEB_PORT}"
+      # HERACLES porte des CV et des parcours : rien ne doit en sortir par
+      # inadvertance, ni finir dans le référent d'un autre site.
+      - "traefik.http.middlewares.${TRAEFIK_ROUTEUR:-heracles}-entetes.headers.stsSeconds=31536000"
+      - "traefik.http.middlewares.${TRAEFIK_ROUTEUR:-heracles}-entetes.headers.stsIncludeSubdomains=true"
+      - "traefik.http.middlewares.${TRAEFIK_ROUTEUR:-heracles}-entetes.headers.contentTypeNosniff=true"
+      - "traefik.http.middlewares.${TRAEFIK_ROUTEUR:-heracles}-entetes.headers.frameDeny=true"
+      - "traefik.http.middlewares.${TRAEFIK_ROUTEUR:-heracles}-entetes.headers.referrerPolicy=same-origin"

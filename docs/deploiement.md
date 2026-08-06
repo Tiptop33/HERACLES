@@ -59,6 +59,21 @@ ne régénère jamais des secrets déjà posés.
 **Elle s'arrête si `SMTP_HOST` est vide.** C'est délibéré : sans email, aucune
 invitation ne part, donc personne ne peut entrer — l'instance serait inutile.
 
+### La façade : Nginx, ou celle qui est déjà là
+
+Un seul serveur peut tenir le port 80. Le script regarde qui l'occupe :
+
+- **personne, ou Nginx** → il écrit la configuration Nginx et guide vers
+  certbot ;
+- **Traefik** → il ne touche à rien chez lui. Traefik découvre les services
+  par les **étiquettes de leurs conteneurs** : le script les pose sur Kong et
+  sur l'application, et Traefik va chercher le certificat tout seul. Modifier
+  sa configuration à lui reviendrait à toucher aux autres sites du VPS.
+- **autre chose** → il s'arrête et le nomme, plutôt que de deviner.
+
+Le nom du résolveur de certificats de Traefik est supposé `letsencrypt`. S'il
+diffère : `HERACLES_CERTRESOLVER=<nom> sudo -E ./infra/essai/deployer.sh …`
+
 Si le `.env` date d'une version antérieure du script et qu'il manque des
 variables que la pile attend — le symptôme est un service qui redémarre sans
 fin, avec `converting '' to type bool` dans son journal —, on repart de zéro :

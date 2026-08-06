@@ -39,9 +39,27 @@ etape "Pile Supabase"
 # La surcharge est recalculée à partir de la composition réellement clonée : la
 # liste des services de Supabase change d'une version à l'autre, et nommer un
 # service absent fait échouer tout le démarrage.
-node "$DEPOT/infra/supabase/composer-surcharge.mjs" \
-  "$DOSSIER/docker-compose.yml" "$PREFIXE" "$KONG_PORT" \
-  > "$DOSSIER/docker-compose.override.yml"
+#
+# Elle porte aussi, le cas échéant, la déclaration à Traefik. La recalculer
+# sans elle décrocherait le site à chaque mise à jour : c'est l'étiquette du
+# conteneur qui le fait exister aux yeux de la façade.
+TRAEFIK_ENABLE=false
+if [[ -f "$DEPOT/.env.essai" ]]; then
+  TRAEFIK_ENABLE="$(grep -m1 '^TRAEFIK_ENABLE=' "$DEPOT/.env.essai" | cut -d= -f2 || true)"
+fi
+
+if [[ "${TRAEFIK_ENABLE:-false}" == true ]]; then
+  API="${SUPABASE_PUBLIC_URL#https://}"
+  CERTRESOLVER="$(grep -m1 '^TRAEFIK_CERTRESOLVER=' "$DEPOT/.env.essai" | cut -d= -f2 || echo letsencrypt)"
+  node "$DEPOT/infra/supabase/composer-surcharge.mjs" \
+    "$DOSSIER/docker-compose.yml" "$PREFIXE" "$KONG_PORT" \
+    "$API" "${CERTRESOLVER:-letsencrypt}" "$PREFIXE" \
+    > "$DOSSIER/docker-compose.override.yml"
+else
+  node "$DEPOT/infra/supabase/composer-surcharge.mjs" \
+    "$DOSSIER/docker-compose.yml" "$PREFIXE" "$KONG_PORT" \
+    > "$DOSSIER/docker-compose.override.yml"
+fi
 ( cd "$DOSSIER" && docker compose -p "$PROJET" up -d )
 
 printf 'attente de la base'

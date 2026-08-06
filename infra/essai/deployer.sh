@@ -32,6 +32,9 @@ PREFIXE=heracles-essai
 PROJET=heracles-essai
 KONG_PORT=8101
 WEB_PORT=3003
+# Nom du résolveur de certificats de Traefik, quand c'est lui la façade. Celui
+# du VPS s'appelle « letsencrypt » ; à changer si l'installation diffère.
+CERTRESOLVER="${HERACLES_CERTRESOLVER:-letsencrypt}"
 DEPOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 
 rouge() { printf '\033[31m%s\033[0m\n' "$*"; }
@@ -139,6 +142,24 @@ for port in "$KONG_PORT" "$WEB_PORT"; do
 done
 vert "outils présents, ports $KONG_PORT et $WEB_PORT disponibles"
 
+# ————— Qui est la façade du VPS —————
+# Un seul serveur peut tenir le port 80. Si c'en est déjà un, ce n'est pas à
+# nous de le déloger : les autres sites de la machine passent par lui. On se
+# déclare auprès de lui.
+FACADE=nginx
+if ss -lnt 'sport = :80' 2>/dev/null | grep -q LISTEN; then
+  if systemctl is-active --quiet nginx; then
+    FACADE=nginx
+  elif ss -lntp 'sport = :80' 2>/dev/null | grep -q traefik; then
+    FACADE=traefik
+  else
+    rouge "Le port 80 est tenu par un serveur que ce script ne sait pas configurer :"
+    ss -lntp 'sport = :80' 2>/dev/null | sed 's/^/  /' || true
+    exit 1
+  fi
+fi
+vert "façade : $FACADE"
+
 # ————— La pile Supabase —————
 etape "Pile Supabase → $DOSSIER"
 if [[ ! -f "$DOSSIER/docker-compose.yml" ]]; then
@@ -165,9 +186,16 @@ fi
 # La surcharge est calculée à partir de la composition réellement clonée : la
 # liste des services de Supabase change d'une version à l'autre, et nommer un
 # service absent fait échouer tout le démarrage.
-node "$DEPOT/infra/supabase/composer-surcharge.mjs" \
-  "$DOSSIER/docker-compose.yml" "$PREFIXE" "$KONG_PORT" \
-  > "$DOSSIER/docker-compose.override.yml"
+if [[ "$FACADE" == traefik ]]; then
+  node "$DEPOT/infra/supabase/composer-surcharge.mjs" \
+    "$DOSSIER/docker-compose.yml" "$PREFIXE" "$KONG_PORT" \
+    "$API" "$CERTRESOLVER" "$PREFIXE" \
+    > "$DOSSIER/docker-compose.override.yml"
+else
+  node "$DEPOT/infra/supabase/composer-surcharge.mjs" \
+    "$DOSSIER/docker-compose.yml" "$PREFIXE" "$KONG_PORT" \
+    > "$DOSSIER/docker-compose.override.yml"
+fi
 
 # ————— Les secrets, fabriqués ici et nulle part ailleurs —————
 etape "Secrets"
@@ -283,19 +311,90 @@ vert "migrations jouées, cache de l'API rechargé"
 
 # ————— L'application web —————
 etape "Application web"
+TRAEFIK_ENABLE=false
+[[ "$FACADE" == traefik ]] && TRAEFIK_ENABLE=true
+
 cat > "$DEPOT/.env.essai" <<FIN
 NEXT_PUBLIC_SUPABASE_URL=https://$API
 NEXT_PUBLIC_SUPABASE_ANON_KEY=$ANON_KEY
 NEXT_PUBLIC_APP_URL=https://$APP
 WEB_PORT=$WEB_PORT
+TRAEFIK_ENABLE=$TRAEFIK_ENABLE
+TRAEFIK_ROUTEUR=$PREFIXE
+TRAEFIK_CERTRESOLVER=$CERTRESOLVER
+APP_DOMAIN=$APP
 FIN
 chmod 600 "$DEPOT/.env.essai"
 
 ( cd "$DEPOT" && docker compose --env-file .env.essai \
     -f infra/docker-compose.prod.yml -p "$PROJET-web" up -d --build )
-vert "application construite et démarrée sur 127.0.0.1:$WEB_PORT"
 
-# ————— Nginx —————
+printf 'attente de l’application'
+code=""
+for _ in $(seq 1 30); do
+  code="$(curl -s -o /dev/null -w '%{http_code}' "http://127.0.0.1:$WEB_PORT/connexion" || true)"
+  [[ "$code" == "200" ]] && break
+  printf '.'; sleep 2
+done
+echo
+if [[ "$code" != "200" ]]; then
+  rouge "l'application ne répond pas sur 127.0.0.1:$WEB_PORT (HTTP ${code:-aucun})"
+  docker compose -p "$PROJET-web" logs --tail 30 2>&1 | sed 's/^/  /' || true
+  exit 1
+fi
+vert "application en marche sur 127.0.0.1:$WEB_PORT (HTTP 200 sur /connexion)"
+
+# ————— La façade —————
+if [[ "$FACADE" == traefik ]]; then
+  etape "Traefik"
+  # Rien à configurer chez lui : il lit les étiquettes des conteneurs, que la
+  # surcharge et la composition de l'application viennent de poser. Il obtient
+  # aussi le certificat tout seul, par le défi HTTP — d'où l'attente.
+  vert "les deux noms sont déclarés à Traefik, qui va chercher le certificat"
+
+  printf 'attente du certificat'
+  code=""
+  for _ in $(seq 1 45); do
+    code="$(curl -s -o /dev/null -w '%{http_code}' "https://$APP/connexion" || true)"
+    [[ "$code" == "200" ]] && break
+    printf '.'; sleep 4
+  done
+  echo
+
+  if [[ "$code" == "200" ]]; then
+    vert "https://$APP répond (HTTP 200 sur /connexion)"
+  else
+    rouge "https://$APP ne répond pas encore (HTTP ${code:-aucun})."
+    echo  "Traefik peut mettre un moment à obtenir le certificat. Regardez :"
+    echo  "  docker logs --tail 30 \$(docker ps --filter name=traefik --format '{{.Names}}' | head -1)"
+    echo  "Vérifiez surtout que $APP et $API pointent bien vers ce VPS."
+  fi
+
+  etape "Instance d'essai en place"
+  cat <<FIN
+
+  Application   https://$APP
+  API           https://$API
+  Base          vide — et qu'elle le reste
+
+  Le premier administrateur — personne ne peut l'inviter :
+    HERACLES_API_URL=https://$API \\
+    HERACLES_APP_URL=https://$APP \\
+    SUPABASE_SERVICE_ROLE_KEY='<SERVICE_ROLE_KEY de $DOSSIER/.env>' \\
+      node $DEPOT/outils/premier-admin.mjs vous@exemple.fr --confirmer
+
+  Vérifier que rien ne dépasse :
+    ss -lnt | grep -E '$KONG_PORT|$WEB_PORT'   → 127.0.0.1 uniquement
+    curl -s -o /dev/null -w '%{http_code}\\n' https://$API/     → 404, Studio hors d'atteinte
+    curl -s https://$API/rest/v1/candidat                      → « permission denied »
+
+  Les secrets sont dans $DOSSIER/.env (mode 600). Ils n'existent nulle part
+  ailleurs : sauvegardez ce fichier hors du VPS.
+
+FIN
+  exit 0
+fi
+
 etape "Nginx"
 CONF=/etc/nginx/sites-available/heracles-essai
 CERT="/etc/letsencrypt/live/$APP/fullchain.pem"
