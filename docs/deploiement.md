@@ -47,6 +47,19 @@ ne régénère jamais des secrets déjà posés.
 **Elle s'arrête si `SMTP_HOST` est vide.** C'est délibéré : sans email, aucune
 invitation ne part, donc personne ne peut entrer — l'instance serait inutile.
 
+Si le `.env` date d'une version antérieure du script et qu'il manque des
+variables que la pile attend — le symptôme est un service qui redémarre sans
+fin, avec `converting '' to type bool` dans son journal —, on repart de zéro :
+
+```bash
+sudo ./infra/essai/deployer.sh --repartir-de-zero essai.mondomaine.fr api-essai.mondomaine.fr
+```
+
+**Cette option efface la base de l'essai** : conteneurs arrêtés, volumes
+supprimés, secrets refaits. Elle ne garde que les réglages SMTP, les seuls que
+le script ne sache pas refabriquer. Sur l'essai c'est sans regret — sa base
+naît vide et le reste. Ne jamais l'employer en production.
+
 ### Rien ne se croise
 
 | | Essai | Production | MyCollabus |
@@ -56,7 +69,13 @@ invitation ne part, donc personne ne peut entrer — l'instance serait inutile.
 | Conteneurs | `heracles-essai-*` | `heracles-*` | `supabase-*` |
 | Kong | `127.0.0.1:8101` | `127.0.0.1:8100` | `127.0.0.1:8000` |
 | Application | `127.0.0.1:3003` | `127.0.0.1:3002` | `127.0.0.1:3001` |
-| Base | `heracles_essai` | `heracles` | `mycollabus` |
+| Volume de la base | `heracles-essai_db-config` | `heracles-supabase_db-config` | `mycollabus-prod_db-config` |
+
+La base s'appelle `postgres` dans les trois cas, et ce n'est pas un oubli :
+Supabase installe son socle — schéma `auth`, rôles, extensions — dans la base
+par défaut. Une base renommée naît vide, et le rôle `postgres` n'y a même pas
+les droits sur le schéma `public`. L'isolation ne vient pas du nom de la base
+mais du conteneur et du volume, qui ne se croisent jamais.
 
 Ce cloisonnement a été éprouvé : la même surcharge, avec deux jeux de
 variables, produit deux piles qui ne partagent ni un nom de conteneur ni un

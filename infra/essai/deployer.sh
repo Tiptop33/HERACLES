@@ -18,6 +18,13 @@
 
 set -euo pipefail
 
+# `--repartir-de-zero` efface la pile et refait le `.env` depuis le modèle de
+# Supabase, en ne gardant que les réglages SMTP. À employer quand un `.env`
+# hérité d'une version antérieure du script manque des variables que la pile
+# attend. C'est sans regret sur l'ESSAI : sa base naît vide et le reste.
+ZERO=0
+if [[ "${1:-}" == "--repartir-de-zero" ]]; then ZERO=1; shift; fi
+
 APP="${1:-}"
 API="${2:-}"
 DOSSIER=/opt/supabase-heracles-essai
@@ -32,7 +39,7 @@ vert()  { printf '\033[32m%s\033[0m\n' "$*"; }
 etape() { printf '\n\033[1m── %s\033[0m\n' "$*"; }
 
 if [[ -z "$APP" || -z "$API" ]]; then
-  rouge "Usage : sudo $0 <domaine-application> <domaine-api>"
+  rouge "Usage : sudo $0 [--repartir-de-zero] <domaine-application> <domaine-api>"
   echo   "Exemple : sudo $0 essai.mondomaine.fr api-essai.mondomaine.fr"
   exit 1
 fi
@@ -44,6 +51,27 @@ for outil in docker git openssl node nginx curl; do
   command -v "$outil" >/dev/null || { rouge "$outil est absent."; exit 1; }
 done
 docker compose version >/dev/null 2>&1 || { rouge "Le greffon docker compose est absent."; exit 1; }
+
+# ————— Table rase, si on l'a demandée —————
+# Avant le contrôle des ports : c'est souvent notre propre pile qui les tient.
+if [[ $ZERO -eq 1 ]]; then
+  etape "Table rase"
+  # Les réglages SMTP sont les seuls que le script ne sache pas refabriquer :
+  # ils viennent du fournisseur de courrier. On les remet dans le `.env` neuf.
+  SMTP_GARDE="$(mktemp)"
+  trap 'rm -f "$SMTP_GARDE"' EXIT
+  if [[ -f "$DOSSIER/.env" ]]; then
+    grep -E '^SMTP_(HOST|PORT|USER|PASS|ADMIN_EMAIL)=.' "$DOSSIER/.env" > "$SMTP_GARDE" || true
+    if [[ -s "$SMTP_GARDE" ]]; then
+      vert "réglages SMTP mis de côté ($(wc -l < "$SMTP_GARDE") lignes)"
+    fi
+  fi
+
+  [[ -d "$DOSSIER" ]] && ( cd "$DOSSIER" && docker compose -p "$PROJET" down -v --remove-orphans >/dev/null 2>&1 || true )
+  ( cd "$DEPOT" && docker compose -p "$PROJET-web" down --remove-orphans >/dev/null 2>&1 || true )
+  rm -f "$DOSSIER/.env"
+  vert "pile arrêtée, volumes effacés, .env retiré"
+fi
 
 # Les ports de l'essai doivent être libres — et surtout pas ceux d'un autre.
 for port in "$KONG_PORT" "$WEB_PORT"; do
@@ -92,6 +120,14 @@ if [[ ! -f "$DOSSIER/.env" ]]; then
       "$DOSSIER/.env.supabase-origine" "$APP" "$API" "$PROJET" > "$DOSSIER/.env" )
   chmod 600 "$DOSSIER/.env"
   vert "secrets fabriqués sur place, .env en 600"
+
+  if [[ $ZERO -eq 1 && -s "${SMTP_GARDE:-/dev/null}" ]]; then
+    while IFS= read -r ligne; do
+      sed -i "/^${ligne%%=*}=/d" "$DOSSIER/.env"
+      printf '%s\n' "$ligne" >> "$DOSSIER/.env"
+    done < "$SMTP_GARDE"
+    vert "réglages SMTP repris de l'installation précédente"
+  fi
 else
   vert ".env déjà là — on n'y touche pas (les secrets ne se régénèrent pas)"
 fi
