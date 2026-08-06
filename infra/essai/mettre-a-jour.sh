@@ -53,6 +53,30 @@ echo
 docker exec "$PREFIXE-db" pg_isready -U postgres >/dev/null || { rouge "La base ne répond pas."; exit 1; }
 vert "pile en marche"
 
+# La base répond, mais cela ne suffit pas : le schéma `auth` n'est pas posé par
+# PostgreSQL. C'est le service d'authentification qui le crée au démarrage, en
+# jouant ses propres migrations — et nos migrations en dépendent dès la
+# première ligne. On attend donc qu'il ait fini, et non que la base réponde.
+printf 'attente du schéma auth'
+for _ in $(seq 1 90); do
+  presence="$(docker exec -i "$PREFIXE-db" psql -U postgres -d "$POSTGRES_DB" -tAc \
+    "select count(*) from information_schema.schemata where schema_name = 'auth'" 2>/dev/null || echo 0)"
+  [ "${presence// /}" = "1" ] && break
+  printf '.'; sleep 2
+done
+echo
+
+presence="$(docker exec -i "$PREFIXE-db" psql -U postgres -d "$POSTGRES_DB" -tAc \
+  "select count(*) from information_schema.schemata where schema_name = 'auth'" 2>/dev/null || echo 0)"
+if [ "${presence// /}" != "1" ]; then
+  rouge "Le schéma auth n'existe toujours pas : le service d'authentification n'a pas démarré."
+  echo  "Regardez pourquoi :"
+  echo  "  docker logs --tail 40 $PREFIXE-auth"
+  exit 1
+fi
+vert "schéma auth en place"
+
+
 etape "Migrations"
 # Rejouables par construction : `if not exists`, `create or replace`,
 # `drop policy if exists`. Les repasser toutes est plus sûr que de tenir un
