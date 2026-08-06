@@ -28,6 +28,14 @@ services:
       NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL}
       NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY}
       NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL}
+      # Contourne la RLS : deux routes seulement s'en servent, après avoir
+      # vérifié la session puis le droit métier — l'historique des mots de
+      # passe et l'émission des invitations.
+      #
+      # Ici et pas dans `build.args` : un argument de construction finit dans
+      # l'image, et une variable non préfixée `NEXT_PUBLIC_` n'a rien à y
+      # faire. Au démarrage, elle ne quitte jamais le serveur.
+      SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY}
     ports:
       # Jamais exposé directement sur Internet : la façade — Nginx ou Traefik —
       # fait le reverse-proxy HTTPS vers ce port. Publié sur la boucle locale

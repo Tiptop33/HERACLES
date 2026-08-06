@@ -11,7 +11,28 @@ const Formulaire = z.object({
   confirmation: z.string().min(1),
 });
 
+/**
+ * Une route qui lève renvoie une page d'erreur en HTML. Le navigateur, qui
+ * attendait du JSON, n'y comprend rien et annonce « la connexion au serveur a
+ * échoué » — un message qui désigne le réseau alors que la panne est dans la
+ * configuration du serveur. On rend donc toute exception lisible.
+ */
 export async function POST(requete: Request) {
+  try {
+    return await traiter(requete);
+  } catch (souci) {
+    console.error('[nouveau-mot-de-passe] échec inattendu', souci);
+    if (vientDUnFormulaire(requete)) {
+      return retourAvecCode(requete, '/nouveau-mot-de-passe', { erreur: 'indisponible' });
+    }
+    return NextResponse.json(
+      { erreur: 'Le service est momentanément indisponible. Réessayez dans un instant.' },
+      { status: 503 },
+    );
+  }
+}
+
+async function traiter(requete: Request) {
   const natif = vientDUnFormulaire(requete);
   const brut = await lireCorps(requete);
   const lu = Formulaire.safeParse(brut);

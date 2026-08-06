@@ -292,8 +292,23 @@ cp .env.example .env      # puis renseigner
 docker compose -f infra/docker-compose.prod.yml -p heracles-prod up -d --build
 ```
 
-`.env` doit porter `NEXT_PUBLIC_SUPABASE_URL=https://api.heracles.example.fr`,
-`NEXT_PUBLIC_APP_URL=https://heracles.example.fr` et la clé `anon`.
+`.env` doit porter cinq valeurs, et `WEB_PORT` :
+
+| | |
+| --- | --- |
+| `NEXT_PUBLIC_SUPABASE_URL` | `https://api.heracles.example.fr` |
+| `NEXT_PUBLIC_APP_URL` | `https://heracles.example.fr` |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | la clé `anon` |
+| `SUPABASE_SERVICE_ROLE_KEY` | la clé `service_role` |
+| `WEB_PORT` | `3002` en production, `3003` à l'essai |
+
+**`SUPABASE_SERVICE_ROLE_KEY` n'est pas facultative.** Deux routes en ont
+besoin — l'historique des mots de passe et l'émission des invitations. Sans
+elle, tout paraît fonctionner jusqu'à ce que quelqu'un choisisse son mot de
+passe : l'écran annonce alors une panne de réseau, parce qu'une route qui lève
+renvoie du HTML là où le navigateur attend du JSON. Elle reste une variable
+d'exécution, jamais un argument de construction : un argument finirait dans
+l'image.
 
 **`NEXT_PUBLIC_*` est figée à la construction.** Changer le domaine plus tard
 oblige à reconstruire l'image — pas seulement à redémarrer le conteneur.

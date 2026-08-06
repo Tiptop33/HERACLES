@@ -19,6 +19,20 @@ const Formulaire = z.object({
 });
 
 export async function POST(requete: Request) {
+  try {
+    return await traiter(requete);
+  } catch (souci) {
+    // Sans cela, une exception renvoie du HTML là où le navigateur attend du
+    // JSON, et l'écran annonce une panne de réseau pour une panne de serveur.
+    console.error('[invitations] échec inattendu', souci);
+    return NextResponse.json(
+      { erreur: 'Le service est momentanément indisponible. Réessayez dans un instant.' },
+      { status: 503 },
+    );
+  }
+}
+
+async function traiter(requete: Request) {
   const brut = await requete.json().catch(() => null);
   const lu = Formulaire.safeParse(brut);
 
