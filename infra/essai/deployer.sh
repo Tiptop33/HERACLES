@@ -108,21 +108,36 @@ if [[ $ZERO -eq 1 ]]; then
   vert "pile arrêtée, base et fichiers effacés, .env retiré"
 fi
 
-# Les ports de l'essai doivent être libres — et surtout pas ceux d'un autre.
+# Les ports de l'essai doivent être libres — ou tenus par l'essai lui-même.
+# La nuance est tout le sujet : le script est rejouable, donc il retrouve
+# normalement sa propre pile en marche. Refuser un port qu'on tient soi-même,
+# c'est s'interdire de se relancer.
 for port in "$KONG_PORT" "$WEB_PORT"; do
-  if ss -lnt "sport = :$port" 2>/dev/null | grep -q LISTEN; then
-    rouge "Le port $port est déjà pris."
-    tenant="$(docker ps --filter "publish=$port" --format '{{.Names}}' 2>/dev/null | head -1 || true)"
-    if [[ -n "$tenant" ]]; then
-      echo "Il est tenu par le conteneur « $tenant »."
-      echo "Si c'est une pile d'essai à remplacer, relancez avec --repartir-de-zero."
-    else
-      echo "Aucun conteneur ne le publie : c'est un service du système. Arrêtez-le, ou changez ce script."
-    fi
-    exit 1
+  ss -lnt "sport = :$port" 2>/dev/null | grep -q LISTEN || continue
+
+  tenant="$(docker ps --filter "publish=$port" --format '{{.Names}}' 2>/dev/null | head -1 || true)"
+  a_nous=""
+  if [[ -n "$tenant" ]]; then
+    a_nous="$(docker inspect -f '{{index .Config.Labels "com.docker.compose.project"}}' \
+                "$tenant" 2>/dev/null || true)"
   fi
+
+  if [[ "$a_nous" == "$PROJET" || "$a_nous" == "$PROJET-web" ]]; then
+    echo "  port $port tenu par « $tenant » — c'est notre pile, on continue"
+    continue
+  fi
+
+  rouge "Le port $port est déjà pris."
+  if [[ -n "$tenant" ]]; then
+    echo "Il est tenu par le conteneur « $tenant », du projet « ${a_nous:-inconnu} »."
+    echo "Ce n'est pas l'instance d'essai : arrêtez-le, ou changez les ports de ce script."
+  else
+    echo "Aucun conteneur ne le publie : c'est un service du système."
+    echo "Arrêtez-le, ou changez les ports de ce script."
+  fi
+  exit 1
 done
-vert "outils présents, ports $KONG_PORT et $WEB_PORT libres"
+vert "outils présents, ports $KONG_PORT et $WEB_PORT disponibles"
 
 # ————— La pile Supabase —————
 etape "Pile Supabase → $DOSSIER"
