@@ -40,6 +40,25 @@ export async function lireCorps(requete: Request): Promise<Record<string, unknow
 }
 
 /**
+ * L'adresse publique du site, sur laquelle bâtir les redirections.
+ *
+ * `requete.url` porte l'adresse **interne** : derrière un reverse-proxy, le
+ * serveur écoute sur `0.0.0.0:3003` et ne voit que cela. Une redirection bâtie
+ * dessus renvoie le navigateur vers une adresse qui n'existe que dans le
+ * conteneur — le lien reçu par courriel n'aboutit alors nulle part.
+ *
+ * On s'en tient à l'adresse configurée, et l'on ne lit surtout pas
+ * `X-Forwarded-Host` : cet en-tête vient de la requête, donc de qui la
+ * fabrique. Le suivre reviendrait à laisser un lien choisir où déposer une
+ * personne qui vient d'ouvrir sa session.
+ */
+export function origine(requete: Request): string {
+  const configuree = process.env.NEXT_PUBLIC_APP_URL?.trim();
+  if (configuree) return configuree.replace(/\/+$/, '');
+  return new URL(requete.url).origin;
+}
+
+/**
  * Une destination à l'intérieur du site, ou `null`.
  *
  * `//ailleurs.example` est une adresse absolue déguisée : sans ce contrôle, un
@@ -62,7 +81,7 @@ export function retourAvecCode(
   chemin: string,
   parametres: Record<string, string | null>,
 ) {
-  const adresse = new URL(chemin, requete.url);
+  const adresse = new URL(chemin, origine(requete));
 
   for (const [cle, valeur] of Object.entries(parametres)) {
     if (valeur) adresse.searchParams.set(cle, valeur);

@@ -5,6 +5,7 @@ import { accueilDuRole } from '@/lib/roles';
 import {
   destinationInterne,
   lireCorps,
+  origine,
   retourAvecCode,
   vientDUnFormulaire,
 } from '@/lib/formulaire';
@@ -64,7 +65,7 @@ export async function POST(requete: Request) {
   // Une page demandée avant la connexion l'emporte sur l'accueil du rôle, à
   // condition qu'elle soit interne au site.
   if (natif) {
-    return NextResponse.redirect(new URL(suite ?? accueil, requete.url), 303);
+    return NextResponse.redirect(new URL(suite ?? accueil, origine(requete)), 303);
   }
 
   return NextResponse.json({ ok: true, redirection: accueil });

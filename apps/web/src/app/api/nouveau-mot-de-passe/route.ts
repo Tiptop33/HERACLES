@@ -4,7 +4,7 @@ import { supabaseServer } from '@/lib/supabase-server';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { accueilDuRole } from '@/lib/roles';
 import { premiereFaute } from '@/lib/motdepasse';
-import { lireCorps, retourAvecCode, vientDUnFormulaire } from '@/lib/formulaire';
+import { lireCorps, origine, retourAvecCode, vientDUnFormulaire } from '@/lib/formulaire';
 
 const Formulaire = z.object({
   motDePasse: z.string().min(1),
@@ -87,6 +87,6 @@ export async function POST(requete: Request) {
   const { data: profil } = await supabase.from('profil').select('role').single();
   const accueil = accueilDuRole(profil?.role);
 
-  if (natif) return NextResponse.redirect(new URL(accueil, requete.url), 303);
+  if (natif) return NextResponse.redirect(new URL(accueil, origine(requete)), 303);
   return NextResponse.json({ ok: true, redirection: accueil });
 }
