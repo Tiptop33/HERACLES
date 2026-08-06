@@ -59,6 +59,30 @@ ne régénère jamais des secrets déjà posés.
 **Elle s'arrête si `SMTP_HOST` est vide.** C'est délibéré : sans email, aucune
 invitation ne part, donc personne ne peut entrer — l'instance serait inutile.
 
+### Le courrier, et le piège Gmail
+
+`SMTP_PASS` n'est **pas** le mot de passe du compte Google. Il faut un *mot de
+passe d'application* — seize caractères, créés sur
+[myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords),
+et qui n'existent que si la validation en deux étapes est activée. Le mot de
+passe du compte donne :
+
+```
+535 5.7.8 Username and Password not accepted
+```
+
+La connexion s'établit, seule l'authentification échoue — d'où la confusion
+avec un port bloqué, qui n'a pas la même signature. Google affiche le mot de
+passe par groupes de quatre : les espaces ne font pas partie du secret.
+
+Ce n'est visible nulle part ailleurs que dans le journal du service : côté
+application, une invitation qui ne part pas ne dit rien de plus que « l'e-mail
+n'a pas pu partir ».
+
+```bash
+docker logs --tail 100 heracles-essai-auth 2>&1 | grep -i smtp
+```
+
 ### La façade : Nginx, ou celle qui est déjà là
 
 Un seul serveur peut tenir le port 80. Le script regarde qui l'occupe :
