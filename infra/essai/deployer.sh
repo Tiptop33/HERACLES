@@ -40,7 +40,7 @@ fi
 # ————— Ce qu'il faut avoir avant de commencer —————
 etape "Vérifications"
 [[ $EUID -eq 0 ]] || { rouge "À lancer avec sudo."; exit 1; }
-for outil in docker git openssl node nginx; do
+for outil in docker git openssl node nginx curl; do
   command -v "$outil" >/dev/null || { rouge "$outil est absent."; exit 1; }
 done
 docker compose version >/dev/null 2>&1 || { rouge "Le greffon docker compose est absent."; exit 1; }
@@ -68,6 +68,15 @@ else
   vert "pile déjà présente, on la garde"
 fi
 
+# Le modèle d'environnement de Supabase sert de base au nôtre : il faut donc
+# l'avoir sous la main, même pour une pile clonée avant que ce script ne le
+# mette de côté.
+if [[ ! -f "$DOSSIER/.env.supabase-origine" ]]; then
+  curl -fsSL --retry 3 -o "$DOSSIER/.env.supabase-origine" \
+    https://raw.githubusercontent.com/supabase/supabase/master/docker/.env.example \
+    || { rouge "Impossible de récupérer le modèle d'environnement de Supabase."; exit 1; }
+fi
+
 # La surcharge est calculée à partir de la composition réellement clonée : la
 # liste des services de Supabase change d'une version à l'autre, et nommer un
 # service absent fait échouer tout le démarrage.
@@ -78,48 +87,32 @@ node "$DEPOT/infra/supabase/composer-surcharge.mjs" \
 # ————— Les secrets, fabriqués ici et nulle part ailleurs —————
 etape "Secrets"
 if [[ ! -f "$DOSSIER/.env" ]]; then
-  MDP="$(openssl rand -hex 24)"
-  JWT="$(openssl rand -hex 32)"
-  BASE="$(openssl rand -hex 32)"
-  VAULT="$(openssl rand -hex 16)"
-
-  # ANON_KEY et SERVICE_ROLE_KEY sont des JWT signés avec JWT_SECRET. La
-  # documentation de Supabase renvoie vers un générateur en ligne ; on ne
-  # confie pas un secret à une page web, on le signe ici.
-  cles="$(JWT_SECRET="$JWT" node -e '
-    const c = require("node:crypto");
-    const s = process.env.JWT_SECRET;
-    const b64 = (o) => Buffer.from(JSON.stringify(o)).toString("base64url");
-    const dans10ans = Math.floor(Date.now() / 1000) + 10 * 365 * 24 * 3600;
-    const signer = (role) => {
-      const corps = `${b64({ alg: "HS256", typ: "JWT" })}.${b64({ iss: "supabase", role, iat: Math.floor(Date.now()/1000), exp: dans10ans })}`;
-      return `${corps}.${c.createHmac("sha256", s).update(corps).digest("base64url")}`;
-    };
-    console.log(signer("anon"));
-    console.log(signer("service_role"));
-  ')"
-  ANON="$(echo "$cles" | sed -n 1p)"
-  SERVICE="$(echo "$cles" | sed -n 2p)"
-
-  sed \
-    -e "s|^POSTGRES_PASSWORD=.*|POSTGRES_PASSWORD=$MDP|" \
-    -e "s|^JWT_SECRET=.*|JWT_SECRET=$JWT|" \
-    -e "s|^ANON_KEY=.*|ANON_KEY=$ANON|" \
-    -e "s|^SERVICE_ROLE_KEY=.*|SERVICE_ROLE_KEY=$SERVICE|" \
-    -e "s|^SECRET_KEY_BASE=.*|SECRET_KEY_BASE=$BASE|" \
-    -e "s|^VAULT_ENC_KEY=.*|VAULT_ENC_KEY=$VAULT|" \
-    -e "s|^SITE_URL=.*|SITE_URL=https://$APP|" \
-    -e "s|^API_EXTERNAL_URL=.*|API_EXTERNAL_URL=https://$API|" \
-    -e "s|^SUPABASE_PUBLIC_URL=.*|SUPABASE_PUBLIC_URL=https://$API|" \
-    -e "s|^ADDITIONAL_REDIRECT_URLS=.*|ADDITIONAL_REDIRECT_URLS=https://$APP/auth/callback,https://$APP/invitation/**|" \
-    -e "s|^DASHBOARD_PASSWORD=.*|DASHBOARD_PASSWORD=$(openssl rand -hex 12)|" \
-    "$DEPOT/infra/supabase/.env.example" > "$DOSSIER/.env"
-
+  ( umask 077
+    bash "$DEPOT/infra/supabase/composer-env.sh" \
+      "$DOSSIER/.env.supabase-origine" "$APP" "$API" "$PROJET" > "$DOSSIER/.env" )
   chmod 600 "$DOSSIER/.env"
   vert "secrets fabriqués sur place, .env en 600"
 else
   vert ".env déjà là — on n'y touche pas (les secrets ne se régénèrent pas)"
 fi
+
+# Filet : une pile installée avant que le `.env` ne soit bâti sur le modèle de
+# Supabase peut n'avoir aucune de ces lignes. Elles ne portent pas de secret,
+# rien n'empêche de les compléter en place — et sans elles, le service
+# d'authentification tombe sur un booléen vide et le schéma `auth` n'arrive
+# jamais.
+for defaut in ENABLE_PHONE_SIGNUP=false ENABLE_PHONE_AUTOCONFIRM=false \
+              ENABLE_ANONYMOUS_USERS=false ENABLE_EMAIL_SIGNUP=true \
+              ENABLE_EMAIL_AUTOCONFIRM=false DISABLE_SIGNUP=true \
+              IMGPROXY_AUTO_WEBP=true FUNCTIONS_VERIFY_JWT=false \
+              COMPOSE_FILE=docker-compose.yml:docker-compose.override.yml; do
+  cle="${defaut%%=*}"
+  grep -q "^$cle=." "$DOSSIER/.env" || {
+    sed -i "/^$cle=/d" "$DOSSIER/.env"
+    echo "$defaut" >> "$DOSSIER/.env"
+    echo "  $cle manquait — ajouté"
+  }
+done
 
 # shellcheck disable=SC1091
 set -a; source "$DOSSIER/.env"; set +a
@@ -161,8 +154,11 @@ presence="$(docker exec -i "$PREFIXE-db" psql -U postgres -d "$POSTGRES_DB" -tAc
   "select count(*) from information_schema.schemata where schema_name = 'auth'" 2>/dev/null || echo 0)"
 if [ "${presence// /}" != "1" ]; then
   rouge "Le schéma auth n'existe toujours pas : le service d'authentification n'a pas démarré."
-  echo  "Regardez pourquoi :"
-  echo  "  docker logs --tail 40 $PREFIXE-auth"
+  echo  "Voici ce qu'il dit :"
+  docker logs --tail 20 "$PREFIXE-auth" 2>&1 | sed 's/^/  /' || true
+  echo
+  echo  "Une ligne « converting '' to type bool » désigne une variable vide dans"
+  echo  "$DOSSIER/.env. Le nom figure dans le message, juste après GOTRUE_."
   exit 1
 fi
 vert "schéma auth en place"

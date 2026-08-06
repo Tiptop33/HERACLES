@@ -142,25 +142,41 @@ rm -rf tmp
 Puis, depuis une copie du dépôt HERACLES :
 
 ```bash
-cp infra/supabase/.env.example /opt/supabase-heracles/.env
+umask 077
+infra/supabase/composer-env.sh \
+  /opt/supabase-heracles/.env.supabase-origine \
+  heracles.example.fr api.heracles.example.fr heracles \
+  > /opt/supabase-heracles/.env
+
 node infra/supabase/composer-surcharge.mjs \
   /opt/supabase-heracles/docker-compose.yml heracles 8100 \
   > /opt/supabase-heracles/docker-compose.override.yml
 ```
 
-La surcharge est **calculée**, jamais recopiée : la liste des services de
-Supabase change d'une version à l'autre, et en nommer un qui n'existe pas fait
-échouer tout le démarrage.
+Ni l'un ni l'autre n'est recopié d'un modèle à nous : les deux sont
+**calculés** à partir de la pile réellement clonée.
 
-Renseignez `/opt/supabase-heracles/.env`. Les secrets se fabriquent sur place :
+- La **surcharge** parce que la liste des services de Supabase change d'une
+  version à l'autre, et qu'en nommer un qui n'existe pas fait échouer tout le
+  démarrage.
+- Le **`.env`** parce que la composition lit une trentaine de variables, que la
+  liste bouge elle aussi, et qu'une variable absente du fichier n'arrive pas
+  absente mais **vide**. Un booléen vide fait tomber le service qui l'attend
+  (`converting '' to type bool`) : sans service d'authentification, pas de
+  schéma `auth` ; sans schéma `auth`, aucune migration. Une variable oubliée
+  arrête donc toute l'installation, très loin de sa cause.
 
-```bash
-openssl rand -hex 32      # POSTGRES_PASSWORD, JWT_SECRET, SECRET_KEY_BASE, VAULT_ENC_KEY
-```
+`composer-env.sh` fabrique tous les secrets sur place — `openssl` pour les
+mots de passe et les clés de chiffrement, Node pour signer `ANON_KEY` et
+`SERVICE_ROLE_KEY` avec `JWT_SECRET`. Le générateur en ligne de Supabase n'est
+pas employé : on ne confie pas un secret à une page web. Aucune valeur par
+défaut du modèle ne survit — il est publié sur GitHub, ses mots de passe et
+ses clés S3 le sont donc aussi.
 
-`ANON_KEY` et `SERVICE_ROLE_KEY` sont des JWT signés avec `JWT_SECRET` —
-[le générateur de Supabase](https://supabase.com/docs/guides/self-hosting#api-keys)
-les produit.
+Reste une chose à renseigner à la main dans `/opt/supabase-heracles/.env` :
+`SMTP_HOST`, `SMTP_USER` et `SMTP_PASS`. Ils sont laissés vides exprès. Sans
+SMTP aucune invitation ne part, et depuis que l'inscription libre est fermée,
+personne ne peut plus entrer.
 
 ```bash
 cd /opt/supabase-heracles
