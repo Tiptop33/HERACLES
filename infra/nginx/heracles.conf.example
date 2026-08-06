@@ -7,8 +7,20 @@
 # retenu, puis :
 #
 #   ln -s /etc/nginx/sites-available/heracles /etc/nginx/sites-enabled/
-#   certbot --nginx -d heracles.example.fr -d api.heracles.example.fr
 #   nginx -t && systemctl reload nginx
+#
+# ATTENTION À L'ORDRE. Ce fichier réclame un certificat. Tant qu'il n'existe
+# pas, `nginx -t` échoue — et avec lui tout rechargement, donc certbot
+# lui-même : la configuration qui attend le certificat empêche de l'obtenir.
+# Il faut donc d'abord servir les deux noms en clair, le temps que
+# Let's Encrypt vérifie le domaine :
+#
+#   certbot certonly --webroot -w /var/www/html \
+#     -d heracles.example.fr -d api.heracles.example.fr
+#
+# et ne poser ce fichier-ci qu'ensuite. `infra/essai/deployer.sh` enchaîne les
+# deux temps tout seul : relancé après certbot, il remplace la configuration
+# provisoire par celle-ci.
 #
 # MyCollabus vit sur le même VPS : ce fichier ne touche à rien d'autre que ces
 # deux noms, et les ports 3002 / 8100 ne croisent pas les siens.
@@ -33,8 +45,15 @@ server {
     # certbot renseigne ces quatre lignes.
     ssl_certificate     /etc/letsencrypt/live/heracles.example.fr/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/heracles.example.fr/privkey.pem;
-    include             /etc/letsencrypt/options-ssl-nginx.conf;
-    ssl_dhparam         /etc/letsencrypt/ssl-dhparams.pem;
+    # Réglages TLS écrits ici plutôt qu'inclus depuis /etc/letsencrypt : ces
+    # fichiers-là ne sont posés que par le greffon nginx de certbot, et le
+    # certificat s'obtient très bien sans lui. Une inclusion manquante fait
+    # échouer nginx entier.
+    ssl_protocols             TLSv1.2 TLSv1.3;
+    ssl_prefer_server_ciphers off;
+    ssl_session_cache         shared:SSL:10m;
+    ssl_session_timeout       1d;
+    ssl_session_tickets       off;
 
     # HERACLES porte des CV et des parcours : rien ne doit en sortir par
     # inadvertance, ni finir dans le référent d'un autre site.
@@ -67,8 +86,15 @@ server {
 
     ssl_certificate     /etc/letsencrypt/live/heracles.example.fr/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/heracles.example.fr/privkey.pem;
-    include             /etc/letsencrypt/options-ssl-nginx.conf;
-    ssl_dhparam         /etc/letsencrypt/ssl-dhparams.pem;
+    # Réglages TLS écrits ici plutôt qu'inclus depuis /etc/letsencrypt : ces
+    # fichiers-là ne sont posés que par le greffon nginx de certbot, et le
+    # certificat s'obtient très bien sans lui. Une inclusion manquante fait
+    # échouer nginx entier.
+    ssl_protocols             TLSv1.2 TLSv1.3;
+    ssl_prefer_server_ciphers off;
+    ssl_session_cache         shared:SSL:10m;
+    ssl_session_timeout       1d;
+    ssl_session_tickets       off;
 
     add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
     add_header X-Content-Type-Options "nosniff" always;

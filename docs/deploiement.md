@@ -261,14 +261,44 @@ oblige à reconstruire l'image — pas seulement à redémarrer le conteneur.
 
 ## 4. Nginx et HTTPS
 
+**L'ordre compte, et il n'est pas celui qu'on croit.** La configuration réclame
+un certificat ; tant qu'il n'existe pas, `nginx -t` échoue, donc tout
+rechargement, donc certbot lui-même. La configuration qui attend le certificat
+empêche de l'obtenir.
+
+On sert donc d'abord les deux noms en clair, le temps de la vérification — et
+rien de plus qu'elle : un mot de passe ne doit pas voyager à découvert.
+
+```bash
+sudo mkdir -p /var/www/html
+sudo tee /etc/nginx/sites-available/heracles >/dev/null <<'FIN'
+server {
+    listen 80;
+    listen [::]:80;
+    server_name heracles.example.fr api.heracles.example.fr;
+
+    location /.well-known/acme-challenge/ { root /var/www/html; }
+    location / { return 503; }
+}
+FIN
+sudo ln -s /etc/nginx/sites-available/heracles /etc/nginx/sites-enabled/
+sudo nginx -t && sudo systemctl reload nginx
+
+sudo certbot certonly --webroot -w /var/www/html \
+  -d heracles.example.fr -d api.heracles.example.fr
+```
+
+Le certificat obtenu, on pose la vraie configuration :
+
 ```bash
 sudo cp infra/nginx/heracles.conf.example /etc/nginx/sites-available/heracles
 sudo nano /etc/nginx/sites-available/heracles          # remplacer les deux noms
-sudo ln -s /etc/nginx/sites-available/heracles /etc/nginx/sites-enabled/
-sudo nginx -t
-sudo certbot --nginx -d heracles.example.fr -d api.heracles.example.fr
-sudo systemctl reload nginx
+sudo nginx -t && sudo systemctl reload nginx
 ```
+
+`certbot --nginx` ferait le premier pas tout seul, mais réécrirait la
+configuration à sa façon : on y perdrait les en-têtes de sécurité et le refus
+d'exposer Studio. `certonly` obtient le certificat sans toucher à rien.
 
 ## 5. Le premier administrateur
 

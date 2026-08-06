@@ -283,36 +283,79 @@ vert "application construite et démarrée sur 127.0.0.1:$WEB_PORT"
 # ————— Nginx —————
 etape "Nginx"
 CONF=/etc/nginx/sites-available/heracles-essai
-if [[ ! -f "$CONF" ]]; then
+CERT="/etc/letsencrypt/live/$APP/fullchain.pem"
+mkdir -p /var/www/html
+
+if [[ -f "$CERT" ]]; then
   sed -e "s|heracles\.example\.fr|$APP|g" -e "s|api\.$APP|$API|g" \
       -e "s|127\.0\.0\.1:3002|127.0.0.1:$WEB_PORT|" \
       -e "s|127\.0\.0\.1:8100|127.0.0.1:$KONG_PORT|" \
       "$DEPOT/infra/nginx/heracles.conf.example" > "$CONF"
-  ln -sf "$CONF" /etc/nginx/sites-enabled/heracles-essai
-  vert "configuration écrite"
+  CERT_PRET=1
 else
-  vert "configuration déjà là, on la garde"
+  # Pas encore de certificat, et c'est un piège en boucle : une configuration
+  # qui en réclame un fait échouer `nginx -t`, donc tout rechargement, donc
+  # certbot lui-même. On ne pourrait plus jamais l'obtenir.
+  #
+  # On pose donc le strict nécessaire pour que Let's Encrypt puisse vérifier
+  # le domaine, et rien d'autre. Surtout pas l'application en clair : un mot
+  # de passe y voyagerait à découvert.
+  cat > "$CONF" <<FIN
+# Configuration PROVISOIRE, écrite par infra/essai/deployer.sh — le temps
+# d'obtenir le certificat. Relancez le script après certbot : il la remplace
+# par la vraie, en HTTPS.
+server {
+    listen 80;
+    listen [::]:80;
+    server_name $APP $API;
+
+    location /.well-known/acme-challenge/ { root /var/www/html; }
+    location / { return 503; }
+}
+FIN
+  CERT_PRET=0
 fi
+ln -sf "$CONF" /etc/nginx/sites-enabled/heracles-essai
 
 if nginx -t 2>/dev/null; then
   systemctl reload nginx
-  vert "nginx rechargé"
+  if [[ $CERT_PRET -eq 1 ]]; then
+    vert "nginx rechargé — l'instance est servie en HTTPS"
+  else
+    vert "nginx rechargé — les deux noms répondent, prêts pour Let's Encrypt"
+  fi
 else
-  rouge "nginx -t échoue — souvent parce que le certificat n'existe pas encore."
-  echo  "Lancez :  certbot --nginx -d $APP -d $API"
-  echo  "puis :    nginx -t && systemctl reload nginx"
+  rouge "nginx -t échoue :"
+  nginx -t 2>&1 | sed 's/^/  /' || true
+  exit 1
 fi
 
 # ————— Ce qu'il reste à faire à la main —————
+if [[ $CERT_PRET -eq 0 ]]; then
+  etape "Il manque le certificat"
+  cat <<FIN
+
+  Tout est monté, mais rien n'est encore joignable : les deux noms répondent
+  503 en clair, exprès. Obtenez le certificat, puis relancez ce script — il
+  posera la configuration HTTPS.
+
+    certbot certonly --webroot -w /var/www/html -d $APP -d $API
+    $0 $APP $API
+
+  Le greffon --nginx de certbot ferait le premier pas, mais réécrirait la
+  configuration à sa façon : on y perdrait les en-têtes de sécurité et le
+  refus d'exposer Studio.
+
+FIN
+  exit 0
+fi
+
 etape "Instance d'essai en place"
 cat <<FIN
 
   Application   https://$APP
   API           https://$API
   Base          vide — et qu'elle le reste
-
-  Certificat (si ce n'est pas déjà fait) :
-    certbot --nginx -d $APP -d $API
 
   Le premier administrateur — personne ne peut l'inviter :
     HERACLES_API_URL=https://$API \\
