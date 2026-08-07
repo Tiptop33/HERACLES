@@ -1,21 +1,30 @@
 import { NextResponse } from 'next/server';
 import { lireCandidat } from '@/lib/candidat';
-import { supabaseServer } from '@/lib/supabase-server';
+import { enTeteDeTelechargement, extensionDe, typeDeFichier } from '@/lib/fichiers';
+import { supabaseAdmin } from '@/lib/supabase-admin';
 
 /**
  * Télécharger un document d'un candidat.
  *
  * Chez Bubble, ces fichiers étaient servis par un CDN public : qui avait
- * l'adresse avait le CV. Ici, on passe d'abord par `lireCandidat`, donc par la
- * RLS — si la fiche n'est pas rattachée à la personne connectée, la requête ne
- * renvoie rien et le téléchargement s'arrête là. L'adresse signée ensuite
- * délivrée ne vaut qu'une minute.
+ * l'adresse avait le CV. Ici, l'ordre est celui que le projet impose, et
+ * jamais un autre :
+ *
+ *   1. la session et le droit métier — `lireCandidat` passe par la RLS
+ *      (migration 0006). Si la fiche n'est pas rattachée à la personne
+ *      connectée, la requête ne rend rien et tout s'arrête là ;
+ *   2. alors seulement `supabaseAdmin()`, pour lire les octets.
+ *
+ * Le seau `documents` est privé et ne porte aucune policy : une adresse signée
+ * demandée sous la clé anonyme ne peut pas aboutir. Les octets passent donc par
+ * ici — ce qui vaut mieux de toute façon, une adresse signée étant une adresse
+ * qui circule.
  */
 
 const GENRES = {
-  cv: 'cv_chemin',
-  lettre: 'lettre_motivation_chemin',
-  'cv-anonyme': 'cv_anonyme_chemin',
+  cv: { colonne: 'cv_chemin', intitule: 'CV' },
+  lettre: { colonne: 'lettre_motivation_chemin', intitule: 'Lettre de motivation' },
+  'cv-anonyme': { colonne: 'cv_anonyme_chemin', intitule: 'CV anonyme' },
 } as const;
 
 type Genre = keyof typeof GENRES;
@@ -39,7 +48,8 @@ export async function GET(
     return NextResponse.json({ erreur: 'Document introuvable.' }, { status: 404 });
   }
 
-  const chemin = candidat[GENRES[genre]];
+  const { colonne, intitule } = GENRES[genre];
+  const chemin = candidat[colonne];
   if (!chemin) {
     return NextResponse.json(
       { erreur: "Ce document n'a pas encore été rapatrié depuis Bubble." },
@@ -47,14 +57,25 @@ export async function GET(
     );
   }
 
-  const supabase = await supabaseServer();
-  const { data, error } = await supabase.storage
-    .from('documents')
-    .createSignedUrl(chemin, 60, { download: true });
-
+  const { data, error } = await supabaseAdmin().storage.from('documents').download(chemin);
   if (error || !data) {
     return NextResponse.json({ erreur: 'Le document est indisponible.' }, { status: 404 });
   }
 
-  return NextResponse.redirect(data.signedUrl);
+  // « CV - MARTIN Alice.pdf » plutôt que « candidat/cv/1733742885881x42.pdf ».
+  // Le fichier atterrit dans un dossier de téléchargements où il devra se
+  // reconnaître tout seul.
+  const personne = [candidat.nom, candidat.prenom].filter(Boolean).join(' ');
+  const nom = `${intitule}${personne ? ` - ${personne}` : ''}${extensionDe(chemin)}`;
+
+  return new NextResponse(await data.arrayBuffer(), {
+    headers: {
+      'Content-Type': typeDeFichier(chemin, data.type),
+      'Content-Disposition': enTeteDeTelechargement(nom),
+      // Un CV n'a rien à faire dans un cache partagé, ni à survivre au retrait
+      // d'un droit.
+      'Cache-Control': 'private, no-store',
+      'X-Content-Type-Options': 'nosniff',
+    },
+  });
 }

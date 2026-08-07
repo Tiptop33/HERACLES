@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { typeDeFichier } from '@/lib/fichiers';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { supabaseServer } from '@/lib/supabase-server';
 
@@ -18,15 +19,6 @@ import { supabaseServer } from '@/lib/supabase-server';
  * signée, même d'une minute, est une adresse qui circule. Chez Bubble, ces
  * photos pendaient à un CDN public — qui avait le lien avait le visage.
  */
-
-const TYPES: Record<string, string> = {
-  jpg: 'image/jpeg',
-  jpeg: 'image/jpeg',
-  png: 'image/png',
-  webp: 'image/webp',
-  gif: 'image/gif',
-  avif: 'image/avif',
-};
 
 export async function GET(_requete: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -51,11 +43,9 @@ export async function GET(_requete: Request, { params }: { params: Promise<{ id:
     return NextResponse.json({ erreur: 'Photo indisponible.' }, { status: 404 });
   }
 
-  const extension = chemin.split('.').pop()?.toLowerCase() ?? '';
-
   return new NextResponse(await data.arrayBuffer(), {
     headers: {
-      'Content-Type': TYPES[extension] ?? data.type ?? 'application/octet-stream',
+      'Content-Type': typeDeFichier(chemin, data.type),
       // Privé, et court : le droit de voir cette photo peut être retiré, et un
       // cache partagé n'en saurait rien.
       'Cache-Control': 'private, max-age=300',
