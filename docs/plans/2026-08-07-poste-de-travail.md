@@ -76,7 +76,7 @@ pendaient à un CDN public.
 | --- | --- |
 | `Mes candidats` | ceux qu'on suit ou qu'on parraine, ni clôturés ni archivés |
 | `La loge` | toute la loge, ni clôturée ni archivée |
-| `Clôturés` | la colonne `CLOTURE` de la loge |
+| `Clôturés` | la colonne `CLOTURE` de la loge, hors archivés |
 | `Archivés` | la colonne `ARCHIVER` de la loge |
 
 **L'écran s'ouvre sur « Mes candidats »** : c'est ce qu'un référent vient faire. Lui présenter
@@ -94,6 +94,11 @@ autre vue s'écrit `?vue=`.
 distinctes reprises de Bubble, donc deux gestes distincts. Les confondre à l'écran ferait perdre
 l'information au premier tri. Toutes deux portent sur la loge — on referme rarement un dossier,
 et jamais dans l'urgence.
+
+**L'archive l'emporte.** Un dossier à la fois clôturé et archivé n'apparaît que sous « Archivés » :
+il est rangé, et c'est là qu'on ira le chercher. Les deux vues ne se recoupent donc jamais —
+additionnées, elles donnent exactement les dossiers refermés, et le même dossier ne se compte
+pas deux fois.
 
 **Le décompte en tête suit la vue** : « 12 en cours », « 5 clôturés », « 3 archivés ». Il porte
 sur ce que la vue montre et non sur la loge entière — un décompte qui annonce treize au-dessus

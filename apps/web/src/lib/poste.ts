@@ -171,7 +171,11 @@ export function vueDOuverture(lignes: LigneCandidat[]): Vue {
 }
 
 export function filtrerParVue(lignes: LigneCandidat[], vue: Vue): LigneCandidat[] {
-  if (vue === 'clotures') return lignes.filter(estCloture);
+  // L'archive l'emporte : un dossier à la fois clôturé et archivé est rangé,
+  // et c'est là qu'on ira le chercher. Les deux vues ne se recoupent donc
+  // jamais — additionnées, elles donnent exactement les dossiers refermés, et
+  // le même dossier ne se compte pas deux fois.
+  if (vue === 'clotures') return lignes.filter((l) => estCloture(l) && !estArchive(l));
   if (vue === 'archives') return lignes.filter(estArchive);
 
   // Ce qui reste : ni clôturé, ni archivé. C'est le travail en cours.

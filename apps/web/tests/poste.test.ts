@@ -63,11 +63,28 @@ describe('les quatre vues du volet', () => {
     expect(filtrerParVue(loge, 'archives').map((l) => l.id)).toEqual(['e']);
   });
 
-  it('un dossier à la fois clôturé et archivé se retrouve des deux côtés', () => {
-    const deuxFois = [ligne({ id: 'f', cloture: 'Embauché', archive: 'Rangé' })];
-    expect(filtrerParVue(deuxFois, 'clotures').map((l) => l.id)).toEqual(['f']);
-    expect(filtrerParVue(deuxFois, 'archives').map((l) => l.id)).toEqual(['f']);
-    expect(filtrerParVue(deuxFois, 'loge')).toEqual([]);
+  it('un dossier à la fois clôturé et archivé n’apparaît que dans l’archive', () => {
+    const deux = [ligne({ id: 'f', cloture: 'Embauché', archive: 'Rangé' })];
+    expect(filtrerParVue(deux, 'archives').map((l) => l.id)).toEqual(['f']);
+    expect(filtrerParVue(deux, 'clotures')).toEqual([]);
+    expect(filtrerParVue(deux, 'loge')).toEqual([]);
+  });
+
+  // La conséquence qui compte : les deux vues ne se recoupent pas, donc le
+  // même dossier n'est jamais compté deux fois.
+  it('les deux vues de l’archive ne se recoupent jamais', () => {
+    const refermes = [
+      ligne({ id: 'p', cloture: 'Embauché' }),
+      ligne({ id: 'q', archive: 'Rangé' }),
+      ligne({ id: 'r', cloture: 'Embauché', archive: 'Rangé' }),
+    ];
+    const clos = filtrerParVue(refermes, 'clotures').map((l) => l.id);
+    const ranges = filtrerParVue(refermes, 'archives').map((l) => l.id);
+
+    expect(clos).toEqual(['p']);
+    expect(ranges).toEqual(['q', 'r']);
+    expect(clos.filter((id) => ranges.includes(id))).toEqual([]);
+    expect(clos.length + ranges.length).toBe(refermes.length);
   });
 
   it('une valeur qui n’est que des blancs ne referme rien', () => {
