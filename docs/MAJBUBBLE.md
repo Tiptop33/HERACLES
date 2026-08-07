@@ -89,6 +89,37 @@ sur place.
 `offre_cliquee`, `emailrelance`, `candidat_offre_cliquee` : zéro enregistrement
 au 4 août. À revérifier le jour venu, ils ont pu se remplir depuis.
 
+**Les tâches, et tout ce que l'API n'expose pas.** Vérifié le 7 août 2026 :
+`/api/1.1/meta` ne rend que sept types — `candidats`, `user`,
+`loges_referents`, `info_entreprise`, `offreemploi`, `pdfs`, `global`. Tous les
+autres répondent 404, essayés sous toutes leurs formes.
+
+Or trois colonnes de notre modèle pointent vers des types non exposés :
+
+| Colonne | Champ Bubble | Ce qu'on en a |
+| --- | --- | --- |
+| `candidat.taches_bubble_ids` | `TACHES` | des identifiants, et rien au bout |
+| `referent.canaux_bubble_ids` | `Channels` | idem |
+| `parametre.whatsapp_bubble_ids` | `WHATSAPP` | idem |
+
+**Ces données ne sont pas récupérables en l'état, et MAJBUBBLE n'y changera
+rien** : le script ne peut reprendre que ce que l'API rend. Passé la fermeture,
+elles n'existeront plus nulle part.
+
+*Ce qu'il faut faire, et bien avant le 5 décembre :* dans l'éditeur Bubble,
+**Data → Data types**, cocher « expose via API » (ou « Modify privacy rules »)
+sur `TACHES`, `Channels` et `WHATSAPP`, puis relancer l'import. Rien d'autre
+n'est à changer : `import-bubble.mjs` recopie déjà tout type exposé et non
+modélisé dans `bubble_brut`. Le contrôle tient en une commande :
+
+```bash
+curl -s https://heracles-42268.bubbleapps.io/api/1.1/meta | head -c 400
+```
+
+Tant que ces trois noms n'y sont pas, l'historique de suivi des 118 candidats
+est perdu d'avance — et l'écran « Suivi & tâches » du poste de travail se
+construira sans son passé.
+
 ## Compte rendu
 
 Le jour où MAJBUBBLE est passée, noter dans `docs/reprise-bubble-releve.md` :

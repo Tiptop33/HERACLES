@@ -2400,3 +2400,133 @@ a.poste-document:hover {
     padding: 0.15rem 0.6rem;
   }
 }
+
+/* ————— Le journal d'un candidat (onglet « Suivi ») ————— */
+
+.journal {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  /* Une colonne de texte, pas la largeur du volet : au-delà, l'œil perd le
+     début de la ligne suivante. Le journal se lit, il ne se balaye pas. */
+  max-width: 46rem;
+}
+
+/* Le champ d'écriture en haut : c'est le geste qu'on vient faire. */
+.journal-ecrire {
+  border: 1px solid var(--bordure);
+  border-radius: 12px;
+  background: var(--surface);
+  padding: 0.7rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.journal-ecrire textarea {
+  font: inherit;
+  font-size: 0.92rem;
+  width: 100%;
+  padding: 0.5rem 0.6rem;
+  border: 1px solid var(--bordure);
+  border-radius: 9px;
+  background: var(--surface-creuse);
+  color: inherit;
+  resize: vertical;
+  min-height: 3.4rem;
+}
+
+.journal-ecrire textarea:focus-visible,
+.journal-ecrire input:focus-visible {
+  outline: 2px solid var(--marque);
+  outline-offset: 1px;
+}
+
+.journal-ecrire-pied {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+}
+
+.journal-ecrire-pied input {
+  font: inherit;
+  font-size: 0.85rem;
+  padding: 0.35rem 0.55rem;
+  border: 1px solid var(--bordure);
+  border-radius: 8px;
+  background: var(--surface-creuse);
+  color: inherit;
+}
+
+.journal-nature {
+  flex: 1;
+  min-width: 8rem;
+}
+
+.journal-date {
+  flex: none;
+}
+
+/* Le bouton au bout, à droite — là où le regard arrive après avoir écrit. */
+.journal-ecrire-pied .bouton {
+  margin-left: auto;
+}
+
+.journal-lignes {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Un filet vertical relie les notes : on voit d'un coup qu'il s'agit d'une
+   suite, et non de blocs indépendants. */
+.journal-ligne {
+  position: relative;
+  padding: 0 0 1rem 1rem;
+  border-left: 2px solid var(--bordure);
+}
+
+.journal-ligne:last-child {
+  border-left-color: transparent;
+  padding-bottom: 0;
+}
+
+/* Le point sur le filet, à hauteur de la date. */
+.journal-ligne::before {
+  content: '';
+  position: absolute;
+  left: -0.3rem;
+  top: 0.35rem;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: var(--marque);
+}
+
+.journal-ligne-tete {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.2rem;
+}
+
+.journal-ligne-tete time {
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.journal-auteur {
+  font-size: 0.78rem;
+  color: var(--encre-tres-douce);
+}
+
+/* Le journal s'imprime avec la fiche, mais pas ce qui sert à y écrire. */
+@media print {
+  .journal-ecrire {
+    display: none;
+  }
+}

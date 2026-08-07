@@ -15,6 +15,7 @@ import {
   type Vue,
 } from '@/lib/poste';
 import { initiales } from '@/lib/format';
+import { lireJournal } from '@/lib/journal';
 import { exigerProfil } from '@/lib/profil';
 import { accueilDuRole } from '@/lib/roles';
 import PanneauFiche, { estOnglet, type Onglet } from './PanneauFiche';
@@ -26,6 +27,8 @@ type Parametres = {
   vue?: string | string[];
   fiche?: string | string[];
   onglet?: string | string[];
+  /** Ce que la route d'écriture du journal a répondu, quand elle a refusé. */
+  erreur?: string | string[];
 };
 
 /** Le premier des paramètres d'adresse, quand il y en a plusieurs. */
@@ -77,6 +80,10 @@ export default async function PosteDeTravail({
   const fiche = demande ? await lireFiche(demande) : null;
   const rang = lignes.find((l) => l.id === demande) ?? null;
 
+  // Le journal ne se charge que si on le regarde. Un onglet fermé ne doit rien
+  // coûter — ni au serveur, ni au réseau : ce sont des notes sur des personnes.
+  const journal = fiche && onglet === 'suivi' ? await lireJournal(fiche.id) : [];
+
   /** L'adresse de ce même écran, avec un paramètre en plus ou en moins. */
   const adresse = (ajout: Record<string, string | null>) => {
     const p = new URLSearchParams();
@@ -84,6 +91,8 @@ export default async function PosteDeTravail({
     if (vue !== ouverture) p.set('vue', vue);
     if (demande) p.set('fiche', demande);
     if (onglet !== 'profil') p.set('onglet', onglet);
+    // `erreur` n'est pas repris : il vaut pour l'envoi qui vient d'échouer, et
+    // le traîner d'un clic à l'autre ferait porter le refus à un autre geste.
 
     for (const [cle, valeur] of Object.entries(ajout)) {
       if (valeur === null) p.delete(cle);
@@ -168,7 +177,14 @@ export default async function PosteDeTravail({
 
       <section className="poste-fiche" aria-label="Fiche du candidat">
         {fiche ? (
-          <PanneauFiche fiche={fiche} rang={rang} onglet={onglet} adresse={adresse} />
+          <PanneauFiche
+            fiche={fiche}
+            rang={rang}
+            onglet={onglet}
+            journal={journal}
+            refus={premier(parametres.erreur) || null}
+            adresse={adresse}
+          />
         ) : demande ? (
           // Ni « introuvable », ni « interdit ». La base n'a rien rendu, et
           // c'est la seule chose que l'on sache : distinguer les deux

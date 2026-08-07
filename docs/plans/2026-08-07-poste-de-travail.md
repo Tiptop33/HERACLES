@@ -138,11 +138,43 @@ tête et celui qui est écrit sur les dossiers. Les fiches sans numéro passent 
 Le numéro s'affiche à droite du rang, en chiffres à chasse fixe : une liste triée sur une clé
 invisible se lit comme une liste en désordre.
 
+## L'onglet « Suivi » — le journal
+
+Question posée le 7 août, réponse donnée : **ce qui s'est passé**. Un journal daté — « appel du
+12 mars », « entretien passé », « CV envoyé chez Untel ». On écrit après coup ; rien à cocher,
+rien à faire. C'est la table `suivi` (migration 0021).
+
+**Pourquoi une table et non un champ de plus.** `candidat.appreciation` existe déjà, et c'est un
+texte qu'on écrase. Un journal ne s'écrase pas : chaque ligne porte sa date, son auteur, et
+reste. C'est ce qui permet de reprendre un dossier six mois plus tard, ou de le passer à
+quelqu'un d'autre.
+
+| Geste | Qui |
+| --- | --- |
+| lire | la loge, comme la fiche — sinon on ne passe pas un dossier à un collègue |
+| écrire | le référent et le parrain, comme la fiche. Administrer n'est pas accompagner |
+| corriger | son propre écrit, et rien d'autre |
+| supprimer | personne. Aucune policy : un journal dont on efface les lignes n'en est plus un |
+
+L'auteur déclaré doit être soi — sans cette seconde condition dans la policy, on pourrait signer
+du nom d'un collègue.
+
+`fait_le` est le jour de l'événement, pas celui de la saisie : on note le lundi l'appel du
+vendredi. Le champ est vide par défaut, et vide vaut aujourd'hui.
+
+`nature` est du texte libre, avec une liste ouverte qui propose sans imposer. **À faire passer en
+référentiel**, comme le collège, quand quelques semaines d'usage auront dit lesquelles servent.
+
+**Le journal démarre vide, et ce n'est pas normal.** `candidat.taches_bubble_ids` porte des
+identifiants vers le type `TACHES`, que l'API de Bubble n'expose pas. Voir `docs/MAJBUBBLE.md` :
+sans intervention dans l'éditeur Bubble avant la bascule, l'historique de suivi des 118 candidats
+est perdu. La colonne `suivi.bubble_id` attend, au cas où.
+
 ## Ce qui reste éteint, à sa place définitive
 
 Comme la colonne de gauche : visible, à l'endroit où ce sera, et désactivé.
 
-- les onglets **Suivi & tâches** et **Offres proposées** — lot 4 ;
+- l'onglet **Offres proposées** — lot 4 ;
 - le bouton **Proposer une offre** — lot 4 ;
 - la carte **Affichette** dans les documents. Elle ne vient d'aucune colonne : l'affichette est
   un document à produire, pas à stocker.
