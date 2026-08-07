@@ -1,8 +1,7 @@
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
-import BarreReferent from '@/components/BarreReferent';
 import BoutonImprimer from '@/components/BoutonImprimer';
-import { lireCandidat, referentCourant } from '@/lib/candidat';
+import { lireCandidat } from '@/lib/candidat';
 import { dateEnLettres, enEtiquettes, initiales, nomComplet } from '@/lib/format';
 import { exigerProfil } from '@/lib/profil';
 import { accueilDuRole } from '@/lib/roles';
@@ -26,7 +25,7 @@ export default async function FicheCandidat({ params }: { params: Promise<{ id: 
 
   const { id } = await params;
 
-  const [referent, candidat] = await Promise.all([referentCourant(), lireCandidat(id)]);
+  const candidat = await lireCandidat(id);
 
   // Ni « introuvable », ni « interdit » : la base n'a rien renvoyé, et c'est la
   // seule chose que l'on sait. Distinguer les deux dirait déjà quelque chose.
@@ -71,7 +70,6 @@ export default async function FicheCandidat({ params }: { params: Promise<{ id: 
 
   return (
     <>
-      <BarreReferent profil={profil} loge={referent?.loge ?? null} />
 
       <main className="corps">
         <p className="fil">

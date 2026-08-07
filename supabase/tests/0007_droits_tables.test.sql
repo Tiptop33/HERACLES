@@ -69,12 +69,18 @@ select public.verifier(
   'les six tables que le lot 3 affiche sont adressables');
 
 \echo '— et rien d autre'
+-- `document` s'est ajouté depuis, avec l'accueil qui les liste (migration
+-- 0011). Il n'était pas dans la liste du lot 3, et c'était juste : on n'ouvre
+-- une table que le jour où un écran la réclame.
 select public.verifier(
-  public.refuse('authenticated', 'document')
-    and public.refuse('authenticated', 'entreprise')
+  public.autorise('authenticated', 'document'),
+  'les documents se sont ouverts avec l''accueil, et pas avant');
+
+select public.verifier(
+  public.refuse('authenticated', 'entreprise')
     and public.refuse('authenticated', 'loge_membre')
     and public.refuse('authenticated', 'bubble_brut'),
-  'documents, entreprises, membres de loge et table brute restent hors d''atteinte');
+  'entreprises, membres de loge et table brute restent hors d''atteinte');
 
 \echo '— écrire : seulement là où un écran écrit'
 select public.verifier(

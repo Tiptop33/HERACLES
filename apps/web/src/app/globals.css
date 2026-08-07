@@ -1098,3 +1098,277 @@ tbody tr:focus-within {
     transition: none !important;
   }
 }
+
+/* ————————————————————————————————————————————————————————————————————————
+   L'atelier : la colonne de gauche et le contenu, maquette 1a.
+
+   L'application Bubble alignait dix-sept entrées à plat. On garde la colonne —
+   les référents la connaissent — mais rangée en cinq familles.
+   ———————————————————————————————————————————————————————————————————————— */
+
+.atelier {
+  display: flex;
+  min-height: 100vh;
+  align-items: stretch;
+}
+
+.atelier-corps {
+  flex: 1;
+  min-width: 0;
+}
+
+.colonne {
+  width: 13.5rem;
+  flex: none;
+  border-right: 1px solid var(--bordure);
+  background: var(--surface);
+  padding: 1.1rem 0 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.colonne-marque {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0 0.9rem 1rem;
+  margin-bottom: 0.5rem;
+  border-bottom: 1px solid var(--bordure);
+  text-align: center;
+}
+
+.colonne-titre {
+  font-family: var(--corps);
+  font-weight: 800;
+  font-size: 0.82rem;
+  letter-spacing: 0.08em;
+}
+
+.colonne-qui {
+  font-size: 0.72rem;
+  color: var(--encre-douce);
+}
+
+.colonne-famille-nom {
+  margin: 0.9rem 0 0.25rem;
+  padding: 0 1.1rem;
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--encre-tres-douce);
+}
+
+.colonne-entree {
+  display: block;
+  padding: 0.4rem 1.1rem;
+  font-size: 0.83rem;
+  color: var(--encre);
+  text-decoration: none;
+  border-left: 3px solid transparent;
+}
+
+.colonne-entree:hover {
+  background: var(--surface-creuse);
+}
+
+.colonne-entree--courante {
+  border-left-color: var(--marque);
+  background: var(--candidat-clair);
+  font-weight: 700;
+}
+
+/* À venir. Visible et à sa place définitive : une colonne qui grandit lot
+   après lot déplace les repères à chaque fois. Le curseur dit que ce n'est
+   pas cliquable, la couleur aussi. */
+.colonne-entree--eteinte {
+  color: var(--encre-tres-douce);
+  cursor: default;
+}
+
+.colonne-entree--eteinte:hover {
+  background: none;
+}
+
+/* ————— L'accueil ————— */
+
+.page-titre h1 {
+  font-size: 1.15rem;
+  margin: 0;
+}
+
+.page-titre p {
+  margin: 0.15rem 0 0;
+  font-size: 0.8rem;
+}
+
+.compteurs {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: 0.7rem;
+}
+
+.compteur {
+  border: 1px solid var(--bordure);
+  border-left: 3px solid var(--marque);
+  border-radius: 10px;
+  background: var(--surface);
+  padding: 0.7rem 0.85rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.compteur-n {
+  font-family: var(--corps);
+  font-weight: 800;
+  font-size: 1.5rem;
+  line-height: 1.1;
+}
+
+.compteur-l {
+  font-size: 0.74rem;
+  color: var(--encre-douce);
+}
+
+.bloc-tete {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.7rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.7rem;
+}
+
+.bloc-tete h2 {
+  margin: 0;
+}
+
+.pastilles {
+  display: flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+
+.pastille-compte {
+  border: 1px solid var(--bordure);
+  border-radius: 999px;
+  padding: 0.15rem 0.7rem;
+  font-size: 0.74rem;
+  color: var(--encre-douce);
+  white-space: nowrap;
+}
+
+.cartes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  gap: 0.7rem;
+}
+
+.carte-demande {
+  border: 1px solid var(--bordure);
+  border-radius: 10px;
+  padding: 0.8rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  text-align: center;
+}
+
+.carte-demande p {
+  margin: 0;
+  font-size: 0.76rem;
+}
+
+.carte-nom {
+  font-weight: 700;
+  font-size: 0.84rem !important;
+}
+
+.deux-colonnes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+  gap: 1rem;
+  align-items: start;
+}
+
+.liste-nue {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.liste-nue li {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  padding: 0.5rem 0;
+  font-size: 0.83rem;
+  border-bottom: 1px dashed var(--bordure);
+}
+
+.liste-nue li:last-child {
+  border-bottom: none;
+}
+
+/* Sur un téléphone, la colonne passe au-dessus et s'étale : treize rem de
+   navigation à gauche ne laisseraient rien au contenu. */
+@media (max-width: 46rem) {
+  .atelier {
+    flex-direction: column;
+  }
+
+  .colonne {
+    width: auto;
+    border-right: none;
+    border-bottom: 1px solid var(--bordure);
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: baseline;
+    padding: 0.6rem 0.4rem;
+  }
+
+  .colonne-marque {
+    flex-direction: row;
+    gap: 0.5rem;
+    border-bottom: none;
+    margin: 0;
+    padding: 0 0.6rem;
+  }
+
+  .colonne-marque .logo {
+    width: 1.8rem;
+    height: 1.8rem;
+  }
+
+  .colonne-qui {
+    display: none;
+  }
+
+  .colonne-famille {
+    display: flex;
+    align-items: baseline;
+    gap: 0.2rem;
+    flex-wrap: wrap;
+  }
+
+  .colonne-famille-nom {
+    margin: 0;
+    padding: 0 0.4rem;
+  }
+
+  .colonne-entree {
+    border-left: none;
+    border-bottom: 2px solid transparent;
+    padding: 0.3rem 0.55rem;
+  }
+
+  .colonne-entree--courante {
+    border-left: none;
+    border-bottom-color: var(--marque);
+  }
+}

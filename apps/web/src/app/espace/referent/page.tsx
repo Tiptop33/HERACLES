@@ -1,6 +1,5 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import BarreReferent from '@/components/BarreReferent';
 import {
   estFiltre,
   filtrer,
@@ -55,7 +54,6 @@ export default async function MesCandidats({
 
   return (
     <>
-      <BarreReferent profil={profil} loge={referent?.loge ?? null} />
 
       <main className="corps">
         <div className="entete-liste">

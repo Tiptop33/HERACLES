@@ -22,8 +22,10 @@ describe('estRoleInscription', () => {
 describe('accueilDuRole', () => {
   it('envoie chacun dans son espace', () => {
     expect(accueilDuRole('chercheur')).toBe('/espace/chercheur');
-    expect(accueilDuRole('referent')).toBe('/espace/referent');
-    expect(accueilDuRole('admin')).toBe('/espace/admin');
+    // Référents et administrateurs partagent l'accueil : c'est la colonne de
+    // gauche qui les sépare ensuite, selon leurs droits.
+    expect(accueilDuRole('referent')).toBe('/espace/accueil');
+    expect(accueilDuRole('admin')).toBe('/espace/accueil');
   });
 
   it("retombe sur l'espace chercheur quand le rôle manque ou est inconnu", () => {

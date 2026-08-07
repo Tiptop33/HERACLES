@@ -1,5 +1,4 @@
 import { redirect } from 'next/navigation';
-import Barre from '@/components/Barre';
 import { etatInvitation, listerInvitations, listerLoges } from '@/lib/administration';
 import { dateEnLettres, depuis } from '@/lib/format';
 import { libelleRoleInvitation } from '@/lib/invitation';
@@ -22,7 +21,6 @@ export default async function EspaceAdmin() {
 
   return (
     <>
-      <Barre profil={profil} espace="administration" accueil="/espace/admin" />
 
       <main className="corps">
         <div className="entete-liste">
