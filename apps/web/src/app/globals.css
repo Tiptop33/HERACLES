@@ -2059,22 +2059,20 @@ tbody tr:focus-within {
   padding: 0.3rem 0.55rem;
 }
 
-/* Cinq pastilles ne tiennent pas sur la largeur du volet, et laissées libres
+/* Six pastilles ne tiennent pas sur la largeur du volet, et laissées libres
    elles retombent au hasard — ce qui se lit comme un accident. Elles sont donc
-   rangées en deux blocs qui veulent dire quelque chose : les trois façons de
-   regarder le travail en cours, puis les deux façons de retrouver ce qui est
-   refermé.
+   rangées en deux blocs de trois qui veulent dire quelque chose : le travail
+   en cours, puis ce qu'on va chercher au-delà.
 
-   Trois colonnes égales pour le premier bloc, deux pour le second : chaque
-   pastille occupe sa case, quelle que soit la longueur du mot. */
+   Trois colonnes égales : chaque pastille occupe sa case, quelle que soit la
+   longueur du mot, et les deux rangées s'alignent l'une sur l'autre. */
 .poste-vues {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 0.25rem;
 }
 
-.poste-vues--fermees {
-  grid-template-columns: repeat(2, 1fr);
+.poste-vues--au-dela {
   margin-top: 0.15rem;
   padding-top: 0.4rem;
   border-top: 1px dashed var(--bordure);

@@ -133,38 +133,47 @@ export async function lireFiche(id: string): Promise<FicheOuverte | null> {
 }
 
 /**
- * Les trois façons de regarder le travail en cours — celles de la maquette.
- * Aucune ne montre un dossier refermé, qu'il soit clôturé ou archivé.
+ * Les trois façons de regarder le travail en cours — celles de la maquette,
+ * « En cours » tenant la place de son « Tous ». Aucune ne montre un dossier
+ * refermé, qu'il soit clôturé ou archivé.
  */
-export const VUES_OUVERTES = [
-  { valeur: 'tous', libelle: 'Tous' },
+export const VUES_EN_COURS = [
+  { valeur: 'en-cours', libelle: 'En cours' },
   { valeur: 'urgents', libelle: 'Urgents' },
   { valeur: 'suivis', libelle: 'Mes suivis' },
 ] as const;
 
 /**
- * Et les deux façons de retrouver ce qui est refermé. Elles ne sont pas dans
- * la maquette, et elles sont nécessaires : sans elles, clôturer ou archiver un
+ * Et les trois façons d'aller voir au-delà. Elles ne sont pas dans la
+ * maquette, et elles sont nécessaires : sans elles, clôturer ou archiver un
  * dossier reviendrait à l'effacer.
  *
- * Deux vues et non une : `CLOTURE` et `ARCHIVER` sont deux colonnes distinctes
- * chez Bubble, donc deux gestes distincts. Les confondre à l'écran ferait
- * perdre l'information au premier tri.
+ * Deux vues et non une pour ce qui est refermé : `CLOTURE` et `ARCHIVER` sont
+ * deux colonnes distinctes chez Bubble, donc deux gestes distincts. Les
+ * confondre à l'écran ferait perdre l'information au premier tri.
+ *
+ * Et « Tous » veut dire tous — y compris ce qui est refermé. C'est le sens du
+ * mot ; lui en faire dire un autre obligerait à l'expliquer chaque fois.
  */
-export const VUES_FERMEES = [
+export const VUES_AU_DELA = [
   { valeur: 'clotures', libelle: 'Clôturés' },
   { valeur: 'archives', libelle: 'Archivés' },
+  { valeur: 'tous', libelle: 'Tous' },
 ] as const;
 
-export const VUES = [...VUES_OUVERTES, ...VUES_FERMEES];
+export const VUES = [...VUES_EN_COURS, ...VUES_AU_DELA];
 
 export type Vue = (typeof VUES)[number]['valeur'];
+
+/** Celle sur laquelle l'écran s'ouvre, et qui ne s'écrit pas dans l'adresse. */
+export const VUE_PAR_DEFAUT: Vue = 'en-cours';
 
 export function estVue(valeur: unknown): valeur is Vue {
   return VUES.some((v) => v.valeur === valeur);
 }
 
 export function filtrerParVue(lignes: LigneCandidat[], vue: Vue): LigneCandidat[] {
+  if (vue === 'tous') return lignes;
   if (vue === 'clotures') return lignes.filter(estCloture);
   if (vue === 'archives') return lignes.filter(estArchive);
 

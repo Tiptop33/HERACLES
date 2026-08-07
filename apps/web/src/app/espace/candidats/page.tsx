@@ -1,8 +1,9 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import {
-  VUES_FERMEES,
-  VUES_OUVERTES,
+  VUES_AU_DELA,
+  VUES_EN_COURS,
+  VUE_PAR_DEFAUT,
   chercher,
   estVue,
   filtrerParVue,
@@ -55,7 +56,7 @@ export default async function PosteDeTravail({
   const parametres = await searchParams;
   const recherche = premier(parametres.q);
   const demandee = premier(parametres.vue);
-  const vue: Vue = estVue(demandee) ? demandee : 'tous';
+  const vue: Vue = estVue(demandee) ? demandee : VUE_PAR_DEFAUT;
   const demande = premier(parametres.fiche);
   const demandeOnglet = premier(parametres.onglet);
   const onglet: Onglet = estOnglet(demandeOnglet) ? demandeOnglet : 'profil';
@@ -73,7 +74,7 @@ export default async function PosteDeTravail({
   const adresse = (ajout: Record<string, string | null>) => {
     const p = new URLSearchParams();
     if (recherche) p.set('q', recherche);
-    if (vue !== 'tous') p.set('vue', vue);
+    if (vue !== VUE_PAR_DEFAUT) p.set('vue', vue);
     if (demande) p.set('fiche', demande);
     if (onglet !== 'profil') p.set('onglet', onglet);
 
@@ -111,15 +112,15 @@ export default async function PosteDeTravail({
             />
           </form>
 
-          {/* Deux rangées, et non cinq pastilles à la suite : les trois
-              premières regardent le travail en cours, les deux dernières ce
-              qui est refermé. Le filet les sépare pour qu'on ne clique pas
-              dans l'archive en visant « Mes suivis ». */}
+          {/* Deux rangées, et non six pastilles à la suite : la première
+              regarde le travail en cours, la seconde va voir au-delà. Le filet
+              les sépare pour qu'on ne clique pas dans l'archive en visant
+              « Mes suivis ». */}
           <div className="poste-vues">
-            {VUES_OUVERTES.map(({ valeur, libelle }) => (
+            {VUES_EN_COURS.map(({ valeur, libelle }) => (
               <Link
                 key={valeur}
-                href={adresse({ vue: valeur === 'tous' ? null : valeur })}
+                href={adresse({ vue: valeur === VUE_PAR_DEFAUT ? null : valeur })}
                 className="filtre filtre--menu"
                 aria-current={vue === valeur}
               >
@@ -128,8 +129,8 @@ export default async function PosteDeTravail({
             ))}
           </div>
 
-          <div className="poste-vues poste-vues--fermees">
-            {VUES_FERMEES.map(({ valeur, libelle }) => (
+          <div className="poste-vues poste-vues--au-dela">
+            {VUES_AU_DELA.map(({ valeur, libelle }) => (
               <Link
                 key={valeur}
                 href={adresse({ vue: valeur })}

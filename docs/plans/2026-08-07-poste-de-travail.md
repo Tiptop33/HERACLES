@@ -70,21 +70,23 @@ Les photos et les documents passent par l'application, jamais par une adresse si
 adresse signée, même d'une minute, est une adresse qui circule. Chez Bubble, ces fichiers
 pendaient à un CDN public.
 
-## Les cinq vues
+## Les six vues
 
-Deux rangées de pastilles, et la séparation veut dire quelque chose.
+Deux rangées de trois, et la séparation veut dire quelque chose.
 
 | Rangée | Vues | Ce qu'elles montrent |
 | --- | --- | --- |
-| le travail en cours | `Tous` · `Urgents` · `Mes suivis` | ni clôturé, ni archivé |
-| ce qui est refermé | `Clôturés` · `Archivés` | une colonne chacune |
+| le travail en cours | `En cours` · `Urgents` · `Mes suivis` | ni clôturé, ni archivé |
+| au-delà | `Clôturés` · `Archivés` · `Tous` | une colonne chacune, puis tout |
 
-Les trois premières sont celles de la maquette. Les deux dernières n'y sont pas, et sont
-nécessaires : sans elles, refermer un dossier reviendrait à l'effacer.
+`En cours` tient la place du `Tous` de la maquette, et l'écran s'ouvre dessus.
 
 **Deux vues et non une pour ce qui est refermé.** `CLOTURE` et `ARCHIVER` sont deux colonnes
 distinctes reprises de Bubble, donc deux gestes distincts. Les confondre à l'écran ferait perdre
 l'information au premier tri.
+
+**Et « Tous » veut dire tous** — refermés compris. C'est le sens du mot ; lui en faire dire un
+autre obligerait à l'expliquer chaque fois.
 
 « Urgents » veut dire : **personne ne l'accompagne**. Le rang porte un point ambre, et le texte
 le dit aux lecteurs d'écran — la couleur seule ne suffit jamais. Le point occupe sa place sur

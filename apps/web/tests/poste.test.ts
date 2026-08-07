@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   VUES,
+  VUE_PAR_DEFAUT,
   chercher,
   estVue,
   filtrerParVue,
@@ -41,22 +42,28 @@ const loge = [
           archive: 'Sans nouvelles', c_est_mon_suivi: true }),
 ];
 
-describe('les cinq vues du volet', () => {
-  it('reconnaît les cinq, et refuse le reste', () => {
+describe('les six vues du volet', () => {
+  it('reconnaît les six, et refuse le reste', () => {
     expect(VUES.map((v) => v.valeur)).toEqual([
-      'tous',
+      'en-cours',
       'urgents',
       'suivis',
       'clotures',
       'archives',
+      'tous',
     ]);
+    expect(VUE_PAR_DEFAUT).toBe('en-cours');
     expect(estVue('archives')).toBe(true);
     expect(estVue('corbeille')).toBe(false);
     expect(estVue(undefined)).toBe(false);
   });
 
-  it('« Tous » ne montre ni les clôturés ni les archivés', () => {
-    expect(filtrerParVue(loge, 'tous').map((l) => l.id)).toEqual(['a', 'b', 'c']);
+  it('« En cours » ne montre ni les clôturés ni les archivés', () => {
+    expect(filtrerParVue(loge, 'en-cours').map((l) => l.id)).toEqual(['a', 'b', 'c']);
+  });
+
+  it('« Tous » veut dire tous — refermés compris', () => {
+    expect(filtrerParVue(loge, 'tous').map((l) => l.id)).toEqual(['a', 'b', 'c', 'd', 'e']);
   });
 
   it('« Urgents » : ceux que personne n’accompagne', () => {
@@ -76,12 +83,13 @@ describe('les cinq vues du volet', () => {
     const deuxFois = [ligne({ id: 'f', cloture: 'Embauché', archive: 'Rangé' })];
     expect(filtrerParVue(deuxFois, 'clotures').map((l) => l.id)).toEqual(['f']);
     expect(filtrerParVue(deuxFois, 'archives').map((l) => l.id)).toEqual(['f']);
-    expect(filtrerParVue(deuxFois, 'tous')).toEqual([]);
+    expect(filtrerParVue(deuxFois, 'en-cours')).toEqual([]);
+    expect(filtrerParVue(deuxFois, 'tous').map((l) => l.id)).toEqual(['f']);
   });
 
   it('une valeur qui n’est que des blancs ne referme rien', () => {
     const flou = [ligne({ id: 'g', cloture: '   ', archive: '' })];
-    expect(filtrerParVue(flou, 'tous').map((l) => l.id)).toEqual(['g']);
+    expect(filtrerParVue(flou, 'en-cours').map((l) => l.id)).toEqual(['g']);
     expect(filtrerParVue(flou, 'clotures')).toEqual([]);
     expect(filtrerParVue(flou, 'archives')).toEqual([]);
   });
@@ -92,7 +100,7 @@ describe('les cinq vues du volet', () => {
   it('une valeur qui dit « non » ne referme rien non plus', () => {
     for (const mot of ['Non', 'non', 'NON', 'Non archivé', 'Aucune', 'false', '0']) {
       const dit = [ligne({ id: 'h', archive: mot })];
-      expect(filtrerParVue(dit, 'tous').map((l) => l.id), mot).toEqual(['h']);
+      expect(filtrerParVue(dit, 'en-cours').map((l) => l.id), mot).toEqual(['h']);
       expect(filtrerParVue(dit, 'archives'), mot).toEqual([]);
     }
   });
