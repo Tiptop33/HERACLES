@@ -691,6 +691,18 @@ h3 {
   min-width: 12rem;
 }
 
+/* Le choix d'une loge, quand il y en a plusieurs à portée. */
+.filtre-loge {
+  font: inherit;
+  font-size: 0.85rem;
+  padding: 0.4rem 0.6rem;
+  border: 1px solid var(--bordure-nette);
+  border-radius: var(--rayon);
+  background: var(--surface);
+  color: inherit;
+  cursor: pointer;
+}
+
 /* ————— Le tableau des candidats ————— */
 
 .tableau-enveloppe {

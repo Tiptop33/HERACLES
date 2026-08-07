@@ -21,8 +21,16 @@ export type FicheAnnuaire = {
   loge_id: string | null;
   loge_nom: string | null;
   compte_rattache: boolean;
+  /** La fiche de la personne connectée. C'est d'elle que vient sa loge. */
+  c_est_moi: boolean;
   candidats_suivis: number;
 };
+
+/** Les deux valeurs d'adresse qui ne sont pas l'identifiant d'une loge. */
+export const TOUTES_LES_LOGES = 'toutes';
+export const SANS_LOGE = 'sans';
+
+export type ChoixDeLoge = { valeur: string; nom: string };
 
 export async function listerAnnuaire(): Promise<FicheAnnuaire[]> {
   const supabase = await supabaseServer();
@@ -34,6 +42,59 @@ export async function listerAnnuaire(): Promise<FicheAnnuaire[]> {
 export async function lireFicheAnnuaire(id: string): Promise<FicheAnnuaire | null> {
   const fiches = await listerAnnuaire();
   return fiches.find((f) => f.id === id) ?? null;
+}
+
+/**
+ * Les loges présentes dans l'annuaire, dans l'ordre alphabétique, suivies —
+ * s'il y en a — de l'entrée « sans loge ».
+ *
+ * Ces douze-là ne sont pas un détail d'affichage : la reprise Bubble a laissé
+ * douze référents sans rattachement, et un référent sans loge ne voit rien
+ * dans HERACLES. Il faut pouvoir les retrouver pour les rattacher.
+ */
+export function logesDeLAnnuaire(fiches: FicheAnnuaire[]): ChoixDeLoge[] {
+  const loges = new Map<string, string>();
+  let orphelines = false;
+
+  for (const f of fiches) {
+    if (f.loge_id) loges.set(f.loge_id, f.loge_nom ?? 'Loge sans nom');
+    else orphelines = true;
+  }
+
+  const liste = [...loges.entries()]
+    .map(([valeur, nom]) => ({ valeur, nom }))
+    .sort((a, b) => a.nom.localeCompare(b.nom, 'fr'));
+
+  return orphelines ? [...liste, { valeur: SANS_LOGE, nom: 'Sans loge' }] : liste;
+}
+
+/**
+ * La loge sur laquelle la page s'ouvre : celle de la personne connectée.
+ *
+ * Un référent n'a de toute façon que la sienne. Un administrateur les a
+ * toutes, mais il travaille dans une loge lui aussi — il commence par elle, et
+ * va voir ailleurs s'il le veut. Faute de fiche de référent — un compte
+ * d'administration pur —, il n'y a rien à deviner : on montre tout.
+ */
+export function logeDOuverture(fiches: FicheAnnuaire[]): string {
+  return fiches.find((f) => f.c_est_moi)?.loge_id ?? TOUTES_LES_LOGES;
+}
+
+/**
+ * La loge retenue, entre ce que demande l'adresse et ce que l'annuaire
+ * contient. Une loge inconnue — adresse recopiée, fiche déplacée depuis —
+ * ne vide pas l'écran : elle ramène à toutes.
+ */
+export function choisirLoge(fiches: FicheAnnuaire[], demande: string): string {
+  const voulue = demande.trim() || logeDOuverture(fiches);
+  const possibles = logesDeLAnnuaire(fiches).map((l) => l.valeur);
+  return possibles.includes(voulue) ? voulue : TOUTES_LES_LOGES;
+}
+
+export function filtrerParLoge(fiches: FicheAnnuaire[], choix: string): FicheAnnuaire[] {
+  if (choix === TOUTES_LES_LOGES) return fiches;
+  if (choix === SANS_LOGE) return fiches.filter((f) => !f.loge_id);
+  return fiches.filter((f) => f.loge_id === choix);
 }
 
 /**

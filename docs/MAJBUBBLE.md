@@ -57,6 +57,18 @@ lectures — mais il doit s'expliquer.
 `..._chemin` est vide alors que son `..._url` ne l'est pas, le fichier reste à
 rapatrier. La migration `0005_fichiers.sql` porte les requêtes de contrôle.
 
+**Rattacher les comptes.** Les fiches arrivent de Bubble ; les comptes de
+connexion, eux, existent déjà. Rien ne les lie tant qu'on ne le demande pas :
+
+```bash
+docker exec -i <prefixe>-db psql -U postgres -d postgres \
+  -c "select public.rattacher_les_comptes_orphelins() as comptes_rattaches"
+```
+
+Elle rapproche les adresses identiques, ne touche qu'une fiche libre, ne
+déplace jamais un rattachement existant, et se rejoue sans risque. Un compte
+sans fiche ne voit ni collègues, ni candidats : c'est à faire le jour même.
+
 **Refermer l'API Bubble** et régénérer ses jetons. Voir
 `docs/reprise-bubble-releve.md`.
 
@@ -69,7 +81,9 @@ c'est un envoi groupé à préparer, et un délai à laisser aux gens.
 
 **Les rattachements manquants.** Douze référents ne sont dans aucune loge. Dans
 HERACLES, un référent sans loge ne voit rien : ni collègues, ni candidats en
-attente, ni documents. À corriger avant la bascule, pas après.
+attente, ni documents. À corriger avant la bascule, pas après. L'annuaire les
+regroupe : *Référents*, puis la loge « Sans loge » — et chaque fiche se corrige
+sur place.
 
 **Les sept types vides.** `appels`, `tag`, `tenue`, `ft_auth`,
 `offre_cliquee`, `emailrelance`, `candidat_offre_cliquee` : zéro enregistrement
