@@ -148,12 +148,13 @@ tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 ssh-keygen -q -t ed25519 -N '' -C "deploiement-heracles-essai" -f "$tmp/cle"
 
-install -d -m 700 -o "$COMPTE" -g "$COMPTE" "/home/$COMPTE/.ssh"
+GROUPE="$(id -gn "$COMPTE")"
+install -d -m 700 -o "$COMPTE" -g "$GROUPE" "/home/$COMPTE/.ssh"
 # `restrict` retire tout : terminal, redirections de port, agent, X11. `command`
 # impose le geste unique — ce que le client demande n'est jamais lu.
 printf 'restrict,command="%s -n %s" %s\n' "$SUDO" "$LANCEUR" "$(cat "$tmp/cle.pub")" \
   > "/home/$COMPTE/.ssh/authorized_keys"
-chown "$COMPTE:$COMPTE" "/home/$COMPTE/.ssh/authorized_keys"
+chown "$COMPTE:$GROUPE" "/home/$COMPTE/.ssh/authorized_keys"
 chmod 600 "/home/$COMPTE/.ssh/authorized_keys"
 vert "clé installée, réduite à un seul geste"
 
