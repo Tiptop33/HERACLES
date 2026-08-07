@@ -137,7 +137,7 @@ export default function VueAccueil({
 
       {estReferent && (
         <p className="maigre">
-          <Link href="/espace/referent">Voir tous mes candidats →</Link>
+          <Link href="/espace/candidats">Voir les candidats de la loge →</Link>
         </p>
       )}
     </main>

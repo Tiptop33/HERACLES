@@ -2,11 +2,16 @@ import { supabaseServer } from './supabase-server';
 import { etatDuSuivi, tauxDeRemplissage, type Suivi } from './suivi';
 
 /**
- * Lecture des candidats d'un référent.
+ * Lecture d'une fiche **par la table**, donc sous la RLS de 0006 : le référent
+ * et le parrain, personne d'autre.
  *
- * Aucune de ces requêtes n'écrit « where referent_id = moi » : c'est la RLS qui
- * s'en charge (migration 0006), et c'est volontaire. Un filtre oublié ici ne
- * doit rien laisser fuir — la base refuse d'elle-même les fiches des autres.
+ * C'est ce qui sert l'écran de correction, et c'est voulu : le poste de
+ * travail lit par `fiche_candidat()` (0020) et montre toute la loge, mais
+ * écrire reste réservé à qui accompagne. Les deux lectures ne se ressemblent
+ * pas parce qu'elles ne répondent pas à la même question.
+ *
+ * Aucune de ces requêtes n'écrit « where referent_id = moi » : c'est la base
+ * qui s'en charge. Un filtre oublié ici ne doit rien laisser fuir.
  */
 
 /** Les colonnes que les écrans du lot 3 affichent. Pas d'étoile : on nomme. */
@@ -149,65 +154,6 @@ export async function referentCourant(): Promise<ReferentCourant | null> {
   return { id: data.id, nom: data.nom, prenom: data.prenom, loge };
 }
 
-export type Filtre = 'tous' | 'recherche' | 'clotures';
-
-export function estFiltre(valeur: unknown): valeur is Filtre {
-  return valeur === 'tous' || valeur === 'recherche' || valeur === 'clotures';
-}
-
-/**
- * Tous les candidats que la personne connectée accompagne, du plus récemment
- * touché au plus ancien. Aucun filtre : le décompte affiché en tête de liste
- * porte sur l'ensemble, pas sur ce qui reste après filtrage.
- */
-export async function listerMesCandidats(): Promise<CandidatSuivi[]> {
-  const supabase = await supabaseServer();
-
-  const { data } = await supabase
-    .from('candidat')
-    .select(COLONNES)
-    .order('maj_le', { ascending: false, nullsFirst: false });
-
-  return ((data ?? []) as unknown as Candidat[]).map(augmenter);
-}
-
-/**
- * Le filtre et la recherche s'appliquent en mémoire, et non dans la requête :
- * l'état du suivi est calculé, il n'existe dans aucune colonne. Un référent suit
- * au plus quelques dizaines de candidats — les parcourir coûte moins qu'une
- * colonne dénormalisée à tenir à jour. Cela évite au passage de recopier un mot
- * saisi par l'usager dans une expression de filtre.
- */
-export function filtrer(
-  candidats: CandidatSuivi[],
-  filtre: Filtre = 'tous',
-  recherche = '',
-): CandidatSuivi[] {
-  const parEtat = candidats.filter((candidat) => {
-    if (filtre === 'clotures') return candidat.suivi.etat === 'clos';
-    if (filtre === 'recherche') return candidat.suivi.etat !== 'clos';
-    return true;
-  });
-
-  const mot = recherche.trim().toLocaleLowerCase('fr');
-  if (mot === '') return parEtat;
-
-  return parEtat.filter((candidat) =>
-    [
-      candidat.prenom,
-      candidat.nom,
-      candidat.emploi_recherche,
-      candidat.metier_libelle,
-      candidat.secteur_activite_libelle,
-      candidat.type_emploi,
-      candidat.ville,
-      candidat.numero?.toString(),
-    ]
-      .filter(Boolean)
-      .some((champ) => String(champ).toLocaleLowerCase('fr').includes(mot)),
-  );
-}
-
 export type FicheCandidat = CandidatSuivi & {
   referent: string | null;
   parrain: string | null;
@@ -264,21 +210,4 @@ export async function lireCandidat(id: string): Promise<FicheCandidat | null> {
     parrain: nommer(candidat.parrain_id),
     loge,
   };
-}
-
-/** « 9 suivis · 2 en attente de premier contact », comme sur la maquette. */
-export function resumeDeLaListe(candidats: CandidatSuivi[]): string {
-  const suivis = candidats.filter((c) => c.suivi.etat === 'suivi').length;
-  const attente = candidats.filter((c) => c.suivi.etat === 'attente').length;
-  const clos = candidats.filter((c) => c.suivi.etat === 'clos').length;
-
-  const morceaux: string[] = [];
-  if (suivis > 0) morceaux.push(`${suivis} suivi${suivis > 1 ? 's' : ''}`);
-  if (attente > 0) {
-    morceaux.push(`${attente} en attente de premier contact`);
-  }
-  if (clos > 0) morceaux.push(`${clos} clôturé${clos > 1 ? 's' : ''}`);
-
-  if (morceaux.length === 0) return 'aucun candidat';
-  return morceaux.join(' · ');
 }
