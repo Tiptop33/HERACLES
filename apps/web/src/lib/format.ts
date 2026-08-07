@@ -119,6 +119,51 @@ export function nomAffichable(
   return complet || email?.trim() || 'Sans nom';
 }
 
+export type Telephone = {
+  /** « 06 12 34 56 78 » — ce qu'on lit. */
+  affiche: string;
+  /** « +33612345678 » — ce qu'on compose, sans espace ni point. */
+  lien: string;
+  /** Un numéro français, reconnu comme tel : on peut lui mettre le drapeau. */
+  francais: boolean;
+};
+
+/**
+ * Met un numéro en forme, sans jamais le réécrire à l'aveugle.
+ *
+ * Bubble a laissé de tout : `0612345678`, `06.12.34.56.78`,
+ * `+33 6 12 34 56 78`, et des choses qui ne sont pas des numéros. Un numéro
+ * français reconnu se présente par paires, avec son drapeau. Tout le reste est
+ * rendu tel quel — un numéro étranger mal découpé serait pire qu'un numéro
+ * brut, et un numéro qu'on ne comprend pas reste une information utile.
+ */
+export function telephone(valeur: string | null | undefined): Telephone | null {
+  const brut = valeur?.trim();
+  if (!brut) return null;
+
+  // Tout ce qui n'est ni chiffre ni « + » de tête s'en va : espaces, points,
+  // tirets, parenthèses, espaces insécables recopiés d'un tableur.
+  const plus = brut.startsWith('+');
+  const chiffres = brut.replace(/\D/g, '');
+  if (chiffres === '') return { affiche: brut, lien: brut, francais: false };
+
+  // +33 6 12 34 56 78 → 06 12 34 56 78. Idem pour 0033.
+  let national = chiffres;
+  if (plus && chiffres.startsWith('33')) national = `0${chiffres.slice(2)}`;
+  else if (chiffres.startsWith('0033')) national = `0${chiffres.slice(4)}`;
+
+  const francais = /^0[1-9]\d{8}$/.test(national);
+  if (!francais) {
+    return { affiche: brut, lien: (plus ? '+' : '') + chiffres, francais: false };
+  }
+
+  return {
+    affiche: national.replace(/(\d\d)(?=\d)/g, '$1 '),
+    lien: `+33${national.slice(1)}`,
+    francais: true,
+  };
+}
+
 /**
  * Découpe un champ de texte libre en étiquettes. Bubble stockait compétences et
  * savoir-être en une seule chaîne, séparées tantôt par des virgules, tantôt par

@@ -7,6 +7,7 @@ import {
   initiales,
   nomAffichable,
   nomComplet,
+  telephone,
 } from '../src/lib/format';
 
 describe('initiales', () => {
@@ -138,5 +139,52 @@ describe('initiales, avec un secours', () => {
 
   it('garde le point d’interrogation quand il n’y a rien du tout', () => {
     expect(initiales(null, null, null)).toBe('?');
+  });
+});
+
+describe('telephone', () => {
+  it('met un numéro français par paires', () => {
+    expect(telephone('0612345678')?.affiche).toBe('06 12 34 56 78');
+    expect(telephone('05 56 00 00 00')?.affiche).toBe('05 56 00 00 00');
+  });
+
+  it('accepte ce que Bubble a laissé : points, tirets, espaces insécables', () => {
+    expect(telephone('06.12.34.56.78')?.affiche).toBe('06 12 34 56 78');
+    expect(telephone('06-12-34-56-78')?.affiche).toBe('06 12 34 56 78');
+    expect(telephone('06 12 34 56 78')?.affiche).toBe('06 12 34 56 78');
+    expect(telephone(' (06) 12 34 56 78 ')?.affiche).toBe('06 12 34 56 78');
+  });
+
+  it('ramène l’indicatif international à la forme nationale', () => {
+    expect(telephone('+33 6 12 34 56 78')?.affiche).toBe('06 12 34 56 78');
+    expect(telephone('0033612345678')?.affiche).toBe('06 12 34 56 78');
+  });
+
+  it('compose sans espace, en international — c’est ce qui marche partout', () => {
+    expect(telephone('06 12 34 56 78')?.lien).toBe('+33612345678');
+  });
+
+  it('reconnaît un numéro français, et lui seul', () => {
+    expect(telephone('0612345678')?.francais).toBe(true);
+    expect(telephone('+32 2 123 45 67')?.francais).toBe(false);
+    // Neuf chiffres : il manque quelque chose. On ne devine pas.
+    expect(telephone('612345678')?.francais).toBe(false);
+    // Onze chiffres : ce n'est pas un numéro français non plus.
+    expect(telephone('06123456789')?.francais).toBe(false);
+    // 00 en tête n'existe pas comme préfixe de département.
+    expect(telephone('0012345678')?.francais).toBe(false);
+  });
+
+  it('rend tel quel ce qu’il ne comprend pas, plutôt que de le mutiler', () => {
+    // Un numéro étranger mal découpé serait pire qu'un numéro brut.
+    expect(telephone('+32 2 123 45 67')?.affiche).toBe('+32 2 123 45 67');
+    expect(telephone('poste 4512')?.affiche).toBe('poste 4512');
+    expect(telephone('à demander')?.affiche).toBe('à demander');
+  });
+
+  it('ne rend rien quand il n’y a rien', () => {
+    expect(telephone(null)).toBeNull();
+    expect(telephone(undefined)).toBeNull();
+    expect(telephone('   ')).toBeNull();
   });
 });

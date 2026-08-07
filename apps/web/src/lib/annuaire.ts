@@ -23,6 +23,8 @@ export type FicheAnnuaire = {
   compte_rattache: boolean;
   /** La fiche de la personne connectée. C'est d'elle que vient sa loge. */
   c_est_moi: boolean;
+  /** Une photo rapatriée de Bubble, servie par /espace/referents/<id>/photo. */
+  a_une_photo: boolean;
   candidats_suivis: number;
 };
 
@@ -105,13 +107,23 @@ export function filtrerAnnuaire(fiches: FicheAnnuaire[], recherche: string): Fic
   const mots = recherche.trim().toLowerCase();
   if (!mots) return fiches;
 
-  return fiches.filter((f) =>
-    [f.nom, f.prenom, f.email, f.telephone, f.loge_nom, f.college]
+  // Un numéro se cherche comme il vient : « 06 12 34 » comme « 0612 34 ». On
+  // compare les chiffres aux chiffres, sans quoi la façon dont Bubble a
+  // enregistré le numéro déciderait de la façon dont on a le droit de le
+  // chercher.
+  const chiffres = mots.replace(/\D/g, '');
+
+  return fiches.filter((f) => {
+    const texte = [f.nom, f.prenom, f.email, f.telephone, f.loge_nom, f.college]
       .filter(Boolean)
       .join(' ')
-      .toLowerCase()
-      .includes(mots),
-  );
+      .toLowerCase();
+
+    if (texte.includes(mots)) return true;
+    if (chiffres.length < 2) return false;
+
+    return (f.telephone ?? '').replace(/\D/g, '').includes(chiffres);
+  });
 }
 
 /** « 23 membres · 4 sans compte », ou le vide quand la loge est vide. */
