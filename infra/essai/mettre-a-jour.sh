@@ -123,12 +123,29 @@ etape "Application"
 # renommé « <id>_<nom> » sans finir de le remplacer. Il garde le nom que
 # Compose veut réutiliser, et le déploiement suivant s'arrête sur « container
 # name is already in use » — sans que rien ne soit cassé, mais sans avancer non
-# plus. On enlève ces restes-là, et eux seuls : le tiret bas les distingue du
-# conteneur en service.
-restes="$(docker ps -aq --filter "name=_${PROJET}-web-web-1" 2>/dev/null || true)"
+# plus.
+#
+# Deux précautions, parce que la première n'a pas suffi :
+#
+#   1. `compose down` avant `up`. Compose enlève lui-même ses conteneurs, y
+#      compris ceux qu'il a renommés : ils portent toujours ses étiquettes. On
+#      arrête donc l'application quelques secondes de plus, mais `up --build`
+#      la recréait de toute façon.
+#
+#   2. Un balayage des restes, au cas où l'un d'eux aurait perdu ses
+#      étiquettes. On lit les noms plutôt que d'écrire un filtre : le
+#      `--filter name=` de Docker n'attrapait pas ces conteneurs-là, et un
+#      garde-fou qui ne mord pas vaut moins que pas de garde-fou du tout.
+
+( cd "$DEPOT" && docker compose --env-file .env.essai \
+    -f infra/docker-compose.prod.yml -p "$PROJET-web" down --remove-orphans ) >/dev/null 2>&1 || true
+
+restes="$(docker ps -a --format '{{.ID}} {{.Names}}' 2>/dev/null \
+  | awk -v attendu="${PROJET}-web-web-1" \
+        '$2 != attendu && index($2, "_" attendu) { print $1 }' || true)"
 if [[ -n "$restes" ]]; then
   echo "$restes" | xargs -r docker rm -f >/dev/null
-  vert "reste(s) d'un déploiement interrompu enlevé(s)"
+  vert "$(echo "$restes" | wc -l | tr -d ' ') reste(s) d'un déploiement interrompu enlevé(s)"
 fi
 
 ( cd "$DEPOT" && docker compose --env-file .env.essai \
