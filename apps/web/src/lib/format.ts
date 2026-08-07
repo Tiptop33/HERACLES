@@ -74,19 +74,49 @@ export function depuis(
   return ans === 1 ? 'il y a 1 an' : `il y a ${ans} ans`;
 }
 
-/** « Alice Martin » → « AM ». Deux lettres au plus, en capitales. */
-export function initiales(prenom?: string | null, nom?: string | null): string {
+/**
+ * « Alice Martin » → « AM ». Deux lettres au plus, en capitales.
+ *
+ * `secours` sert quand la fiche ne porte pas encore de nom — l'adresse e-mail,
+ * en général. Une pastille vide ne dit rien ; sa première lettre, un peu.
+ */
+export function initiales(
+  prenom?: string | null,
+  nom?: string | null,
+  secours?: string | null,
+): string {
   const lettres = [prenom, nom]
     .map((mot) => mot?.trim()?.[0] ?? '')
     .filter(Boolean)
     .join('');
 
-  return (lettres || '?').toUpperCase().slice(0, 2);
+  return (lettres || secours?.trim()?.[0] || '?').toUpperCase().slice(0, 2);
 }
 
 /** « Alice Martin », ou « Sans nom » quand la fiche n'en porte aucun. */
 export function nomComplet(prenom?: string | null, nom?: string | null): string {
   return [prenom, nom].map((mot) => mot?.trim()).filter(Boolean).join(' ') || 'Sans nom';
+}
+
+/**
+ * Comment nommer **la personne connectée** à l'écran.
+ *
+ * Son nom si elle en a un, sinon son adresse. Un compte fraîchement créé n'en
+ * porte pas encore — celui du premier administrateur, par exemple, qui n'est
+ * passé par aucun formulaire — et « Sans nom » écrit sous la marque ne dit
+ * rien à personne, alors qu'une adresse identifie sans ambiguïté.
+ */
+export function nomAffichable(
+  prenom?: string | null,
+  nom?: string | null,
+  email?: string | null,
+): string {
+  const complet = [prenom, nom]
+    .map((mot) => mot?.trim())
+    .filter(Boolean)
+    .join(' ');
+
+  return complet || email?.trim() || 'Sans nom';
 }
 
 /**
