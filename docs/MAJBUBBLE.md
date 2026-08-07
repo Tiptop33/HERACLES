@@ -110,23 +110,27 @@ Relevé du 7 août sur les 107 fiches Bubble :
 | `Oui` | 94 |
 | `Non` | 13 |
 
-Aucune fiche n'est vide. Or dans HERACLES, la colonne `candidat.archive` est
-nulle. L'import la prévoit pourtant (`import-bubble.mjs`, `ARCHIVER →
-archive`) : la reprise en base date d'avant cette correspondance, ou n'a pas
-été rejouée depuis.
+Aucune fiche n'est vide. Or au 7 août, la colonne `candidat.archive` était
+nulle sur l'instance d'essai : la reprise en base datait d'avant la
+correspondance `ARCHIVER → archive` que porte `import-bubble.mjs`. **Rejouer
+`reprendre-bubble.sh` a suffi** — et l'écran est passé de 107 dossiers actifs
+à 13. C'est la preuve que la correspondance est bonne ; c'est aussi le rappel
+qu'une reprise ancienne ne contient pas ce qu'un import récent saurait
+prendre.
 
 Ces treize « Non » sont les candidats **en cours** — et c'est exactement le
 « 13 en cours » que la maquette 1c annonce en tête de son volet. Sans cette
 colonne, le poste de travail présente 107 dossiers actifs au lieu de 13.
 
-*À faire :* rejouer l'import sur l'instance d'essai, puis vérifier :
+*À refaire le jour de la bascule*, et à vérifier plutôt qu'à supposer :
 
 ```sql
 select coalesce(archive, '∅') as archive, count(*)
   from public.candidat group by 1 order by 2 desc;
 ```
 
-Trois valeurs attendues, et pas de `∅`.
+Deux valeurs attendues — `Oui` et `Non` —, et pas de `∅`. Le volet du poste de
+travail doit alors annoncer treize dossiers en cours, et non cent sept.
 
 **Les listes de choix, enfin relevées.** Leurs valeurs manquaient au modèle du
 4 août ; elles sont dans `docs/specs/2026-08-04-modele-bubble.md`. `ARCHIVER`
