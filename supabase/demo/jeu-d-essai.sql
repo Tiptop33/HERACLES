@@ -154,6 +154,80 @@ $$;
 
 
 -- ---------------------------------------------------------------------------
+-- Quatre candidats que personne n'accompagne encore
+--   C'est le bloc « Urgences — nouvelles demandes » de l'accueil : les fiches
+--   de la loge dont ni référent ni parrain n'a la charge. Une par famille de
+--   recherche, pour que les trois pastilles portent chacune un chiffre.
+-- ---------------------------------------------------------------------------
+insert into public.candidat
+  (bubble_id, numero, nom, prenom, email, telephone, age, ville, code_postal,
+   type_emploi, emploi_recherche, loge_id, cree_le, maj_le)
+values
+  ('demo-cand-attente-1', 120, 'Roussel', 'Emma', 'e.roussel@example.org',
+   '06 12 34 56 78', 24, 'Bordeaux', '33000', 'Emploi', 'Assistante administrative',
+   (select id from public.loge where bubble_id = 'demo-loge-bordeaux'),
+   now() - interval '3 days', now() - interval '3 days'),
+
+  ('demo-cand-attente-2', 121, 'Berger', 'Alix', 'a.berger@example.org',
+   '06 23 45 67 89', 19, 'Talence', '33400', 'Alternance', 'Vente et commerce',
+   (select id from public.loge where bubble_id = 'demo-loge-bordeaux'),
+   now() - interval '2 days', now() - interval '2 days'),
+
+  ('demo-cand-attente-3', 122, 'Nguyen', 'Sacha', 's.nguyen@example.org',
+   '06 34 56 78 90', 21, 'Pessac', '33600', 'Stage', 'Informatique',
+   (select id from public.loge where bubble_id = 'demo-loge-bordeaux'),
+   now() - interval '1 day', now() - interval '1 day'),
+
+  -- Celui-ci est à Toulouse : il ne doit jamais apparaître chez Bernard.
+  ('demo-cand-attente-4', 123, 'Perrin', 'Malo', 'm.perrin@example.org',
+   '06 45 67 89 01', 28, 'Toulouse', '31000', 'Emploi', 'Magasinier',
+   (select id from public.loge where bubble_id = 'demo-loge-toulouse'),
+   now(), now())
+on conflict do nothing;
+
+-- ---------------------------------------------------------------------------
+-- Des comptes-rendus et des affiches, une loge chacun
+--   L'accueil ne montre à chacun que ceux de sa loge (migration 0011). Deux
+--   loges, deux séries : de quoi le vérifier soi-même en changeant de compte.
+-- ---------------------------------------------------------------------------
+insert into public.document (bubble_id, nom, type_document, lien_url, loge_id, cree_le)
+values
+  ('demo-doc-b1', 'Compte-rendu de la réunion 23', 'Compte-rendu',
+   'https://exemple.test/cr-23.pdf',
+   (select id from public.loge where bubble_id = 'demo-loge-bordeaux'), now() - interval '8 days'),
+  ('demo-doc-b2', 'Affiche du forum de septembre', 'Affiche',
+   'https://exemple.test/forum.pdf',
+   (select id from public.loge where bubble_id = 'demo-loge-bordeaux'), now() - interval '20 days'),
+  ('demo-doc-b3', 'Bilan de la saison 2024-2025', 'Bilan',
+   'https://exemple.test/bilan.pdf',
+   (select id from public.loge where bubble_id = 'demo-loge-bordeaux'), now() - interval '3 months'),
+  ('demo-doc-t1', 'Compte-rendu de la réunion 12', 'Compte-rendu',
+   'https://exemple.test/cr-12.pdf',
+   (select id from public.loge where bubble_id = 'demo-loge-toulouse'), now() - interval '5 days')
+on conflict do nothing;
+
+-- ---------------------------------------------------------------------------
+-- Quelques offres, actualisées récemment
+--   « En cours » veut dire actualisée depuis moins de trente jours : au-delà,
+--   une offre est presque toujours pourvue, et la proposer fait perdre son
+--   temps à tout le monde. La dernière est vieille exprès — elle ne doit pas
+--   apparaître.
+-- ---------------------------------------------------------------------------
+insert into public.offre_emploi
+  (bubble_id, intitule, entreprise_nom, lieu_libelle, type_contrat_libelle,
+   date_creation, date_actualisation)
+values
+  ('demo-offre-1', 'Assistant administratif (H/F)', 'Groupe Vidal', 'Bordeaux', 'CDD',
+   now() - interval '10 days', now() - interval '2 days'),
+  ('demo-offre-2', 'Technicien de maintenance', 'Aquitaine Services', 'Mérignac', 'CDI',
+   now() - interval '15 days', now() - interval '5 days'),
+  ('demo-offre-3', 'Magasinier cariste', 'Logistique du Sud-Ouest', 'Toulouse', 'Intérim',
+   now() - interval '20 days', now() - interval '9 days'),
+  ('demo-offre-ancienne', 'Offre expirée, ne doit pas s''afficher', 'Vieille Enseigne',
+   'Bordeaux', 'CDD', now() - interval '8 months', now() - interval '7 months')
+on conflict do nothing;
+
+-- ---------------------------------------------------------------------------
 -- Un administrateur, pour éprouver les invitations
 --   Seul un administrateur peut inviter (migration 0009). Le rôle « admin » ne
 --   se choisit pas à l'inscription : on le pose ici, ce que seule la clé
