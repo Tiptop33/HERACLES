@@ -56,8 +56,42 @@ peut, le jour où il est pris, effacer chez vous.
 rsync -avz root@<le-serveur>:/var/backups/heracles/ ~/sauvegardes-heracles/
 ```
 
-À faire tourner sur votre poste, une fois par jour. Sur macOS, `launchd` ; sur
-Linux, `cron` ; à défaut, un rappel dans l'agenda vaut mieux que rien.
+### Que cela se fasse tout seul, sur le Mac
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Tiptop33/HERACLES/main/infra/poste/tirer-sauvegardes.sh -o /tmp/tirer-sauvegardes.sh
+curl -fsSL https://raw.githubusercontent.com/Tiptop33/HERACLES/main/infra/poste/installer-tirage.sh -o /tmp/installer-tirage.sh
+chmod +x /tmp/tirer-sauvegardes.sh /tmp/installer-tirage.sh
+/tmp/installer-tirage.sh root@<le-serveur>
+```
+
+Sans `sudo` : c'est une tâche de session, elle ne touche rien du système. Elle
+tire chaque matin à 8 h 30 — `--heure`, `--garder` —, et une première fois tout
+de suite.
+
+**Il faut une clé SSH sans phrase de passe.** Une tâche de fond n'a pas d'écran
+pour en demander une : l'installateur l'éprouve d'abord et refuse de s'installer
+si la connexion réclame un mot de passe, plutôt que de poser une tâche qui
+plantera en silence tous les matins.
+
+Le poste garde **trente** archives quand le serveur n'en garde que quatorze : le
+`rsync` n'efface rien ici sous prétexte que le serveur a fait le ménage. C'est
+tout l'intérêt d'être ailleurs.
+
+À chaque tirage, la plus récente est ouverte pour de bon (`tar -tzf`) et ses
+comptes sont écrits au journal. Un échec — serveur muet, archive illisible, plus
+rien de frais depuis deux jours — se signale par une notification macOS.
+
+```bash
+tail -20 ~/sauvegardes-heracles/journal.txt          # le dernier tirage
+launchctl print gui/$(id -u)/cloud.oaf-heracles.sauvegarde | head -20
+```
+
+Une notification ratée n'est pas une preuve : jetez un œil au journal une fois
+par mois.
+
+Sous Linux, la même chose avec `cron` :
+`30 8 * * * /chemin/tirer-sauvegardes.sh root@<le-serveur>`.
 
 ## Restaurer
 
