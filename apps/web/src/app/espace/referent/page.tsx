@@ -10,5 +10,5 @@ import { redirect } from 'next/navigation';
  * courriels d'invitation déjà partis.
  */
 export default function MesCandidats() {
-  redirect('/espace/candidats?vue=suivis');
+  redirect('/espace/candidats');
 }

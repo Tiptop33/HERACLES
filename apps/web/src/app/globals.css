@@ -2059,23 +2059,13 @@ tbody tr:focus-within {
   padding: 0.3rem 0.55rem;
 }
 
-/* Six pastilles ne tiennent pas sur la largeur du volet, et laissées libres
-   elles retombent au hasard — ce qui se lit comme un accident. Elles sont donc
-   rangées en deux blocs de trois qui veulent dire quelque chose : le travail
-   en cours, puis ce qu'on va chercher au-delà.
-
-   Trois colonnes égales : chaque pastille occupe sa case, quelle que soit la
-   longueur du mot, et les deux rangées s'alignent l'une sur l'autre. */
+/* Trois colonnes égales plutôt que trois pastilles à la suite : chacune occupe
+   sa case quelle que soit la longueur du mot, et la rangée ne se réorganise
+   pas le jour où un libellé change. */
 .poste-vues {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 0.25rem;
-}
-
-.poste-vues--au-dela {
-  margin-top: 0.15rem;
-  padding-top: 0.4rem;
-  border-top: 1px dashed var(--bordure);
 }
 
 .filtre--menu {
@@ -2399,8 +2389,7 @@ a.poste-document:hover {
   }
 
   /* Sur toute la largeur, la grille étirerait chaque pastille en gros bouton.
-     Elles redeviennent ce qu'elles sont : des pastilles à la suite. Le filet
-     reste : c'est lui qui sépare le travail en cours de l'archive. */
+     Elles redeviennent ce qu'elles sont : des pastilles à la suite. */
   .poste-vues {
     display: flex;
     flex-wrap: wrap;

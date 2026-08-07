@@ -1,8 +1,7 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import {
-  VUES_AU_DELA,
-  VUES_EN_COURS,
+  VUES,
   VUE_PAR_DEFAUT,
   chercher,
   estVue,
@@ -99,7 +98,7 @@ export default async function PosteDeTravail({
           {/* Un formulaire en `get` : la recherche part avec la vue et la fiche
               ouverte, et l'adresse obtenue reste partageable. */}
           <form className="poste-chercher" method="get" action="/espace/candidats">
-            {vue !== 'tous' && <input type="hidden" name="vue" value={vue} />}
+            {vue !== VUE_PAR_DEFAUT && <input type="hidden" name="vue" value={vue} />}
             {demande && <input type="hidden" name="fiche" value={demande} />}
             {onglet !== 'profil' && <input type="hidden" name="onglet" value={onglet} />}
             <input
@@ -112,28 +111,14 @@ export default async function PosteDeTravail({
             />
           </form>
 
-          {/* Deux rangées, et non six pastilles à la suite : la première
-              regarde le travail en cours, la seconde va voir au-delà. Le filet
-              les sépare pour qu'on ne clique pas dans l'archive en visant
-              « Mes suivis ». */}
+          {/* Trois pastilles, trois états d'un dossier. Elles tiennent sur une
+              ligne, ce qui est la seule mise en page qui n'ait rien à
+              expliquer. */}
           <div className="poste-vues">
-            {VUES_EN_COURS.map(({ valeur, libelle }) => (
+            {VUES.map(({ valeur, libelle }) => (
               <Link
                 key={valeur}
                 href={adresse({ vue: valeur === VUE_PAR_DEFAUT ? null : valeur })}
-                className="filtre filtre--menu"
-                aria-current={vue === valeur}
-              >
-                {libelle}
-              </Link>
-            ))}
-          </div>
-
-          <div className="poste-vues poste-vues--au-dela">
-            {VUES_AU_DELA.map(({ valeur, libelle }) => (
-              <Link
-                key={valeur}
-                href={adresse({ vue: valeur })}
                 className="filtre filtre--menu"
                 aria-current={vue === valeur}
               >

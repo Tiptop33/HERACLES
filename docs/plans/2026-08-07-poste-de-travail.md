@@ -70,27 +70,26 @@ Les photos et les documents passent par l'application, jamais par une adresse si
 adresse signée, même d'une minute, est une adresse qui circule. Chez Bubble, ces fichiers
 pendaient à un CDN public.
 
-## Les six vues
+## Les trois vues
 
-Deux rangées de trois, et la séparation veut dire quelque chose.
+`En cours` (l'ouverture) · `Clôturés` · `Archivés`. Trois états d'un dossier, une rangée.
 
-| Rangée | Vues | Ce qu'elles montrent |
-| --- | --- | --- |
-| le travail en cours | `En cours` · `Urgents` · `Mes suivis` | ni clôturé, ni archivé |
-| au-delà | `Clôturés` · `Archivés` · `Tous` | une colonne chacune, puis tout |
-
-`En cours` tient la place du `Tous` de la maquette, et l'écran s'ouvre dessus.
+La maquette proposait « Tous · Urgents · Mes suivis ». Aucun des trois n'a survécu à l'usage :
+« Tous » mélangeait ouvert et refermé, « Urgents » et « Mes suivis » découpaient une liste qu'on
+parcourt déjà d'un coup d'œil et que la recherche retrouve mieux. Ce qu'on demande à ce volet,
+c'est de savoir où en est un dossier.
 
 **Deux vues et non une pour ce qui est refermé.** `CLOTURE` et `ARCHIVER` sont deux colonnes
 distinctes reprises de Bubble, donc deux gestes distincts. Les confondre à l'écran ferait perdre
 l'information au premier tri.
 
-**Et « Tous » veut dire tous** — refermés compris. C'est le sens du mot ; lui en faire dire un
-autre obligerait à l'expliquer chaque fois.
+Le rang d'un candidat que **personne n'accompagne** porte un point ambre, et le texte le dit aux
+lecteurs d'écran — la couleur seule ne suffit jamais. Le point occupe sa place sur tous les
+rangs, même quand il ne se montre pas : sinon la colonne des numéros ondulerait.
 
-« Urgents » veut dire : **personne ne l'accompagne**. Le rang porte un point ambre, et le texte
-le dit aux lecteurs d'écran — la couleur seule ne suffit jamais. Le point occupe sa place sur
-tous les rangs, même quand il ne se montre pas : sinon la colonne des numéros ondulerait.
+`candidats_de_la_loge()` rend encore `c_est_mon_suivi`, que plus aucun écran n'utilise depuis le
+retrait de « Mes suivis ». La colonne reste : elle est éprouvée, et le lot 4 en aura besoin pour
+rapprocher un candidat d'une offre.
 
 ### La précaution sur les valeurs de clôture
 

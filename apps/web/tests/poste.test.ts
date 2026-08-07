@@ -42,36 +42,19 @@ const loge = [
           archive: 'Sans nouvelles', c_est_mon_suivi: true }),
 ];
 
-describe('les six vues du volet', () => {
-  it('reconnaît les six, et refuse le reste', () => {
-    expect(VUES.map((v) => v.valeur)).toEqual([
-      'en-cours',
-      'urgents',
-      'suivis',
-      'clotures',
-      'archives',
-      'tous',
-    ]);
+describe('les trois vues du volet', () => {
+  it('reconnaît les trois états, et refuse le reste', () => {
+    expect(VUES.map((v) => v.valeur)).toEqual(['en-cours', 'clotures', 'archives']);
     expect(VUE_PAR_DEFAUT).toBe('en-cours');
     expect(estVue('archives')).toBe(true);
-    expect(estVue('corbeille')).toBe(false);
+    expect(estVue('tous')).toBe(false);
+    expect(estVue('urgents')).toBe(false);
+    expect(estVue('suivis')).toBe(false);
     expect(estVue(undefined)).toBe(false);
   });
 
   it('« En cours » ne montre ni les clôturés ni les archivés', () => {
     expect(filtrerParVue(loge, 'en-cours').map((l) => l.id)).toEqual(['a', 'b', 'c']);
-  });
-
-  it('« Tous » veut dire tous — refermés compris', () => {
-    expect(filtrerParVue(loge, 'tous').map((l) => l.id)).toEqual(['a', 'b', 'c', 'd', 'e']);
-  });
-
-  it('« Urgents » : ceux que personne n’accompagne', () => {
-    expect(filtrerParVue(loge, 'urgents').map((l) => l.id)).toEqual(['c']);
-  });
-
-  it('« Mes suivis » laisse de côté le clôturé et l’archivé', () => {
-    expect(filtrerParVue(loge, 'suivis').map((l) => l.id)).toEqual(['a']);
   });
 
   it('« Clôturés » et « Archivés » sont deux vues distinctes', () => {
@@ -84,7 +67,6 @@ describe('les six vues du volet', () => {
     expect(filtrerParVue(deuxFois, 'clotures').map((l) => l.id)).toEqual(['f']);
     expect(filtrerParVue(deuxFois, 'archives').map((l) => l.id)).toEqual(['f']);
     expect(filtrerParVue(deuxFois, 'en-cours')).toEqual([]);
-    expect(filtrerParVue(deuxFois, 'tous').map((l) => l.id)).toEqual(['f']);
   });
 
   it('une valeur qui n’est que des blancs ne referme rien', () => {
