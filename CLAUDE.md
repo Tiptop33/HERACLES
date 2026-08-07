@@ -140,3 +140,6 @@ sert**, pas la liste des fichiers touchés.
 - Cadrage : `docs/specs/2026-08-04-heracles-cadrage.md`
 - Modèle repris de Bubble : `docs/specs/2026-08-04-modele-bubble.md`
 - Plans par lot : `docs/plans/`
+- **MAJBUBBLE** — la reprise finale des données Bubble, à rejouer au plus tard le
+  5 décembre 2026 : `docs/MAJBUBBLE.md`. C'est la seule opération de la bascule qui
+  ne se rattrape pas — passé la fermeture, ni l'API ni le CDN de Bubble ne répondent.
