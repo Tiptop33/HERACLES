@@ -45,7 +45,7 @@ export default async function ModifierReferent({
   const nom = nomComplet(fiche.prenom, fiche.nom) || 'Sans nom';
 
   return (
-    <main className="corps">
+    <main className="corps corps--etroit">
       <div className="entete-liste">
         {/* Le même visage, à la même taille que sur la carte : on doit
             reconnaître au premier coup d'œil la fiche sur laquelle on est en
@@ -88,7 +88,7 @@ export default async function ModifierReferent({
       />
 
       {!fiche.compte_rattache && (
-        <section className="bloc formulaire-une-colonne">
+        <section className="bloc">
           <h2>Donner l&apos;accès</h2>
           <p className="aide" style={{ margin: '0 0 0.9rem' }}>
             L&apos;écran de Bubble proposait ici un champ « mot de passe ». HERACLES ne permet

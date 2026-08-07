@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { supabaseServer } from '@/lib/supabase-server';
+import { telephone } from '@/lib/format';
 import { lireCorps, origine, retourAvecCode, vientDUnFormulaire } from '@/lib/formulaire';
 
 /**
@@ -28,7 +29,16 @@ const texte = (max = 500) =>
 const Formulaire = z.object({
   nom: texte(120),
   prenom: texte(120),
-  telephone: texte(40),
+  // Enregistré comme il s'affiche : « 06 12 34 56 78 ». La mise en forme est
+  // ici et non dans le navigateur, parce que c'est ici que passe tout ce qui
+  // est écrit — le formulaire, mais aussi ce qu'on enverrait à la main.
+  //
+  // Ce que la fonction ne reconnaît pas ressort intact : un numéro étranger
+  // découpé par paires serait moins lisible que le numéro brut, et une
+  // correction ne doit jamais abîmer ce qu'elle ne comprend pas.
+  telephone: texte(40).transform((valeur) =>
+    valeur == null ? null : (telephone(valeur)?.affiche ?? valeur),
+  ),
   college: texte(120),
   email: texte(320).refine((v) => v == null || z.email().safeParse(v).success, {
     message: "L'adresse e-mail n'est pas valide.",
