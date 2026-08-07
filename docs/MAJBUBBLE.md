@@ -91,34 +91,48 @@ au 4 août. À revérifier le jour venu, ils ont pu se remplir depuis.
 
 **Les tâches, et tout ce que l'API n'expose pas.** Vérifié le 7 août 2026 :
 `/api/1.1/meta` ne rend que sept types — `candidats`, `user`,
-`loges_referents`, `info_entreprise`, `offreemploi`, `pdfs`, `global`. Tous les
-autres répondent 404, essayés sous toutes leurs formes.
+`loges_referents`, `info_entreprise`, `offreemploi`, `pdfs`, `global`. Trois
+colonnes de notre modèle pointent vers des types absents de cette liste :
+`candidat.taches_bubble_ids` (`TACHES`), `referent.canaux_bubble_ids`
+(`Channels`), `parametre.whatsapp_bubble_ids` (`WHATSAPP`).
 
-Or trois colonnes de notre modèle pointent vers des types non exposés :
+*Ce que ça coûte, mesuré :* **une tâche, sur 107 candidats.** Un seul candidat
+en porte une. Il n'y a donc pas d'historique de suivi à sauver — contrairement
+à ce que cette page a d'abord annoncé. Exposer `TACHES` avant la bascule reste
+propre (Data → Data types, « expose via API »), mais ce n'est pas une urgence :
+c'est une ligne.
 
-| Colonne | Champ Bubble | Ce qu'on en a |
-| --- | --- | --- |
-| `candidat.taches_bubble_ids` | `TACHES` | des identifiants, et rien au bout |
-| `referent.canaux_bubble_ids` | `Channels` | idem |
-| `parametre.whatsapp_bubble_ids` | `WHATSAPP` | idem |
+**En revanche, `ARCHIVER` ne doit pas être perdu — et il l'est aujourd'hui.**
+Relevé du 7 août sur les 107 fiches Bubble :
 
-**Ces données ne sont pas récupérables en l'état, et MAJBUBBLE n'y changera
-rien** : le script ne peut reprendre que ce que l'API rend. Passé la fermeture,
-elles n'existeront plus nulle part.
+| `ARCHIVER` | fiches |
+| --- | ---: |
+| `Oui` | 94 |
+| `Non` | 13 |
 
-*Ce qu'il faut faire, et bien avant le 5 décembre :* dans l'éditeur Bubble,
-**Data → Data types**, cocher « expose via API » (ou « Modify privacy rules »)
-sur `TACHES`, `Channels` et `WHATSAPP`, puis relancer l'import. Rien d'autre
-n'est à changer : `import-bubble.mjs` recopie déjà tout type exposé et non
-modélisé dans `bubble_brut`. Le contrôle tient en une commande :
+Aucune fiche n'est vide. Or dans HERACLES, la colonne `candidat.archive` est
+nulle. L'import la prévoit pourtant (`import-bubble.mjs`, `ARCHIVER →
+archive`) : la reprise en base date d'avant cette correspondance, ou n'a pas
+été rejouée depuis.
 
-```bash
-curl -s https://heracles-42268.bubbleapps.io/api/1.1/meta | head -c 400
+Ces treize « Non » sont les candidats **en cours** — et c'est exactement le
+« 13 en cours » que la maquette 1c annonce en tête de son volet. Sans cette
+colonne, le poste de travail présente 107 dossiers actifs au lieu de 13.
+
+*À faire :* rejouer l'import sur l'instance d'essai, puis vérifier :
+
+```sql
+select coalesce(archive, '∅') as archive, count(*)
+  from public.candidat group by 1 order by 2 desc;
 ```
 
-Tant que ces trois noms n'y sont pas, l'historique de suivi des 118 candidats
-est perdu d'avance — et l'écran « Suivi & tâches » du poste de travail se
-construira sans son passé.
+Trois valeurs attendues, et pas de `∅`.
+
+**Les listes de choix, enfin relevées.** Leurs valeurs manquaient au modèle du
+4 août ; elles sont dans `docs/specs/2026-08-04-modele-bubble.md`. `ARCHIVER`
+est un oui/non — d'où la précaution posée dans `apps/web/src/lib/suivi.ts` :
+une valeur qui commence par une négation ne referme rien. Sans elle, les
+treize « Non » auraient été comptés comme archivés.
 
 ## Compte rendu
 

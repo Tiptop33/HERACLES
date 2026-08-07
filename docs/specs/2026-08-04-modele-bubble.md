@@ -68,6 +68,39 @@ l'API renvoie en simple texte : `TYPE EMPLOI`, `SITUATION FAMILIALE`, `ARCHIVER`
 `Type_doc`. Ils sont en `text` pour l'instant. Connaître leurs valeurs permettra d'en faire de
 vrais référentiels — et d'empêcher les fautes de saisie.
 
+### Relevé du 7 août 2026 — les quatre listes de la fiche candidat
+
+Sur les 107 fiches, en ne lisant que les libellés des listes : aucune donnée personnelle.
+
+| `ARCHIVER` | | `CLOTURE` | | `TYPE EMPLOI` | |
+| --- | ---: | --- | ---: | --- | ---: |
+| `Oui` | 94 | *(vide)* | 38 | `emploi` | 52 |
+| `Non` | 13 | `Lui-même` | 43 | `stage en alternance` | 30 |
+| | | `Autre ,,,` | 20 | `stage` | 22 |
+| | | `Heraclés` | 6 | `changement d'Emploi` | 3 |
+
+**`ARCHIVER` est un oui/non**, et il est rempli sur les 107 fiches. Les treize « Non » sont les
+dossiers en cours — le « 13 en cours » de la maquette 1c. C'est la colonne qui sépare le travail
+du jour des archives, et **elle n'est pas encore reprise en base** : voir `docs/MAJBUBBLE.md`.
+
+**`CLOTURE` dit *qui* a refermé le dossier**, pas pourquoi : « Lui-même », « Heraclés »,
+« Autre ,,, ». Ce n'est donc pas un motif. Le libellé `Autre ,,,` porte ses virgules dans la
+liste de choix elle-même — à nettoyer le jour où elle devient un référentiel.
+
+**`SITUATION FAMILIALE` ne contient pas des situations familiales.** Relevé : `le fils` (22),
+`la fille` (15), `Marié` (13), `Autre` (8), `Divorcé` (5), `la concubine` (4), `Enfant` (3),
+`Pacsé` (3), `la femme` (2), `un fils` (1), `Une fille` (1), vide (30). Deux listes se sont
+mélangées — l'état civil et le lien de parenté d'un tiers. À trancher avec l'association avant
+d'en faire un référentiel ; en attendant, HERACLES affiche la valeur telle quelle.
+
+Les champs libres, eux, sont diversement remplis : `EXPERIENCES` 79 fiches (jusqu'à 3 370
+caractères), `FORMATIONS` 79, `COMPETENCES` 75, `DEF PRECIS EMPLOI` 90, `SAVOIR-ETRE` 54,
+`CENTRE-INTERET` 60, **`APPRECIATION` 12** (116 caractères au plus), `PRESENTATION CAND ET
+EMPLOI` 1.
+
+Et `TACHES` — la liste de suivi — n'est renseignée que sur **une seule fiche**, d'un seul
+renvoi.
+
 ## Ce que ce modèle change dans le cadrage
 
 Le cadrage du 2026-08-04 avait été écrit sans connaître l'application existante. Trois de ses
