@@ -560,7 +560,18 @@ h3 {
 
 /* ————— L'espace référent ————— */
 
+/* La barre du haut reste en place quand la page défile.
+ *
+ * `sticky` et non `fixed` : l'élément garde sa place dans le flux, donc
+ * personne n'a à compenser sa hauteur par une marge — une marge qui, le jour
+ * où la barre passe sur deux lignes, laisserait un trou ou masquerait un
+ * titre. Le fond opaque n'est pas décoratif : sans lui, le contenu défilerait
+ * au travers.
+ */
 .barre {
+  position: sticky;
+  top: 0;
+  z-index: 20;
   display: flex;
   align-items: center;
   gap: 1rem;
@@ -1129,7 +1140,22 @@ tbody tr:focus-within {
   min-width: 0;
 }
 
+/* La colonne de gauche reste en place elle aussi.
+ *
+ * Trois choses lui sont nécessaires, et il en manque une, ça ne colle plus :
+ * `align-self: flex-start` — sans quoi `align-items: stretch` de `.atelier`
+ * l'étire à la hauteur de la page et un élément aussi haut que son conteneur
+ * ne colle jamais ; une hauteur d'écran, pour savoir où s'arrêter ; et son
+ * propre défilement, pour le jour où les entrées dépasseront la fenêtre.
+ */
 .colonne {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  align-self: flex-start;
+  height: 100vh;
+  height: 100dvh;
+  overflow-y: auto;
   width: 13.5rem;
   flex: none;
   border-right: 1px solid var(--bordure);
@@ -1339,7 +1365,14 @@ tbody tr:focus-within {
     flex-direction: column;
   }
 
+  /* En bandeau horizontal, la colonne ne colle plus : deux éléments collés en
+     haut du même écran se recouvriraient, et sur un téléphone la hauteur est
+     ce qui manque le plus. C'est la barre qui reste, elle seule. */
   .colonne {
+    position: static;
+    height: auto;
+    overflow: visible;
+    align-self: auto;
     width: auto;
     border-right: none;
     border-bottom: 1px solid var(--bordure);
