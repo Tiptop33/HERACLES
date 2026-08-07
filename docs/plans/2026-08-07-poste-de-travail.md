@@ -75,7 +75,7 @@ pendaient à un CDN public.
 | Vue | Ce qu'elle montre |
 | --- | --- |
 | `Mes candidats` | ceux qu'on suit ou qu'on parraine, ni clôturés ni archivés |
-| `La loge` | toute la loge, ni clôturée ni archivée |
+| `En cours` | toute la loge, ni clôturée ni archivée |
 | `Clôturés` | la colonne `CLOTURE` de la loge, hors archivés |
 | `Archivés` | la colonne `ARCHIVER` de la loge |
 
@@ -83,7 +83,7 @@ pendaient à un CDN public.
 d'abord les vingt-quatre dossiers de sa loge lui donnerait du tri à faire avant de commencer.
 
 **Sauf pour qui n'accompagne personne** — un administrateur, qui n'a pas de fiche de référent, ou
-un compte pas encore rattaché à la sienne : l'écran s'ouvre alors sur « La loge ». C'est la seule
+un compte pas encore rattaché à la sienne : l'écran s'ouvre alors sur « En cours ». C'est la seule
 chose de cet écran qui dépende des données plutôt que de l'adresse, et c'est voulu : la première
 seconde décide de ce qu'on croit que l'application contient.
 

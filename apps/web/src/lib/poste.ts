@@ -140,6 +140,10 @@ export async function lireFiche(id: string): Promise<FicheOuverte | null> {
  * et lui présenter d'abord les vingt-quatre dossiers de sa loge lui donne du
  * tri à faire avant de commencer.
  *
+ * La valeur reste `loge` derrière le libellé « En cours » — c'est bien la loge
+ * entière qu'elle montre, refermés exclus. Les deux moitiés de la phrase sont
+ * vraies ; le libellé en dit une, la valeur l'autre.
+ *
  * `CLOTURE` et `ARCHIVER` restent deux vues et non une : ce sont deux colonnes
  * distinctes chez Bubble, donc deux gestes distincts, et les confondre à
  * l'écran ferait perdre l'information au premier tri. Toutes deux portent sur
@@ -147,7 +151,7 @@ export async function lireFiche(id: string): Promise<FicheOuverte | null> {
  */
 export const VUES = [
   { valeur: 'mes', libelle: 'Mes candidats' },
-  { valeur: 'loge', libelle: 'La loge' },
+  { valeur: 'loge', libelle: 'En cours' },
   { valeur: 'clotures', libelle: 'Clôturés' },
   { valeur: 'archives', libelle: 'Archivés' },
 ] as const;

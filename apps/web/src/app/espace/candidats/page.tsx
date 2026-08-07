@@ -148,7 +148,7 @@ export default async function PosteDeTravail({
             {recherche
               ? 'Personne ne correspond.'
               : vue === 'mes'
-                ? 'Vous n’accompagnez aucun candidat. « La loge » montre ceux de vos collègues.'
+                ? 'Vous n’accompagnez aucun candidat. « En cours » montre ceux de vos collègues.'
                 : 'Aucun dossier dans cette vue.'}
           </p>
         ) : (

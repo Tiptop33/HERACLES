@@ -54,7 +54,7 @@ describe('les quatre vues du volet', () => {
     expect(filtrerParVue(loge, 'mes').map((l) => l.id)).toEqual(['a']);
   });
 
-  it('« La loge » ne montre ni les clôturés ni les archivés', () => {
+  it('« En cours » — toute la loge, ni clôturés ni archivés', () => {
     expect(filtrerParVue(loge, 'loge').map((l) => l.id)).toEqual(['a', 'b', 'c']);
   });
 
@@ -142,7 +142,7 @@ describe('la vue d’ouverture', () => {
   });
 
   // Un administrateur n'a pas de fiche de référent : il n'accompagne personne.
-  it('« La loge » quand on n’accompagne personne — jamais un écran vide', () => {
+  it('« En cours » quand on n’accompagne personne — jamais un écran vide', () => {
     expect(vueDOuverture([ligne({ id: 'z' })])).toBe('loge');
     expect(vueDOuverture([])).toBe('loge');
   });
