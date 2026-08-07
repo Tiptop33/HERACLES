@@ -64,3 +64,9 @@ service jusque-là, et son API avec elle.
 Le réglage est versionné : le décocher dans l'éditeur ne suffit pas, il faut déployer en
 production pour que l'application en service change. C'est ce qui explique que les deux bases
 n'exposaient pas les mêmes types au moment de la reprise.
+
+## La prochaine fois : MAJBUBBLE
+
+Cette reprise-ci a servi à modeler la base. Elle sera périmée à la bascule.
+La procédure pour la rejouer une dernière fois — au plus tard le 5 décembre
+2026 — est dans [`MAJBUBBLE.md`](MAJBUBBLE.md).
