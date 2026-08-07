@@ -118,6 +118,19 @@ vert "migrations jouées, cache de l'API rechargé"
 
 etape "Application"
 [[ -f "$DEPOT/.env.essai" ]] || { rouge "$DEPOT/.env.essai manque — relancez deployer.sh."; exit 1; }
+
+# Un déploiement interrompu au mauvais moment laisse un conteneur que Docker a
+# renommé « <id>_<nom> » sans finir de le remplacer. Il garde le nom que
+# Compose veut réutiliser, et le déploiement suivant s'arrête sur « container
+# name is already in use » — sans que rien ne soit cassé, mais sans avancer non
+# plus. On enlève ces restes-là, et eux seuls : le tiret bas les distingue du
+# conteneur en service.
+restes="$(docker ps -aq --filter "name=_${PROJET}-web-web-1" 2>/dev/null || true)"
+if [[ -n "$restes" ]]; then
+  echo "$restes" | xargs -r docker rm -f >/dev/null
+  vert "reste(s) d'un déploiement interrompu enlevé(s)"
+fi
+
 ( cd "$DEPOT" && docker compose --env-file .env.essai \
     -f infra/docker-compose.prod.yml -p "$PROJET-web" up -d --build )
 

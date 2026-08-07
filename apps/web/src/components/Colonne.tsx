@@ -2,9 +2,10 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { estCourante, famillesDuRole } from '@/lib/navigation';
+import { PARAMETRES, estCourante, famillesDuRole } from '@/lib/navigation';
 import { nomAffichable } from '@/lib/format';
 import type { Profil } from '@/lib/profil';
+import { Roue } from './Icones';
 
 /**
  * La colonne de gauche de la maquette `1a` : la marque, qui l'on est, puis les
@@ -67,6 +68,19 @@ export default function Colonne({ profil, logo }: { profil: Profil; logo: string
           )}
         </div>
       ))}
+
+      {/* En bas de la colonne, et à part : on ne cherche pas ses réglages en
+          parcourant les familles, on les cherche là où ils sont toujours. */}
+      <Link
+        href={PARAMETRES.vers}
+        aria-current={estCourante(PARAMETRES, chemin) ? 'page' : undefined}
+        className={`colonne-entree colonne-parametres${
+          estCourante(PARAMETRES, chemin) ? ' colonne-entree--courante' : ''
+        }`}
+      >
+        <Roue />
+        {PARAMETRES.libelle}
+      </Link>
     </nav>
   );
 }

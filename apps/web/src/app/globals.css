@@ -1223,6 +1223,27 @@ tbody tr:focus-within {
   font-weight: 700;
 }
 
+/* Les réglages, en pied de colonne. `margin-top: auto` les y pousse quel que
+   soit le nombre de familles — un référent en voit quatre, un administrateur
+   cinq, et l'entrée reste au même endroit pour les deux. Le filet du dessus
+   la sépare du travail. */
+.colonne-parametres {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding-top: 0.7rem;
+  padding-bottom: 0.7rem;
+  border-top: 1px solid var(--bordure);
+  color: var(--encre-douce);
+}
+
+.colonne-parametres .icone {
+  width: 1rem;
+  height: 1rem;
+  flex: none;
+}
+
 /* À venir. Visible et à sa place définitive : une colonne qui grandit lot
    après lot déplace les repères à chaque fois. Le curseur dit que ce n'est
    pas cliquable, la couleur aussi. */
@@ -1397,6 +1418,15 @@ tbody tr:focus-within {
 
   .colonne-qui {
     display: none;
+  }
+
+  /* En bandeau, les réglages redeviennent une entrée comme les autres : ni
+     filet, ni pied de colonne — il n'y a plus de pied. */
+  .colonne-parametres {
+    margin-top: 0;
+    border-top: none;
+    padding-top: 0.4rem;
+    padding-bottom: 0.4rem;
   }
 
   .colonne-famille {

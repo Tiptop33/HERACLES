@@ -11,7 +11,7 @@ import {
 import { initiales, nomComplet, telephone } from '@/lib/format';
 import { exigerProfil } from '@/lib/profil';
 import { DrapeauFrance } from './DrapeauFrance';
-import { Corbeille, Stylo } from './Icones';
+import { Corbeille, Stylo } from '@/components/Icones';
 
 export const metadata = { title: 'Référents — HERACLES' };
 
