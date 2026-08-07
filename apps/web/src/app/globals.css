@@ -1807,10 +1807,15 @@ tbody tr:focus-within {
   margin-bottom: 1.1rem;
 }
 
+/* Le champ ne s'étire plus sur toute la ligne ; le bouton, lui, reste au bord
+   droit — c'est `margin-left: auto` qui l'y tient, et non la longueur du
+   champ. */
 .college-ajout input {
   font: inherit;
   font-size: 0.9rem;
-  flex: 1;
+  flex: none;
+  width: 17rem;
+  max-width: 100%;
   min-width: 0;
   padding: 0.55rem 0.7rem;
   border: 1px solid var(--bordure);
@@ -1876,9 +1881,13 @@ tbody tr:focus-within {
   color: inherit;
 }
 
-/* Le compte pousse le bouton et la corbeille à droite, ensemble. */
+/* Le vide se met AVANT le compte, pas après : le nombre de référents, le
+   bouton et la corbeille se tiennent alors ensemble au bord droit, au lieu
+   d'être séparés par toute la largeur de la ligne. */
 .college-usage {
-  margin-right: auto;
+  margin-left: auto;
+  font-size: 0.78rem;
+  white-space: nowrap;
 }
 
 .college-enregistrer {
@@ -1939,8 +1948,10 @@ tbody tr:focus-within {
   box-shadow: inset 0 2px 0 var(--marque);
 }
 
-.college-usage {
-  font-size: 0.78rem;
-  white-space: nowrap;
-}
 
+
+/* Le bouton d'ajout reste au bord droit, quelle que soit la largeur du champ
+   qui le précède. */
+.college-ajouter {
+  margin-left: auto;
+}

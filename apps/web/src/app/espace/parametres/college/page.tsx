@@ -51,10 +51,10 @@ export default async function College({
           name="nom"
           maxLength={120}
           required
-          placeholder="Ajouter un titre — Orateur, Expert…"
+          placeholder="Ajouter un titre…"
           aria-label="Nouveau titre"
         />
-        <button className="bouton bouton--fort" type="submit">
+        <button className="bouton bouton--fort college-ajouter" type="submit">
           Ajouter
         </button>
       </form>
