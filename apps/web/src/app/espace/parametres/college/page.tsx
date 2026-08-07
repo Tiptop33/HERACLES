@@ -1,7 +1,7 @@
 import Link from 'next/link';
-import { listerCollege } from '@/lib/college';
+import { listerCollege } from '@/lib/college-serveur';
 import { RUBRIQUES } from '@/lib/parametres';
-import { Corbeille } from '@/components/Icones';
+import ListeCollege from './ListeCollege';
 
 export const metadata = { title: 'Collège — Paramètres — HERACLES' };
 
@@ -59,78 +59,7 @@ export default async function College({
         </button>
       </form>
 
-      {titres.length === 0 ? (
-        <p className="vide-liste">La liste est vide. Le champ « Collège » ne proposera rien.</p>
-      ) : (
-        <ol className="college-liste">
-          {titres.map((titre, place) => (
-            <li key={titre.id} className="college-ligne">
-              {/* Ranger. Deux formulaires plutôt que deux liens : ranger
-                  change la liste, et ce qui change ne se met pas dans une
-                  adresse qu'un navigateur peut visiter tout seul. */}
-              <span className="college-fleches">
-                <form method="post" action={`/api/parametres/college/${titre.id}`}>
-                  <input type="hidden" name="action" value="deplacer" />
-                  <input type="hidden" name="vers" value="haut" />
-                  <button
-                    className="fleche"
-                    type="submit"
-                    disabled={place === 0}
-                    aria-label={`Monter ${titre.nom}`}
-                    title="Monter"
-                  >
-                    ↑
-                  </button>
-                </form>
-                <form method="post" action={`/api/parametres/college/${titre.id}`}>
-                  <input type="hidden" name="action" value="deplacer" />
-                  <input type="hidden" name="vers" value="bas" />
-                  <button
-                    className="fleche"
-                    type="submit"
-                    disabled={place === titres.length - 1}
-                    aria-label={`Descendre ${titre.nom}`}
-                    title="Descendre"
-                  >
-                    ↓
-                  </button>
-                </form>
-              </span>
-
-              <form
-                className="college-renommer"
-                method="post"
-                action={`/api/parametres/college/${titre.id}`}
-              >
-                <input type="hidden" name="action" value="renommer" />
-                <input
-                  name="nom"
-                  defaultValue={titre.nom}
-                  maxLength={120}
-                  required
-                  aria-label={`Titre : ${titre.nom}`}
-                />
-                <button className="bouton" type="submit">
-                  Enregistrer
-                </button>
-              </form>
-
-              <span className="college-usage maigre" title="Référents qui portent ce titre">
-                {titre.utilisations > 0 ? `${titre.utilisations} référent${titre.utilisations > 1 ? 's' : ''}` : '—'}
-              </span>
-
-              <Link
-                href={`/espace/parametres/college?supprimer=${titre.id}`}
-                className="geste geste--retirer"
-                aria-label={`Retirer ${titre.nom}`}
-                title="Retirer ce titre"
-              >
-                <Corbeille />
-              </Link>
-            </li>
-          ))}
-        </ol>
-      )}
+      <ListeCollege titres={titres} />
 
       {aRetirer && (
         <div className="fenetre-fond">
