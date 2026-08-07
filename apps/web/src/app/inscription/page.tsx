@@ -1,31 +1,38 @@
 import Link from 'next/link';
-import FormulaireInscription from './FormulaireInscription';
-import { estRoleInscription, type RoleInscription } from '@/lib/roles';
+import Logo from '@/components/Logo';
 
-export const metadata = { title: 'Créer un compte — HERACLES' };
+export const metadata = { title: 'Rejoindre HERACLES — HERACLES' };
 
-export default async function Inscription({
-  searchParams,
-}: {
-  searchParams: Promise<{ role?: string }>;
-}) {
-  const { role } = await searchParams;
-  const roleInitial: RoleInscription = estRoleInscription(role) ? role : 'chercheur';
-
+/**
+ * L'inscription libre est fermée.
+ *
+ * HERACLES porte les dossiers de personnes vulnérables : l'appartenance à une
+ * loge et le droit d'accompagner ne se déclarent pas soi-même, ils se donnent.
+ * On n'entre qu'invité par un administrateur — c'est le point d'entrée n°1 de
+ * la maquette, et la migration 0009 le fait tenir côté base.
+ */
+export default function Inscription() {
   return (
-    <main className="enveloppe">
-      <h1>Créer un compte</h1>
-      <p className="discret">
-        Deux minutes suffisent. Vous recevrez un email pour confirmer votre adresse.
-      </p>
+    <main className="entree">
+      <div className="entree-carte">
+        <div className="entree-marque">
+          <Logo />
+        </div>
 
-      <div className="carte" style={{ marginTop: '1.5rem' }}>
-        <FormulaireInscription roleInitial={roleInitial} />
+        <h1 className="entree-titre">On entre sur invitation</h1>
+        <p className="entree-chapo">
+          HERACLES ne se rejoint pas de soi-même. Un administrateur vous invite dans une loge, avec
+          un rôle : vous recevez alors un e-mail contenant votre lien d&apos;entrée.
+        </p>
+        <p className="entree-chapo">
+          Vous avez reçu cet e-mail ? Ouvrez son lien. Vous n&apos;avez rien reçu ? Demandez à
+          l&apos;administrateur de votre loge — et pensez à regarder dans les indésirables.
+        </p>
+
+        <Link href="/connexion" className="bouton bouton--marque bouton--pleine-largeur">
+          J&apos;ai déjà un compte
+        </Link>
       </div>
-
-      <p className="discret" style={{ marginTop: '1.5rem' }}>
-        Déjà un compte ? <Link href="/connexion">Se connecter</Link>
-      </p>
     </main>
   );
 }

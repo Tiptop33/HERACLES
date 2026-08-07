@@ -1,0 +1,123 @@
+# Nginx pour HERACLES — deux noms, deux services.
+#
+#   heracles.example.fr      → l'application web      (127.0.0.1:3002)
+#   api.heracles.example.fr  → l'API Supabase, Kong   (127.0.0.1:8100)
+#
+# À copier dans /etc/nginx/sites-available/heracles, à adapter au domaine
+# retenu, puis :
+#
+#   ln -s /etc/nginx/sites-available/heracles /etc/nginx/sites-enabled/
+#   nginx -t && systemctl reload nginx
+#
+# ATTENTION À L'ORDRE. Ce fichier réclame un certificat. Tant qu'il n'existe
+# pas, `nginx -t` échoue — et avec lui tout rechargement, donc certbot
+# lui-même : la configuration qui attend le certificat empêche de l'obtenir.
+# Il faut donc d'abord servir les deux noms en clair, le temps que
+# Let's Encrypt vérifie le domaine :
+#
+#   certbot certonly --webroot -w /var/www/html \
+#     -d heracles.example.fr -d api.heracles.example.fr
+#
+# et ne poser ce fichier-ci qu'ensuite. `infra/essai/deployer.sh` enchaîne les
+# deux temps tout seul : relancé après certbot, il remplace la configuration
+# provisoire par celle-ci.
+#
+# MyCollabus vit sur le même VPS : ce fichier ne touche à rien d'autre que ces
+# deux noms, et les ports 3002 / 8100 ne croisent pas les siens.
+
+# ————— Rediriger le clair vers le chiffré —————
+server {
+    listen 80;
+    listen [::]:80;
+    server_name heracles.example.fr api.heracles.example.fr;
+
+    location /.well-known/acme-challenge/ { root /var/www/html; }
+    location / { return 301 https://$host$request_uri; }
+}
+
+# ————— L'application web —————
+server {
+    listen 443 ssl;
+    listen [::]:443 ssl;
+    http2 on;
+    server_name heracles.example.fr;
+
+    # certbot renseigne ces quatre lignes.
+    ssl_certificate     /etc/letsencrypt/live/heracles.example.fr/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/heracles.example.fr/privkey.pem;
+    # Réglages TLS écrits ici plutôt qu'inclus depuis /etc/letsencrypt : ces
+    # fichiers-là ne sont posés que par le greffon nginx de certbot, et le
+    # certificat s'obtient très bien sans lui. Une inclusion manquante fait
+    # échouer nginx entier.
+    ssl_protocols             TLSv1.2 TLSv1.3;
+    ssl_prefer_server_ciphers off;
+    ssl_session_cache         shared:SSL:10m;
+    ssl_session_timeout       1d;
+    ssl_session_tickets       off;
+
+    # HERACLES porte des CV et des parcours : rien ne doit en sortir par
+    # inadvertance, ni finir dans le référent d'un autre site.
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-Frame-Options "DENY" always;
+    add_header Referrer-Policy "same-origin" always;
+
+    client_max_body_size 20m;
+
+    location / {
+        proxy_pass http://127.0.0.1:3002;
+        proxy_http_version 1.1;
+        proxy_set_header Host              $host;
+        proxy_set_header X-Real-IP         $remote_addr;
+        proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Upgrade           $http_upgrade;
+        proxy_set_header Connection        "upgrade";
+        proxy_read_timeout 60s;
+    }
+}
+
+# ————— L'API Supabase —————
+server {
+    listen 443 ssl;
+    listen [::]:443 ssl;
+    http2 on;
+    server_name api.heracles.example.fr;
+
+    ssl_certificate     /etc/letsencrypt/live/heracles.example.fr/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/heracles.example.fr/privkey.pem;
+    # Réglages TLS écrits ici plutôt qu'inclus depuis /etc/letsencrypt : ces
+    # fichiers-là ne sont posés que par le greffon nginx de certbot, et le
+    # certificat s'obtient très bien sans lui. Une inclusion manquante fait
+    # échouer nginx entier.
+    ssl_protocols             TLSv1.2 TLSv1.3;
+    ssl_prefer_server_ciphers off;
+    ssl_session_cache         shared:SSL:10m;
+    ssl_session_timeout       1d;
+    ssl_session_tickets       off;
+
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+    add_header X-Content-Type-Options "nosniff" always;
+
+    # Les CV passent par ici.
+    client_max_body_size 50m;
+
+    # LISTE BLANCHE, et non liste noire. Kong sert **Studio sur `/`** :
+    # interdire /studio ne servait à rien, l'administration de la base était à
+    # la racine. Ne traversent donc que les trois chemins dont l'application a
+    # besoin ; tout le reste — Studio, /mcp, les fonctions — n'existe pas de
+    # l'extérieur.
+    location ~ ^/(auth|rest|storage)/v1/ {
+        proxy_pass http://127.0.0.1:8100;
+        proxy_http_version 1.1;
+        proxy_set_header Host              $host;
+        proxy_set_header X-Real-IP         $remote_addr;
+        proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Upgrade           $http_upgrade;
+        proxy_set_header Connection        "upgrade";
+        proxy_read_timeout 120s;
+    }
+
+    location / { return 404; }
+}

@@ -1,13 +1,81 @@
+/* Identité visuelle de HERACLES.
+ *
+ * Reprise des écrans 1 à 6 de « Wireframes HERACLES.dc » : titres en sans-serif
+ * gras, un accent cyan et un seul, champs à fond plein aux coins ronds, cartes
+ * largement arrondies, erreurs en rouge sous le champ qu'elles concernent.
+ *
+ * Trois couleurs s'y ajoutent, que la maquette ne dessine pas parce qu'elle ne
+ * montre pas ces écrans : le vert d'un suivi en cours, l'ambre de ce qui
+ * attend, le violet de ce qui est clos. Elles disent un état, jamais une
+ * action — l'action, c'est le cyan, partout.
+ *
+ * Rien ici ne vient de MyCollabus : ce sont deux produits pour deux publics.
+ * L'isolation vaut aussi pour l'apparence.
+ */
+
 :root {
-  --fond: #f7f8fa;
+  color-scheme: light;
+  --fond: #f2f4f7;
   --surface: #ffffff;
-  --texte: #16202e;
-  --texte-doux: #5a6b7f;
-  --bordure: #dde3ea;
-  --chercheur: #1f6feb;
-  --referent: #0f8a6a;
+  --surface-creuse: #eaeef3;
+  --bordure: #dbe1e9;
+  --bordure-nette: #b6c1cf;
+  --encre: #16202e;
+  --encre-douce: #5a6b7f;
+  --encre-tres-douce: #8494a5;
+  --referent: #0f6b52;
+  --referent-clair: #e4f2ed;
+  /* L'accent unique de la maquette. `--candidat` en est l'alias : la teinte des
+     initiales, de la jauge et des liens est la même que celle des boutons —
+     une seule couleur d'action dans toute l'application, pas deux. */
+  --marque: #3f9fc2;
+  --sur-marque: #ffffff;
+  --candidat: #3f9fc2;
+  --candidat-clair: #e4f1f7;
+  /* Le texte posé sur l'accent. En thème sombre, le cyan s'éclaircit : du blanc
+     dessus deviendrait illisible, c'est l'encre qui reprend la main. */
+  --sur-candidat: #ffffff;
+  --attention: #92400e;
+  --attention-clair: #fdf1e0;
+  --clos: #6b5b95;
+  --clos-clair: #efecf6;
   --alerte: #b42318;
-  --rayon: 10px;
+  --alerte-clair: #fdf3f2;
+  --alerte-bordure: #f3c6c2;
+
+  --pas: clamp(0.9rem, 0.5rem + 1.2vw, 1.4rem);
+  --corps: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  --rayon: 4px;
+  --largeur: 72rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --fond: #0d141c;
+    --surface: #141e29;
+    --surface-creuse: #1a2733;
+    --bordure: #283747;
+    --bordure-nette: #3c4f63;
+    --encre: #e7eef6;
+    --encre-douce: #9dadbe;
+    --encre-tres-douce: #74879b;
+    --referent: #5ec8a4;
+    --referent-clair: #0f2a22;
+    --marque: #56b3d4;
+    --sur-marque: #06222e;
+    --candidat: #56b3d4;
+    --candidat-clair: #102b36;
+    --sur-candidat: #06222e;
+    --attention: #e0a95e;
+    --attention-clair: #2b2114;
+    --clos: #b0a2d8;
+    --clos-clair: #221d30;
+    --alerte: #f2867c;
+    --alerte-clair: #2a1614;
+    --alerte-bordure: #5c2b26;
+  }
 }
 
 * {
@@ -22,21 +90,25 @@ body {
 
 body {
   background: var(--fond);
-  color: var(--texte);
-  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  line-height: 1.6;
+  color: var(--encre);
+  font-family: var(--corps);
+  line-height: 1.55;
 }
 
 a {
-  color: var(--chercheur);
+  color: var(--candidat);
 }
 
 h1,
 h2,
 h3 {
+  font-family: var(--corps);
+  font-weight: 700;
   line-height: 1.25;
   margin: 0 0 0.5rem;
 }
+
+/* ————— Mise en page générale ————— */
 
 .enveloppe {
   max-width: 60rem;
@@ -47,7 +119,7 @@ h3 {
 .carte {
   background: var(--surface);
   border: 1px solid var(--bordure);
-  border-radius: var(--rayon);
+  border-radius: 6px;
   padding: 1.5rem;
 }
 
@@ -62,7 +134,7 @@ h3 {
   display: block;
   text-decoration: none;
   color: inherit;
-  border-top: 4px solid var(--chercheur);
+  border-top: 4px solid var(--candidat);
 }
 
 .voie--referent {
@@ -74,45 +146,89 @@ h3 {
 }
 
 .voie p {
-  color: var(--texte-doux);
+  color: var(--encre-douce);
   margin: 0.25rem 0 0;
 }
 
-/* Formulaires */
+.discret {
+  color: var(--encre-douce);
+  font-size: 0.92rem;
+}
+
+.maigre {
+  color: var(--encre-douce);
+}
+
+/* ————— Formulaires ————— */
+
 .champ {
-  display: block;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
   margin-bottom: 1rem;
 }
 
-.champ span {
-  display: block;
+.champ > label,
+.champ > span:first-child {
+  font-size: 0.78rem;
+  color: var(--encre-tres-douce);
   font-weight: 600;
-  font-size: 0.9rem;
-  margin-bottom: 0.25rem;
 }
 
 .champ input,
 .champ select,
 .champ textarea {
+  font: inherit;
+  font-size: 0.92rem;
   width: 100%;
   padding: 0.6rem 0.7rem;
   border: 1px solid var(--bordure);
-  border-radius: 8px;
-  font: inherit;
-  background: var(--surface);
+  border-radius: 9px;
+  background: var(--surface-creuse);
   color: inherit;
+}
+
+.champ input:focus-visible,
+.champ select:focus-visible,
+.champ textarea:focus-visible {
+  outline: 2px solid var(--marque);
+  outline-offset: 1px;
+}
+
+.champ textarea {
+  resize: vertical;
+  min-height: 5.5rem;
+}
+
+.champ--verrouille input {
+  background: var(--surface-creuse);
+  color: var(--encre-tres-douce);
+}
+
+.aide {
+  font-size: 0.76rem;
+  color: var(--encre-tres-douce);
+  margin: 0.3rem 0 0;
 }
 
 .bouton {
   display: inline-block;
-  padding: 0.65rem 1.2rem;
-  border: 0;
-  border-radius: 8px;
-  background: var(--chercheur);
-  color: #fff;
   font: inherit;
+  font-size: 0.88rem;
   font-weight: 600;
+  padding: 0.55rem 1rem;
+  border: 1px solid var(--bordure-nette);
+  border-radius: 9px;
+  background: var(--surface);
+  color: var(--encre);
+  text-decoration: none;
   cursor: pointer;
+}
+
+.bouton--fort {
+  background: var(--candidat);
+  border-color: var(--candidat);
+  color: var(--sur-candidat);
 }
 
 .bouton:disabled {
@@ -120,16 +236,865 @@ h3 {
   cursor: progress;
 }
 
+.bouton:focus-visible,
+.filtre:focus-visible {
+  outline: 2px solid var(--candidat);
+  outline-offset: 2px;
+}
+
 .erreur {
   color: var(--alerte);
-  background: #fdf3f2;
-  border: 1px solid #f3c6c2;
-  border-radius: 8px;
+  background: var(--alerte-clair);
+  border: 1px solid var(--alerte-bordure);
+  border-radius: var(--rayon);
   padding: 0.6rem 0.8rem;
   margin-bottom: 1rem;
 }
 
-.discret {
-  color: var(--texte-doux);
+/* ————— Les écrans d'entrée : connexion, inscription ————— */
+
+.entree {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: var(--pas);
+}
+
+.entree-carte {
+  width: 100%;
+  max-width: 26rem;
+  background: var(--surface);
+  border: 1px solid var(--bordure);
+  border-radius: 14px;
+  padding: 2.2rem 2rem 2rem;
+}
+
+.entree-marque {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.9rem;
+  margin-bottom: 1.8rem;
+}
+
+.logo {
+  width: 4.6rem;
+  height: 4.6rem;
+  display: grid;
+  place-items: center;
+  flex: none;
+}
+
+.logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* Le logo est un trait noir sur fond transparent. En thème sombre il
+   disparaîtrait : on l'inverse pour qu'il redevienne un trait clair. C'est
+   exact ici parce que le dessin n'a pas une seule couleur — l'inversion ne
+   touche que le noir, et laisse la transparence intacte. Sur un emblème en
+   couleurs, elle ne conviendrait pas. */
+@media (prefers-color-scheme: dark) {
+  .logo img {
+    filter: invert(1);
+  }
+}
+
+.logo--petit {
+  width: 2rem;
+  height: 2rem;
+}
+
+/* Avant que le fichier soit déposé. */
+.logo--absent {
+  border-radius: 50%;
+  background: var(--surface-creuse);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--encre-tres-douce);
+}
+
+.logo--petit.logo--absent {
+  font-size: 0.85rem;
+}
+
+.entree-marque h1 {
+  font-family: var(--corps);
+  font-size: 1.35rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  margin: 0;
+}
+
+.entree-carte .champ {
+  margin-bottom: 1.1rem;
+}
+
+.entree-carte .champ > span:first-child,
+.entree-carte .champ > label {
+  font-size: 0.95rem;
+  font-weight: 400;
+  color: var(--encre-douce);
+  margin-bottom: 0.15rem;
+}
+
+.entree-carte .champ input {
+  padding: 0.85rem 0.9rem;
+  border-radius: 9px;
+  border-color: var(--bordure);
+  background: var(--surface-creuse);
+}
+
+.entree-carte .champ input:focus-visible {
+  outline: 2px solid var(--marque);
+  outline-offset: 1px;
+}
+
+/* Une erreur se lit sous le champ qu'elle concerne, en rouge — jamais dans une
+   fenêtre surgissante qu'il faut chasser avant de corriger. */
+.erreur-champ {
+  display: block;
+  color: var(--alerte);
+  font-size: 0.85rem;
+  margin-top: 0.3rem;
+}
+
+.champ--faux input {
+  border-color: var(--alerte);
+}
+
+.entree-ligne {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin: 0.2rem 0 1.4rem;
+  font-size: 0.95rem;
+}
+
+.entree-ligne label {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  color: var(--encre-douce);
+  cursor: pointer;
+}
+
+.entree-ligne input[type='checkbox'] {
+  width: 1.1rem;
+  height: 1.1rem;
+  accent-color: var(--marque);
+}
+
+.entree-ligne a {
+  color: var(--marque);
+  text-decoration: none;
+}
+
+.entree-ligne a:hover {
+  text-decoration: underline;
+}
+
+.bouton--pleine-largeur {
+  display: block;
+  width: 100%;
+  text-align: center;
+  padding: 0.95rem 1rem;
+  font-size: 1rem;
+  border-radius: 9px;
+}
+
+.bouton--marque {
+  background: var(--marque);
+  border-color: var(--marque);
+  color: var(--sur-marque);
+}
+
+.entree-pied {
+  margin: 1.4rem 0 0;
+  text-align: center;
+  font-size: 0.95rem;
+  color: var(--encre-douce);
+}
+
+.entree-titre {
+  font-family: var(--corps);
+  font-size: 1.5rem;
+  font-weight: 800;
+  margin: 0 0 0.6rem;
+}
+
+.entree-chapo {
+  color: var(--encre-douce);
+  margin: 0 0 1.3rem;
+}
+
+/* L'état après envoi : une phrase encadrée, sous le bouton — pas une fenêtre
+   surgissante qui recouvre ce qu'on vient de saisir. */
+.encart {
+  margin: 1.1rem 0 0;
+  padding: 0.85rem 1rem;
+  border-radius: 9px;
+  background: var(--candidat-clair);
+  color: var(--encre-douce);
+  font-size: 0.95rem;
+}
+
+/* La jauge de force : quatre segments qui se remplissent. */
+.jauge-force {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.4rem;
+  margin: 0.2rem 0 0.9rem;
+}
+
+.jauge-force span {
+  height: 5px;
+  border-radius: 3px;
+  background: var(--surface-creuse);
+}
+
+.jauge-force span.plein {
+  background: var(--marque);
+}
+
+.regles {
+  list-style: none;
+  margin: 0 0 1.4rem;
+  padding: 0;
+  color: var(--encre-douce);
+  font-size: 0.95rem;
+}
+
+.regles li {
+  padding: 0.1rem 0;
+}
+
+/* Une règle tenue se raye : on voit d'un coup d'œil ce qui reste à faire. */
+.regles li.tenue {
+  color: var(--encre-tres-douce);
+  text-decoration: line-through;
+}
+
+/* Qui invite : le bloc dessiné en tête de l'écran 5. */
+.invitation-qui {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 0.9rem 1rem;
+  border: 1px dashed var(--bordure-nette);
+  border-radius: 10px;
+  margin-bottom: 1.2rem;
+}
+
+.invitation-pastille {
+  width: 2.8rem;
+  height: 2.8rem;
+  border-radius: 50%;
+  background: var(--surface-creuse);
+  flex: none;
+}
+
+.invitation-qui div {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.invitation-qui span {
+  font-size: 0.9rem;
+  overflow-wrap: anywhere;
+}
+
+/* Les trois étapes de la création du compte. */
+.etapes {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+  margin-bottom: 1.2rem;
+}
+
+.etapes span {
+  height: 5px;
+  border-radius: 3px;
+  background: var(--surface-creuse);
+}
+
+.etapes span.plein {
+  background: var(--marque);
+}
+
+.separateur-ou {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  margin: 1rem 0;
+  color: var(--encre-tres-douce);
+  font-size: 0.85rem;
+}
+
+.separateur-ou::before,
+.separateur-ou::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--bordure);
+}
+
+/* Visible pour un lecteur d'écran, invisible à l'œil : les champs de la
+   maquette n'ont qu'un texte d'invite, ce qui ne suffit pas à les nommer. */
+.visuellement-cache {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ————— L'espace référent ————— */
+
+.barre {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: 0.7rem var(--pas);
+  border-bottom: 1px solid var(--bordure);
+  background: var(--surface);
+}
+
+.barre-dedans {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  width: 100%;
+  max-width: var(--largeur);
+  margin: 0 auto;
+}
+
+.marque {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: inherit;
+  text-decoration: none;
+}
+
+.marque span {
+  color: var(--encre-tres-douce);
+  font-weight: 400;
+}
+
+.barre .droite {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  font-size: 0.9rem;
+}
+
+.pastille {
+  width: 1.9rem;
+  height: 1.9rem;
+  border-radius: 50%;
+  background: var(--referent-clair);
+  color: var(--referent);
+  display: grid;
+  place-items: center;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-decoration: none;
+  flex: none;
+}
+
+.lien-nu {
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  color: var(--encre-douce);
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.corps {
+  max-width: var(--largeur);
+  margin: 0 auto;
+  padding: 1.1rem var(--pas) 4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.entete-liste {
+  display: flex;
+  align-items: flex-end;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.entete-liste h1 {
+  font-size: 1.5rem;
+  font-weight: 800;
+  margin: 0;
+}
+
+.entete-liste .compte {
+  color: var(--encre-douce);
+  font-size: 0.9rem;
+}
+
+.filtres {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-left: auto;
+}
+
+.filtre {
+  font: inherit;
+  font-size: 0.85rem;
+  padding: 0.35rem 0.7rem;
+  border: 1px solid var(--bordure-nette);
+  background: var(--surface);
+  color: var(--encre-douce);
+  border-radius: 2rem;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.filtre[aria-current='true'] {
+  background: var(--encre);
+  color: var(--surface);
+  border-color: var(--encre);
+}
+
+.recherche {
+  font: inherit;
+  font-size: 0.9rem;
+  padding: 0.4rem 0.7rem;
+  border: 1px solid var(--bordure-nette);
+  border-radius: var(--rayon);
+  background: var(--surface);
+  color: inherit;
+  min-width: 12rem;
+}
+
+/* ————— Le tableau des candidats ————— */
+
+.tableau-enveloppe {
+  overflow-x: auto;
+  border: 1px solid var(--bordure);
+  border-radius: 12px;
+  background: var(--surface);
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
   font-size: 0.92rem;
+}
+
+thead th {
+  text-align: left;
+  font-size: 0.72rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--encre-tres-douce);
+  font-weight: 600;
+  padding: 0.55rem 0.8rem;
+  background: var(--surface-creuse);
+  border-bottom: 1px solid var(--bordure);
+  white-space: nowrap;
+}
+
+tbody td {
+  padding: 0.6rem 0.8rem;
+  border-bottom: 1px solid var(--bordure);
+  vertical-align: middle;
+}
+
+tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+tbody tr {
+  position: relative;
+}
+
+tbody tr:hover {
+  background: var(--surface-creuse);
+}
+
+tbody tr:focus-within {
+  outline: 2px solid var(--candidat);
+  outline-offset: -2px;
+}
+
+/* La ligne entière ouvre la fiche, mais c'est un vrai lien qui le fait :
+   il s'ouvre au clavier, dans un nouvel onglet, et s'annonce correctement. */
+.lien-ligne::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+}
+
+.lien-ligne {
+  color: inherit;
+  text-decoration: none;
+}
+
+.lien-ligne:focus-visible {
+  outline: none;
+}
+
+.nom-cellule {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.initiales {
+  width: 2.1rem;
+  height: 2.1rem;
+  border-radius: 50%;
+  background: var(--candidat-clair);
+  color: var(--candidat);
+  display: grid;
+  place-items: center;
+  font-size: 0.76rem;
+  font-weight: 700;
+  flex: none;
+}
+
+.nom-cellule strong {
+  font-weight: 600;
+}
+
+.nom-cellule small {
+  display: block;
+  color: var(--encre-tres-douce);
+  font-size: 0.78rem;
+}
+
+.num-candidat {
+  font-family: var(--mono);
+  font-size: 0.82rem;
+  color: var(--encre-tres-douce);
+}
+
+.etat {
+  display: inline-block;
+  font-size: 0.76rem;
+  font-weight: 600;
+  padding: 0.15rem 0.55rem;
+  border-radius: 2rem;
+  white-space: nowrap;
+}
+
+.etat--suivi {
+  background: var(--referent-clair);
+  color: var(--referent);
+}
+
+.etat--attente {
+  background: var(--attention-clair);
+  color: var(--attention);
+}
+
+.etat--clos {
+  background: var(--clos-clair);
+  color: var(--clos);
+}
+
+.jauge {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.jauge-piste {
+  width: 3.2rem;
+  height: 5px;
+  background: var(--surface-creuse);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.jauge-part {
+  height: 100%;
+  background: var(--candidat);
+}
+
+.jauge span {
+  font-size: 0.78rem;
+  color: var(--encre-tres-douce);
+  font-variant-numeric: tabular-nums;
+}
+
+.vide-liste {
+  padding: 2.5rem 1rem;
+  text-align: center;
+  color: var(--encre-douce);
+  background: var(--surface);
+  border: 1px solid var(--bordure);
+  border-radius: var(--rayon);
+}
+
+/* ————— La fiche ————— */
+
+.fil {
+  font-size: 0.88rem;
+  color: var(--encre-douce);
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+  flex-wrap: wrap;
+  margin: 0;
+}
+
+.fil a {
+  color: var(--candidat);
+  text-decoration: none;
+}
+
+.fil a:hover {
+  text-decoration: underline;
+}
+
+.fiche-entete {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--bordure);
+}
+
+.portrait {
+  width: 4.2rem;
+  height: 4.2rem;
+  border-radius: 6px;
+  background: var(--candidat-clair);
+  color: var(--candidat);
+  display: grid;
+  place-items: center;
+  font-size: 1.2rem;
+  font-weight: 700;
+  flex: none;
+}
+
+.fiche-entete h1 {
+  font-size: 1.6rem;
+  font-weight: 800;
+  margin: 0 0 0.15rem;
+}
+
+.fiche-entete .sous {
+  color: var(--encre-douce);
+  font-size: 0.92rem;
+}
+
+.fiche-actions {
+  margin-left: auto;
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.blocs {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(19rem, 1fr));
+  gap: 1rem;
+}
+
+.bloc {
+  border: 1px solid var(--bordure);
+  border-radius: 12px;
+  padding: 1rem 1.1rem;
+  background: var(--surface);
+}
+
+.bloc h2 {
+  font-size: 0.72rem;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: var(--encre-tres-douce);
+  margin: 0 0 0.7rem;
+  font-weight: 700;
+}
+
+.bloc--large {
+  grid-column: 1 / -1;
+}
+
+.champs {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.4rem 1rem;
+  font-size: 0.92rem;
+  margin: 0;
+}
+
+.champs dt {
+  color: var(--encre-tres-douce);
+  white-space: nowrap;
+}
+
+.champs dd {
+  margin: 0;
+}
+
+.champs dd.vide {
+  color: var(--encre-tres-douce);
+  font-style: italic;
+}
+
+.prose {
+  font-size: 0.92rem;
+  color: var(--encre);
+  margin: 0;
+  white-space: pre-line;
+}
+
+.etiquettes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.etiquette {
+  font-size: 0.8rem;
+  padding: 0.15rem 0.55rem;
+  background: var(--surface-creuse);
+  border-radius: 3px;
+  color: var(--encre-douce);
+}
+
+.fichiers {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.fichier {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.5rem 0.65rem;
+  border: 1px solid var(--bordure);
+  border-radius: var(--rayon);
+  font-size: 0.9rem;
+  color: inherit;
+  text-decoration: none;
+}
+
+.fichier .type {
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 0.15rem 0.4rem;
+  border-radius: 3px;
+  background: var(--candidat-clair);
+  color: var(--candidat);
+  flex: none;
+}
+
+.fichier .poids {
+  margin-left: auto;
+  color: var(--encre-tres-douce);
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.fichier--absent {
+  border-style: dashed;
+  color: var(--encre-tres-douce);
+}
+
+/* ————— La modification ————— */
+
+.ligne-edition {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  gap: 0.7rem;
+}
+
+.ligne-edition .champ,
+.bloc > .champ:last-child {
+  margin-bottom: 0;
+}
+
+.barre-enregistrement {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+  padding: 0.7rem var(--pas);
+  border-top: 1px solid var(--bordure);
+  background: var(--surface-creuse);
+  font-size: 0.88rem;
+}
+
+.barre-enregistrement-dedans {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+  width: 100%;
+  max-width: var(--largeur);
+  margin: 0 auto;
+}
+
+.barre-enregistrement .etat-sauvegarde {
+  color: var(--encre-tres-douce);
+}
+
+.barre-enregistrement .droite {
+  margin-left: auto;
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+/* ————— Imprimer une fiche ————— */
+
+@media print {
+  .barre,
+  .fiche-actions,
+  .fil,
+  .barre-enregistrement {
+    display: none;
+  }
+
+  body {
+    background: #fff;
+  }
+
+  .corps {
+    padding: 0;
+  }
+
+  .bloc {
+    break-inside: avoid;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+  }
 }

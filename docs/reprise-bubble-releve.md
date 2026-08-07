@@ -55,3 +55,12 @@ mener avant la bascule du 5 décembre.
       personnelles (`CANDIDATS`, `User`, `PDFs`, `Messages`, `CORRESPONDANTS`). Au moment de la
       reprise, l'application en service répondait **sans jeton** à n'importe quelle requête.
 - [ ] Régénérer les cinq jetons d'API : ils ont circulé pendant la mise au point.
+
+**Vérifié le 7 août 2026, toujours ouvert.** Sans jeton, sur l'application en service :
+`CANDIDATS`, `User` et `PDFs` répondent tous les trois `HTTP 200`. Fermeture reportée, décision
+prise ce jour-là. À reprendre avant la bascule du 5 décembre : l'application Bubble reste en
+service jusque-là, et son API avec elle.
+
+Le réglage est versionné : le décocher dans l'éditeur ne suffit pas, il faut déployer en
+production pour que l'application en service change. C'est ce qui explique que les deux bases
+n'exposaient pas les mêmes types au moment de la reprise.

@@ -47,7 +47,12 @@ export default function FormulaireProfil({ profil }: { profil: Profil }) {
   }
 
   return (
-    <form onSubmit={soumettre}>
+    // `method="post"` sans `action` : la route d'enregistrement est en PATCH,
+    // qu'un formulaire natif ne sait pas émettre. Ce qui compte ici est qu'un
+    // envoi parti avant l'hydratation ne recopie pas nom, téléphone et ville
+    // dans l'adresse — le corps d'un POST, lui, ne s'écrit ni dans
+    // l'historique ni dans les journaux.
+    <form onSubmit={soumettre} method="post">
       {erreur && <p className="erreur">{erreur}</p>}
       {enregistre && <p className="discret">Enregistré.</p>}
 
@@ -87,7 +92,7 @@ export default function FormulaireProfil({ profil }: { profil: Profil }) {
         <span className="discret">Quelques lignes sur votre parcours ou votre recherche.</span>
       </label>
 
-      <button className="bouton" type="submit" disabled={envoi}>
+      <button className="bouton bouton--fort" type="submit" disabled={envoi}>
         {envoi ? 'Enregistrement…' : 'Enregistrer'}
       </button>
     </form>

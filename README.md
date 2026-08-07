@@ -14,7 +14,7 @@ en commun avec EKOPLAN / MyCollabus.
 | --- | --- |
 | 1 — Fondations : comptes, connexion, profil | ✅ |
 | 2 — Reprise des données Bubble | ✅ 17 700 enregistrements, [relevé](docs/reprise-bubble-releve.md) |
-| 3 — L'espace référent : liste des candidats, fiche, modification | en cours |
+| 3 — L'espace référent : liste des candidats, fiche, modification | ✅ [plan](docs/plans/2026-08-05-lot3-espace-referent.md) |
 | 4 — Les offres d'emploi | 31 octobre |
 | 5 — La loge et l'administration | 14 novembre |
 | 6 — Mise en ligne | 21 novembre |
@@ -32,8 +32,8 @@ derrière Nginx en HTTPS sur un VPS.
 Il faut Docker et Node 22.
 
 ```bash
-cp .env.example .env          # puis renseigner les clés affichées à l'étape suivante
 npx supabase start            # monte la pile et joue les migrations de supabase/migrations
+cp apps/web/.env.example apps/web/.env.local   # puis y recopier les clés affichées
 cd apps/web && npm install && npm run dev
 ```
 
@@ -41,8 +41,54 @@ cd apps/web && npm install && npm run dev
 - Studio Supabase : http://localhost:54333
 - Emails de test : http://localhost:54334 (rien ne part vraiment)
 
-`npx supabase start` affiche l'`API URL` et l'`anon key` : ce sont les valeurs à recopier dans
-`.env` (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`).
+`npx supabase start` affiche l'`API URL` et l'`anon key` : ce sont les deux valeurs à recopier
+dans `apps/web/.env.local` (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`).
+
+**Deux fichiers d'environnement, deux usages.** Next ne lit le sien que dans son propre dossier et
+ne remonte jamais l'arborescence : le `.env` de la racine ne lui parviendrait pas.
+
+| Fichier | Pour quoi |
+| --- | --- |
+| `apps/web/.env.local` | développer l'application web en local — modèle : `apps/web/.env.example` |
+| `.env` (racine) | la pile de production : Docker Compose, PostgreSQL, SMTP — modèle : `.env.example` |
+
+Si `npm run dev` s'arrête sur « *Your project's URL and Key are required to create a Supabase
+client* », c'est que `apps/web/.env.local` manque ou est vide. Au démarrage, Next annonce le
+fichier qu'il a chargé : `- Environments: .env.local`.
+
+## Essayer l'espace référent
+
+Un jeu de personnes inventées, à poser sur la base locale — jamais sur la vraie :
+
+```bash
+PGPASSWORD=postgres psql -h 127.0.0.1 -p 54332 -U postgres -d postgres \
+  -f supabase/demo/jeu-d-essai.sql
+```
+
+Puis créez les comptes d'essai — l'inscription libre est fermée, on n'entre qu'invité :
+
+```bash
+node outils/comptes-essai.mjs
+```
+
+Quatre comptes, tous avec le mot de passe `HeraclesEssai2026` :
+
+| Adresse | Ce qu'elle donne à voir |
+| --- | --- |
+| `patron@example.org` | administrateur — le seul à pouvoir inviter |
+| `bernard@example.org` | la loge de Bordeaux, 5 candidats — un à contacter, un clôturé |
+| `claire@example.org` | la loge de Toulouse, 2 autres candidats |
+| `michel@example.org` | seulement les 2 candidats qu'il parraine, dans deux loges différentes |
+
+Les emails partent dans la boîte de test : http://localhost:54334.
+
+**Pour inviter quelqu'un** : connectez-vous avec `patron@example.org` — c'est l'administrateur.
+L'écran d'administration liste les invitations et permet d'en émettre. Un référent qui tenterait
+d'y aller est renvoyé chez lui.
+
+**Pour éprouver l'isolation vous-même** : connectez-vous avec Bernard, copiez l'adresse d'une de
+ses fiches, déconnectez-vous, reconnectez-vous avec Claire et collez cette adresse. Vous obtenez
+une page introuvable. Ce n'est pas la page qui refuse — c'est la base qui ne renvoie rien.
 
 ## Vérifier
 
@@ -82,3 +128,6 @@ réutiliser un volume, un port ou un identifiant d'un autre projet.
 
 - Cadrage : [`docs/specs/2026-08-04-heracles-cadrage.md`](docs/specs/2026-08-04-heracles-cadrage.md)
 - Plan du lot 1 : [`docs/plans/2026-08-04-lot1-fondations.md`](docs/plans/2026-08-04-lot1-fondations.md)
+- Plan du lot 3 : [`docs/plans/2026-08-05-lot3-espace-referent.md`](docs/plans/2026-08-05-lot3-espace-referent.md)
+- Maquettes : [`docs/maquettes/`](docs/maquettes/) — le dessin d'origine et ce qui en a été retenu
+- Mise en ligne : [`docs/deploiement.md`](docs/deploiement.md) — le VPS, pas à pas
