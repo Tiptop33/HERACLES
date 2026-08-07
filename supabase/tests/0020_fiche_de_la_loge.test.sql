@@ -194,6 +194,21 @@ begin;
     'et dit qui a un visage à montrer, sans livrer le chemin du fichier');
 commit;
 
+-- Un dossier archivé sans être clôturé : la fiche doit rendre les deux
+-- colonnes, sans quoi elle afficherait « non clôturé » sur un dossier que la
+-- liste range dans l'archive.
+update public.candidat set archive = 'Sans nouvelles' where bubble_id = 'cand-0020-denis';
+
+begin;
+  set local role authenticated;
+  set local request.jwt.claims = '{"sub":"aaaaaaaa-3333-0000-0000-000000000023"}';
+
+  select public.verifier(
+    (select archive from public.fiche_candidat(:'denis'::uuid)) = 'Sans nouvelles'
+      and (select cloture from public.fiche_candidat(:'denis'::uuid)) is null,
+    'clôturé et archivé sont deux colonnes, et la fiche les rend toutes les deux');
+commit;
+
 -- Le chemin de la photo, lui, ne sort que par sa propre fonction (0019) — et
 -- la fiche ne le porte pas : une colonne de plus, c'est une adresse de plus à
 -- ne pas laisser fuir.

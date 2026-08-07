@@ -55,11 +55,30 @@ insert into public.candidat (bubble_id, nom, prenom, age, metier_libelle, ville,
   -- Une autre loge.
   ('cand-0019-nice', 'Nice', 'Delta', 22, 'Soudeur', 'Nice',
    (select id from public.loge where bubble_id = 'loge-0019-nice'),
-   (select id from public.referent where bubble_id = 'ref-0019-emile'), null, null)
+   (select id from public.referent where bubble_id = 'ref-0019-emile'), null, null),
+  -- Deux dossiers refermés, chacun à sa façon : l'écran a une vue pour
+  -- chacune, et il lui faut les deux colonnes pour les distinguer.
+  ('cand-0019-clos', 'Clos19', 'Epsilon', 51, 'Peintre', 'Metz',
+   (select id from public.loge where bubble_id = 'loge-0019-metz'),
+   (select id from public.referent where bubble_id = 'ref-0019-damien'), null, null),
+  ('cand-0019-archive', 'Archive19', 'Zeta', 47, 'Magasinier', 'Metz',
+   (select id from public.loge where bubble_id = 'loge-0019-metz'),
+   (select id from public.referent where bubble_id = 'ref-0019-damien'), null, null)
 on conflict do nothing;
 
 update public.candidat set emploi_recherche = 'Agent de maintenance'
  where bubble_id = 'cand-0019-trois';
+
+update public.candidat set cloture = 'Embauché' where bubble_id = 'cand-0019-clos';
+update public.candidat set archive = 'Sans nouvelles' where bubble_id = 'cand-0019-archive';
+
+-- Des numéros dans le désordre, et une fiche qui n'en a pas : c'est ce que la
+-- reprise Bubble a laissé, et c'est ce que le tri doit remettre en ordre.
+update public.candidat set numero = 903 where bubble_id = 'cand-0019-un';
+update public.candidat set numero = 901 where bubble_id = 'cand-0019-deux';
+update public.candidat set numero = 902 where bubble_id = 'cand-0019-clos';
+update public.candidat set numero = null where bubble_id = 'cand-0019-trois';
+update public.candidat set numero = 904 where bubble_id = 'cand-0019-archive';
 
 -- ---------------------------------------------------------------------------
 \echo '— une referente voit toute sa loge, pas seulement ses suivis'
@@ -76,6 +95,14 @@ begin;
   select public.verifier(
     (select count(*) from public.candidats_de_la_loge() where nom = 'Nice') = 0,
     'et jamais celui de Nice');
+
+  -- Le tri arrive de la base, et l'écran n'y retouche pas. `array_agg` sans
+  -- `order by` agrège dans l'ordre où les lignes arrivent : c'est exactement
+  -- ce dont la page dépend, donc exactement ce qu'il faut éprouver.
+  select public.verifier(
+    (select array_agg(numero) from public.candidats_de_la_loge()
+      where loge_nom = 'Metz — 0019') = array[901, 902, 903, 904, null]::integer[],
+    'la liste arrive triée par numéro croissant, les fiches sans numéro à la fin');
 commit;
 
 -- ---------------------------------------------------------------------------
@@ -108,6 +135,17 @@ begin;
     (select a_une_photo from public.candidats_de_la_loge() where nom = 'Un') = true
       and (select a_une_photo from public.candidats_de_la_loge() where nom = 'Deux') = false,
     'et dit qui a un visage à montrer');
+
+  -- Les deux colonnes qui referment un dossier. La fonction les rend toutes
+  -- les deux et ne filtre rien : c'est l'écran qui range, et il lui faut
+  -- pouvoir montrer l'archive quand on la demande.
+  select public.verifier(
+    (select cloture from public.candidats_de_la_loge() where nom = 'Clos19') = 'Embauché'
+      and (select archive from public.candidats_de_la_loge() where nom = 'Clos19') is null
+      and (select archive from public.candidats_de_la_loge() where nom = 'Archive19')
+            = 'Sans nouvelles'
+      and (select cloture from public.candidats_de_la_loge() where nom = 'Archive19') is null,
+    'clôturé et archivé arrivent séparément — les confondre perdrait l''information');
 commit;
 
 -- ---------------------------------------------------------------------------
@@ -150,7 +188,7 @@ begin;
   -- tout — encore faut-il que le contrôle ne s'y noie pas.
   select public.verifier(
     (select count(*) from public.candidats_de_la_loge()
-      where loge_nom in ('Metz — 0019', 'Nice — 0019')) = 4,
+      where loge_nom in ('Metz — 0019', 'Nice — 0019')) = 6,
     'Flore voit les deux loges — sans elle, personne ne voit les 118 fiches');
 
   select public.verifier(

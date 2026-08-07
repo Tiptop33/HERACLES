@@ -29,6 +29,49 @@ function rempli(valeur: unknown): boolean {
 }
 
 /**
+ * Un dossier se referme de deux façons : `CLOTURE` et `ARCHIVER`. Ce sont deux
+ * colonnes distinctes reprises de Bubble, et il faut regarder les deux — un
+ * dossier archivé mais non clôturé est refermé lui aussi.
+ *
+ * Les valeurs de ces deux listes de choix n'ont jamais été relevées : l'API de
+ * Bubble les rend en texte libre, et le modèle le note (« une quinzaine de
+ * champs sont des listes de choix que l'API renvoie en simple texte »). Rien ne
+ * garantit donc qu'elles ne contiennent pas un « Non ».
+ *
+ * D'où cette précaution : une valeur qui commence par une négation ne referme
+ * rien. Si la liste ne contient que des motifs de clôture, elle ne change rien ;
+ * si c'est une liste oui/non, elle évite qu'un « Non » vide l'écran de tout le
+ * monde. Le mauvais côté de l'erreur n'est pas le même des deux côtés.
+ */
+const NEGATION = /^(non|no|false|0|aucun|aucune)\b/i;
+
+function motDeFermeture(valeur: string | null | undefined): string | null {
+  if (!rempli(valeur)) return null;
+  const mot = String(valeur).trim();
+  return NEGATION.test(mot) ? null : mot;
+}
+
+/** Pourquoi le dossier est refermé, ou `null` s'il ne l'est pas. */
+export function raisonDeFermeture(candidat: PourEtat): string | null {
+  return motDeFermeture(candidat.cloture) ?? motDeFermeture(candidat.archive);
+}
+
+/** La colonne `CLOTURE` seule. */
+export function estCloture(candidat: PourEtat): boolean {
+  return motDeFermeture(candidat.cloture) !== null;
+}
+
+/** La colonne `ARCHIVER` seule. */
+export function estArchive(candidat: PourEtat): boolean {
+  return motDeFermeture(candidat.archive) !== null;
+}
+
+/** Clôturé ou archivé : dans les deux cas, le dossier est refermé. */
+export function estFerme(candidat: PourEtat): boolean {
+  return raisonDeFermeture(candidat) !== null;
+}
+
+/**
  * Deux dates séparées de moins d'une seconde : la fiche n'a pas été retouchée
  * depuis sa création. La tolérance existe parce que `cree_le` et `maj_le` sont
  * posées par deux écritures distinctes lors de la reprise depuis Bubble.
@@ -53,10 +96,10 @@ function jamaisRetouchee(cree: string | null | undefined, maj: string | null | u
  *   3. sinon → **Suivi**.
  */
 export function etatDuSuivi(candidat: PourEtat): Suivi {
-  const raison = [candidat.cloture, candidat.archive].find(rempli);
+  const raison = raisonDeFermeture(candidat);
 
-  if (rempli(raison)) {
-    const detail = String(raison).trim();
+  if (raison) {
+    const detail = raison;
     // « Clôturé » suffit quand la raison ne fait que répéter le mot.
     const repete = /^cl[oô]tur/i.test(detail);
     return {

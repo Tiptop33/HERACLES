@@ -63,7 +63,10 @@ returns table (
 
   -- Accompagnement
   appreciation             text,
+  -- Les deux façons de refermer un dossier : la fiche montre les deux, comme
+  -- Bubble les tenait.
   cloture                  text,
+  archive                  text,
   referent_nom             text,
   parrain_nom              text,
   loge_nom                 text,
@@ -98,7 +101,7 @@ as $$
          c.debut_stage, c.secteur_activite_libelle, c.metier_libelle,
          c.formations, c.experiences, c.competences, c.savoir_etre,
          c.informatique, c.permis_vl, c.vehicule,
-         c.appreciation, c.cloture,
+         c.appreciation, c.cloture, c.archive,
          nullif(btrim(coalesce(r.prenom, '') || ' ' || coalesce(r.nom, '')), ''),
          nullif(btrim(coalesce(p.prenom, '') || ' ' || coalesce(p.nom, '')), ''),
          l.nom,

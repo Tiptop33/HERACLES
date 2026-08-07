@@ -36,7 +36,11 @@ returns table (
   age               integer,
   metier            text,
   ville             text,
+  -- Les deux façons de refermer un dossier, reprises de Bubble : `CLOTURE` et
+  -- `ARCHIVER`. Deux colonnes, parce que ce sont deux gestes — et l'écran a
+  -- une vue pour chacun.
   cloture           text,
+  archive           text,
   loge_id           uuid,
   loge_nom          text,
   referent_nom      text,
@@ -54,7 +58,7 @@ as $$
   select c.id, c.numero, c.nom, c.prenom, c.age,
          coalesce(nullif(btrim(c.metier_libelle), ''), c.emploi_recherche),
          c.ville,
-         c.cloture,
+         c.cloture, c.archive,
          c.loge_id, l.nom,
          nullif(btrim(coalesce(r.prenom, '') || ' ' || coalesce(r.nom, '')), ''),
          c.photo_chemin is not null,
@@ -68,7 +72,11 @@ as $$
     left join public.referent r on r.id = c.referent_id
    where public.est_admin()
       or (c.loge_id is not null and c.loge_id in (select public.loges_visibles()))
-   order by c.nom nulls last, c.prenom nulls last
+   -- Par numéro croissant : c'est le repère que les référents ont en tête, et
+   -- celui qui est écrit sur les dossiers. Les fiches sans numéro — il y en a
+   -- dans la reprise — passent à la fin plutôt que de s'insérer devant tout le
+   -- monde, ce que ferait un `nulls first` implicite en ordre décroissant.
+   order by c.numero asc nulls last, c.nom nulls last, c.prenom nulls last
 $$;
 
 comment on function public.candidats_de_la_loge() is

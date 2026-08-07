@@ -1,5 +1,12 @@
 import { supabaseServer } from './supabase-server';
-import { etatDuSuivi, tauxDeRemplissage, type Suivi } from './suivi';
+import {
+  estArchive,
+  estCloture,
+  estFerme,
+  etatDuSuivi,
+  tauxDeRemplissage,
+  type Suivi,
+} from './suivi';
 
 /**
  * Le poste de travail : la liste permanente des candidats de la loge, et la
@@ -26,7 +33,9 @@ export type LigneCandidat = {
   /** Le métier, ou l'emploi recherché à défaut — jamais une case vide. */
   metier: string | null;
   ville: string | null;
+  /** Les deux façons de refermer un dossier, reprises de Bubble. */
   cloture: string | null;
+  archive: string | null;
   loge_id: string | null;
   loge_nom: string | null;
   referent_nom: string | null;
@@ -70,6 +79,7 @@ export type Fiche = {
 
   appreciation: string | null;
   cloture: string | null;
+  archive: string | null;
   referent_nom: string | null;
   parrain_nom: string | null;
   loge_nom: string | null;
@@ -123,16 +133,30 @@ export async function lireFiche(id: string): Promise<FicheOuverte | null> {
 }
 
 /**
- * Les quatre filtres du volet de gauche. Les trois premiers sont ceux de la
- * maquette ; le quatrième existe parce que les dossiers clôturés doivent
- * rester atteignables — sans lui, refermer un dossier reviendrait à l'effacer.
+ * Les trois façons de regarder le travail en cours — celles de la maquette.
+ * Aucune ne montre un dossier refermé, qu'il soit clôturé ou archivé.
  */
-export const VUES = [
+export const VUES_OUVERTES = [
   { valeur: 'tous', libelle: 'Tous' },
   { valeur: 'urgents', libelle: 'Urgents' },
   { valeur: 'suivis', libelle: 'Mes suivis' },
-  { valeur: 'clotures', libelle: 'Clôturés' },
 ] as const;
+
+/**
+ * Et les deux façons de retrouver ce qui est refermé. Elles ne sont pas dans
+ * la maquette, et elles sont nécessaires : sans elles, clôturer ou archiver un
+ * dossier reviendrait à l'effacer.
+ *
+ * Deux vues et non une : `CLOTURE` et `ARCHIVER` sont deux colonnes distinctes
+ * chez Bubble, donc deux gestes distincts. Les confondre à l'écran ferait
+ * perdre l'information au premier tri.
+ */
+export const VUES_FERMEES = [
+  { valeur: 'clotures', libelle: 'Clôturés' },
+  { valeur: 'archives', libelle: 'Archivés' },
+] as const;
+
+export const VUES = [...VUES_OUVERTES, ...VUES_FERMEES];
 
 export type Vue = (typeof VUES)[number]['valeur'];
 
@@ -140,15 +164,12 @@ export function estVue(valeur: unknown): valeur is Vue {
   return VUES.some((v) => v.valeur === valeur);
 }
 
-/** Clôturé, archivé : le dossier est refermé, il quitte les trois autres vues. */
-function clos(ligne: LigneCandidat): boolean {
-  return (ligne.cloture ?? '').trim() !== '';
-}
-
 export function filtrerParVue(lignes: LigneCandidat[], vue: Vue): LigneCandidat[] {
-  if (vue === 'clotures') return lignes.filter(clos);
+  if (vue === 'clotures') return lignes.filter(estCloture);
+  if (vue === 'archives') return lignes.filter(estArchive);
 
-  const ouverts = lignes.filter((l) => !clos(l));
+  // Ce qui reste : ni clôturé, ni archivé. C'est le travail en cours.
+  const ouverts = lignes.filter((l) => !estFerme(l));
   if (vue === 'urgents') return ouverts.filter((l) => l.sans_referent);
   if (vue === 'suivis') return ouverts.filter((l) => l.c_est_mon_suivi);
   return ouverts;
@@ -172,9 +193,9 @@ export function chercher(lignes: LigneCandidat[], recherche: string): LigneCandi
 
 /** « 13 en cours », comme en tête du volet de la maquette. */
 export function resumeDeLaLoge(lignes: LigneCandidat[]): string {
-  const ouverts = lignes.filter((l) => !clos(l)).length;
+  const ouverts = lignes.filter((l) => !estFerme(l)).length;
   if (lignes.length === 0) return 'aucun';
-  if (ouverts === 0) return 'tous clôturés';
+  if (ouverts === 0) return 'aucun en cours';
   return `${ouverts} en cours`;
 }
 

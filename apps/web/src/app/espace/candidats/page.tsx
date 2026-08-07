@@ -1,7 +1,8 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import {
-  VUES,
+  VUES_FERMEES,
+  VUES_OUVERTES,
   chercher,
   estVue,
   filtrerParVue,
@@ -110,11 +111,28 @@ export default async function PosteDeTravail({
             />
           </form>
 
+          {/* Deux rangées, et non cinq pastilles à la suite : les trois
+              premières regardent le travail en cours, les deux dernières ce
+              qui est refermé. Le filet les sépare pour qu'on ne clique pas
+              dans l'archive en visant « Mes suivis ». */}
           <div className="poste-vues">
-            {VUES.map(({ valeur, libelle }) => (
+            {VUES_OUVERTES.map(({ valeur, libelle }) => (
               <Link
                 key={valeur}
                 href={adresse({ vue: valeur === 'tous' ? null : valeur })}
+                className="filtre filtre--menu"
+                aria-current={vue === valeur}
+              >
+                {libelle}
+              </Link>
+            ))}
+          </div>
+
+          <div className="poste-vues poste-vues--fermees">
+            {VUES_FERMEES.map(({ valeur, libelle }) => (
+              <Link
+                key={valeur}
+                href={adresse({ vue: valeur })}
                 className="filtre filtre--menu"
                 aria-current={vue === valeur}
               >
@@ -207,12 +225,28 @@ function Rang({
         <small>{sous || 'métier non renseigné'}</small>
       </span>
 
+      {/* Le numéro se voit parce que c'est lui qui ordonne la liste : une liste
+          triée sur une clé invisible se lit comme une liste en désordre. À
+          droite, où il ne prend rien au métier. */}
+      {ligne.numero !== null && (
+        <span className="poste-rang-numero">
+          <span className="visuellement-cache">Fiche n° </span>
+          {ligne.numero}
+        </span>
+      )}
+
       {/* Le point orange des « urgents » : personne ne l'accompagne. Le titre
-          le dit en toutes lettres, la couleur seule ne suffirait pas. */}
-      {ligne.sans_referent && (
+          le dit en toutes lettres, la couleur seule ne suffirait pas.
+
+          Il occupe sa place sur tous les rangs, même quand il ne se montre
+          pas : sinon les numéros de droite se décaleraient d'un rang à
+          l'autre, et une colonne de chiffres qui ondule ne se lit plus. */}
+      {ligne.sans_referent ? (
         <span className="poste-rang-alerte" title="Personne ne l’accompagne">
           <span className="visuellement-cache">Sans référent</span>
         </span>
+      ) : (
+        <span className="poste-rang-alerte poste-rang-alerte--vide" />
       )}
     </Link>
   );

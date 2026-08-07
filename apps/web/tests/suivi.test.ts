@@ -22,6 +22,19 @@ describe('etatDuSuivi', () => {
     expect(etatDuSuivi({ cloture: '   ', archive: null }).etat).not.toBe('clos');
   });
 
+  // Les valeurs de `CLOTURE` et `ARCHIVER` n'ont jamais été relevées : ce sont
+  // des listes de choix Bubble que l'API rend en texte libre. Si l'une d'elles
+  // est un oui/non, un « Non » ne doit pas clore la fiche de tout le monde.
+  it('ignore une valeur qui dit « non »', () => {
+    for (const mot of ['Non', 'non', 'Non archivé', 'Aucune', 'false', '0']) {
+      expect(etatDuSuivi({ archive: mot }).etat, mot).not.toBe('clos');
+    }
+  });
+
+  it('mais ne coupe pas au milieu d’un mot', () => {
+    expect(etatDuSuivi({ archive: 'Nonobstant' }).etat).toBe('clos');
+  });
+
   it('signale à contacter une fiche jamais retouchée depuis sa création', () => {
     expect(
       etatDuSuivi({

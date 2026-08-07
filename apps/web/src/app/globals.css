@@ -2059,21 +2059,34 @@ tbody tr:focus-within {
   padding: 0.3rem 0.55rem;
 }
 
-/* Deux sur deux, et non quatre à la suite : « Tous · Urgents · Mes suivis ·
-   Clôturés » ne tient pas sur la largeur du volet, et laissé libre le dernier
-   retombe seul à la ligne — ce qui se lit comme un accident. Une grille de
-   quatre cases égales se lit comme un choix. */
+/* Cinq pastilles ne tiennent pas sur la largeur du volet, et laissées libres
+   elles retombent au hasard — ce qui se lit comme un accident. Elles sont donc
+   rangées en deux blocs qui veulent dire quelque chose : les trois façons de
+   regarder le travail en cours, puis les deux façons de retrouver ce qui est
+   refermé.
+
+   Trois colonnes égales pour le premier bloc, deux pour le second : chaque
+   pastille occupe sa case, quelle que soit la longueur du mot. */
 .poste-vues {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(3, 1fr);
   gap: 0.25rem;
 }
 
+.poste-vues--fermees {
+  grid-template-columns: repeat(2, 1fr);
+  margin-top: 0.15rem;
+  padding-top: 0.4rem;
+  border-top: 1px dashed var(--bordure);
+}
+
 .filtre--menu {
-  font-size: 0.72rem;
-  padding: 0.15rem 0.45rem;
+  font-size: 0.7rem;
+  padding: 0.15rem 0.3rem;
   text-align: center;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .poste-rangs {
@@ -2148,6 +2161,21 @@ tbody tr:focus-within {
   white-space: nowrap;
 }
 
+/* Le numéro de la fiche, à droite du rang. `tabular-nums` aligne les chiffres
+   en colonne : une liste triée par numéro se lit d'un coup d'œil, ce qui est
+   tout l'intérêt de la trier. */
+.poste-rang-numero {
+  font-size: 0.68rem;
+  color: var(--encre-tres-douce);
+  font-variant-numeric: tabular-nums;
+  /* Une largeur minimale, alignée à droite : les numéros de la reprise vont de
+     un à quatre chiffres, et sans elle la colonne se déciderait ligne à
+     ligne. */
+  min-width: 2.2rem;
+  text-align: right;
+  flex: none;
+}
+
 /* Le point des « urgents ». La couleur ne suffit pas à le dire : le titre
    l'écrit, et un texte caché le donne aux lecteurs d'écran. */
 .poste-rang-alerte {
@@ -2156,6 +2184,12 @@ tbody tr:focus-within {
   border-radius: 50%;
   background: var(--attention);
   flex: none;
+}
+
+/* Elle garde sa place et se tait — `visibility` et non `display`, c'est la
+   différence entre « invisible » et « absent ». */
+.poste-rang-alerte--vide {
+  visibility: hidden;
 }
 
 .poste-volet-vide {
@@ -2366,11 +2400,15 @@ a.poste-document:hover {
     border-bottom: 1px solid var(--bordure);
   }
 
-  /* Sur toute la largeur, la grille de deux étirerait chaque pastille en gros
-     bouton. Elles redeviennent ce qu'elles sont : quatre pastilles à la
-     suite. */
+  /* Sur toute la largeur, la grille étirerait chaque pastille en gros bouton.
+     Elles redeviennent ce qu'elles sont : des pastilles à la suite. Le filet
+     reste : c'est lui qui sépare le travail en cours de l'archive. */
   .poste-vues {
     display: flex;
     flex-wrap: wrap;
+  }
+
+  .filtre--menu {
+    padding: 0.15rem 0.6rem;
   }
 }

@@ -70,15 +70,51 @@ Les photos et les documents passent par l'application, jamais par une adresse si
 adresse signée, même d'une minute, est une adresse qui circule. Chez Bubble, ces fichiers
 pendaient à un CDN public.
 
-## Les quatre vues
+## Les cinq vues
 
-`Tous` · `Urgents` · `Mes suivis` — les trois de la maquette — et `Clôturés`, qui n'y est pas.
+Deux rangées de pastilles, et la séparation veut dire quelque chose.
 
-Sans cette quatrième, refermer un dossier reviendrait à l'effacer : les trois autres vues
-excluent les dossiers clôturés, et le décompte du volet compte ce qui est en cours.
+| Rangée | Vues | Ce qu'elles montrent |
+| --- | --- | --- |
+| le travail en cours | `Tous` · `Urgents` · `Mes suivis` | ni clôturé, ni archivé |
+| ce qui est refermé | `Clôturés` · `Archivés` | une colonne chacune |
+
+Les trois premières sont celles de la maquette. Les deux dernières n'y sont pas, et sont
+nécessaires : sans elles, refermer un dossier reviendrait à l'effacer.
+
+**Deux vues et non une pour ce qui est refermé.** `CLOTURE` et `ARCHIVER` sont deux colonnes
+distinctes reprises de Bubble, donc deux gestes distincts. Les confondre à l'écran ferait perdre
+l'information au premier tri.
 
 « Urgents » veut dire : **personne ne l'accompagne**. Le rang porte un point ambre, et le texte
-le dit aux lecteurs d'écran — la couleur seule ne suffit jamais.
+le dit aux lecteurs d'écran — la couleur seule ne suffit jamais. Le point occupe sa place sur
+tous les rangs, même quand il ne se montre pas : sinon la colonne des numéros ondulerait.
+
+### La précaution sur les valeurs de clôture
+
+Les valeurs de `CLOTURE` et `ARCHIVER` n'ont **jamais été relevées** : ce sont des listes de
+choix Bubble que l'API rend en simple texte, et le modèle le note (§ « Ce qui manque encore »).
+Rien ne garantit donc qu'elles ne contiennent pas un « Non ».
+
+D'où la règle de `suivi.ts` : une valeur qui commence par une négation — `Non`, `Non archivé`,
+`Aucune`, `false`, `0` — ne referme rien. Si ces listes ne contiennent que des motifs de
+clôture, elle ne change rien ; si l'une est un oui/non, elle évite qu'un « Non » vide l'écran de
+tout le monde. Le mauvais côté de l'erreur n'est pas le même des deux côtés.
+
+**À confirmer** avec un relevé sur les données réelles :
+
+```sql
+select cloture, count(*) from public.candidat group by 1 order by 2 desc;
+select archive, count(*) from public.candidat group by 1 order by 2 desc;
+```
+
+## L'ordre de la liste
+
+Par **numéro croissant**, et le tri vient de la base. C'est le repère que les référents ont en
+tête et celui qui est écrit sur les dossiers. Les fiches sans numéro passent à la fin.
+
+Le numéro s'affiche à droite du rang, en chiffres à chasse fixe : une liste triée sur une clé
+invisible se lit comme une liste en désordre.
 
 ## Ce qui reste éteint, à sa place définitive
 

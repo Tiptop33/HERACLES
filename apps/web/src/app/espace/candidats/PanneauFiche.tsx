@@ -220,8 +220,13 @@ function Profil({ fiche }: { fiche: FicheOuverte }) {
           <Valeur>{fiche.loge_nom}</Valeur>
           <dt>Appréciation</dt>
           <Valeur>{fiche.appreciation}</Valeur>
+          {/* Deux lignes pour deux colonnes : un dossier peut être archivé
+              sans être clôturé, et l'inverse. N'en montrer qu'une ferait dire
+              « non clôturé » à une fiche que la liste range dans l'archive. */}
           <dt>Clôture</dt>
           <Valeur absent="non clôturé">{fiche.cloture}</Valeur>
+          <dt>Archive</dt>
+          <Valeur absent="non archivé">{fiche.archive}</Valeur>
         </dl>
       </section>
 

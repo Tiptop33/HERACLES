@@ -19,6 +19,7 @@ const ligne = (p: Partial<LigneCandidat>): LigneCandidat => ({
   metier: p.metier ?? null,
   ville: p.ville ?? null,
   cloture: p.cloture ?? null,
+  archive: p.archive ?? null,
   loge_id: p.loge_id ?? null,
   loge_nom: p.loge_nom ?? null,
   referent_nom: p.referent_nom ?? null,
@@ -36,17 +37,25 @@ const loge = [
           sans_referent: true }),
   ligne({ id: 'd', nom: 'Clos', prenom: 'Paul', metier: 'Chaudronnier', ville: 'Metz',
           cloture: 'Embauché', c_est_mon_suivi: true }),
+  ligne({ id: 'e', nom: 'Range', prenom: 'Yves', metier: 'Magasinier', ville: 'Metz',
+          archive: 'Sans nouvelles', c_est_mon_suivi: true }),
 ];
 
-describe('les quatre vues du volet', () => {
-  it('reconnaît celles que la maquette dessine, et refuse le reste', () => {
-    expect(VUES.map((v) => v.valeur)).toEqual(['tous', 'urgents', 'suivis', 'clotures']);
-    expect(estVue('urgents')).toBe(true);
-    expect(estVue('archives')).toBe(false);
+describe('les cinq vues du volet', () => {
+  it('reconnaît les cinq, et refuse le reste', () => {
+    expect(VUES.map((v) => v.valeur)).toEqual([
+      'tous',
+      'urgents',
+      'suivis',
+      'clotures',
+      'archives',
+    ]);
+    expect(estVue('archives')).toBe(true);
+    expect(estVue('corbeille')).toBe(false);
     expect(estVue(undefined)).toBe(false);
   });
 
-  it('« Tous » ne montre pas les dossiers refermés', () => {
+  it('« Tous » ne montre ni les clôturés ni les archivés', () => {
     expect(filtrerParVue(loge, 'tous').map((l) => l.id)).toEqual(['a', 'b', 'c']);
   });
 
@@ -54,24 +63,49 @@ describe('les quatre vues du volet', () => {
     expect(filtrerParVue(loge, 'urgents').map((l) => l.id)).toEqual(['c']);
   });
 
-  it('« Mes suivis » laisse de côté celui qui est clôturé', () => {
+  it('« Mes suivis » laisse de côté le clôturé et l’archivé', () => {
     expect(filtrerParVue(loge, 'suivis').map((l) => l.id)).toEqual(['a']);
   });
 
-  it('« Clôturés » les rend atteignables — refermer n’est pas effacer', () => {
+  it('« Clôturés » et « Archivés » sont deux vues distinctes', () => {
     expect(filtrerParVue(loge, 'clotures').map((l) => l.id)).toEqual(['d']);
+    expect(filtrerParVue(loge, 'archives').map((l) => l.id)).toEqual(['e']);
   });
 
-  it('une clôture qui n’est que des blancs ne referme rien', () => {
-    const flou = [ligne({ id: 'e', cloture: '   ' })];
-    expect(filtrerParVue(flou, 'tous').map((l) => l.id)).toEqual(['e']);
+  it('un dossier à la fois clôturé et archivé se retrouve des deux côtés', () => {
+    const deuxFois = [ligne({ id: 'f', cloture: 'Embauché', archive: 'Rangé' })];
+    expect(filtrerParVue(deuxFois, 'clotures').map((l) => l.id)).toEqual(['f']);
+    expect(filtrerParVue(deuxFois, 'archives').map((l) => l.id)).toEqual(['f']);
+    expect(filtrerParVue(deuxFois, 'tous')).toEqual([]);
+  });
+
+  it('une valeur qui n’est que des blancs ne referme rien', () => {
+    const flou = [ligne({ id: 'g', cloture: '   ', archive: '' })];
+    expect(filtrerParVue(flou, 'tous').map((l) => l.id)).toEqual(['g']);
     expect(filtrerParVue(flou, 'clotures')).toEqual([]);
+    expect(filtrerParVue(flou, 'archives')).toEqual([]);
+  });
+
+  // Les valeurs de ces deux listes de choix Bubble n'ont jamais été relevées.
+  // Si l'une d'elles est un oui/non, un « Non » ne doit pas vider l'écran de
+  // tout le monde.
+  it('une valeur qui dit « non » ne referme rien non plus', () => {
+    for (const mot of ['Non', 'non', 'NON', 'Non archivé', 'Aucune', 'false', '0']) {
+      const dit = [ligne({ id: 'h', archive: mot })];
+      expect(filtrerParVue(dit, 'tous').map((l) => l.id), mot).toEqual(['h']);
+      expect(filtrerParVue(dit, 'archives'), mot).toEqual([]);
+    }
+  });
+
+  it('mais « Nonobstant » n’est pas une négation — on ne coupe pas au milieu d’un mot', () => {
+    const mot = [ligne({ id: 'i', archive: 'Nonobstant' })];
+    expect(filtrerParVue(mot, 'archives').map((l) => l.id)).toEqual(['i']);
   });
 });
 
 describe('la recherche du volet', () => {
   it('rend tout quand on n’a rien tapé', () => {
-    expect(chercher(loge, '   ')).toHaveLength(4);
+    expect(chercher(loge, '   ')).toHaveLength(5);
   });
 
   it('trouve par le nom, sans se soucier de la casse', () => {
@@ -81,7 +115,7 @@ describe('la recherche du volet', () => {
 
   it('trouve par le métier, la ville et le numéro', () => {
     expect(chercher(loge, 'soud').map((l) => l.id)).toEqual(['c']);
-    expect(chercher(loge, 'Metz').map((l) => l.id)).toEqual(['a', 'c', 'd']);
+    expect(chercher(loge, 'Metz').map((l) => l.id)).toEqual(['a', 'c', 'd', 'e']);
     expect(chercher(loge, '803').map((l) => l.id)).toEqual(['a']);
   });
 
@@ -103,8 +137,10 @@ describe('le décompte en tête du volet', () => {
     expect(resumeDeLaLoge([])).toBe('aucun');
   });
 
-  it('le dit aussi quand tout est refermé', () => {
-    expect(resumeDeLaLoge([ligne({ cloture: 'Embauché' })])).toBe('tous clôturés');
+  it('le dit aussi quand tout est refermé, clôturé ou archivé', () => {
+    expect(resumeDeLaLoge([ligne({ cloture: 'Embauché' }), ligne({ archive: 'Rangé' })])).toBe(
+      'aucun en cours',
+    );
   });
 });
 
