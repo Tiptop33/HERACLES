@@ -23,6 +23,7 @@ const fiche = (p: Partial<FicheAnnuaire>): FicheAnnuaire => ({
   loge_nom: p.loge_nom ?? null,
   compte_rattache: p.compte_rattache ?? true,
   c_est_moi: p.c_est_moi ?? false,
+  a_une_photo: p.a_une_photo ?? false,
   candidats_suivis: p.candidats_suivis ?? 0,
 });
 
@@ -157,5 +158,23 @@ describe('filtrerParLoge', () => {
 
   it('rend tout le monde quand on demande toutes les loges', () => {
     expect(filtrerParLoge(deTroisLoges, TOUTES_LES_LOGES)).toHaveLength(5);
+  });
+});
+
+describe('filtrerAnnuaire, sur le numéro', () => {
+  const avecNumero = [
+    fiche({ id: '1', nom: 'Delorme', telephone: '0612345678' }),
+    fiche({ id: '2', nom: 'Vasseur', telephone: '05 56 00 00 00' }),
+  ];
+
+  it('trouve sur le numéro tel qu’il s’affiche', () => {
+    // L'écran montre « 06 12 34 56 78 » : c'est cela qu'on recopie pour
+    // chercher, pas la suite de chiffres collés qui est en base.
+    expect(filtrerAnnuaire(avecNumero, '06 12 34').map((f) => f.id)).toEqual(['1']);
+  });
+
+  it('le trouve aussi tel qu’il est stocké', () => {
+    expect(filtrerAnnuaire(avecNumero, '0612345678').map((f) => f.id)).toEqual(['1']);
+    expect(filtrerAnnuaire(avecNumero, '0556').map((f) => f.id)).toEqual(['2']);
   });
 });

@@ -8,8 +8,9 @@ import {
   logesDeLAnnuaire,
   resumeDeLAnnuaire,
 } from '@/lib/annuaire';
-import { initiales, nomComplet } from '@/lib/format';
+import { initiales, nomComplet, telephone } from '@/lib/format';
 import { exigerProfil } from '@/lib/profil';
+import { DrapeauFrance } from './DrapeauFrance';
 
 export const metadata = { title: 'Référents — HERACLES' };
 
@@ -111,13 +112,30 @@ export default async function Referents({
         <div className="annuaire">
           {fiches.map((f) => {
             const nom = nomComplet(f.prenom, f.nom) || 'Sans nom';
+            const tel = telephone(f.telephone);
 
             return (
               <article key={f.id} className="fiche-annuaire">
                 <div className="fiche-annuaire-tete">
-                  <span className="initiales" aria-hidden="true">
-                    {initiales(f.prenom, f.nom)}
-                  </span>
+                  {/* La photo rapatriée de Bubble, servie sous contrôle
+                      d'accès. `alt` vide : le nom est juste en dessous, et
+                      l'annoncer deux fois n'aide personne. Faute de photo,
+                      les initiales. */}
+                  {f.a_une_photo ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      className="portrait"
+                      src={`/espace/referents/${f.id}/photo`}
+                      alt=""
+                      width={34}
+                      height={34}
+                      loading="lazy"
+                    />
+                  ) : (
+                    <span className="initiales" aria-hidden="true">
+                      {initiales(f.prenom, f.nom)}
+                    </span>
+                  )}
 
                   {/* Le nombre que porte la carte de votre maquette : les
                       candidats que cette personne accompagne aujourd'hui,
@@ -146,9 +164,12 @@ export default async function Referents({
                   <strong>{f.nom ?? ''}</strong> {f.prenom ?? ''}
                 </p>
 
-                {f.telephone ? (
-                  <p className="maigre">
-                    <a href={`tel:${f.telephone.replace(/\s/g, '')}`}>{f.telephone}</a>
+                {tel ? (
+                  <p className="maigre ligne-telephone">
+                    {/* Le drapeau ne s'affiche que sur un numéro reconnu comme
+                        français. Un numéro étranger le porterait à tort. */}
+                    {tel.francais && <DrapeauFrance />}
+                    <a href={`tel:${tel.lien}`}>{tel.affiche}</a>
                   </p>
                 ) : (
                   <p className="maigre">téléphone non renseigné</p>
