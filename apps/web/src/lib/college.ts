@@ -1,5 +1,3 @@
-import { supabaseServer } from './supabase-server';
-
 /**
  * Les titres du collège — Vénérable Maître, Secrétaire, Trésorier…
  *
@@ -7,6 +5,10 @@ import { supabaseServer } from './supabase-server';
  * « Collège » d'un référent y puise sa liste, mais n'y est pas contraint :
  * `referent.college` reste du texte, et une fiche qui porte un titre retiré de
  * la liste le garde.
+ *
+ * Ce module ne contient que des fonctions pures : il est importé par la liste,
+ * qui est un composant client. Les lectures en base sont dans
+ * `college-serveur.ts`.
  */
 
 export type TitreCollege = {
@@ -16,22 +18,6 @@ export type TitreCollege = {
   /** Combien de référents portent ce titre aujourd'hui. */
   utilisations: number;
 };
-
-/**
- * La liste complète, dans l'ordre voulu. Passe par une fonction de la base :
- * compter les référents d'un titre suppose de lire des fiches que l'appelant
- * n'a pas le droit de lire.
- */
-export async function listerCollege(): Promise<TitreCollege[]> {
-  const supabase = await supabaseServer();
-  const { data } = await supabase.rpc('liste_college');
-  return (data as TitreCollege[]) ?? [];
-}
-
-/** Les seuls noms, pour remplir un menu déroulant. */
-export async function nomsDuCollege(): Promise<string[]> {
-  return (await listerCollege()).map((t) => t.nom);
-}
 
 /**
  * Les choix à proposer pour une fiche, la valeur qu'elle porte comprise.
@@ -47,4 +33,29 @@ export function choixDeCollege(titres: string[], valeur: string | null): string[
 
   const deja = titres.some((t) => t.toLowerCase() === actuel.toLowerCase());
   return deja ? titres : [...titres, actuel];
+}
+
+/**
+ * L'ordre obtenu en déposant un titre sur un autre : le tiré prend la place du
+ * survolé, les autres se décalent.
+ *
+ * Une fonction à part, et pure : c'est le seul endroit où le rangement peut
+ * être faux, et le glisser-déposer d'un navigateur ne s'éprouve pas en
+ * regardant l'écran.
+ */
+export function deplacerDans<T extends { id: string }>(
+  liste: readonly T[],
+  tire: string,
+  cible: string,
+): T[] {
+  if (tire === cible) return [...liste];
+
+  const depuis = liste.findIndex((t) => t.id === tire);
+  const vers = liste.findIndex((t) => t.id === cible);
+  if (depuis < 0 || vers < 0) return [...liste];
+
+  const range = [...liste];
+  const [deplace] = range.splice(depuis, 1);
+  range.splice(vers, 0, deplace);
+  return range;
 }

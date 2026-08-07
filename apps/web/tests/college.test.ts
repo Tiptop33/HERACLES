@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { choixDeCollege } from '../src/lib/college';
+import { choixDeCollege, deplacerDans } from '../src/lib/college';
 
 const liste = ['Vénérable Maître', 'Secrétaire', 'Trésorier'];
 
@@ -24,5 +24,35 @@ describe('choixDeCollege', () => {
   it('fonctionne sur une liste vide', () => {
     expect(choixDeCollege([], 'Expert')).toEqual(['Expert']);
     expect(choixDeCollege([], null)).toEqual([]);
+  });
+});
+
+describe('deplacerDans', () => {
+  const liste = [{ id: 'a' }, { id: 'b' }, { id: 'c' }, { id: 'd' }];
+  const ids = (l: { id: string }[]) => l.map((x) => x.id).join('');
+
+  it('remonte un titre à la place de celui qu’on survole', () => {
+    // Éprouvé aussi au navigateur : le 4e déposé sur le 1er donne bien dabc.
+    expect(ids(deplacerDans(liste, 'd', 'a'))).toBe('dabc');
+  });
+
+  it('le descend de la même façon', () => {
+    expect(ids(deplacerDans(liste, 'a', 'c'))).toBe('bcad');
+  });
+
+  it('ne bouge rien quand on dépose un titre sur lui-même', () => {
+    expect(ids(deplacerDans(liste, 'b', 'b'))).toBe('abcd');
+  });
+
+  it('ne bouge rien quand un identifiant est inconnu', () => {
+    // La liste a pu changer sous nos pieds : mieux vaut ne rien faire.
+    expect(ids(deplacerDans(liste, 'z', 'a'))).toBe('abcd');
+    expect(ids(deplacerDans(liste, 'a', 'z'))).toBe('abcd');
+  });
+
+  it('ne modifie pas la liste qu’on lui donne', () => {
+    const depart = [...liste];
+    deplacerDans(liste, 'd', 'a');
+    expect(liste).toEqual(depart);
   });
 });
