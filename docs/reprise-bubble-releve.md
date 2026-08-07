@@ -23,6 +23,27 @@
 Les comptes constatés à l'arrivée correspondent exactement à ceux relevés côté Bubble avant
 la reprise.
 
+## Reprise rejouée le 7 août 2026, sur le serveur d'essai
+
+Même commande, sur le VPS cette fois : `infra/essai/reprendre-bubble.sh --fichiers`. Comptes
+relevés dans le manifeste de la sauvegarde prise dans la foulée.
+
+| Table | 4 août | 7 août | |
+| --- | ---: | ---: | --- |
+| `candidat` | 107 | **118** | +11 |
+| `referent` | 71 | **74** | +3 |
+| `loge` | 3 | **5** | +2 |
+| `offre_emploi` | 4 539 | **4 543** | +4 |
+| `document` | 135 | **139** | +4 |
+
+**Trois jours, et déjà onze candidats et deux loges d'écart.** C'est la démonstration de ce
+que dit [`MAJBUBBLE.md`](MAJBUBBLE.md) : une reprise vieillit à vue d'œil, et celle qui compte
+est la dernière. À l'échelle du 5 décembre, ce ne sont pas onze fiches, c'est quatre mois.
+
+Deux points à reprendre à la lumière de ces chiffres : les loges ne sont plus trois — le menu
+de l'annuaire en montre cinq — et la répartition des référents entre elles est à revérifier
+avant de préparer les invitations.
+
 ## Pourquoi deux sources
 
 Au moment de la reprise, les deux bases de Bubble n'étaient pas au même niveau :
