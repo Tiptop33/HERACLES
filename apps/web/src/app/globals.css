@@ -1719,3 +1719,170 @@ tbody tr:focus-within {
 .fiche-annuaire a:hover {
   text-decoration: underline;
 }
+
+/* ————————————————————————————————————————————————————————————————————————
+   Les paramètres : le menu des rubriques à gauche, la rubrique à droite.
+   ———————————————————————————————————————————————————————————————————————— */
+
+.parametres-deux-volets {
+  display: grid;
+  grid-template-columns: 12rem 1fr;
+  gap: 1.2rem;
+  align-items: start;
+}
+
+/* En dessous, deux volets côte à côte ne laissent plus rien à lire : le menu
+   repasse au-dessus, en bandeau. */
+@media (max-width: 720px) {
+  .parametres-deux-volets {
+    grid-template-columns: 1fr;
+  }
+
+  .parametres-menu {
+    flex-direction: row;
+    flex-wrap: wrap;
+    border-right: none;
+    border-bottom: 1px solid var(--bordure);
+    padding-bottom: 0.4rem;
+  }
+}
+
+.parametres-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  border-right: 1px solid var(--bordure);
+  padding-right: 0.6rem;
+}
+
+.parametres-entree {
+  display: block;
+  padding: 0.4rem 0.7rem;
+  font-size: 0.86rem;
+  color: var(--encre);
+  text-decoration: none;
+  border-radius: 8px;
+}
+
+.parametres-entree:hover {
+  background: var(--surface-creuse);
+}
+
+.parametres-entree--courante {
+  background: var(--candidat-clair);
+  color: var(--candidat);
+  font-weight: 700;
+}
+
+.parametres-entree--eteinte {
+  color: var(--encre-tres-douce);
+  cursor: default;
+}
+
+/* Pas plus large qu'il ne faut : un champ de titre de 1 200 px de long donne
+   à « Secrétaire » l'air d'une phrase. */
+.parametres-contenu {
+  max-width: 42rem;
+}
+
+.parametres-contenu h2 {
+  font-size: 1.05rem;
+  margin-bottom: 0.2rem;
+}
+
+.parametres-contenu > .aide {
+  margin: 0 0 1.1rem;
+}
+
+/* ————— La liste des titres ————— */
+
+.college-ajout {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.1rem;
+}
+
+.college-ajout input {
+  font: inherit;
+  font-size: 0.9rem;
+  flex: 1;
+  min-width: 0;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid var(--bordure);
+  border-radius: 9px;
+  background: var(--surface-creuse);
+  color: inherit;
+}
+
+.college-liste {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.college-ligne {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--surface);
+  border: 1px solid var(--bordure);
+  border-radius: 10px;
+  padding: 0.4rem 0.6rem;
+  flex-wrap: wrap;
+}
+
+.college-fleches {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  flex: none;
+}
+
+.fleche {
+  font: inherit;
+  font-size: 0.7rem;
+  line-height: 1;
+  padding: 0.15rem 0.35rem;
+  border: 1px solid var(--bordure);
+  border-radius: 5px;
+  background: var(--surface-creuse);
+  color: var(--encre-douce);
+  cursor: pointer;
+}
+
+.fleche:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.college-renommer {
+  display: flex;
+  gap: 0.4rem;
+  flex: 1;
+  min-width: 12rem;
+}
+
+.college-renommer input {
+  font: inherit;
+  font-size: 0.9rem;
+  flex: 1;
+  min-width: 0;
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--bordure);
+  border-radius: 8px;
+  background: var(--surface-creuse);
+  color: inherit;
+}
+
+.college-renommer .bouton {
+  font-size: 0.8rem;
+  padding: 0.4rem 0.7rem;
+}
+
+.college-usage {
+  font-size: 0.78rem;
+  white-space: nowrap;
+}
