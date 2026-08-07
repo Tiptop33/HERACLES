@@ -42,7 +42,13 @@
 --    grade, ni officier, ni dernière visite. L'annuaire sert à joindre
 --    quelqu'un, pas à le passer en revue.
 -- ---------------------------------------------------------------------------
-create or replace function public.annuaire_referents()
+--    `drop` avant de créer : les migrations se rejouent toutes, dans l'ordre, à
+--    chaque déploiement. Or 0013 redéfinit cette fonction avec une colonne de
+--    plus, et `create or replace` refuse de changer un type de retour. Sans ce
+--    `drop`, le second passage échouerait ici — et il l'a fait.
+drop function if exists public.annuaire_referents();
+
+create function public.annuaire_referents()
 returns table (
   id                uuid,
   nom               text,
