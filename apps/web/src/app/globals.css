@@ -2001,7 +2001,11 @@ tbody tr:focus-within {
 
 .poste {
   display: grid;
-  grid-template-columns: 15rem minmax(0, 1fr);
+  /* Seize rem, et non les treize de la maquette : elle ne dessine que trois
+     pastilles, nous en avons quatre. En dessous, « Clôturés » passe à la ligne
+     et vole vingt pixels au volet — de façon permanente, puisque l'en-tête
+     colle. */
+  grid-template-columns: 16rem minmax(0, 1fr);
   align-items: start;
   /* Sans hauteur minimale, un candidat à la fiche courte laisserait le filet
      du volet s'arrêter au milieu de l'écran. */
@@ -2055,17 +2059,21 @@ tbody tr:focus-within {
   padding: 0.3rem 0.55rem;
 }
 
+/* Deux sur deux, et non quatre à la suite : « Tous · Urgents · Mes suivis ·
+   Clôturés » ne tient pas sur la largeur du volet, et laissé libre le dernier
+   retombe seul à la ligne — ce qui se lit comme un accident. Une grille de
+   quatre cases égales se lit comme un choix. */
 .poste-vues {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 0.25rem;
 }
 
-/* Les mêmes pastilles que les listes, en plus petit : quatre doivent tenir sur
-   quinze rem sans passer à la ligne. */
 .filtre--menu {
-  font-size: 0.7rem;
-  padding: 0.1rem 0.5rem;
+  font-size: 0.72rem;
+  padding: 0.15rem 0.45rem;
+  text-align: center;
+  white-space: nowrap;
 }
 
 .poste-rangs {
@@ -2263,9 +2271,13 @@ tbody tr:focus-within {
 
 /* ————— Les documents, en cartes ————— */
 
+/* Des cartes, pas des bandeaux : `auto-fill` avec un maximum les empêche de
+   s'étirer sur toute la largeur quand il n'y en a que quatre. Une carte de
+   trois cents pixels pour deux mots, c'est de l'air qu'on prend pour du vide. */
 .poste-documents {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(9rem, 11rem));
+  justify-content: start;
   gap: 0.7rem;
 }
 
@@ -2334,8 +2346,13 @@ a.poste-document:hover {
 
 /* Sous cette largeur, deux colonnes ne laissent plus assez à la fiche : le
    volet repasse au-dessus, sur toute la largeur, et garde une hauteur bornée
-   pour ne pas repousser la fiche hors de l'écran. */
-@media (max-width: 62rem) {
+   pour ne pas repousser la fiche hors de l'écran.
+
+   Le seuil tient compte de la colonne de gauche — 13,5 rem — qui reste
+   verticale jusqu'à 46 rem : à 56 rem d'écran, il reste 42 rem au poste, soit
+   16 pour le volet et 26 pour la fiche. En dessous, la fiche deviendrait un
+   couloir. */
+@media (max-width: 56rem) {
   .poste {
     display: block;
     min-height: 0;
@@ -2347,5 +2364,13 @@ a.poste-document:hover {
     max-height: 18rem;
     border-right: none;
     border-bottom: 1px solid var(--bordure);
+  }
+
+  /* Sur toute la largeur, la grille de deux étirerait chaque pastille en gros
+     bouton. Elles redeviennent ce qu'elles sont : quatre pastilles à la
+     suite. */
+  .poste-vues {
+    display: flex;
+    flex-wrap: wrap;
   }
 }

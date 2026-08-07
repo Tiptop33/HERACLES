@@ -91,7 +91,6 @@ export default function PanneauFiche({
               <span className="etiquette">Parrain&nbsp;: {fiche.parrain_nom}</span>
             )}
             {fiche.loge_nom && <span className="etiquette">{fiche.loge_nom}</span>}
-            <span className="etiquette">Fiche remplie à {fiche.remplissage}&nbsp;%</span>
           </div>
         </div>
 
@@ -256,6 +255,19 @@ function Profil({ fiche }: { fiche: FicheOuverte }) {
           <Valeur>{dateEnLettres(fiche.maj_le)}</Valeur>
           <dt>Origine</dt>
           <Valeur>{fiche.bubble_id ? 'Reprise Bubble' : 'Saisie dans HERACLES'}</Valeur>
+          {/* Le taux de remplissage était une étiquette de l'en-tête : cinq
+              étiquettes passaient à la ligne, et celle-ci était la moins utile
+              des cinq pour savoir de qui l'on parle. Elle dit où le travail
+              reste à faire — sa place est dans l'historique de la fiche. */}
+          <dt>Renseignée</dt>
+          <Valeur>
+            <div className="jauge">
+              <div className="jauge-piste">
+                <div className="jauge-part" style={{ width: `${fiche.remplissage}%` }} />
+              </div>
+              <span>{fiche.remplissage}&nbsp;%</span>
+            </div>
+          </Valeur>
         </dl>
       </section>
     </div>
