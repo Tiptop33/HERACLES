@@ -1633,6 +1633,15 @@ tbody tr:focus-within {
   max-width: 32rem;
 }
 
+/* Les boutons vont à droite, au bout de la colonne — là où le regard arrive
+   après avoir descendu les champs.
+   Le `margin-left: auto` de `.fiche-actions` ne suffit pas ici : la rangée
+   occupe déjà toute la largeur du formulaire. C'est son contenu qu'il faut
+   pousser, pas elle. */
+.formulaire-une-colonne .fiche-actions {
+  justify-content: flex-end;
+}
+
 /* Le lien de retour va à droite de l'en-tête, comme les filtres des listes :
    collé au sous-titre, il se lit comme une suite de la phrase. */
 .entete-liste > .lien-nu {

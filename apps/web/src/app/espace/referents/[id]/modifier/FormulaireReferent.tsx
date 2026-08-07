@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import type { FicheAnnuaire } from '@/lib/annuaire';
 import type { LogeBreve } from '@/lib/administration';
+import { telephone } from '@/lib/format';
 
 type Erreur = { champ: string | null; message: string };
 
@@ -97,15 +98,32 @@ export default function FormulaireReferent({
         <input name="college" defaultValue={fiche.college ?? ''} />
       </label>
 
+      {/* Le numéro s'affiche ici comme il s'affiche sur la carte, et non tel
+          que Bubble l'a enregistré : 39 fiches sur 42 en sont revenues sans
+          leur zéro initial, et corriger un numéro qu'on ne reconnaît pas est
+          une invitation à se tromper.
+
+          Vous pouvez le saisir comme vous voulez — collé, pointé, avec ou sans
+          indicatif : le serveur le remet en forme à l'enregistrement. */}
       <label className="champ">
         <span>Téléphone</span>
-        <input name="telephone" type="tel" defaultValue={fiche.telephone ?? ''} />
+        <input
+          name="telephone"
+          type="tel"
+          defaultValue={telephone(fiche.telephone)?.affiche ?? ''}
+          inputMode="tel"
+        />
       </label>
 
       <label className="champ">
         <span>Adresse e-mail</span>
         <input name="email" type="email" defaultValue={fiche.email ?? ''} />
       </label>
+
+      <p className="aide">
+        Le numéro se saisit comme on veut — collé, pointé, avec ou sans indicatif : il est
+        enregistré au format 06&nbsp;12&nbsp;34&nbsp;56&nbsp;78.
+      </p>
 
       <p className="aide">
         L&apos;adresse sert à rattacher cette fiche à un compte : à la création du compte, celui-ci
