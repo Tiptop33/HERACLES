@@ -26,7 +26,9 @@ const TYPES = ['Alternance', 'Emploi', 'Stage'];
 
 export default function FormulaireCandidat({ candidat }: { candidat: FicheCandidat }) {
   const router = useRouter();
-  const retour = `/espace/referent/candidats/${candidat.id}`;
+  // On revient au poste de travail, sur la fiche qu'on vient de corriger : la
+  // liste est encore là, et le candidat suivant est à un clic.
+  const retour = `/espace/candidats?fiche=${candidat.id}`;
 
   const [erreur, setErreur] = useState<string | null>(null);
   const [envoi, setEnvoi] = useState(false);
@@ -82,7 +84,7 @@ export default function FormulaireCandidat({ candidat }: { candidat: FicheCandid
     <form onSubmit={soumettre} method="post">
       <div className="corps">
         <p className="fil">
-          <Link href="/espace/referent">Mes candidats</Link> <span aria-hidden="true">›</span>{' '}
+          <Link href="/espace/candidats">Candidats</Link> <span aria-hidden="true">›</span>{' '}
           <Link href={retour}>
             {[candidat.prenom, candidat.nom].filter(Boolean).join(' ') || 'Sans nom'}
           </Link>{' '}

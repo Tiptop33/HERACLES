@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { lireCandidat } from '@/lib/candidat';
 import { enTeteDeTelechargement, extensionDe, typeDeFichier } from '@/lib/fichiers';
+import { lireFiche } from '@/lib/poste';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 
 /**
@@ -10,10 +10,14 @@ import { supabaseAdmin } from '@/lib/supabase-admin';
  * l'adresse avait le CV. Ici, l'ordre est celui que le projet impose, et
  * jamais un autre :
  *
- *   1. la session et le droit métier — `lireCandidat` passe par la RLS
- *      (migration 0006). Si la fiche n'est pas rattachée à la personne
- *      connectée, la requête ne rend rien et tout s'arrête là ;
+ *   1. la session et le droit métier — `lireFiche` passe par
+ *      `fiche_candidat()` (migration 0020), qui n'ouvre qu'aux candidats de
+ *      ses loges. Hors de là, la base ne rend rien et tout s'arrête ;
  *   2. alors seulement `supabaseAdmin()`, pour lire les octets.
+ *
+ * La règle est celle de la fiche, et c'est voulu : un document qu'on voit
+ * nommé sur un écran doit pouvoir s'ouvrir depuis cet écran. L'inverse — une
+ * carte « CV » qui renvoie une erreur — apprend à douter de l'application.
  *
  * Le seau `documents` est privé et ne porte aucune policy : une adresse signée
  * demandée sous la clé anonyme ne peut pas aboutir. Les octets passent donc par
@@ -43,7 +47,7 @@ export async function GET(
     return NextResponse.json({ erreur: 'Document inconnu.' }, { status: 404 });
   }
 
-  const candidat = await lireCandidat(id);
+  const candidat = await lireFiche(id);
   if (!candidat) {
     return NextResponse.json({ erreur: 'Document introuvable.' }, { status: 404 });
   }

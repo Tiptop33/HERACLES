@@ -48,6 +48,14 @@
   --mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
   --rayon: 4px;
   --largeur: 72rem;
+
+  /* La hauteur de la barre du haut, écrite une fois et partagée.
+     0,7 rem de marge en haut et en bas, 1,9 rem pour la pastille — qui est
+     l'élément le plus haut de la barre —, et son filet d'un pixel. Le poste de
+     travail s'en sert pour coller son volet juste dessous : sans cette valeur,
+     l'un des deux flotterait, et le jour où la barre changerait de hauteur, le
+     décalage se verrait sans qu'on sache d'où il vient. */
+  --barre-h: calc(3.3rem + 1px);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -589,6 +597,10 @@ h3 {
   width: 100%;
   max-width: var(--largeur);
   margin: 0 auto;
+  /* La hauteur de la pastille, posée explicitement : c'est elle qui fixe la
+     hauteur de la barre, donc la valeur de `--barre-h`. Une barre sans
+     pastille — il n'y en a pas aujourd'hui — garderait la même hauteur. */
+  min-height: 1.9rem;
 }
 
 .marque {
@@ -1975,4 +1987,365 @@ tbody tr:focus-within {
    qui le précède. */
 .college-ajouter {
   margin-left: auto;
+}
+
+/* ————————————————————————————————————————————————————————————————————————
+   Le poste de travail : la liste permanente à gauche, la fiche à droite.
+   Maquette 1c.
+
+   « La liste ne disparaît jamais, la fiche s'ouvre à côté. On enchaîne dix
+   candidats sans revenir en arrière. » Toute la mise en page découle de cette
+   phrase : deux colonnes, deux défilements distincts, et un volet de gauche
+   qui reste sous la barre quoi qu'il arrive.
+   ———————————————————————————————————————————————————————————————————————— */
+
+.poste {
+  display: grid;
+  grid-template-columns: 15rem minmax(0, 1fr);
+  align-items: start;
+  /* Sans hauteur minimale, un candidat à la fiche courte laisserait le filet
+     du volet s'arrêter au milieu de l'écran. */
+  min-height: calc(100dvh - var(--barre-h));
+}
+
+/* Le volet colle sous la barre et défile pour son compte. Trois choses lui
+   sont nécessaires, et il en manque une, ça ne colle plus : un `top` égal à la
+   hauteur de la barre, une hauteur qui s'arrête au bas de la fenêtre, et son
+   propre `overflow` — sans quoi c'est la page entière qui défilerait. */
+.poste-volet {
+  position: sticky;
+  top: var(--barre-h);
+  height: calc(100dvh - var(--barre-h));
+  overflow-y: auto;
+  border-right: 1px solid var(--bordure);
+  background: var(--surface);
+  display: flex;
+  flex-direction: column;
+}
+
+/* Le titre, la recherche et les vues restent visibles pendant qu'on descend
+   la liste : chercher quelqu'un ne doit pas demander de remonter. */
+.poste-volet-tete {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--surface);
+  border-bottom: 1px solid var(--bordure);
+  padding: 0.7rem 0.7rem 0.6rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.poste-volet-titre {
+  margin: 0;
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+}
+
+.poste-chercher {
+  display: flex;
+}
+
+.poste-chercher .recherche {
+  width: 100%;
+  min-width: 0;
+  font-size: 0.82rem;
+  padding: 0.3rem 0.55rem;
+}
+
+.poste-vues {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+/* Les mêmes pastilles que les listes, en plus petit : quatre doivent tenir sur
+   quinze rem sans passer à la ligne. */
+.filtre--menu {
+  font-size: 0.7rem;
+  padding: 0.1rem 0.5rem;
+}
+
+.poste-rangs {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.poste-rang {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 0.7rem;
+  border-bottom: 1px dashed var(--bordure);
+  text-decoration: none;
+  color: inherit;
+}
+
+.poste-rang:hover {
+  background: var(--surface-creuse);
+}
+
+/* Le rang ouvert se marque par un trait à gauche, posé en ombre intérieure et
+   non en bordure : une bordure décalerait le contenu de trois pixels à chaque
+   changement de candidat, et l'œil suivrait ce tremblement plutôt que la
+   fiche. */
+.poste-rang[aria-current='true'] {
+  background: var(--candidat-clair);
+  box-shadow: inset 3px 0 0 var(--marque);
+  font-weight: 700;
+}
+
+.poste-rang-portrait {
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 50%;
+  object-fit: cover;
+  background: var(--candidat-clair);
+  flex: none;
+}
+
+.poste-rang-initiales {
+  display: grid;
+  place-items: center;
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: var(--candidat);
+}
+
+/* `min-width: 0` sur un enfant de flex : sans lui, un nom long refuse de se
+   couper et élargit le volet au lieu de s'abréger. */
+.poste-rang-textes {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+
+.poste-rang-textes strong {
+  font-size: 0.78rem;
+  line-height: 1.25;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.poste-rang-textes small {
+  font-size: 0.68rem;
+  color: var(--encre-douce);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Le point des « urgents ». La couleur ne suffit pas à le dire : le titre
+   l'écrit, et un texte caché le donne aux lecteurs d'écran. */
+.poste-rang-alerte {
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 50%;
+  background: var(--attention);
+  flex: none;
+}
+
+.poste-volet-vide {
+  padding: 1rem 0.8rem;
+  font-size: 0.8rem;
+  color: var(--encre-douce);
+  margin: 0;
+}
+
+/* ————— Le volet de droite ————— */
+
+.poste-fiche {
+  min-width: 0;
+  padding: 1.1rem var(--pas) 4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.poste-fiche-vide {
+  margin: 0;
+  padding: 3rem 0;
+  color: var(--encre-tres-douce);
+  font-size: 0.92rem;
+  text-align: center;
+}
+
+.poste-tete {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+  flex-wrap: wrap;
+}
+
+.poste-tete-portrait {
+  width: 3.25rem;
+  height: 3.25rem;
+  border-radius: 50%;
+  object-fit: cover;
+  background: var(--candidat-clair);
+  flex: none;
+}
+
+.poste-tete-initiales {
+  display: grid;
+  place-items: center;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--candidat);
+}
+
+.poste-tete-textes {
+  flex: 1;
+  min-width: 0;
+}
+
+.poste-tete-textes h1 {
+  font-size: 1.25rem;
+  font-weight: 800;
+  margin: 0;
+}
+
+.poste-tete-textes .sous {
+  margin: 0.1rem 0 0.45rem;
+  font-size: 0.85rem;
+  color: var(--encre-douce);
+}
+
+/* Un geste qui n'existe pas encore, mais dont la place est prise : même
+   traitement que les entrées éteintes de la colonne de gauche. */
+.bouton--eteint {
+  color: var(--encre-tres-douce);
+  border-style: dashed;
+  cursor: default;
+}
+
+/* ————— Les onglets de la fiche ————— */
+
+.poste-onglets {
+  display: flex;
+  gap: 1.1rem;
+  flex-wrap: wrap;
+  border-bottom: 1px solid var(--bordure);
+}
+
+.poste-onglet {
+  font-size: 0.85rem;
+  color: var(--encre-douce);
+  text-decoration: none;
+  padding-bottom: 0.45rem;
+  margin-bottom: -1px;
+  border-bottom: 2px solid transparent;
+}
+
+.poste-onglet:hover {
+  color: var(--encre);
+}
+
+.poste-onglet[aria-current='true'] {
+  color: var(--encre);
+  font-weight: 700;
+  border-bottom-color: var(--marque);
+}
+
+.poste-onglet--eteint {
+  color: var(--encre-tres-douce);
+  cursor: default;
+}
+
+.poste-onglet--eteint:hover {
+  color: var(--encre-tres-douce);
+}
+
+/* ————— Les documents, en cartes ————— */
+
+.poste-documents {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: 0.7rem;
+}
+
+.poste-document {
+  border: 1px dashed var(--bordure-nette);
+  border-radius: 10px;
+  padding: 0.9rem 0.7rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  text-align: center;
+  text-decoration: none;
+  color: inherit;
+  font-size: 0.8rem;
+  background: var(--surface);
+}
+
+/* Ce qui s'ouvre a un trait plein ; ce qui n'existe pas garde le pointillé.
+   La différence se voit avant même de lire l'étiquette. */
+a.poste-document {
+  border-style: solid;
+}
+
+a.poste-document:hover {
+  border-color: var(--marque);
+  background: var(--candidat-clair);
+}
+
+.poste-document-type {
+  font-family: var(--mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  padding: 0.15rem 0.4rem;
+  border-radius: 3px;
+  background: var(--surface-creuse);
+  color: var(--encre-douce);
+}
+
+.poste-document--absent {
+  color: var(--encre-tres-douce);
+}
+
+.poste-document small {
+  font-size: 0.68rem;
+  color: var(--encre-tres-douce);
+}
+
+/* ————— Imprimer une fiche depuis le poste de travail ————— */
+
+@media print {
+  .poste {
+    display: block;
+    min-height: 0;
+  }
+
+  .poste-volet,
+  .poste-onglets {
+    display: none;
+  }
+
+  .poste-fiche {
+    padding: 0;
+  }
+}
+
+/* Sous cette largeur, deux colonnes ne laissent plus assez à la fiche : le
+   volet repasse au-dessus, sur toute la largeur, et garde une hauteur bornée
+   pour ne pas repousser la fiche hors de l'écran. */
+@media (max-width: 62rem) {
+  .poste {
+    display: block;
+    min-height: 0;
+  }
+
+  .poste-volet {
+    position: static;
+    height: auto;
+    max-height: 18rem;
+    border-right: none;
+    border-bottom: 1px solid var(--bordure);
+  }
 }
