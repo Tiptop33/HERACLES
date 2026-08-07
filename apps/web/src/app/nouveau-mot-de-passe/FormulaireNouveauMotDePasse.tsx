@@ -4,11 +4,17 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { REGLES, force, premiereFaute } from '@/lib/motdepasse';
 
-export default function FormulaireNouveauMotDePasse() {
+type Erreur = { champ: string | null; message: string };
+
+export default function FormulaireNouveauMotDePasse({
+  erreurInitiale,
+}: {
+  erreurInitiale?: Erreur | null;
+}) {
   const router = useRouter();
   const [motDePasse, setMotDePasse] = useState('');
   const [confirmation, setConfirmation] = useState('');
-  const [erreur, setErreur] = useState<{ champ: string | null; message: string } | null>(null);
+  const [erreur, setErreur] = useState<Erreur | null>(erreurInitiale ?? null);
   const [envoi, setEnvoi] = useState(false);
 
   const niveau = force(motDePasse);
