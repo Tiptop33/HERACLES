@@ -87,7 +87,27 @@ select public.verifier(
   (select count(*) from information_schema.role_table_grants
     where table_schema = 'public' and grantee = 'authenticated'
       and privilege_type = 'UPDATE') = 2,
-  'deux tables seulement sont modifiables : le profil et le candidat');
+  'deux tables seulement sont modifiables en entier : le profil et le candidat');
+
+-- Un droit peut aussi se donner colonne par colonne, et cette vue-là ne le
+-- montre pas. Sans le contrôle qui suit, on croirait la liste ci-dessus
+-- complète alors qu'une table s'est entrouverte ailleurs. L'annuaire (0012)
+-- a ouvert six colonnes de `referent` — six, et pas `profil_id` ni
+-- `bubble_id`, qui rattachent une fiche à un compte et à la reprise.
+select public.verifier(
+  (select array_agg(column_name::text order by column_name::text)
+     from information_schema.role_column_grants
+    where table_schema = 'public' and grantee = 'authenticated'
+      and privilege_type = 'UPDATE' and table_name = 'referent')
+  = array['college', 'email', 'loge_id', 'nom', 'prenom', 'telephone'],
+  'de `referent`, six colonnes exactement — jamais le rattachement au compte');
+
+select public.verifier(
+  (select count(distinct table_name) from information_schema.role_column_grants
+    where table_schema = 'public' and grantee = 'authenticated'
+      and privilege_type = 'UPDATE'
+      and table_name not in ('profil', 'candidat', 'referent')) = 0,
+  'et aucune autre table ne s''est entrouverte par une colonne');
 
 select public.verifier(
   (select count(*) from information_schema.role_table_grants

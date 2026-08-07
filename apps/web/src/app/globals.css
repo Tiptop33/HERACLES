@@ -1372,3 +1372,77 @@ tbody tr:focus-within {
     border-bottom-color: var(--marque);
   }
 }
+
+/* ————— L'annuaire des référents ————— */
+
+.annuaire {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+  gap: 0.8rem;
+}
+
+.fiche-annuaire {
+  border: 1px solid var(--bordure);
+  border-radius: 12px;
+  background: var(--surface);
+  padding: 0.85rem 0.95rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.fiche-annuaire p {
+  margin: 0;
+  font-size: 0.82rem;
+}
+
+.fiche-annuaire-tete {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.35rem;
+}
+
+/* Le nombre de la carte : les candidats que cette personne accompagne. Il
+   pousse « Modifier » à droite, comme dans la maquette. */
+.compte-suivis {
+  margin-left: auto;
+  font-weight: 700;
+  font-size: 0.82rem;
+  color: var(--encre-douce);
+}
+
+.fiche-annuaire-tete .lien-nu {
+  font-size: 0.78rem;
+}
+
+.compte-suivis + .lien-nu {
+  margin-left: 0.5rem;
+}
+
+.fiche-annuaire-tete .lien-nu:only-of-type {
+  margin-left: auto;
+}
+
+.fiche-annuaire-nom {
+  font-size: 0.9rem !important;
+  letter-spacing: 0.01em;
+}
+
+.fiche-annuaire-pied {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  margin-top: 0.4rem !important;
+  padding-top: 0.4rem;
+  border-top: 1px dashed var(--bordure);
+}
+
+.fiche-annuaire a {
+  text-decoration: none;
+}
+
+.fiche-annuaire a:hover {
+  text-decoration: underline;
+}
