@@ -1491,6 +1491,101 @@ tbody tr:focus-within {
   font-size: 0.78rem;
 }
 
+/* ————— Corriger, retirer ————— */
+
+.gestes {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.15rem;
+}
+
+.compte-suivis + .gestes {
+  margin-left: 0.5rem;
+}
+
+/* Une cible d'au moins 32 px : un doigt ne vise pas un trait de 16 px. */
+.geste {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 8px;
+  color: var(--encre-tres-douce);
+  text-decoration: none;
+}
+
+.geste:hover,
+.geste:focus-visible {
+  background: var(--surface-creuse);
+}
+
+.geste--corriger {
+  color: #c2660f;
+}
+
+.geste--retirer {
+  color: var(--alerte);
+}
+
+.icone {
+  width: 1.05rem;
+  height: 1.05rem;
+}
+
+/* ————— La fenêtre de confirmation ————— */
+
+.fenetre-fond {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  padding: var(--pas);
+}
+
+/* Le voile est un lien : cliquer à côté referme, sans une ligne de script. */
+.fenetre-voile {
+  position: absolute;
+  inset: 0;
+  background: rgb(11 20 30 / 55%);
+}
+
+.fenetre {
+  position: relative;
+  width: 100%;
+  max-width: 27rem;
+  background: var(--surface);
+  border: 1px solid var(--bordure);
+  border-radius: 14px;
+  padding: 1.4rem 1.5rem 1.2rem;
+  box-shadow: 0 18px 40px rgb(11 20 30 / 22%);
+}
+
+.fenetre h2 {
+  font-size: 1.05rem;
+  margin-bottom: 0.7rem;
+}
+
+.fenetre p {
+  margin: 0 0 0.6rem;
+  font-size: 0.9rem;
+  color: var(--encre-douce);
+}
+
+.fenetre-gestes {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 1.1rem;
+}
+
+.bouton--danger {
+  background: var(--alerte);
+  border-color: var(--alerte);
+  color: #fff;
+}
+
 .compte-suivis + .lien-nu {
   margin-left: 0.5rem;
 }
