@@ -141,10 +141,11 @@ cat <<'FIN'
      contient des candidats. Il dit comment sauvegarder, et comment passer
      outre — ce qui efface tout.
 
-  2. Une sauvegarde devient nécessaire. Le plus simple, en attendant mieux :
-       docker exec heracles-essai-db pg_dump -U postgres postgres | gzip > /root/heracles-$(date +%F).sql.gz
-     À sortir du VPS : une sauvegarde qui reste sur la machine qu'elle protège
-     n'en est pas une.
+  2. Une sauvegarde devient nécessaire — base, fichiers et de quoi vérifier :
+       sudo /opt/heracles-essai-depot/infra/essai/installer-sauvegarde.sh
+     Elle en prend une tout de suite, puis chaque nuit. Reste à en tirer une
+     copie depuis votre poste : une sauvegarde qui ne quitte pas la machine
+     qu'elle protège n'en est pas une. Voir docs/sauvegarde.md.
 
   3. L'API Bubble répond toujours sans jeton. Les mêmes données sont désormais
      à deux endroits ; il n'y a plus de raison de laisser la première ouverte.
