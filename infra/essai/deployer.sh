@@ -59,6 +59,23 @@ docker compose version >/dev/null 2>&1 || { rouge "Le greffon docker compose est
 # Avant le contrôle des ports : c'est souvent notre propre pile qui les tient.
 if [[ $ZERO -eq 1 ]]; then
   etape "Table rase"
+
+  # L'instance d'essai a été montée vide. Si elle ne l'est plus, quelqu'un y a
+  # fait entrer des dossiers réels — et cette commande les effacerait sans rien
+  # demander. Un avertissement dans un commentaire n'aurait protégé personne :
+  # on refuse, et on nomme ce qu'il faut faire pour passer outre.
+  restants="$(docker exec -i "$PREFIXE-db" psql -U postgres -d postgres -tAc \
+    "select count(*) from public.candidat" 2>/dev/null || echo 0)"
+  if [[ "${restants// /}" =~ ^[0-9]+$ ]] && [[ "${restants// /}" -gt 0 ]] \
+     && [[ "${HERACLES_EFFACER_QUAND_MEME:-}" != "oui" ]]; then
+    rouge "Cette base contient ${restants// /} candidats. La table rase les effacerait."
+    echo  "Sauvegardez d'abord :"
+    echo  "  docker exec $PREFIXE-db pg_dump -U postgres postgres | gzip > /root/heracles-\$(date +%F).sql.gz"
+    echo
+    echo  "Puis, si c'est bien ce que vous voulez :"
+    echo  "  HERACLES_EFFACER_QUAND_MEME=oui $0 --repartir-de-zero $APP $API"
+    exit 1
+  fi
   # Les réglages SMTP sont les seuls que le script ne sache pas refabriquer :
   # ils viennent du fournisseur de courrier. On les remet dans le `.env` neuf.
   SMTP_GARDE="$(mktemp)"

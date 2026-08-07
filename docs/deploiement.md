@@ -108,8 +108,43 @@ sudo ./infra/essai/deployer.sh --repartir-de-zero essai.mondomaine.fr api-essai.
 
 **Cette option efface la base de l'essai** : conteneurs arrêtés, volumes
 supprimés, secrets refaits. Elle ne garde que les réglages SMTP, les seuls que
-le script ne sache pas refabriquer. Sur l'essai c'est sans regret — sa base
-naît vide et le reste. Ne jamais l'employer en production.
+le script ne sache pas refabriquer. Ne jamais l'employer en production.
+
+Elle **refuse de s'exécuter** si la base contient des candidats, et dit alors
+comment sauvegarder. Une instance d'essai naît vide ; le jour où elle ne l'est
+plus, effacer n'est plus anodin, et un avertissement en commentaire n'aurait
+protégé personne.
+
+### Faire entrer les données de Bubble
+
+```bash
+sudo ./infra/essai/reprendre-bubble.sh              # les données
+sudo ./infra/essai/reprendre-bubble.sh --fichiers   # et les CV, lettres, photos
+```
+
+Deux passes, comme la reprise du 4 août : les tables métier depuis la base **en
+service**, les référentiels depuis celle de **l'éditeur** — les deux bases de
+Bubble n'exposent pas les mêmes types. Rejouable : une fiche déjà reprise est
+mise à jour, jamais dupliquée.
+
+PostgreSQL n'est publié sur aucun port, et ça ne change pas : le script joint
+le conteneur par son adresse sur le réseau Docker.
+
+**Ce que cela fait entrer sur le serveur** : 107 candidats avec leurs
+coordonnées, leurs parcours et leurs CV, 71 référents, 4 539 offres. Trois
+choses en découlent, et il vaut mieux les décider avant que les subir :
+
+- la **sauvegarde** devient une obligation, et elle doit sortir du VPS — une
+  sauvegarde qui reste sur la machine qu'elle protège n'en est pas une ;
+- `--repartir-de-zero` refusera désormais de s'exécuter, ce qui est bien ;
+- l'**API Bubble** répond toujours sans jeton (voir
+  `docs/reprise-bubble-releve.md`). Les mêmes données sont maintenant à deux
+  endroits ; il n'y a plus de raison de laisser la première ouverte.
+
+Les fichiers sont l'étape à ne pas manquer : CV, lettres et photos vivent sur
+le CDN de Bubble et **cesseront de répondre à la fermeture de l'application**.
+`--fichiers` les rapatrie dans le stockage Supabase, et il est reprenable —
+interrompu, relancé, il repart où il en était.
 
 ### Rien ne se croise
 
