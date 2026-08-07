@@ -1824,23 +1824,31 @@ tbody tr:focus-within {
   color: inherit;
 }
 
+/* `align-items: flex-start` : chaque cadre s'arrête où son contenu s'arrête,
+   au lieu de s'étirer sur toute la largeur. */
 .college-liste {
   list-style: none;
   margin: 0;
   padding: 0;
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
   gap: 0.4rem;
 }
 
+/* `max-content` : le cadre fait la largeur de ce qu'il contient, pas un
+   pixel de plus. `max-width` le ramène dans la page quand l'écran est
+   étroit. */
 .college-ligne {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  width: max-content;
+  max-width: 100%;
   background: var(--surface);
   border: 1px solid var(--bordure);
   border-radius: 10px;
-  padding: 0.4rem 0.6rem;
+  padding: 0.35rem 0.5rem;
   flex-wrap: wrap;
 }
 
@@ -1884,8 +1892,13 @@ tbody tr:focus-within {
 /* Le vide se met AVANT le compte, pas après : le nombre de référents, le
    bouton et la corbeille se tiennent alors ensemble au bord droit, au lieu
    d'être séparés par toute la largeur de la ligne. */
+/* Une largeur fixe, alignée à droite : « 1 référent », « 3 référents » et
+   « — » n'ont pas la même longueur, et sans cela les cadres — qui font
+   désormais la largeur de leur contenu — seraient tous décalés les uns par
+   rapport aux autres. */
 .college-usage {
-  margin-left: auto;
+  width: 5.6rem;
+  text-align: right;
   font-size: 0.78rem;
   white-space: nowrap;
 }
