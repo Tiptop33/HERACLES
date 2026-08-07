@@ -1794,7 +1794,15 @@ tbody tr:focus-within {
   margin: 0 0 1.1rem;
 }
 
-/* ————— La liste des titres ————— */
+/* ————— La liste des titres —————
+   Le bloc fait la largeur du plus large de ses enfants — c'est-à-dire des
+   cadres. Le formulaire d'ajout s'y étire, et son bouton, poussé à droite,
+   tombe au bord des cadres. Aucune largeur n'est écrite deux fois. */
+.college {
+  width: max-content;
+  max-width: 100%;
+}
+
 /* Les lignes ne se sélectionnent pas quand on les tire : sans cela, un
    glissement surligne le texte de toute la page au passage. */
 .college-ligne[draggable='true'] {
