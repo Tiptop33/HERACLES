@@ -72,12 +72,12 @@ describe('PARAMETRES', () => {
   });
 
   it('mène quelque part — une roue crantée éteinte ne servirait à rien', () => {
-    expect(PARAMETRES.vers).toBe('/mon-compte');
+    expect(PARAMETRES.vers).toBe('/espace/parametres');
   });
 
   it('s’allume sur son écran, et sur les pages qui en dépendent', () => {
-    expect(estCourante(PARAMETRES, '/mon-compte')).toBe(true);
-    expect(estCourante(PARAMETRES, '/mon-compte/mot-de-passe')).toBe(true);
+    expect(estCourante(PARAMETRES, '/espace/parametres')).toBe(true);
+    expect(estCourante(PARAMETRES, '/espace/parametres/college')).toBe(true);
     expect(estCourante(PARAMETRES, '/espace/referents')).toBe(false);
   });
 });

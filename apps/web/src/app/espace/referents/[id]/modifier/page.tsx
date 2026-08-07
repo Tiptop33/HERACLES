@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { listerLoges } from '@/lib/administration';
 import { lireFicheAnnuaire } from '@/lib/annuaire';
+import { choixDeCollege, nomsDuCollege } from '@/lib/college';
 import { initiales, nomComplet } from '@/lib/format';
 import { exigerProfil } from '@/lib/profil';
 import { accueilDuRole } from '@/lib/roles';
@@ -38,7 +39,11 @@ export default async function ModifierReferent({
   const { id } = await params;
   const { erreur } = await searchParams;
 
-  const [fiche, loges] = await Promise.all([lireFicheAnnuaire(id), listerLoges()]);
+  const [fiche, loges, titres] = await Promise.all([
+    lireFicheAnnuaire(id),
+    listerLoges(),
+    nomsDuCollege(),
+  ]);
   if (!fiche) notFound();
 
   const message = erreur && erreur in ERREURS ? ERREURS[erreur] : null;
@@ -84,6 +89,7 @@ export default async function ModifierReferent({
       <FormulaireReferent
         fiche={fiche}
         loges={loges}
+        colleges={choixDeCollege(titres, fiche.college)}
         erreurInitiale={message ? { champ: null, message } : null}
       />
 

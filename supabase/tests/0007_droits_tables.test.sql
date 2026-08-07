@@ -83,11 +83,28 @@ select public.verifier(
   'entreprises, membres de loge et table brute restent hors d''atteinte');
 
 \echo '— écrire : seulement là où un écran écrit'
+-- On nomme les tables plutôt que de les compter : un décompte dit qu'une
+-- table s'est ouverte, jamais laquelle. `college` (0017) s'y ajoute — c'est un
+-- référentiel sans donnée personnelle, et sa policy le réserve de toute façon
+-- aux administrateurs.
 select public.verifier(
-  (select count(*) from information_schema.role_table_grants
+  (select array_agg(distinct table_name::text order by table_name::text)
+     from information_schema.role_table_grants
     where table_schema = 'public' and grantee = 'authenticated'
-      and privilege_type = 'UPDATE') = 2,
-  'deux tables seulement sont modifiables en entier : le profil et le candidat');
+      and privilege_type = 'UPDATE')
+   = array['candidat', 'college', 'profil'],
+  'trois tables modifiables en entier, et on sait lesquelles');
+
+-- Supprimer : une seule table, et c'est le référentiel des titres. Nulle part
+-- ailleurs un écran n'efface une ligne entière — la fiche d'un référent passe
+-- par une fonction qui refuse quatre fois (0016).
+select public.verifier(
+  (select array_agg(distinct table_name::text order by table_name::text)
+     from information_schema.role_table_grants
+    where table_schema = 'public' and grantee = 'authenticated'
+      and privilege_type = 'DELETE')
+   = array['college'],
+  'seul le référentiel des titres se supprime depuis un écran');
 
 -- Un droit peut aussi se donner colonne par colonne, et cette vue-là ne le
 -- montre pas. Sans le contrôle qui suit, on croirait la liste ci-dessus
@@ -106,14 +123,20 @@ select public.verifier(
   (select count(distinct table_name) from information_schema.role_column_grants
     where table_schema = 'public' and grantee = 'authenticated'
       and privilege_type = 'UPDATE'
-      and table_name not in ('profil', 'candidat', 'referent')) = 0,
+      and table_name not in ('profil', 'candidat', 'referent', 'college')) = 0,
   'et aucune autre table ne s''est entrouverte par une colonne');
 
+-- Insérer : le référentiel des titres, et lui seul. Ni un candidat, ni un
+-- référent, ni une loge ne se créent depuis un écran — c'est encore vrai après
+-- 0017, et ce contrôle est là pour le dire le jour où ça changera par
+-- inadvertance.
 select public.verifier(
-  (select count(*) from information_schema.role_table_grants
+  (select array_agg(distinct table_name::text order by table_name::text)
+     from information_schema.role_table_grants
     where table_schema = 'public' and grantee = 'authenticated'
-      and privilege_type in ('INSERT', 'DELETE')) = 0,
-  'aucune table ne peut recevoir d''insertion ni de suppression');
+      and privilege_type = 'INSERT')
+   = array['college'],
+  'seul le référentiel des titres reçoit des insertions');
 
 \echo '— les fonctions des policies sont exécutables'
 begin;

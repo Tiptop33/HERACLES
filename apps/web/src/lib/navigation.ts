@@ -81,13 +81,13 @@ export const FAMILLES: readonly Famille[] = [
  * va chercher quand on cherche. D'où la roue crantée, et sa place en bas —
  * celle qu'elle occupe dans presque toutes les applications.
  *
- * Elle mène pour l'instant à « mon compte » : son nom, son adresse, son mot de
- * passe. Les réglages de l'application — loges, secteurs, paramètres généraux
- * — viendront au lot 5, et cette entrée deviendra alors une famille.
+ * Elle mène aux listes que l'application propose partout ailleurs — les titres
+ * du collège d'abord, les loges et les secteurs ensuite. « Mon compte », qui
+ * ne règle que son propre cas, reste sous la pastille de la barre du haut.
  */
 export const PARAMETRES: Entree & { vers: string } = {
   libelle: 'Paramètres',
-  vers: '/mon-compte',
+  vers: '/espace/parametres',
 };
 
 /** Les familles qu'un rôle a le droit de voir. */

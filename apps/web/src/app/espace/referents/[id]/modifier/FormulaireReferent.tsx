@@ -21,10 +21,13 @@ type Erreur = { champ: string | null; message: string };
 export default function FormulaireReferent({
   fiche,
   loges,
+  colleges,
   erreurInitiale,
 }: {
   fiche: FicheAnnuaire;
   loges: LogeBreve[];
+  /** Les titres proposés — la valeur actuelle de la fiche comprise. */
+  colleges: string[];
   erreurInitiale?: Erreur | null;
 }) {
   const router = useRouter();
@@ -93,9 +96,20 @@ export default function FormulaireReferent({
         </select>
       </label>
 
+      {/* La liste vient des paramètres, et la valeur actuelle de la fiche y
+          est ajoutée si elle n'y figure pas : une fiche reprise de Bubble peut
+          porter un titre retiré de la liste depuis, et l'ouvrir puis
+          l'enregistrer sans y toucher ne doit pas l'effacer. */}
       <label className="champ">
         <span>Collège</span>
-        <input name="college" defaultValue={fiche.college ?? ''} />
+        <select name="college" defaultValue={fiche.college ?? ''}>
+          <option value="">— aucun —</option>
+          {colleges.map((titre) => (
+            <option key={titre} value={titre}>
+              {titre}
+            </option>
+          ))}
+        </select>
       </label>
 
       {/* Le numéro s'affiche ici comme il s'affiche sur la carte, et non tel
