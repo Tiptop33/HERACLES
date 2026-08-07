@@ -143,28 +143,58 @@ Le workflow **ne déploie rien qui n'ait passé** lint, tests unitaires,
 construction, et toute la suite SQL — contrôles de RLS compris. Une règle
 d'accès cassée n'atteint pas le serveur.
 
-Quatre secrets à créer une fois, dans *Réglages → Secrets and variables →
-Actions* :
+Tout le nécessaire côté serveur tient en une commande, à lancer une fois,
+depuis le dépôt qui a servi à l'installation :
+
+```bash
+sudo ./infra/essai/preparer-deploiement.sh essai.mondomaine.fr
+```
+
+Elle affiche à la fin les quatre secrets à coller dans *Réglages → Secrets and
+variables → Actions* :
 
 | Secret | Ce que c'est |
 | --- | --- |
 | `VPS_HOTE` | l'adresse du serveur |
-| `VPS_UTILISATEUR` | un compte dédié au déploiement — surtout pas `root` |
+| `VPS_UTILISATEUR` | le compte dédié au déploiement — surtout pas `root` |
 | `VPS_CLE_SSH` | la clé privée de ce compte, et de lui seul |
-| `VPS_EMPREINTE` | la ligne `known_hosts`, obtenue par `ssh-keyscan <hote>` |
+| `VPS_EMPREINTE` | la ligne `known_hosts` du serveur |
 
 `VPS_EMPREINTE` n'est pas un détail : sans elle, la première connexion accepte
 n'importe quel serveur qui répond à ce nom.
 
-Le compte de déploiement doit pouvoir lancer une seule commande en `sudo` —
-`mettre-a-jour.sh` — et rien d'autre. Dans `visudo` :
+#### Pourquoi ce montage-là
+
+**Le serveur ne reçoit pas de fichiers, il va les chercher.** GitHub ouvre une
+connexion, rien de plus ; c'est le serveur qui récupère `main` depuis le dépôt.
+Ce qui tourne vient donc de GitHub, et non de ce qu'une machine de
+construction avait sous la main.
+
+**La clé ne sait faire qu'un geste.** Dans `authorized_keys`, `restrict` retire
+le terminal, les redirections de port, l'agent, X11 ; `command=` impose le
+déploiement et ignore ce que le client demande. Si cette clé fuit, elle ne
+donne pas le serveur : elle donne le droit de redéployer HERACLES.
+
+**Le lanceur appartient à `root`, hors du dépôt.** C'est le point qui a fait
+réécrire ce montage : donner à un compte le droit de déposer des fichiers *et*
+celui de lancer en `sudo` un script qui se trouve parmi ces fichiers, c'est lui
+donner `root`. Il suffirait de réécrire le script. Ici, le compte de
+déploiement ne peut écrire ni dans `/opt/heracles-essai-depot`, ni dans
+`/usr/local/sbin`.
+
+La règle `sudo` posée est donc :
 
 ```
-deploiement ALL=(root) NOPASSWD: /opt/heracles-essai-depot/infra/essai/mettre-a-jour.sh
+deploiement-heracles ALL=(root) NOPASSWD: /usr/local/sbin/heracles-essai-deployer
 ```
 
-Si cette clé fuit, elle ne donne pas le serveur : elle donne le droit de
-redéployer HERACLES.
+Cela s'éprouve sans attendre GitHub : la première commande doit dérouler le
+déploiement, la seconde être refusée.
+
+```bash
+ssh -i <la-cle> deploiement-heracles@essai.mondomaine.fr
+ssh -i <la-cle> deploiement-heracles@essai.mondomaine.fr 'cat /etc/shadow'
+```
 
 Le même script se lance à la main le jour où le workflow ne suffit pas :
 

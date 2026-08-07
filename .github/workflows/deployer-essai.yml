@@ -4,21 +4,27 @@
 # toute la suite SQL — y compris les contrôles de RLS. Une règle d'accès cassée
 # n'atteint pas le serveur.
 #
-# Il faut une installation initiale faite à la main, une seule fois :
-#   sudo ./infra/essai/deployer.sh essai.mondomaine.fr api-essai.mondomaine.fr
-# C'est elle qui fabrique les secrets. Ce workflow n'en crée ni n'en lit aucun :
-# il dépose les sources, rejoue les migrations et reconstruit l'application.
+# Deux installations à la main, une seule fois chacune :
 #
-# Secrets à créer dans Réglages → Secrets and variables → Actions :
+#   sudo ./infra/essai/deployer.sh essai.mondomaine.fr api-essai.mondomaine.fr
+#   sudo ./infra/essai/preparer-deploiement.sh essai.mondomaine.fr
+#
+# La première fabrique les secrets de la pile. La seconde ouvre ce workflow, et
+# affiche les quatre secrets à coller dans Réglages → Secrets and variables →
+# Actions :
 #
 #   VPS_HOTE          l'adresse du serveur
-#   VPS_UTILISATEUR   un compte dédié au déploiement — surtout pas root
+#   VPS_UTILISATEUR   le compte dédié au déploiement — surtout pas root
 #   VPS_CLE_SSH       la clé privée de ce compte, et de lui seul
-#   VPS_EMPREINTE     la ligne known_hosts du serveur, obtenue par
-#                     `ssh-keyscan <hote>` depuis une machine de confiance
+#   VPS_EMPREINTE     la ligne known_hosts du serveur
 #
 # VPS_EMPREINTE n'est pas un détail : sans elle, la première connexion accepte
 # n'importe quel serveur qui répond à ce nom.
+#
+# Ce workflow ne dépose aucun fichier sur le serveur et ne lui dit pas quoi
+# faire. Il ouvre une connexion, rien de plus : la clé n'accepte qu'un seul
+# geste, fixé du côté du serveur, et c'est lui qui va chercher `main` sur
+# GitHub. Ce qui tourne vient donc du dépôt, et non de cette machine-ci.
 
 name: Déployer l'instance d'essai
 
@@ -96,8 +102,6 @@ jobs:
     environment: essai
 
     steps:
-      - uses: actions/checkout@v4
-
       - name: Préparer la connexion
         env:
           CLE: ${{ secrets.VPS_CLE_SSH }}
@@ -120,30 +124,20 @@ jobs:
           fi
           chmod 600 ~/.ssh/known_hosts
 
-      - name: Déposer les sources
+      - name: Déclencher le déploiement
         env:
           HOTE: ${{ secrets.VPS_HOTE }}
           UTILISATEUR: ${{ secrets.VPS_UTILISATEUR }}
         run: |
           set -euo pipefail
-          # --delete pour qu'un fichier supprimé dans le dépôt disparaisse aussi
-          # du serveur. Sans lui, une ancienne migration retirée continuerait de
-          # se rejouer.
-          rsync -az --delete \
-            --exclude '.git' --exclude 'node_modules' --exclude '.next' \
-            --exclude '.env' --exclude '.env.*' \
-            -e "ssh -i ~/.ssh/id_deploiement -o StrictHostKeyChecking=yes" \
-            ./ "$UTILISATEUR@$HOTE:/opt/heracles-essai-depot/"
-
-      - name: Migrations et reconstruction
-        env:
-          HOTE: ${{ secrets.VPS_HOTE }}
-          UTILISATEUR: ${{ secrets.VPS_UTILISATEUR }}
-        run: |
-          set -euo pipefail
+          # Aucune commande n'est passée, et ce n'est pas un oubli : la clé
+          # n'en accepte qu'une, inscrite dans `authorized_keys` du côté du
+          # serveur. Ce qu'écrirait cette machine-ci ne serait pas lu.
+          #
+          # Le serveur va chercher `main` sur GitHub, joue les migrations et
+          # reconstruit. Sa sortie remonte ici, d'où le journal de ce pas.
           ssh -i ~/.ssh/id_deploiement -o StrictHostKeyChecking=yes \
-            "$UTILISATEUR@$HOTE" \
-            'sudo /opt/heracles-essai-depot/infra/essai/mettre-a-jour.sh'
+            "$UTILISATEUR@$HOTE"
 
       - name: Effacer la clé
         if: always()
