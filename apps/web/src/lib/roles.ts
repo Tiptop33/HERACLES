@@ -18,16 +18,20 @@ export function estRoleInscription(valeur: unknown): valeur is RoleInscription {
 }
 
 /**
- * Où atterrit un utilisateur une fois connecté. Un rôle inconnu ou absent
- * renvoie vers l'espace chercheur : c'est le cas par défaut du produit, et il
- * ne donne accès à aucune donnée d'autrui.
+ * Où atterrit un utilisateur une fois connecté.
+ *
+ * Référents et administrateurs arrivent sur le même accueil : la colonne de
+ * gauche les emmène ensuite là où ils vont, et ce qu'ils y voient dépend de
+ * leurs droits, pas de leur porte d'entrée.
+ *
+ * Un rôle inconnu ou absent renvoie vers l'espace chercheur : c'est le cas par
+ * défaut du produit, et il ne donne accès à aucune donnée d'autrui.
  */
 export function accueilDuRole(role: string | null | undefined): string {
   switch (role) {
     case 'referent':
-      return '/espace/referent';
     case 'admin':
-      return '/espace/admin';
+      return '/espace/accueil';
     default:
       return '/espace/chercheur';
   }

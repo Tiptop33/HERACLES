@@ -26,16 +26,28 @@ select public.verifier(
                         'entreprise', 'offre_emploi', 'document', 'parametre')),
   'la RLS est active sur les huit tables');
 
--- Cette migration-ci n'ouvre rien. Depuis, le lot 3 (migration 0006) a ouvert
--- `candidat`, `referent` et `loge` — au seul référent qui accompagne, et son
--- test le prouve en devenant chaque personne. Ce qui se vérifie ici, c'est que
--- l'ouverture s'est arrêtée là : les tables qu'aucun écran ne réclame encore
--- restent sans la moindre policy.
+-- Cette migration-ci n'ouvre rien. Les ouvertures sont venues après, et
+-- chacune avec l'écran qui la justifie : `candidat`, `referent` et `loge` avec
+-- l'espace référent (0006), `document` avec l'accueil (0011). Chaque fois, le
+-- test de la migration prouve la limite en devenant tour à tour chaque
+-- personne.
+--
+-- Ce qui se vérifie ici, c'est que l'ouverture ne va jamais plus loin que ce
+-- qui a été demandé : les tables qu'aucun écran ne réclame restent sans la
+-- moindre policy. Le jour où l'une d'elles en reçoit une, cette ligne tombe —
+-- et c'est très bien : elle oblige à écrire pourquoi.
 select public.verifier(
   (select count(*) from pg_policies
     where schemaname = 'public'
-      and tablename in ('document', 'entreprise', 'loge_membre')) = 0,
-  'documents, entreprises et membres de loge : toujours aucune policy, donc rien de lisible');
+      and tablename in ('entreprise', 'loge_membre')) = 0,
+  'entreprises et membres de loge : toujours aucune policy, donc rien de lisible');
+
+-- `document` s'est ouvert, mais en lecture seule et pas à tout le monde.
+select public.verifier(
+  (select count(*) from pg_policies
+    where schemaname = 'public' and tablename = 'document'
+      and cmd in ('INSERT', 'UPDATE', 'DELETE')) = 0,
+  'un document se lit, ne s''écrit pas : la reprise reste la seule à en poser');
 
 select public.verifier(
   (select count(*) from pg_policies

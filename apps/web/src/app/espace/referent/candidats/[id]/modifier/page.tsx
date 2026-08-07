@@ -1,6 +1,5 @@
 import { notFound, redirect } from 'next/navigation';
-import BarreReferent from '@/components/BarreReferent';
-import { lireCandidat, referentCourant } from '@/lib/candidat';
+import { lireCandidat } from '@/lib/candidat';
 import { exigerProfil } from '@/lib/profil';
 import { accueilDuRole } from '@/lib/roles';
 import FormulaireCandidat from './FormulaireCandidat';
@@ -12,13 +11,12 @@ export default async function ModifierCandidat({ params }: { params: Promise<{ i
   if (profil.role !== 'referent') redirect(accueilDuRole(profil.role));
 
   const { id } = await params;
-  const [referent, candidat] = await Promise.all([referentCourant(), lireCandidat(id)]);
+  const candidat = await lireCandidat(id);
 
   if (!candidat) notFound();
 
   return (
     <>
-      <BarreReferent profil={profil} loge={referent?.loge ?? null} />
       <FormulaireCandidat candidat={candidat} />
     </>
   );
