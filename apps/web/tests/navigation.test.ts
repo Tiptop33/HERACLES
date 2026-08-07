@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { FAMILLES, estCourante, famillesDuRole } from '../src/lib/navigation';
+import { FAMILLES, PARAMETRES, estCourante, famillesDuRole } from '../src/lib/navigation';
 
 describe('les cinq familles', () => {
   it('sont celles de la maquette, dans l’ordre', () => {
@@ -62,5 +62,22 @@ describe('estCourante', () => {
 
   it('n’allume jamais une entrée qui ne mène nulle part', () => {
     expect(estCourante({ libelle: 'Bilan', vers: null }, '/espace/accueil')).toBe(false);
+  });
+});
+
+describe('PARAMETRES', () => {
+  it('est à part : aucune famille ne la contient', () => {
+    const partout = FAMILLES.flatMap((f) => f.entrees.map((e) => e.libelle));
+    expect(partout).not.toContain(PARAMETRES.libelle);
+  });
+
+  it('mène quelque part — une roue crantée éteinte ne servirait à rien', () => {
+    expect(PARAMETRES.vers).toBe('/mon-compte');
+  });
+
+  it('s’allume sur son écran, et sur les pages qui en dépendent', () => {
+    expect(estCourante(PARAMETRES, '/mon-compte')).toBe(true);
+    expect(estCourante(PARAMETRES, '/mon-compte/mot-de-passe')).toBe(true);
+    expect(estCourante(PARAMETRES, '/espace/referents')).toBe(false);
   });
 });

@@ -75,6 +75,21 @@ export const FAMILLES: readonly Famille[] = [
   },
 ];
 
+/**
+ * Une entrée à part, en pied de colonne, et non dans une famille : les
+ * réglages ne sont pas un sujet de travail parmi d'autres, ils sont ce qu'on
+ * va chercher quand on cherche. D'où la roue crantée, et sa place en bas —
+ * celle qu'elle occupe dans presque toutes les applications.
+ *
+ * Elle mène pour l'instant à « mon compte » : son nom, son adresse, son mot de
+ * passe. Les réglages de l'application — loges, secteurs, paramètres généraux
+ * — viendront au lot 5, et cette entrée deviendra alors une famille.
+ */
+export const PARAMETRES: Entree & { vers: string } = {
+  libelle: 'Paramètres',
+  vers: '/mon-compte',
+};
+
 /** Les familles qu'un rôle a le droit de voir. */
 export function famillesDuRole(role: Role): Famille[] {
   return FAMILLES.filter((f) => !f.rolesAutorises || f.rolesAutorises.includes(role));
