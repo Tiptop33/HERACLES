@@ -52,3 +52,33 @@ export function resumeDuJournal(lignes: LigneDeJournal[]): string {
   if (lignes.length === 0) return 'rien de noté pour l’instant';
   return `${lignes.length} note${lignes.length > 1 ? 's' : ''}`;
 }
+
+/** Une note, avec le candidat auquel elle se rattache. */
+export type LigneDeLaLoge = LigneDeJournal & { candidat_id: string };
+
+/**
+ * Toutes les notes qu'on a le droit de lire, du plus récent au plus ancien
+ * (migration 0022). Même règle que la fiche : cette liste épargne d'ouvrir
+ * cent sept dossiers, elle n'en ouvre aucun de plus.
+ */
+export async function lireJournalDeLaLoge(): Promise<LigneDeLaLoge[]> {
+  const supabase = await supabaseServer();
+  const { data } = await supabase.rpc('suivi_de_la_loge');
+  return (data as LigneDeLaLoge[]) ?? [];
+}
+
+/** Les notes rangées par candidat, du plus récemment touché au plus ancien. */
+export function parCandidat<T extends { candidat_id: string }>(
+  lignes: T[],
+): Map<string, T[]> {
+  const par = new Map<string, T[]>();
+  // `lignes` arrive déjà triée par date décroissante : en la parcourant dans
+  // l'ordre, chaque groupe garde ce tri, et le premier candidat rencontré est
+  // celui dont la note est la plus fraîche.
+  for (const l of lignes) {
+    const deja = par.get(l.candidat_id);
+    if (deja) deja.push(l);
+    else par.set(l.candidat_id, [l]);
+  }
+  return par;
+}

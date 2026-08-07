@@ -2530,3 +2530,65 @@ a.poste-document:hover {
     display: none;
   }
 }
+
+/* ————— « Action / Candidat » : le suivi de la loge, d'un seul tenant ————— */
+
+.suivi-loge {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.suivi-dossier-tete {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+  margin-bottom: 0.7rem;
+  padding-bottom: 0.6rem;
+  border-bottom: 1px dashed var(--bordure);
+}
+
+.suivi-dossier-tete > div:first-child {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Le nom reprend la place d'un titre de bloc sans en reprendre l'allure : ici
+   c'est une personne, pas une rubrique. Le sélecteur passe par `.bloc` pour
+   l'emporter sur `.bloc h2`, qui met les titres en petites capitales grises —
+   un nom propre n'a rien à y faire. */
+.bloc .suivi-dossier-nom {
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--encre);
+  margin: 0;
+}
+
+.suivi-dossier-nom a {
+  text-decoration: none;
+  color: inherit;
+}
+
+.suivi-dossier-nom a:hover {
+  text-decoration: underline;
+}
+
+.suivi-dossier-tete p {
+  margin: 0.1rem 0 0;
+  font-size: 0.82rem;
+}
+
+/* Le dossier sur lequel rien n'a été noté. C'est le cas qui justifie l'écran :
+   il ne doit donc pas se lire comme une case vide, mais comme une invitation. */
+.suivi-silence {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--encre-tres-douce);
+  font-style: italic;
+}
+
+.suivi-silence a {
+  font-style: normal;
+}
