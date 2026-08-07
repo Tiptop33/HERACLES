@@ -170,6 +170,28 @@ identifiants vers le type `TACHES`, que l'API de Bubble n'expose pas. Voir `docs
 sans intervention dans l'éditeur Bubble avant la bascule, l'historique de suivi des 118 candidats
 est perdu. La colonne `suivi.bubble_id` attend, au cas où.
 
+## « Action / Candidat » — le même journal, mais de toute la loge
+
+`/espace/suivi`, entrée **Action / Candidat** de la colonne de gauche, jusque-là éteinte.
+
+L'onglet « Suivi » d'une fiche montre le journal d'une personne : il faudrait ouvrir cent sept
+dossiers pour savoir ce qui a bougé. Cet écran les met bout à bout, un candidat après l'autre.
+
+**Il montre aussi ceux sur qui rien n'a été noté** — et c'est sa raison d'être. Un dossier dont
+personne ne s'occupe ne se signale nulle part ailleurs : il n'apparaît dans aucune liste
+d'urgences, il a un référent, sa fiche est remplie. Ici il porte « Rien de noté », et le
+décompte en tête l'annonce : « 12 dossiers en cours · 4 sans aucune note ».
+
+L'ordre n'est pas celui du poste de travail : **du plus récemment touché au plus ancien**, les
+silencieux à la fin. La question posée ici n'est pas « qui ? » mais « quoi de neuf ? ».
+
+Les dossiers refermés n'y sont pas : on ne relance pas un dossier clos.
+
+`suivi_de_la_loge()` (migration 0022) applique la règle de la fiche, à la ligne près. Elle ne
+rend du candidat que son identifiant — le nom, le numéro et le métier viennent de
+`candidats_de_la_loge()`, qui les rend déjà. Deux fonctions, deux responsabilités, aucune
+colonne à tenir d'accord en deux endroits.
+
 ## Ce qui reste éteint, à sa place définitive
 
 Comme la colonne de gauche : visible, à l'endroit où ce sera, et désactivé.
