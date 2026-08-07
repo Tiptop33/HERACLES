@@ -167,12 +167,27 @@ describe('telephone', () => {
   it('reconnaît un numéro français, et lui seul', () => {
     expect(telephone('0612345678')?.francais).toBe(true);
     expect(telephone('+32 2 123 45 67')?.francais).toBe(false);
-    // Neuf chiffres : il manque quelque chose. On ne devine pas.
-    expect(telephone('612345678')?.francais).toBe(false);
-    // Onze chiffres : ce n'est pas un numéro français non plus.
+    // Onze chiffres : ce n'est pas un numéro français.
     expect(telephone('06123456789')?.francais).toBe(false);
     // 00 en tête n'existe pas comme préfixe de département.
     expect(telephone('0012345678')?.francais).toBe(false);
+  });
+
+  it('remet le zéro que Bubble a perdu', () => {
+    // 39 numéros de référents sur 42 sont arrivés à neuf chiffres : le zéro
+    // initial a sauté dans un champ numérique. Les laisser bruts, c'était
+    // rendre illisible presque tout l'annuaire.
+    expect(telephone('612345678')?.affiche).toBe('06 12 34 56 78');
+    expect(telephone('612345678')?.lien).toBe('+33612345678');
+    expect(telephone('612345678')?.francais).toBe(true);
+    expect(telephone('556000000')?.affiche).toBe('05 56 00 00 00');
+  });
+
+  it('ne remet pas de zéro devant ce qui en a déjà un', () => {
+    // Neuf chiffres commençant par zéro : ajouter le nôtre donnerait 00…,
+    // qui n'est pas un numéro. On laisse.
+    expect(telephone('012345678')?.francais).toBe(false);
+    expect(telephone('012345678')?.affiche).toBe('012345678');
   });
 
   it('rend tel quel ce qu’il ne comprend pas, plutôt que de le mutiler', () => {

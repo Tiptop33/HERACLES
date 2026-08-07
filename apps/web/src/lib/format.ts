@@ -151,6 +151,14 @@ export function telephone(valeur: string | null | undefined): Telephone | null {
   let national = chiffres;
   if (plus && chiffres.startsWith('33')) national = `0${chiffres.slice(2)}`;
   else if (chiffres.startsWith('0033')) national = `0${chiffres.slice(4)}`;
+  // Neuf chiffres, le premier n'étant pas zéro : c'est le zéro initial qui a
+  // sauté. Un numéro passé dans un champ numérique quelque part, et 0612345678
+  // devenu 612345678.
+  //
+  // Ce n'est pas une supposition de principe : sur les référents repris de
+  // Bubble, 39 numéros sur 42 sont dans ce cas. Les rendre bruts, c'était
+  // rendre illisible la quasi-totalité de l'annuaire.
+  else if (/^[1-9]\d{8}$/.test(chiffres)) national = `0${chiffres}`;
 
   const francais = /^0[1-9]\d{8}$/.test(national);
   if (!francais) {
