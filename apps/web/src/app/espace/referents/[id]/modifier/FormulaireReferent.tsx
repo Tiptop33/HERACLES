@@ -64,49 +64,48 @@ export default function FormulaireReferent({
       action={`/api/referents/${fiche.id}`}
       method="post"
       noValidate
-      className="bloc"
+      className="bloc formulaire-une-colonne"
     >
       {erreur && <p className="erreur">{erreur.message}</p>}
 
-      <div className="ligne-edition">
-        <label className="champ">
-          <span>Nom</span>
-          <input name="nom" defaultValue={fiche.nom ?? ''} autoComplete="family-name" />
-        </label>
-        <label className="champ">
-          <span>Prénom</span>
-          <input name="prenom" defaultValue={fiche.prenom ?? ''} autoComplete="given-name" />
-        </label>
-      </div>
+      {/* Une seule colonne : les six champs se lisent de haut en bas, dans
+          l'ordre où on les dirait à voix haute. */}
+      <label className="champ">
+        <span>Nom</span>
+        <input name="nom" defaultValue={fiche.nom ?? ''} autoComplete="family-name" />
+      </label>
 
-      <div className="ligne-edition">
-        <label className="champ">
-          <span>Loge</span>
-          <select name="loge_id" defaultValue={fiche.loge_id ?? ''}>
-            <option value="">— aucune —</option>
-            {loges.map((l) => (
-              <option key={l.id} value={l.id}>
-                {l.nom}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="champ">
-          <span>Collège</span>
-          <input name="college" defaultValue={fiche.college ?? ''} />
-        </label>
-      </div>
+      <label className="champ">
+        <span>Prénom</span>
+        <input name="prenom" defaultValue={fiche.prenom ?? ''} autoComplete="given-name" />
+      </label>
 
-      <div className="ligne-edition">
-        <label className="champ">
-          <span>Téléphone</span>
-          <input name="telephone" type="tel" defaultValue={fiche.telephone ?? ''} />
-        </label>
-        <label className="champ">
-          <span>Adresse e-mail</span>
-          <input name="email" type="email" defaultValue={fiche.email ?? ''} />
-        </label>
-      </div>
+      <label className="champ">
+        <span>Loge</span>
+        <select name="loge_id" defaultValue={fiche.loge_id ?? ''}>
+          <option value="">— aucune —</option>
+          {loges.map((l) => (
+            <option key={l.id} value={l.id}>
+              {l.nom}
+            </option>
+          ))}
+        </select>
+      </label>
+
+      <label className="champ">
+        <span>Collège</span>
+        <input name="college" defaultValue={fiche.college ?? ''} />
+      </label>
+
+      <label className="champ">
+        <span>Téléphone</span>
+        <input name="telephone" type="tel" defaultValue={fiche.telephone ?? ''} />
+      </label>
+
+      <label className="champ">
+        <span>Adresse e-mail</span>
+        <input name="email" type="email" defaultValue={fiche.email ?? ''} />
+      </label>
 
       <p className="aide">
         L&apos;adresse sert à rattacher cette fiche à un compte : à la création du compte, celui-ci

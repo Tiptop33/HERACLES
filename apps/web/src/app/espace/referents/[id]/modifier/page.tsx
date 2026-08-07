@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { listerLoges } from '@/lib/administration';
 import { lireFicheAnnuaire } from '@/lib/annuaire';
-import { nomComplet } from '@/lib/format';
+import { initiales, nomComplet } from '@/lib/format';
 import { exigerProfil } from '@/lib/profil';
 import { accueilDuRole } from '@/lib/roles';
 import FormulaireReferent from './FormulaireReferent';
@@ -47,14 +47,35 @@ export default async function ModifierReferent({
   return (
     <main className="corps">
       <div className="entete-liste">
-        <div>
-          <h1>{nom}</h1>
-          <span className="compte">
-            {fiche.compte_rattache
-              ? 'compte rattaché'
-              : 'aucun compte — cette personne ne peut pas encore se connecter'}
-          </span>
+        {/* Le même visage, à la même taille que sur la carte : on doit
+            reconnaître au premier coup d'œil la fiche sur laquelle on est en
+            train d'écrire. */}
+        <div className="entete-portrait">
+          {fiche.a_une_photo ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              className="portrait"
+              src={`/espace/referents/${fiche.id}/photo`}
+              alt=""
+              width={67}
+              height={67}
+            />
+          ) : (
+            <span className="initiales" aria-hidden="true">
+              {initiales(fiche.prenom, fiche.nom)}
+            </span>
+          )}
+
+          <div>
+            <h1>{nom}</h1>
+            <span className="compte">
+              {fiche.compte_rattache
+                ? 'compte rattaché'
+                : 'aucun compte — cette personne ne peut pas encore se connecter'}
+            </span>
+          </div>
         </div>
+
         <Link href="/espace/referents" className="lien-nu">
           ← Retour à l&apos;annuaire
         </Link>
@@ -67,7 +88,7 @@ export default async function ModifierReferent({
       />
 
       {!fiche.compte_rattache && (
-        <section className="bloc">
+        <section className="bloc formulaire-une-colonne">
           <h2>Donner l&apos;accès</h2>
           <p className="aide" style={{ margin: '0 0 0.9rem' }}>
             L&apos;écran de Bubble proposait ici un champ « mot de passe ». HERACLES ne permet

@@ -1606,13 +1606,37 @@ tbody tr:focus-within {
   flex: none;
 }
 
-/* Les initiales suivent la photo, et seulement dans l'annuaire : ailleurs —
-   la liste des candidats, l'accueil — la pastille garde sa taille. Sans cela,
-   une carte avec visage et une carte sans n'auraient pas la même hauteur. */
-.fiche-annuaire-tete .initiales {
+/* Les initiales suivent la photo, dans l'annuaire et sur l'écran de
+   correction. Ailleurs — la liste des candidats, l'accueil — la pastille
+   garde sa taille. Sans cela, une carte avec visage et une carte sans
+   n'auraient pas la même hauteur. */
+.fiche-annuaire-tete .initiales,
+.entete-portrait .initiales {
   width: 4.2rem;
   height: 4.2rem;
   font-size: 1.3rem;
+}
+
+/* Le visage en tête de l'écran de correction : la même taille que sur la
+   carte, pour qu'on reconnaisse la fiche sur laquelle on écrit. */
+.entete-portrait {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+}
+
+/* Un formulaire d'une seule colonne, et pas plus large qu'une colonne de
+   texte : au-delà, l'œil perd le début du champ suivant en revenant à la
+   ligne. Ce qui suit le formulaire s'aligne dessus — sinon la page se lit sur
+   deux largeurs. */
+.formulaire-une-colonne {
+  max-width: 32rem;
+}
+
+/* Le lien de retour va à droite de l'en-tête, comme les filtres des listes :
+   collé au sous-titre, il se lit comme une suite de la phrase. */
+.entete-liste > .lien-nu {
+  margin-left: auto;
 }
 
 .ligne-telephone {
