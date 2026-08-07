@@ -1392,10 +1392,32 @@ tbody tr:focus-within {
 
 /* ————— L'annuaire des référents ————— */
 
+/* Cinq colonnes, et non « autant qu'il en tient » : le nombre est demandé,
+   pas déduit. En dessous d'un certain écran, il faut bien céder — sinon les
+   cartes deviennent des colonnes de deux mots. */
 .annuaire {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 0.8rem;
+}
+
+/* Les seuils tiennent compte de la colonne de gauche — 13,5 rem — et du
+   contenu plafonné à 72 rem : cinq colonnes tiennent largement sur un écran
+   d'ordinateur, et ne cèdent qu'en dessous. */
+@media (max-width: 1080px) {
+  .annuaire { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+
+@media (max-width: 900px) {
+  .annuaire { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+@media (max-width: 720px) {
+  .annuaire { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 520px) {
+  .annuaire { grid-template-columns: 1fr; }
 }
 
 .fiche-annuaire {
@@ -1411,6 +1433,9 @@ tbody tr:focus-within {
 .fiche-annuaire p {
   margin: 0;
   font-size: 0.82rem;
+  /* Cinq colonnes font des cartes étroites : une adresse un peu longue
+     déborderait de la sienne et pousserait la grille. */
+  overflow-wrap: anywhere;
 }
 
 .fiche-annuaire-tete {
@@ -1445,12 +1470,21 @@ tbody tr:focus-within {
    qu'il y ait un visage ou non. `object-fit` recadre au centre plutôt que de
    déformer — les photos de Bubble n'ont pas toutes le même rapport. */
 .portrait {
-  width: 2.1rem;
-  height: 2.1rem;
+  width: 4.2rem;
+  height: 4.2rem;
   border-radius: 50%;
   object-fit: cover;
   background: var(--candidat-clair);
   flex: none;
+}
+
+/* Les initiales suivent la photo, et seulement dans l'annuaire : ailleurs —
+   la liste des candidats, l'accueil — la pastille garde sa taille. Sans cela,
+   une carte avec visage et une carte sans n'auraient pas la même hauteur. */
+.fiche-annuaire-tete .initiales {
+  width: 4.2rem;
+  height: 4.2rem;
+  font-size: 1.3rem;
 }
 
 .ligne-telephone {
