@@ -1625,12 +1625,15 @@ tbody tr:focus-within {
   gap: 0.9rem;
 }
 
-/* Un formulaire d'une seule colonne, et pas plus large qu'une colonne de
-   texte : au-delà, l'œil perd le début du champ suivant en revenant à la
-   ligne. Ce qui suit le formulaire s'aligne dessus — sinon la page se lit sur
-   deux largeurs. */
-.formulaire-une-colonne {
+/* Un écran d'une seule colonne : le titre, le formulaire et ce qui suit
+   partagent la même largeur, à gauche comme à droite. Le lien de retour tombe
+   donc exactement au bord droit du cadre blanc, et non au bout de la page.
+
+   Pas plus large qu'une colonne de texte : au-delà, l'œil perd le début du
+   champ suivant en revenant à la ligne. */
+.corps--etroit > * {
   max-width: 32rem;
+  width: 100%;
 }
 
 /* Les boutons vont à droite, au bout de la colonne — là où le regard arrive
@@ -1638,7 +1641,7 @@ tbody tr:focus-within {
    Le `margin-left: auto` de `.fiche-actions` ne suffit pas ici : la rangée
    occupe déjà toute la largeur du formulaire. C'est son contenu qu'il faut
    pousser, pas elle. */
-.formulaire-une-colonne .fiche-actions {
+.corps--etroit .fiche-actions {
   justify-content: flex-end;
 }
 

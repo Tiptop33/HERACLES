@@ -65,7 +65,7 @@ export default function FormulaireReferent({
       action={`/api/referents/${fiche.id}`}
       method="post"
       noValidate
-      className="bloc formulaire-une-colonne"
+      className="bloc"
     >
       {erreur && <p className="erreur">{erreur.message}</p>}
 
