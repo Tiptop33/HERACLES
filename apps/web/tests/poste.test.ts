@@ -1,13 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import {
   VUES,
-  VUE_PAR_DEFAUT,
   chercher,
   estVue,
   filtrerParVue,
   nomDeFamilleDabord,
-  resumeDeLaLoge,
+  resumeDeLaVue,
   sousTitreDuRang,
+  vueDOuverture,
   type LigneCandidat,
 } from '../src/lib/poste';
 
@@ -42,19 +42,20 @@ const loge = [
           archive: 'Sans nouvelles', c_est_mon_suivi: true }),
 ];
 
-describe('les trois vues du volet', () => {
-  it('reconnaît les trois états, et refuse le reste', () => {
-    expect(VUES.map((v) => v.valeur)).toEqual(['en-cours', 'clotures', 'archives']);
-    expect(VUE_PAR_DEFAUT).toBe('en-cours');
+describe('les quatre vues du volet', () => {
+  it('reconnaît les quatre, et refuse le reste', () => {
+    expect(VUES.map((v) => v.valeur)).toEqual(['mes', 'loge', 'clotures', 'archives']);
     expect(estVue('archives')).toBe(true);
     expect(estVue('tous')).toBe(false);
-    expect(estVue('urgents')).toBe(false);
-    expect(estVue('suivis')).toBe(false);
     expect(estVue(undefined)).toBe(false);
   });
 
-  it('« En cours » ne montre ni les clôturés ni les archivés', () => {
-    expect(filtrerParVue(loge, 'en-cours').map((l) => l.id)).toEqual(['a', 'b', 'c']);
+  it('« Mes candidats » : ceux qu’on suit ou qu’on parraine, refermés exclus', () => {
+    expect(filtrerParVue(loge, 'mes').map((l) => l.id)).toEqual(['a']);
+  });
+
+  it('« La loge » ne montre ni les clôturés ni les archivés', () => {
+    expect(filtrerParVue(loge, 'loge').map((l) => l.id)).toEqual(['a', 'b', 'c']);
   });
 
   it('« Clôturés » et « Archivés » sont deux vues distinctes', () => {
@@ -66,12 +67,12 @@ describe('les trois vues du volet', () => {
     const deuxFois = [ligne({ id: 'f', cloture: 'Embauché', archive: 'Rangé' })];
     expect(filtrerParVue(deuxFois, 'clotures').map((l) => l.id)).toEqual(['f']);
     expect(filtrerParVue(deuxFois, 'archives').map((l) => l.id)).toEqual(['f']);
-    expect(filtrerParVue(deuxFois, 'en-cours')).toEqual([]);
+    expect(filtrerParVue(deuxFois, 'loge')).toEqual([]);
   });
 
   it('une valeur qui n’est que des blancs ne referme rien', () => {
     const flou = [ligne({ id: 'g', cloture: '   ', archive: '' })];
-    expect(filtrerParVue(flou, 'en-cours').map((l) => l.id)).toEqual(['g']);
+    expect(filtrerParVue(flou, 'loge').map((l) => l.id)).toEqual(['g']);
     expect(filtrerParVue(flou, 'clotures')).toEqual([]);
     expect(filtrerParVue(flou, 'archives')).toEqual([]);
   });
@@ -82,7 +83,7 @@ describe('les trois vues du volet', () => {
   it('une valeur qui dit « non » ne referme rien non plus', () => {
     for (const mot of ['Non', 'non', 'NON', 'Non archivé', 'Aucune', 'false', '0']) {
       const dit = [ligne({ id: 'h', archive: mot })];
-      expect(filtrerParVue(dit, 'en-cours').map((l) => l.id), mot).toEqual(['h']);
+      expect(filtrerParVue(dit, 'loge').map((l) => l.id), mot).toEqual(['h']);
       expect(filtrerParVue(dit, 'archives'), mot).toEqual([]);
     }
   });
@@ -118,19 +119,38 @@ describe('la recherche du volet', () => {
   });
 });
 
+describe('la vue d’ouverture', () => {
+  it('« Mes candidats » quand on en accompagne', () => {
+    expect(vueDOuverture(loge)).toBe('mes');
+  });
+
+  // Un administrateur n'a pas de fiche de référent : il n'accompagne personne.
+  it('« La loge » quand on n’accompagne personne — jamais un écran vide', () => {
+    expect(vueDOuverture([ligne({ id: 'z' })])).toBe('loge');
+    expect(vueDOuverture([])).toBe('loge');
+  });
+
+  it('un dossier refermé ne compte pas comme un suivi en cours', () => {
+    expect(vueDOuverture([ligne({ cloture: 'Embauché', c_est_mon_suivi: true })])).toBe('loge');
+  });
+});
+
 describe('le décompte en tête du volet', () => {
-  it('compte les dossiers ouverts, pas les lignes', () => {
-    expect(resumeDeLaLoge(loge)).toBe('3 en cours');
+  // Il porte sur ce que la vue montre : un décompte qui annonce treize
+  // au-dessus d'une liste de deux ne compte rien du tout.
+  it('compte ce que la vue affiche', () => {
+    expect(resumeDeLaVue(filtrerParVue(loge, 'loge'), 'loge')).toBe('3 en cours');
+    expect(resumeDeLaVue(filtrerParVue(loge, 'mes'), 'mes')).toBe('1 en cours');
+  });
+
+  it('accorde le mot à la vue', () => {
+    expect(resumeDeLaVue(filtrerParVue(loge, 'clotures'), 'clotures')).toBe('1 clôturé');
+    expect(resumeDeLaVue(filtrerParVue(loge, 'archives'), 'archives')).toBe('1 archivé');
+    expect(resumeDeLaVue([ligne({}), ligne({})], 'clotures')).toBe('2 clôturés');
   });
 
   it('le dit quand il n’y a personne', () => {
-    expect(resumeDeLaLoge([])).toBe('aucun');
-  });
-
-  it('le dit aussi quand tout est refermé, clôturé ou archivé', () => {
-    expect(resumeDeLaLoge([ligne({ cloture: 'Embauché' }), ligne({ archive: 'Rangé' })])).toBe(
-      'aucun en cours',
-    );
+    expect(resumeDeLaVue([], 'mes')).toBe('aucun');
   });
 });
 

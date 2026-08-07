@@ -2059,12 +2059,13 @@ tbody tr:focus-within {
   padding: 0.3rem 0.55rem;
 }
 
-/* Trois colonnes égales plutôt que trois pastilles à la suite : chacune occupe
-   sa case quelle que soit la longueur du mot, et la rangée ne se réorganise
-   pas le jour où un libellé change. */
+/* Deux sur deux, et non quatre à la suite : « Mes candidats » ne tient pas sur
+   un quart de volet, et laissée libre la rangée déborde au hasard — ce qui se
+   lit comme un accident. Une grille de quatre cases égales se lit comme un
+   choix, et ne se réorganise pas le jour où un libellé change. */
 .poste-vues {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 0.25rem;
 }
 

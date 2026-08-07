@@ -133,31 +133,41 @@ export async function lireFiche(id: string): Promise<FicheOuverte | null> {
 }
 
 /**
- * Les trois états d'un dossier, et rien d'autre.
+ * Ce que le volet peut montrer : deux portées de travail, puis les deux façons
+ * de retrouver ce qui est refermé.
  *
- * La maquette proposait « Tous · Urgents · Mes suivis ». Aucun des trois n'a
- * survécu à l'usage : « Tous » mélangeait ouvert et refermé, « Urgents » et
- * « Mes suivis » découpaient une liste qu'on parcourt déjà d'un coup d'œil et
- * que la recherche retrouve mieux. Ce qu'on demande à ce volet, c'est de
- * savoir où en est un dossier.
+ * L'écran s'ouvre sur « Mes candidats » : c'est ce qu'un référent vient faire,
+ * et lui présenter d'abord les vingt-quatre dossiers de sa loge lui donne du
+ * tri à faire avant de commencer.
  *
  * `CLOTURE` et `ARCHIVER` restent deux vues et non une : ce sont deux colonnes
  * distinctes chez Bubble, donc deux gestes distincts, et les confondre à
- * l'écran ferait perdre l'information au premier tri.
+ * l'écran ferait perdre l'information au premier tri. Toutes deux portent sur
+ * la loge — on referme rarement un dossier, et jamais dans l'urgence.
  */
 export const VUES = [
-  { valeur: 'en-cours', libelle: 'En cours' },
+  { valeur: 'mes', libelle: 'Mes candidats' },
+  { valeur: 'loge', libelle: 'La loge' },
   { valeur: 'clotures', libelle: 'Clôturés' },
   { valeur: 'archives', libelle: 'Archivés' },
 ] as const;
 
 export type Vue = (typeof VUES)[number]['valeur'];
 
-/** Celle sur laquelle l'écran s'ouvre, et qui ne s'écrit pas dans l'adresse. */
-export const VUE_PAR_DEFAUT: Vue = 'en-cours';
-
 export function estVue(valeur: unknown): valeur is Vue {
   return VUES.some((v) => v.valeur === valeur);
+}
+
+/**
+ * La vue sur laquelle l'écran s'ouvre — celle que l'adresse nue désigne.
+ *
+ * « Mes candidats », sauf pour qui n'en accompagne aucun : un administrateur,
+ * qui n'a pas de fiche de référent, ou un compte pas encore rattaché à la
+ * sienne. Leur ouvrir un écran vide serait leur dire que l'application ne
+ * contient rien.
+ */
+export function vueDOuverture(lignes: LigneCandidat[]): Vue {
+  return lignes.some((l) => l.c_est_mon_suivi && !estFerme(l)) ? 'mes' : 'loge';
 }
 
 export function filtrerParVue(lignes: LigneCandidat[], vue: Vue): LigneCandidat[] {
@@ -165,7 +175,8 @@ export function filtrerParVue(lignes: LigneCandidat[], vue: Vue): LigneCandidat[
   if (vue === 'archives') return lignes.filter(estArchive);
 
   // Ce qui reste : ni clôturé, ni archivé. C'est le travail en cours.
-  return lignes.filter((l) => !estFerme(l));
+  const ouverts = lignes.filter((l) => !estFerme(l));
+  return vue === 'mes' ? ouverts.filter((l) => l.c_est_mon_suivi) : ouverts;
 }
 
 /**
@@ -184,12 +195,18 @@ export function chercher(lignes: LigneCandidat[], recherche: string): LigneCandi
   );
 }
 
-/** « 13 en cours », comme en tête du volet de la maquette. */
-export function resumeDeLaLoge(lignes: LigneCandidat[]): string {
-  const ouverts = lignes.filter((l) => !estFerme(l)).length;
-  if (lignes.length === 0) return 'aucun';
-  if (ouverts === 0) return 'aucun en cours';
-  return `${ouverts} en cours`;
+/**
+ * « 13 en cours », comme en tête du volet de la maquette — mais compté sur ce
+ * que la vue montre, et non sur la loge entière. Un décompte qui annonce
+ * treize au-dessus d'une liste de deux ne compte rien du tout.
+ */
+export function resumeDeLaVue(lignes: LigneCandidat[], vue: Vue): string {
+  const n = lignes.length;
+  if (n === 0) return 'aucun';
+
+  if (vue === 'clotures') return `${n} clôturé${n > 1 ? 's' : ''}`;
+  if (vue === 'archives') return `${n} archivé${n > 1 ? 's' : ''}`;
+  return `${n} en cours`;
 }
 
 /** « MARTIN Julie », le nom en tête — c'est par là qu'on cherche quelqu'un. */

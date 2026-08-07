@@ -70,18 +70,34 @@ Les photos et les documents passent par l'application, jamais par une adresse si
 adresse signée, même d'une minute, est une adresse qui circule. Chez Bubble, ces fichiers
 pendaient à un CDN public.
 
-## Les trois vues
+## Les quatre vues
 
-`En cours` (l'ouverture) · `Clôturés` · `Archivés`. Trois états d'un dossier, une rangée.
+| Vue | Ce qu'elle montre |
+| --- | --- |
+| `Mes candidats` | ceux qu'on suit ou qu'on parraine, ni clôturés ni archivés |
+| `La loge` | toute la loge, ni clôturée ni archivée |
+| `Clôturés` | la colonne `CLOTURE` de la loge |
+| `Archivés` | la colonne `ARCHIVER` de la loge |
 
-La maquette proposait « Tous · Urgents · Mes suivis ». Aucun des trois n'a survécu à l'usage :
-« Tous » mélangeait ouvert et refermé, « Urgents » et « Mes suivis » découpaient une liste qu'on
-parcourt déjà d'un coup d'œil et que la recherche retrouve mieux. Ce qu'on demande à ce volet,
-c'est de savoir où en est un dossier.
+**L'écran s'ouvre sur « Mes candidats »** : c'est ce qu'un référent vient faire. Lui présenter
+d'abord les vingt-quatre dossiers de sa loge lui donnerait du tri à faire avant de commencer.
+
+**Sauf pour qui n'accompagne personne** — un administrateur, qui n'a pas de fiche de référent, ou
+un compte pas encore rattaché à la sienne : l'écran s'ouvre alors sur « La loge ». C'est la seule
+chose de cet écran qui dépende des données plutôt que de l'adresse, et c'est voulu : la première
+seconde décide de ce qu'on croit que l'application contient.
+
+L'adresse nue `/espace/candidats` désigne donc la vue d'ouverture, quelle qu'elle soit ; toute
+autre vue s'écrit `?vue=`.
 
 **Deux vues et non une pour ce qui est refermé.** `CLOTURE` et `ARCHIVER` sont deux colonnes
 distinctes reprises de Bubble, donc deux gestes distincts. Les confondre à l'écran ferait perdre
-l'information au premier tri.
+l'information au premier tri. Toutes deux portent sur la loge — on referme rarement un dossier,
+et jamais dans l'urgence.
+
+**Le décompte en tête suit la vue** : « 12 en cours », « 5 clôturés », « 3 archivés ». Il porte
+sur ce que la vue montre et non sur la loge entière — un décompte qui annonce treize au-dessus
+d'une liste de deux ne compte rien du tout.
 
 Le rang d'un candidat que **personne n'accompagne** porte un point ambre, et le texte le dit aux
 lecteurs d'écran — la couleur seule ne suffit jamais. Le point occupe sa place sur tous les

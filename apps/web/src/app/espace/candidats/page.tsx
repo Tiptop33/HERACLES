@@ -2,15 +2,15 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import {
   VUES,
-  VUE_PAR_DEFAUT,
   chercher,
   estVue,
   filtrerParVue,
   lireFiche,
   listerCandidatsDeLaLoge,
   nomDeFamilleDabord,
-  resumeDeLaLoge,
+  resumeDeLaVue,
   sousTitreDuRang,
+  vueDOuverture,
   type LigneCandidat,
   type Vue,
 } from '@/lib/poste';
@@ -55,13 +55,21 @@ export default async function PosteDeTravail({
   const parametres = await searchParams;
   const recherche = premier(parametres.q);
   const demandee = premier(parametres.vue);
-  const vue: Vue = estVue(demandee) ? demandee : VUE_PAR_DEFAUT;
   const demande = premier(parametres.fiche);
   const demandeOnglet = premier(parametres.onglet);
   const onglet: Onglet = estOnglet(demandeOnglet) ? demandeOnglet : 'profil';
 
   const tous = await listerCandidatsDeLaLoge();
-  const lignes = chercher(filtrerParVue(tous, vue), recherche);
+
+  // L'adresse nue ouvre sur « Mes candidats » — ou sur la loge quand on n'en
+  // accompagne aucun. C'est la seule chose de cet écran qui dépende des
+  // données plutôt que de l'adresse, et c'est voulu : la première seconde
+  // décide de ce qu'on croit que l'application contient.
+  const ouverture = vueDOuverture(tous);
+  const vue: Vue = estVue(demandee) ? demandee : ouverture;
+
+  const deLaVue = filtrerParVue(tous, vue);
+  const lignes = chercher(deLaVue, recherche);
 
   // La fiche se demande à la base, jamais à la liste : on ne se sert pas de ce
   // qu'un écran a déjà chargé pour décider de ce qu'un autre a le droit de
@@ -73,7 +81,7 @@ export default async function PosteDeTravail({
   const adresse = (ajout: Record<string, string | null>) => {
     const p = new URLSearchParams();
     if (recherche) p.set('q', recherche);
-    if (vue !== VUE_PAR_DEFAUT) p.set('vue', vue);
+    if (vue !== ouverture) p.set('vue', vue);
     if (demande) p.set('fiche', demande);
     if (onglet !== 'profil') p.set('onglet', onglet);
 
@@ -92,13 +100,13 @@ export default async function PosteDeTravail({
         <div className="poste-volet-tete">
           <p className="poste-volet-titre">
             Candidats <span aria-hidden="true">·</span>{' '}
-            <span className="maigre">{resumeDeLaLoge(tous)}</span>
+            <span className="maigre">{resumeDeLaVue(deLaVue, vue)}</span>
           </p>
 
           {/* Un formulaire en `get` : la recherche part avec la vue et la fiche
               ouverte, et l'adresse obtenue reste partageable. */}
           <form className="poste-chercher" method="get" action="/espace/candidats">
-            {vue !== VUE_PAR_DEFAUT && <input type="hidden" name="vue" value={vue} />}
+            {vue !== ouverture && <input type="hidden" name="vue" value={vue} />}
             {demande && <input type="hidden" name="fiche" value={demande} />}
             {onglet !== 'profil' && <input type="hidden" name="onglet" value={onglet} />}
             <input
@@ -111,14 +119,15 @@ export default async function PosteDeTravail({
             />
           </form>
 
-          {/* Trois pastilles, trois états d'un dossier. Elles tiennent sur une
-              ligne, ce qui est la seule mise en page qui n'ait rien à
-              expliquer. */}
+          {/* Quatre pastilles : deux portées de travail, puis ce qui est
+              refermé. Deux sur deux plutôt qu'à la suite — « Mes candidats »
+              ne tient pas sur un quart de volet, et une rangée qui déborde au
+              hasard se lit comme un accident. */}
           <div className="poste-vues">
             {VUES.map(({ valeur, libelle }) => (
               <Link
                 key={valeur}
-                href={adresse({ vue: valeur === VUE_PAR_DEFAUT ? null : valeur })}
+                href={adresse({ vue: valeur === ouverture ? null : valeur })}
                 className="filtre filtre--menu"
                 aria-current={vue === valeur}
               >
@@ -135,7 +144,13 @@ export default async function PosteDeTravail({
               : 'Votre compte n’est rattaché à aucune loge. Une personne de l’administration doit faire le lien avant que les candidats apparaissent ici.'}
           </p>
         ) : lignes.length === 0 ? (
-          <p className="poste-volet-vide">Personne ne correspond.</p>
+          <p className="poste-volet-vide">
+            {recherche
+              ? 'Personne ne correspond.'
+              : vue === 'mes'
+                ? 'Vous n’accompagnez aucun candidat. « La loge » montre ceux de vos collègues.'
+                : 'Aucun dossier dans cette vue.'}
+          </p>
         ) : (
           <ul className="poste-rangs">
             {lignes.map((ligne) => (
