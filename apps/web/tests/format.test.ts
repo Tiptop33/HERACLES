@@ -5,6 +5,7 @@ import {
   depuis,
   enEtiquettes,
   initiales,
+  nomAffichable,
   nomComplet,
 } from '../src/lib/format';
 
@@ -101,5 +102,41 @@ describe('enEtiquettes', () => {
     expect(enEtiquettes('Sage,,  ,Cegid')).toEqual(['Sage', 'Cegid']);
     expect(enEtiquettes(null)).toEqual([]);
     expect(enEtiquettes('')).toEqual([]);
+  });
+});
+
+describe('nomAffichable', () => {
+  it('préfère le nom quand il y en a un', () => {
+    expect(nomAffichable('Ada', 'Lovelace', 'ada@example.org')).toBe('Ada Lovelace');
+  });
+
+  it('se contente du prénom, ou du nom', () => {
+    expect(nomAffichable('Ada', null, 'ada@example.org')).toBe('Ada');
+    expect(nomAffichable(null, 'Lovelace', 'ada@example.org')).toBe('Lovelace');
+  });
+
+  it('retombe sur l’adresse — un compte neuf n’a pas encore de nom', () => {
+    // Celui du premier administrateur, par exemple : il n'est passé par aucun
+    // formulaire. « Sans nom » sous la marque ne dit rien à personne.
+    expect(nomAffichable(null, null, 'locascio@example.org')).toBe('locascio@example.org');
+  });
+
+  it('ne dit « Sans nom » qu’en dernier recours', () => {
+    expect(nomAffichable(null, null, null)).toBe('Sans nom');
+    expect(nomAffichable('  ', '  ', '   ')).toBe('Sans nom');
+  });
+});
+
+describe('initiales, avec un secours', () => {
+  it('prend la première lettre de l’adresse faute de nom', () => {
+    expect(initiales(null, null, 'locascio@example.org')).toBe('L');
+  });
+
+  it('ignore le secours dès qu’un nom existe', () => {
+    expect(initiales('Ada', 'Lovelace', 'zzz@example.org')).toBe('AL');
+  });
+
+  it('garde le point d’interrogation quand il n’y a rien du tout', () => {
+    expect(initiales(null, null, null)).toBe('?');
   });
 });

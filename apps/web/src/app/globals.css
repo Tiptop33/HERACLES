@@ -1149,6 +1149,11 @@ tbody tr:focus-within {
 .colonne-qui {
   font-size: 0.72rem;
   color: var(--encre-douce);
+  /* Faute de nom, on affiche l'adresse — qui peut être longue et n'a pas
+     d'espace où se couper. Sans cela, elle déborderait de la colonne. */
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  line-height: 1.35;
 }
 
 .colonne-famille-nom {

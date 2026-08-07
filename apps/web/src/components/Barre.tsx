@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import Logo from '@/components/Logo';
-import { initiales, nomComplet } from '@/lib/format';
+import { initiales, nomAffichable } from '@/lib/format';
 import type { Profil } from '@/lib/profil';
 
 /**
@@ -22,7 +22,7 @@ export default function Barre({
   /** Ce qui s'affiche à droite : la loge d'un référent, par exemple. */
   cote?: string | null;
 }) {
-  const nom = nomComplet(profil.prenom, profil.nom);
+  const nom = nomAffichable(profil.prenom, profil.nom, profil.email);
 
   return (
     <header className="barre">
@@ -42,7 +42,7 @@ export default function Barre({
           </form>
 
           <Link href="/mon-compte" className="pastille" title={`${nom} — mon compte`}>
-            {initiales(profil.prenom, profil.nom)}
+            {initiales(profil.prenom, profil.nom, profil.email)}
           </Link>
         </div>
       </div>

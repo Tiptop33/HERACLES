@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { estCourante, famillesDuRole } from '@/lib/navigation';
-import { nomComplet } from '@/lib/format';
+import { nomAffichable } from '@/lib/format';
 import type { Profil } from '@/lib/profil';
 
 /**
@@ -20,7 +20,7 @@ import type { Profil } from '@/lib/profil';
 export default function Colonne({ profil, logo }: { profil: Profil; logo: string | null }) {
   const chemin = usePathname() ?? '';
   const familles = famillesDuRole(profil.role);
-  const nom = nomComplet(profil.prenom, profil.nom);
+  const nom = nomAffichable(profil.prenom, profil.nom, profil.email);
 
   return (
     <nav className="colonne" aria-label="Navigation principale">

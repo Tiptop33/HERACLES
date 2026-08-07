@@ -11,6 +11,13 @@ export type Profil = {
   ville: string | null;
   code_postal: string | null;
   presentation: string | null;
+  /**
+   * L'adresse du compte. Elle ne vient pas de la table `profil` mais de la
+   * session : c'est `auth.users` qui la porte, et cette table-là n'est pas
+   * lisible depuis l'application. Elle sert à nommer quelqu'un qui n'a pas
+   * encore renseigné son nom.
+   */
+  email: string | null;
 };
 
 /**
@@ -30,7 +37,8 @@ export async function profilCourant(): Promise<Profil | null> {
     .select('id, role, nom, prenom, telephone, ville, code_postal, presentation')
     .single();
 
-  return (data as Profil) ?? null;
+  if (!data) return null;
+  return { ...(data as Omit<Profil, 'email'>), email: user.email ?? null };
 }
 
 /** Comme `profilCourant`, mais renvoie vers la connexion s'il n'y a personne. */
