@@ -127,8 +127,10 @@ service**, les référentiels depuis celle de **l'éditeur** — les deux bases 
 Bubble n'exposent pas les mêmes types. Rejouable : une fiche déjà reprise est
 mise à jour, jamais dupliquée.
 
-PostgreSQL n'est publié sur aucun port, et ça ne change pas : le script joint
-le conteneur par son adresse sur le réseau Docker.
+Les outils tournent **dans un conteneur**, pas sur la machine : le VPS n'a pas
+forcément `npm`, sa version de Node est ce qu'elle est, et depuis le réseau de
+la pile la base se joint par son nom — `db` — sans deviner d'adresse ni publier
+de port. PostgreSQL reste inaccessible de l'extérieur, et ça ne change pas.
 
 **Ce que cela fait entrer sur le serveur** : 107 candidats avec leurs
 coordonnées, leurs parcours et leurs CV, 71 référents, 4 539 offres. Trois
