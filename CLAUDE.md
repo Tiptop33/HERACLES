@@ -143,3 +143,6 @@ sert**, pas la liste des fichiers touchés.
 - **MAJBUBBLE** — la reprise finale des données Bubble, à rejouer au plus tard le
   5 décembre 2026 : `docs/MAJBUBBLE.md`. C'est la seule opération de la bascule qui
   ne se rattrape pas — passé la fermeture, ni l'API ni le CDN de Bubble ne répondent.
+- **Sauvegarde** — `docs/sauvegarde.md`. Le serveur porte des données réelles :
+  base, fichiers, et la copie qui doit en sortir. À lire avant toute opération
+  qui touche à la base.

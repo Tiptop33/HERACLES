@@ -35,7 +35,7 @@ Sur la production, remplacer le chemin par celui du dépôt de production.
 
 | | |
 | --- | --- |
-| **Sauvegarder** | `docker exec <prefixe>-db pg_dump -U postgres postgres \| gzip > heracles-avant-majbubble.sql.gz`, et **sortir le fichier du VPS** |
+| **Sauvegarder** | `sudo /opt/heracles-essai-depot/infra/essai/sauvegarder.sh`, et **sortir l'archive du VPS** — voir [`sauvegarde.md`](sauvegarde.md) |
 | **L'API Bubble doit répondre** | si elle a été refermée entre-temps, la rouvrir avec un jeton pour la durée de l'opération, et la refermer après |
 | **Un jeton** | `BUBBLE_TOKEN=xxx sudo -E …` — l'API répond aussi sans, mais c'est à éviter |
 | **La pile doit être en marche** | migrations jouées, `auth` en place |

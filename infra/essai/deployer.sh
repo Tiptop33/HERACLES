@@ -69,8 +69,8 @@ if [[ $ZERO -eq 1 ]]; then
   if [[ "${restants// /}" =~ ^[0-9]+$ ]] && [[ "${restants// /}" -gt 0 ]] \
      && [[ "${HERACLES_EFFACER_QUAND_MEME:-}" != "oui" ]]; then
     rouge "Cette base contient ${restants// /} candidats. La table rase les effacerait."
-    echo  "Sauvegardez d'abord :"
-    echo  "  docker exec $PREFIXE-db pg_dump -U postgres postgres | gzip > /root/heracles-\$(date +%F).sql.gz"
+    echo  "Sauvegardez d'abord — et sortez l'archive du VPS :"
+    echo  "  sudo $DEPOT/infra/essai/sauvegarder.sh"
     echo
     echo  "Puis, si c'est bien ce que vous voulez :"
     echo  "  HERACLES_EFFACER_QUAND_MEME=oui $0 --repartir-de-zero $APP $API"
