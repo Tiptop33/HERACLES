@@ -291,11 +291,21 @@ h3 {
   object-fit: contain;
 }
 
-/* Le logo est un trait noir sur fond clair. En thème sombre, il disparaîtrait :
-   on l'inverse pour qu'il redevienne un trait clair sur fond sombre. */
+/* En thème sombre, un logo au trait sombre disparaîtrait sur le fond. On lui
+   pose un disque clair dessous plutôt que d'inverser ses couleurs : inverser
+   ne convient qu'à un dessin en noir et blanc, et rend n'importe quoi d'un
+   emblème en couleurs. Le disque, lui, reprend la forme que le « H » de
+   remplacement occupait déjà à cet endroit.
+
+   Si le logo déposé est déjà clair sur fond transparent, retirer ce bloc. */
 @media (prefers-color-scheme: dark) {
   .logo img {
-    filter: invert(1);
+    /* Une valeur en clair, et non `var(--surface)` : sous ce thème, les
+       variables de surface sont sombres — le disque disparaîtrait avec ce
+       qu'il doit faire ressortir. */
+    background: #ffffff;
+    border-radius: 50%;
+    padding: 0.25rem;
   }
 }
 
