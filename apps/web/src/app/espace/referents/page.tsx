@@ -11,6 +11,7 @@ import {
 import { initiales, nomComplet, telephone } from '@/lib/format';
 import { exigerProfil } from '@/lib/profil';
 import { DrapeauFrance } from './DrapeauFrance';
+import { Corbeille, Stylo } from './Icones';
 
 export const metadata = { title: 'Référents — HERACLES' };
 
@@ -20,10 +21,25 @@ function premier(valeur: string | string[] | undefined): string {
   return valeur ?? '';
 }
 
+/** Ce que la route de suppression renvoie, dit à qui a cliqué. */
+const REFUS: Record<string, string> = {
+  droit: 'Seul un administrateur peut retirer une fiche.',
+  absente: 'Cette fiche n’existe plus.',
+  candidats: 'Cette fiche accompagne encore des candidats. Confiez-les à quelqu’un d’abord.',
+  soi: 'On ne retire pas sa propre fiche.',
+  session: 'Votre session a expiré. Reconnectez-vous.',
+  echec: 'La fiche n’a pas pu être retirée.',
+};
+
 export default async function Referents({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string | string[]; loge?: string | string[] }>;
+  searchParams: Promise<{
+    q?: string | string[];
+    loge?: string | string[];
+    supprimer?: string | string[];
+    erreur?: string | string[];
+  }>;
 }) {
   const profil = await exigerProfil();
   const parametres = await searchParams;
@@ -46,6 +62,26 @@ export default async function Referents({
   const nomDeLaLoge = loges.find((l) => l.valeur === loge)?.nom ?? '';
   // Une seule loge et personne d'orphelin : il n'y a rien à choisir.
   const choixOuvert = loges.length > 1;
+
+  const refus = REFUS[premier(parametres.erreur)] ?? null;
+
+  /** L'adresse de cette même page, avec un paramètre en plus ou en moins. */
+  const adresse = (ajout?: Record<string, string | null>) => {
+    const p = new URLSearchParams();
+    if (recherche) p.set('q', recherche);
+    if (premier(parametres.loge)) p.set('loge', premier(parametres.loge));
+    for (const [cle, valeur] of Object.entries(ajout ?? {})) {
+      if (valeur === null) p.delete(cle);
+      else p.set(cle, valeur);
+    }
+    const suite = p.toString();
+    return suite ? `/espace/referents?${suite}` : '/espace/referents';
+  };
+
+  // La fenêtre de confirmation est rendue par le serveur, sur la seule foi de
+  // l'adresse. Elle s'ouvre donc sans une ligne de script, se met en favori,
+  // et le bouton « retour » du navigateur la referme.
+  const aRetirer = admin ? (fiches.find((f) => f.id === premier(parametres.supprimer)) ?? null) : null;
 
   return (
     <main className="corps">
@@ -93,6 +129,12 @@ export default async function Referents({
         </form>
       </div>
 
+      {refus && (
+        <p className="erreur" role="alert">
+          {refus}
+        </p>
+      )}
+
       {tous.length === 0 && (
         <p className="vide-liste">
           Votre compte n&apos;est rattaché à aucune loge. Une personne de l&apos;administration
@@ -127,8 +169,8 @@ export default async function Referents({
                       className="portrait"
                       src={`/espace/referents/${f.id}/photo`}
                       alt=""
-                      width={34}
-                      height={34}
+                      width={67}
+                      height={67}
                       loading="lazy"
                     />
                   ) : (
@@ -150,13 +192,24 @@ export default async function Referents({
                   )}
 
                   {admin && (
-                    <Link
-                      href={`/espace/referents/${f.id}/modifier`}
-                      className="lien-nu"
-                      aria-label={`Modifier la fiche de ${nom}`}
-                    >
-                      Modifier
-                    </Link>
+                    <span className="gestes">
+                      <Link
+                        href={`/espace/referents/${f.id}/modifier`}
+                        className="geste geste--corriger"
+                        aria-label={`Corriger la fiche de ${nom}`}
+                        title="Corriger cette fiche"
+                      >
+                        <Stylo />
+                      </Link>
+                      <Link
+                        href={adresse({ supprimer: f.id })}
+                        className="geste geste--retirer"
+                        aria-label={`Retirer la fiche de ${nom}`}
+                        title="Retirer cette fiche"
+                      >
+                        <Corbeille />
+                      </Link>
+                    </span>
                   )}
                 </div>
 
@@ -199,6 +252,79 @@ export default async function Referents({
           })}
         </div>
       )}
+
+      {aRetirer && <FenetreDeRetrait fiche={aRetirer} fermer={adresse({ supprimer: null })} />}
     </main>
+  );
+}
+
+/**
+ * La fenêtre de confirmation. Amovible de trois façons : le lien « Annuler »,
+ * un clic à côté — le fond est lui-même un lien —, et le bouton « retour » du
+ * navigateur, puisque son ouverture n'est qu'une adresse.
+ *
+ * Quand la fiche accompagne des candidats, il n'y a pas de bouton rouge du
+ * tout : la base refuserait, et un bouton qui échoue toujours vaut moins
+ * qu'une phrase qui explique.
+ */
+function FenetreDeRetrait({
+  fiche,
+  fermer,
+}: {
+  fiche: { id: string; nom: string | null; prenom: string | null; loge_nom: string | null; compte_rattache: boolean; candidats_suivis: number };
+  fermer: string;
+}) {
+  const nom = nomComplet(fiche.prenom, fiche.nom) || 'cette personne';
+  const accompagne = fiche.candidats_suivis > 0;
+
+  return (
+    <div className="fenetre-fond">
+      <Link href={fermer} className="fenetre-voile" aria-label="Fermer sans rien retirer" />
+
+      <div className="fenetre" role="dialog" aria-modal="true" aria-labelledby="retrait-titre">
+        <h2 id="retrait-titre">Retirer {nom} de l’annuaire&nbsp;?</h2>
+
+        {accompagne ? (
+          <>
+            <p>
+              Impossible pour l’instant&nbsp;: cette fiche accompagne{' '}
+              <strong>
+                {fiche.candidats_suivis} candidat{fiche.candidats_suivis > 1 ? 's' : ''}
+              </strong>
+              . Les retirer d’un coup les laisserait sans référent, sans que personne ne
+              le voie.
+            </p>
+            <p className="aide">Confiez-les à quelqu’un d’autre, puis revenez ici.</p>
+          </>
+        ) : (
+          <>
+            <p>
+              La fiche disparaîtra de l’annuaire{fiche.loge_nom ? ` de ${fiche.loge_nom}` : ''}.
+              Cela ne se défait pas.
+            </p>
+            {fiche.compte_rattache && (
+              <p className="aide">
+                Son compte HERACLES, lui, subsistera&nbsp;: cette personne pourra encore se
+                connecter, mais n’aura plus ni loge ni collègues.
+              </p>
+            )}
+          </>
+        )}
+
+        <div className="fenetre-gestes">
+          <Link href={fermer} className="bouton">
+            {accompagne ? 'Fermer' : 'Annuler'}
+          </Link>
+
+          {!accompagne && (
+            <form method="post" action={`/api/referents/${fiche.id}/supprimer`}>
+              <button className="bouton bouton--danger" type="submit">
+                Retirer la fiche
+              </button>
+            </form>
+          )}
+        </div>
+      </div>
+    </div>
   );
 }
