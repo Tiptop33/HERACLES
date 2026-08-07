@@ -86,14 +86,15 @@ select public.verifier(
 -- On nomme les tables plutôt que de les compter : un décompte dit qu'une
 -- table s'est ouverte, jamais laquelle. `college` (0017) s'y ajoute — c'est un
 -- référentiel sans donnée personnelle, et sa policy le réserve de toute façon
--- aux administrateurs.
+-- aux administrateurs. `suivi` (0021) aussi : sa policy d'update ne laisse
+-- corriger que ce qu'on a soi-même écrit.
 select public.verifier(
   (select array_agg(distinct table_name::text order by table_name::text)
      from information_schema.role_table_grants
     where table_schema = 'public' and grantee = 'authenticated'
       and privilege_type = 'UPDATE')
-   = array['candidat', 'college', 'profil'],
-  'trois tables modifiables en entier, et on sait lesquelles');
+   = array['candidat', 'college', 'profil', 'suivi'],
+  'quatre tables modifiables en entier, et on sait lesquelles');
 
 -- Supprimer : une seule table, et c'est le référentiel des titres. Nulle part
 -- ailleurs un écran n'efface une ligne entière — la fiche d'un référent passe
@@ -123,20 +124,19 @@ select public.verifier(
   (select count(distinct table_name) from information_schema.role_column_grants
     where table_schema = 'public' and grantee = 'authenticated'
       and privilege_type = 'UPDATE'
-      and table_name not in ('profil', 'candidat', 'referent', 'college')) = 0,
+      and table_name not in ('profil', 'candidat', 'referent', 'college', 'suivi')) = 0,
   'et aucune autre table ne s''est entrouverte par une colonne');
 
--- Insérer : le référentiel des titres, et lui seul. Ni un candidat, ni un
--- référent, ni une loge ne se créent depuis un écran — c'est encore vrai après
--- 0017, et ce contrôle est là pour le dire le jour où ça changera par
--- inadvertance.
+-- Insérer : le référentiel des titres, et les lignes de journal. Ni un
+-- candidat, ni un référent, ni une loge ne se créent depuis un écran — ce
+-- contrôle est là pour le dire le jour où ça changera par inadvertance.
 select public.verifier(
   (select array_agg(distinct table_name::text order by table_name::text)
      from information_schema.role_table_grants
     where table_schema = 'public' and grantee = 'authenticated'
       and privilege_type = 'INSERT')
-   = array['college'],
-  'seul le référentiel des titres reçoit des insertions');
+   = array['college', 'suivi'],
+  'deux tables reçoivent des insertions : les titres, et le journal');
 
 \echo '— les fonctions des policies sont exécutables'
 begin;

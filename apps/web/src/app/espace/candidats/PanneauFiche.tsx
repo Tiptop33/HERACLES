@@ -3,6 +3,7 @@ import BoutonImprimer from '@/components/BoutonImprimer';
 import { Stylo } from '@/components/Icones';
 import { DrapeauFrance } from '../referents/DrapeauFrance';
 import { dateEnLettres, enEtiquettes, initiales, telephone } from '@/lib/format';
+import { NATURES, type LigneDeJournal } from '@/lib/journal';
 import { nomDeFamilleDabord, type FicheOuverte, type LigneCandidat } from '@/lib/poste';
 
 /**
@@ -17,7 +18,7 @@ import { nomDeFamilleDabord, type FicheOuverte, type LigneCandidat } from '@/lib
 export const ONGLETS = [
   { valeur: 'profil', libelle: 'Profil' },
   { valeur: 'documents', libelle: 'Documents' },
-  { valeur: 'suivi', libelle: 'Suivi & tâches', lot: 'lot 4' },
+  { valeur: 'suivi', libelle: 'Suivi' },
   { valeur: 'offres', libelle: 'Offres proposées', lot: 'lot 4' },
 ] as const;
 
@@ -25,7 +26,7 @@ export type Onglet = (typeof ONGLETS)[number]['valeur'];
 
 /** Seuls les onglets construits s'ouvrent : les autres restent éteints. */
 export function estOnglet(valeur: unknown): valeur is Onglet {
-  return valeur === 'profil' || valeur === 'documents';
+  return valeur === 'profil' || valeur === 'documents' || valeur === 'suivi';
 }
 
 /** Une valeur, ou la mention en italique de son absence. */
@@ -43,12 +44,18 @@ export default function PanneauFiche({
   fiche,
   rang,
   onglet,
+  journal,
+  refus,
   adresse,
 }: {
   fiche: FicheOuverte;
   /** La ligne correspondante de la liste, quand la vue courante la contient. */
   rang: LigneCandidat | null;
   onglet: Onglet;
+  /** Le journal, chargé seulement quand l'onglet « Suivi » est ouvert. */
+  journal: LigneDeJournal[];
+  /** Ce que la route d'écriture a répondu, quand elle a refusé. */
+  refus: string | null;
   adresse: (ajout: Record<string, string | null>) => string;
 }) {
   const nom = nomDeFamilleDabord(fiche.nom, fiche.prenom);
@@ -139,9 +146,125 @@ export default function PanneauFiche({
       </nav>
 
       <div className="poste-contenu">
-        {onglet === 'documents' ? <Documents fiche={fiche} /> : <Profil fiche={fiche} />}
+        {onglet === 'documents' ? (
+          <Documents fiche={fiche} />
+        ) : onglet === 'suivi' ? (
+          <Suivi fiche={fiche} journal={journal} refus={refus} />
+        ) : (
+          <Profil fiche={fiche} />
+        )}
       </div>
     </>
+  );
+}
+
+/** Ce que la route d'écriture a refusé, dit à qui a cliqué. */
+const REFUS: Record<string, string> = {
+  vide: 'Une note vide ne dit rien.',
+  droit: 'Seuls le référent et le parrain de ce candidat écrivent dans son journal.',
+  'sans-fiche': 'Votre compte n’est rattaché à aucune fiche de référent.',
+  introuvable: 'Ce candidat n’existe plus.',
+  session: 'Votre session a expiré. Reconnectez-vous.',
+  echec: 'La note n’a pas pu être enregistrée.',
+};
+
+/**
+ * Le journal : ce qui s'est passé, daté. On écrit en haut, on lit en dessous,
+ * du plus récent au plus ancien — l'ordre dans lequel on reprend un dossier.
+ *
+ * Le formulaire est un vrai `form` en `post` : la note part sans une ligne de
+ * script, et la route renvoie ici. C'est ce qui compte pour un champ qu'on
+ * remplit vingt fois par semaine sur un téléphone dans un couloir.
+ */
+function Suivi({
+  fiche,
+  journal,
+  refus,
+}: {
+  fiche: FicheOuverte;
+  journal: LigneDeJournal[];
+  refus: string | null;
+}) {
+  return (
+    <div className="journal">
+      {refus && (
+        <p className="erreur" role="alert">
+          {REFUS[refus] ?? 'La note n’a pas pu être enregistrée.'}
+        </p>
+      )}
+
+      {fiche.modifiable ? (
+        <form className="journal-ecrire" method="post" action={`/api/candidats/${fiche.id}/suivi`}>
+          <textarea
+            name="texte"
+            required
+            maxLength={4000}
+            rows={2}
+            placeholder="Ce qui s’est passé…"
+            aria-label="Ce qui s’est passé"
+          />
+
+          <div className="journal-ecrire-pied">
+            {/* Une liste ouverte : elle propose sans imposer. Le champ reste
+                libre, et ce qui s'y écrira dira un jour ce que doit contenir
+                le référentiel. */}
+            <input
+              name="nature"
+              list="natures-du-suivi"
+              maxLength={120}
+              placeholder="Appel, entretien…"
+              aria-label="Nature"
+              className="journal-nature"
+            />
+            <datalist id="natures-du-suivi">
+              {NATURES.map((n) => (
+                <option key={n} value={n} />
+              ))}
+            </datalist>
+
+            {/* Vide, c'est aujourd'hui : on antidate quand on note le lundi
+                l'appel du vendredi. */}
+            <input
+              type="date"
+              name="fait_le"
+              aria-label="Le jour où c’est arrivé"
+              className="journal-date"
+            />
+
+            <button className="bouton bouton--fort" type="submit">
+              Noter
+            </button>
+          </div>
+        </form>
+      ) : (
+        <p className="aide">
+          Vous lisez le journal de ce candidat parce qu’il est de votre loge. Seuls son
+          référent et son parrain y écrivent.
+        </p>
+      )}
+
+      {journal.length === 0 ? (
+        <p className="poste-fiche-vide">
+          Rien de noté pour l’instant
+          {fiche.modifiable ? ' — la première note ouvre le dossier.' : '.'}
+        </p>
+      ) : (
+        <ol className="journal-lignes">
+          {journal.map((ligne) => (
+            <li key={ligne.id} className="journal-ligne">
+              <div className="journal-ligne-tete">
+                <time dateTime={ligne.fait_le}>{dateEnLettres(ligne.fait_le)}</time>
+                {ligne.nature && <span className="etiquette">{ligne.nature}</span>}
+                <span className="journal-auteur">
+                  {ligne.c_est_moi ? 'vous' : (ligne.auteur_nom ?? 'auteur inconnu')}
+                </span>
+              </div>
+              <p className="prose">{ligne.texte}</p>
+            </li>
+          ))}
+        </ol>
+      )}
+    </div>
   );
 }
 
