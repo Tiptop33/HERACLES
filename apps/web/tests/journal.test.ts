@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   APERCU,
   apercuDuDossier,
+  phraseDeRefus,
   resumeDuJournal,
   tacheOuverte,
   type LigneDeJournal,
@@ -16,6 +17,8 @@ function ligne(etat: string | null): LigneDeJournal {
     etat,
     texte: 'Relance de l’entreprise.',
     auteur_nom: 'P Paul',
+    etat_par_nom: null,
+    je_peux_agir: true,
     c_est_moi: false,
     cree_le: null,
   };
@@ -85,6 +88,25 @@ describe('apercuDuDossier', () => {
   it('ne compte pas les notes sans état comme des tâches en cours', () => {
     const notes = Array.from({ length: APERCU + 4 }, () => ligne(null));
     expect(apercuDuDossier(notes).resteOuvert).toBe(0);
+  });
+});
+
+describe('phraseDeRefus', () => {
+  it('ne dit rien quand rien n’a été refusé', () => {
+    expect(phraseDeRefus(null)).toBeNull();
+    expect(phraseDeRefus(undefined)).toBeNull();
+    expect(phraseDeRefus('')).toBeNull();
+  });
+
+  it('traduit les codes que les routes renvoient', () => {
+    expect(phraseDeRefus('droit')).toContain('référent et le parrain');
+    expect(phraseDeRefus('sans-fiche')).toContain('fiche de référent');
+  });
+
+  // Le code vient de l'adresse, donc de n'importe qui : un code inventé ne
+  // doit pas afficher une phrase inventée, ni une page blanche.
+  it('retombe sur une phrase neutre pour un code inconnu', () => {
+    expect(phraseDeRefus('<script>')).toBe('La note n’a pas pu être enregistrée.');
   });
 });
 

@@ -15,13 +15,22 @@ export type LigneDeJournal = {
   fait_le: string;
   nature: string | null;
   /**
-   * Où en est la tâche, pour les lignes reprises de Bubble (migration 0023) :
-   * « En cours », « Terminer »… Les notes saisies dans HERACLES n'en ont pas —
-   * un journal se lit, il ne se coche pas.
+   * Où en est la tâche : « En cours », « Terminer »… Une note ordinaire n'en a
+   * pas — c'est ce qui sépare ce qui s'est passé de ce qui reste à faire.
    */
   etat: string | null;
   texte: string;
   auteur_nom: string | null;
+  /**
+   * Qui a changé l'état en dernier (migration 0024). Vide tant que personne
+   * n'y a touché depuis HERACLES — le cas des tâches reprises de Bubble.
+   */
+  etat_par_nom: string | null;
+  /**
+   * L'écran a-t-il le droit de proposer de refermer ? Faux pour une
+   * administratrice sans fiche de référent : elle lit, elle n'agit pas.
+   */
+  je_peux_agir: boolean;
   /** Le mien : l'écran ne propose de corriger que ce qu'on a écrit. */
   c_est_moi: boolean;
   cree_le: string | null;
@@ -57,6 +66,44 @@ export const NATURES = [
  * fait perdre une seconde ; une tâche à faire affichée close se perd.
  */
 const ETAT_CLOS = /^(termin|r[ée]alis|fait|clos|cl[oô]tur|abandonn|annul)/i;
+
+/**
+ * Les deux états que HERACLES pose lui-même.
+ *
+ * Ce sont les mots de Bubble, repris à l'identique — « Terminer » est un
+ * infinitif là où on attendrait un participe, mais c'est la valeur que portent
+ * les 28 tâches déjà closes. En inventer une seconde ferait deux vocabulaires
+ * pour la même chose, et deux façons de compter.
+ *
+ * Les cinq valeurs relevées restent lisibles à l'écran ; seules ces deux-ci
+ * s'écrivent.
+ */
+export const A_FAIRE = 'En cours';
+export const TERMINEE = 'Terminer';
+
+/**
+ * Ce que les routes du suivi répondent quand elles refusent, en français.
+ *
+ * Les routes renvoient un **code** dans l'adresse, jamais la phrase : un
+ * message porté par l'URL est un message qu'un lien fabriqué peut faire dire
+ * ce qu'il veut. La traduction se fait ici, une fois, pour les deux écrans qui
+ * savent écrire — la fiche et « Action / Candidat ».
+ */
+const REFUS: Record<string, string> = {
+  vide: 'Une note vide ne dit rien.',
+  droit: 'Seuls le référent et le parrain de ce candidat écrivent dans son journal.',
+  'sans-fiche': 'Votre compte n’est rattaché à aucune fiche de référent.',
+  introuvable: 'Ce candidat n’existe plus.',
+  etat: 'Cet état ne se pose pas ici.',
+  session: 'Votre session a expiré. Reconnectez-vous.',
+  echec: 'La note n’a pas pu être enregistrée.',
+};
+
+/** La phrase à afficher pour un code de refus, ou `null` s'il n'y en a pas. */
+export function phraseDeRefus(code: string | null | undefined): string | null {
+  if (!code) return null;
+  return REFUS[code] ?? 'La note n’a pas pu être enregistrée.';
+}
 
 /**
  * Cette ligne est-elle une tâche encore ouverte ? Une note saisie dans

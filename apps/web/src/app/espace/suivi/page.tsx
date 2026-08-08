@@ -1,10 +1,13 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { dateEnLettres } from '@/lib/format';
+import EtatDeTache from '@/components/EtatDeTache';
 import {
+  A_FAIRE,
   apercuDuDossier,
   lireJournalDeLaLoge,
   parCandidat,
+  phraseDeRefus,
   tacheOuverte,
   type LigneDeLaLoge,
 } from '@/lib/journal';
@@ -41,12 +44,14 @@ function premier(valeur: string | string[] | undefined): string {
 export default async function ActionCandidat({
   searchParams,
 }: {
-  searchParams: Promise<{ vue?: string | string[] }>;
+  searchParams: Promise<{ vue?: string | string[]; erreur?: string | string[] }>;
 }) {
   const profil = await exigerProfil();
   if (profil.role === 'chercheur') redirect(accueilDuRole(profil.role));
 
-  const demandee = premier((await searchParams).vue);
+  const parametres = await searchParams;
+  const demandee = premier(parametres.vue);
+  const refus = phraseDeRefus(premier(parametres.erreur));
 
   const [candidats, notes] = await Promise.all([
     listerCandidatsDeLaLoge(),
@@ -90,6 +95,12 @@ export default async function ActionCandidat({
 
   return (
     <main className="corps">
+      {refus && (
+        <p className="erreur" role="alert">
+          {refus}
+        </p>
+      )}
+
       <div className="entete-liste">
         <div>
           <h1>Action / Candidat</h1>
@@ -127,6 +138,7 @@ export default async function ActionCandidat({
               key={candidat.id}
               candidat={candidat}
               notes={journal.get(candidat.id) ?? []}
+              retour={adresse(vue)}
             />
           ))}
         </div>
@@ -136,7 +148,16 @@ export default async function ActionCandidat({
 }
 
 /** Un candidat et son journal, ou le silence qui en tient lieu. */
-function Dossier({ candidat, notes }: { candidat: LigneCandidat; notes: LigneDeLaLoge[] }) {
+function Dossier({
+  candidat,
+  notes,
+  retour,
+}: {
+  candidat: LigneCandidat;
+  notes: LigneDeLaLoge[];
+  /** Cet écran, vue comprise : on note sans le quitter. */
+  retour: string;
+}) {
   const nom = nomDeFamilleDabord(candidat.nom, candidat.prenom);
   const sous = [candidat.metier, candidat.referent_nom && `suivi par ${candidat.referent_nom}`]
     .filter(Boolean)
@@ -165,6 +186,37 @@ function Dossier({ candidat, notes }: { candidat: LigneCandidat; notes: LigneDeL
         )}
       </div>
 
+      {/* Noter sans ouvrir la fiche. C'est ce qui fait de cet écran un poste de
+          travail plutôt qu'un tableau : on descend la liste des dossiers en
+          cours et on consigne au fil de l'eau.
+
+          Réservé à ceux qui accompagnent — `c_est_mon_suivi` porte la même
+          règle que la policy d'écriture de 0021, référent ou parrain. En vue
+          « La loge », les dossiers des collègues restent en lecture. */}
+      {candidat.c_est_mon_suivi && (
+        <form
+          className="suivi-noter"
+          method="post"
+          action={`/api/candidats/${candidat.id}/suivi`}
+        >
+          <input type="hidden" name="retour" value={retour} />
+          <input
+            type="text"
+            name="texte"
+            required
+            maxLength={4000}
+            placeholder="Ce qui s’est passé, ou ce qui reste à faire…"
+            aria-label={`Noter quelque chose pour ${nom}`}
+          />
+          <button className="bouton bouton--fort" type="submit">
+            Noter
+          </button>
+          <button className="bouton" type="submit" name="etat" value={A_FAIRE}>
+            À faire
+          </button>
+        </form>
+      )}
+
       {notes.length === 0 ? (
         /* Le cas qui justifie l'écran : sans lui, un dossier dont personne
            n'a rien noté ne se signale nulle part. */
@@ -178,13 +230,7 @@ function Dossier({ candidat, notes }: { candidat: LigneCandidat; notes: LigneDeL
               <div className="journal-ligne-tete">
                 <time dateTime={note.fait_le}>{dateEnLettres(note.fait_le)}</time>
                 {note.nature && <span className="etiquette">{note.nature}</span>}
-                {note.etat && (
-                  <span
-                    className={`etat ${tacheOuverte(note.etat) ? 'etat--attente' : 'etat--clos'}`}
-                  >
-                    {note.etat}
-                  </span>
-                )}
+                <EtatDeTache ligne={note} retour={retour} />
                 <span className="journal-auteur">
                   {note.c_est_moi ? 'vous' : (note.auteur_nom ?? 'auteur inconnu')}
                 </span>

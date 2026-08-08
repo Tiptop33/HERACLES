@@ -2642,3 +2642,67 @@ a.poste-document:hover {
 .suivi-silence a {
   font-style: normal;
 }
+
+/* Noter sans ouvrir la fiche. Une seule ligne : ce qui s'écrit ici est court —
+   « rappelé, sans réponse » —, et le journal entier se lit dans la fiche. */
+.suivi-noter {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  margin: 0.6rem 0 0.8rem;
+}
+
+.suivi-noter input[type='text'] {
+  font: inherit;
+  font-size: 0.9rem;
+  /* Il prend la place qui reste, sans jamais pousser les boutons hors du
+     cadre : 10 rem de base, et il rétrécit avant eux. */
+  flex: 1 1 10rem;
+  min-width: 0;
+  padding: 0.5rem 0.6rem;
+  border: 1px solid var(--bordure);
+  border-radius: 9px;
+  background: var(--surface-creuse);
+  color: inherit;
+}
+
+.suivi-noter input[type='text']:focus-visible {
+  outline: 2px solid var(--marque);
+  outline-offset: 1px;
+}
+
+/* Refermer une tâche, à même la ligne du journal. Un bouton de la taille d'un
+   mot : il se pose entre deux étiquettes sans faire grossir la ligne. */
+.journal-agir {
+  display: inline;
+}
+
+.journal-agir button {
+  font: inherit;
+  font-size: 0.76rem;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--encre-douce);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+.journal-agir button:hover {
+  color: var(--encre);
+}
+
+.journal-agir button:focus-visible {
+  outline: 2px solid var(--candidat);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* Ni le champ de saisie ni les gestes n'ont de sens sur une feuille. */
+@media print {
+  .suivi-noter,
+  .journal-agir {
+    display: none;
+  }
+}
