@@ -1605,11 +1605,26 @@ tbody tr:focus-within {
   border-radius: 8px;
   color: var(--encre-tres-douce);
   text-decoration: none;
+  /* Le même dessin qu'on soit un lien ou un bouton. Dans le journal, corriger
+     ouvre une adresse tandis que terminer et retirer envoient un formulaire :
+     rien de cette mécanique ne doit se voir. */
+  font: inherit;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
 }
 
 .geste:hover,
 .geste:focus-visible {
   background: var(--surface-creuse);
+}
+
+/* Une icône seule n'a pas de mot pour se signaler : sans trait de mise au
+   point, on ne sait plus au clavier où l'on est. */
+.geste:focus-visible {
+  outline: 2px solid var(--candidat);
+  outline-offset: 1px;
 }
 
 .geste--corriger {
@@ -1618,6 +1633,13 @@ tbody tr:focus-within {
 
 .geste--retirer {
   color: var(--alerte);
+}
+
+/* Refermer une tâche, ou la rouvrir : le cyan, parce que c'est une action et
+   que l'action est cyan partout. L'ambre et le violet disent où en est la
+   tâche — c'est l'affaire de l'étiquette posée juste à côté, pas du bouton. */
+.geste--etat {
+  color: var(--marque);
 }
 
 .icone {
@@ -2677,8 +2699,23 @@ a.poste-document:hover {
   flex-wrap: wrap;
 }
 
-/* Refermer une tâche, à même la ligne du journal. Un bouton de la taille d'un
-   mot : il se pose entre deux étiquettes sans faire grossir la ligne. */
+/* Les trois gestes d'une note, rangés à droite de sa ligne, comme dans
+   l'annuaire et dans le collège : à la même place d'un écran à l'autre, et en
+   colonne quand on descend le journal. */
+.journal-gestes {
+  /* La ligne aligne ses textes sur leur base ; un carré de 32 px n'en a pas. */
+  align-self: center;
+}
+
+/* Terminer et retirer envoient chacun leur formulaire : il n'est là que pour
+   porter le bouton, et ne doit rien ajouter à la rangée. */
+.journal-gestes form {
+  display: flex;
+  margin: 0;
+}
+
+/* Rendre une note écartée : le seul geste du journal qui reste un mot, dans le
+   repli des notes retirées où l'on ne vient que par exception. */
 .journal-agir {
   display: inline;
 }
@@ -2699,24 +2736,10 @@ a.poste-document:hover {
   color: var(--encre);
 }
 
-.journal-agir button:focus-visible,
-.journal-agir-lien:focus-visible {
+.journal-agir button:focus-visible {
   outline: 2px solid var(--candidat);
   outline-offset: 2px;
   border-radius: 2px;
-}
-
-/* « Modifier » est un lien et non un bouton : il ouvre un formulaire par
-   l'adresse, comme les onglets de la fiche. Il se pose donc à côté de
-   « Retirer » et doit lui ressembler. */
-.journal-agir-lien {
-  font-size: 0.76rem;
-  color: var(--encre-douce);
-  text-underline-offset: 2px;
-}
-
-.journal-agir-lien:hover {
-  color: var(--encre);
 }
 
 /* Ce qui a été écarté du journal. Replié, et discret : on ne le consulte que
@@ -2750,7 +2773,7 @@ a.poste-document:hover {
 @media print {
   .suivi-noter,
   .journal-agir,
-  .journal-agir-lien,
+  .journal-gestes,
   .journal-retirees {
     display: none;
   }
