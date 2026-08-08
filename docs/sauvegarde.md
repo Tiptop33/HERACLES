@@ -34,6 +34,21 @@ sudo /opt/heracles-essai-depot/infra/essai/sauvegarder.sh
 Le manifeste est ce qui distingue une archive d'un fichier opaque : il dit ce
 qu'on doit retrouver après une restauration.
 
+Trois de ses comptes portent sur la reprise Bubble, et répondent à une seule
+question — *cette archive contient-elle ce que Bubble ne rendra plus ?*
+
+| | |
+| --- | --- |
+| `suivi` | le journal des candidats, notes et tâches confondues |
+| `suivi_bubble` | celles qui viennent de Bubble : **467** au 8 août 2026 |
+| `bubble_brut` | la réserve d'où elles sortent, et la seule copie des types non modélisés |
+
+Ils ont été ajoutés le 8 août, après une vérification de manifeste qui n'a pas
+su répondre à cette question-là : les tâches étaient bien dans `base.sql.gz`
+depuis la migration 0023, mais rien ne le montrait. On pouvait restaurer,
+constater que les six autres comptes concordaient, et ne pas voir que le
+journal était vide. Passé le 5 décembre, ces lignes-là ne se reprennent plus.
+
 Les rôles sont à part et sans empreintes de mots de passe : une archive qui
 circule n'a pas à les porter, et sur une pile déjà installée les rôles existent
 déjà — c'est Supabase qui les crée depuis son `.env`. Ce fichier-là est le

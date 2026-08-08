@@ -142,6 +142,19 @@ etape "Ce que l'archive contient"
   echo "Secrets  : $([[ $SECRETS -eq 1 ]] && echo oui || echo non)"
   echo
   echo "Comptes au moment de la prise —"
+  # Les trois dernières lignes répondent à une seule question : « la reprise
+  # Bubble est-elle dans cette archive ? »
+  #
+  #   · `suivi_bubble` — les tâches reprises, que rien ne recréera une fois
+  #     l'application Bubble fermée. Elles vivaient dans `base.sql.gz` depuis
+  #     la migration 0023 sans que le manifeste les compte : on pouvait donc
+  #     restaurer une archive, voir les six comptes concorder, et n'avoir aucun
+  #     moyen de s'apercevoir que le journal des candidats était vide.
+  #   · `bubble_brut` — la réserve d'où elles sortent, et la seule copie des
+  #     types que nous n'avons pas modélisés.
+  #
+  # Un manifeste ne sert qu'à dire ce qu'on doit retrouver après une
+  # restauration : ce qui est irremplaçable y a sa place avant le reste.
   docker exec -i "$PREFIXE-db" psql -U postgres -d postgres -tA -F' : ' -c "
     select 'candidat', count(*) from public.candidat
     union all select 'referent', count(*) from public.referent
@@ -149,6 +162,9 @@ etape "Ce que l'archive contient"
     union all select 'offre_emploi', count(*) from public.offre_emploi
     union all select 'document', count(*) from public.document
     union all select 'comptes', count(*) from auth.users
+    union all select 'suivi', count(*) from public.suivi
+    union all select 'suivi_bubble', count(*) from public.suivi where bubble_id is not null
+    union all select 'bubble_brut', count(*) from public.bubble_brut
     order by 1" | sed 's/^/  /'
   echo
   echo "Empreintes —"
