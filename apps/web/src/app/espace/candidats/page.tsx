@@ -15,7 +15,7 @@ import {
   type Vue,
 } from '@/lib/poste';
 import { initiales } from '@/lib/format';
-import { lireJournal, lireRetirees } from '@/lib/journal';
+import { jeSuisReferent, lireJournal, lireRetirees } from '@/lib/journal';
 import { exigerProfil } from '@/lib/profil';
 import { accueilDuRole } from '@/lib/roles';
 import PanneauFiche, { estOnglet, type Onglet } from './PanneauFiche';
@@ -91,6 +91,10 @@ export default async function PosteDeTravail({
   // Ce qui a été écarté du journal. Chargé avec lui, et pour la même raison :
   // un onglet fermé ne doit rien coûter.
   const retirees = fiche && onglet === 'suivi' ? await lireRetirees(fiche.id) : [];
+  // Écrire dans le journal ne demande plus d'accompagner le candidat, mais
+  // seulement d'avoir une fiche de référent (0027). `fiche.modifiable`, lui,
+  // garde son sens : corriger la fiche elle-même reste au référent.
+  const jePeuxNoter = fiche && onglet === 'suivi' ? await jeSuisReferent() : false;
 
   /** L'adresse de ce même écran, avec un paramètre en plus ou en moins. */
   const adresse = (ajout: Record<string, string | null>) => {
@@ -194,6 +198,7 @@ export default async function PosteDeTravail({
             refus={premier(parametres.erreur) || null}
             corrige={corrige}
             retirees={retirees}
+            jePeuxNoter={jePeuxNoter}
             adresse={adresse}
           />
         ) : demande ? (

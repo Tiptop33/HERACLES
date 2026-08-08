@@ -39,22 +39,23 @@ begin;
   set local request.jwt.claims = '{"sub":"aaaaaaaa-3333-0000-0000-000000000027"}';
 
   -- Karim n'accompagne que Nadia, mais Paul est de sa loge : il voit les
-  -- trois notes, exactement comme s'il ouvrait les deux fiches.
+  -- quatre notes, exactement comme s'il ouvrait les deux fiches. La quatrième
+  -- est celle que Lise a écrite chez Nadia, ce que 0027 lui permet.
   select public.verifier(
-    (select count(*) from public.suivi_de_la_loge()) = 3
+    (select count(*) from public.suivi_de_la_loge()) = 4
       and (select count(distinct candidat_id) from public.suivi_de_la_loge()) = 2,
-    'Karim lit les trois notes de sa loge, sur deux candidats');
+    'Karim lit les quatre notes de sa loge, sur deux candidats');
 
   -- Du plus récent au plus ancien, tous candidats confondus : c'est l'ordre
   -- qui répond à « qu'est-ce qui a bougé cette semaine ? ».
   select public.verifier(
     (select array_agg(fait_le) from public.suivi_de_la_loge())
-      = array[date '2026-05-20', date '2026-04-02', date '2026-03-12'],
+      = array[date '2026-05-20', date '2026-04-02', date '2026-03-20', date '2026-03-12'],
     'et du plus récent au plus ancien, tous candidats confondus');
 
   select public.verifier(
     (select count(*) from public.suivi_de_la_loge() where c_est_moi) = 2,
-    'deux de ces notes sont les siennes, une est de Lise');
+    'deux de ces notes sont les siennes, deux sont de Lise');
 commit;
 
 -- ---------------------------------------------------------------------------

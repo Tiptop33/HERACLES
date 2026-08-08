@@ -100,7 +100,9 @@ describe('phraseDeRefus', () => {
   });
 
   it('traduit les codes que les routes renvoient', () => {
-    expect(phraseDeRefus('droit')).toContain('référent et le parrain');
+    // Depuis 0027, écrire n'est plus réservé au référent et au parrain : le
+    // refus ne peut plus venir que d'un dossier hors de ses loges.
+    expect(phraseDeRefus('droit')).toContain('pas de vos loges');
     expect(phraseDeRefus('sans-fiche')).toContain('fiche de référent');
   });
 
