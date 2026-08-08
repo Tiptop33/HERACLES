@@ -100,15 +100,19 @@ begin;
 commit;
 
 -- ---------------------------------------------------------------------------
-\echo '— « candidats suivis » ne compte que ceux dont on est le referent'
+\echo '— « candidats suivis » ne compte pas ceux qu on a seulement presentes'
 -- ---------------------------------------------------------------------------
+-- Le périmètre de ce compteur a changé depuis : 0030 en fait un compteur de
+-- loge — les candidats de la loge qui ont un référent, quel qu'il soit. Ce
+-- qu'éprouve 0028 tient toujours, et c'est le seul point qui lui revient :
+-- un candidat qu'on parraine sans l'accompagner n'y entre pas.
 begin;
   set local role authenticated;
   set local request.jwt.claims = '{"sub":"dddddddd-0028-0000-0000-00000000000a"}';
 
   select public.verifier(
-    (select mes_candidats from public.accueil_chiffres()) = 2,
-    'Sam et Alba, qu''elle accompagne — Paul, qu''elle a seulement présenté, n''en est pas');
+    (select mes_candidats from public.accueil_chiffres()) = 1,
+    'Sam, accompagné à Guyenne — Paul, seulement parrainé, n''en est pas');
 commit;
 
 -- ---------------------------------------------------------------------------
