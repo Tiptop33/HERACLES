@@ -49,7 +49,10 @@
      entre elles — on doit les séparer du coin de l'œil, sur trois pixels de
      large et sans jamais les voir côte à côte. */
   --famille-emploi: #2563c9;
-  --famille-alternance: #c0392b;
+  /* Un rouge clair, et non la brique d'abord essayée : sur trois pixels, une
+     brique et l'orange du stage se ressemblaient trop. Le rouge s'éclaircit,
+     l'écart se voit. */
+  --famille-alternance: #f0565c;
   --famille-stage: #e07b00;
   --famille-changement: #c2478f;
 
@@ -97,7 +100,9 @@
     /* Les mêmes quatre familles, éclaircies : sur un fond sombre, un bleu à
        #2563c9 disparaît dans la bordure du rang. */
     --famille-emploi: #79a9f2;
-    --famille-alternance: #f08a7e;
+    /* Le saumon d'abord posé ici tirait vers l'orange, et les deux se
+       confondaient plus encore qu'en thème clair. Un rouge franc, éclairci. */
+    --famille-alternance: #ff868b;
     --famille-stage: #f0a03c;
     --famille-changement: #e58cc0;
   }
