@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import BoutonImprimer from '@/components/BoutonImprimer';
-import EtatDeTache from '@/components/EtatDeTache';
+import LigneDeSuivi from '@/components/LigneDeSuivi';
 import { Stylo } from '@/components/Icones';
 import { DrapeauFrance } from '../referents/DrapeauFrance';
 import { dateEnLettres, enEtiquettes, initiales, telephone } from '@/lib/format';
@@ -53,6 +53,7 @@ export default function PanneauFiche({
   onglet,
   journal,
   refus,
+  corrige,
   adresse,
 }: {
   fiche: FicheOuverte;
@@ -63,6 +64,8 @@ export default function PanneauFiche({
   journal: LigneDeJournal[];
   /** Ce que la route d'écriture a répondu, quand elle a refusé. */
   refus: string | null;
+  /** La note ouverte en correction, portée par l'adresse. */
+  corrige: string | null;
   adresse: (ajout: Record<string, string | null>) => string;
 }) {
   const nom = nomDeFamilleDabord(fiche.nom, fiche.prenom);
@@ -160,6 +163,8 @@ export default function PanneauFiche({
             fiche={fiche}
             journal={journal}
             refus={refus}
+            corrige={corrige}
+            adresse={adresse}
             retour={adresse({ onglet: 'suivi' })}
           />
         ) : (
@@ -182,12 +187,16 @@ function Suivi({
   fiche,
   journal,
   refus,
+  corrige,
+  adresse,
   retour,
 }: {
   fiche: FicheOuverte;
   journal: LigneDeJournal[];
   refus: string | null;
-  /** Où revenir après avoir écrit ou refermé : cette fiche, cet onglet. */
+  corrige: string | null;
+  adresse: (ajout: Record<string, string | null>) => string;
+  /** Où revenir après avoir écrit, corrigé ou retiré : cette fiche, cet onglet. */
   retour: string;
 }) {
   return (
@@ -246,7 +255,7 @@ function Suivi({
                 est de consigner ce qui a eu lieu. « À faire » pose l'état, et
                 ne l'envoie que si c'est lui qu'on a pressé. */}
             <button className="bouton bouton--fort" type="submit">
-              Noter
+              Ajouter
             </button>
             <button className="bouton" type="submit" name="etat" value={A_FAIRE}>
               À faire
@@ -268,17 +277,14 @@ function Suivi({
       ) : (
         <ol className="journal-lignes">
           {journal.map((ligne) => (
-            <li key={ligne.id} className="journal-ligne">
-              <div className="journal-ligne-tete">
-                <time dateTime={ligne.fait_le}>{dateEnLettres(ligne.fait_le)}</time>
-                {ligne.nature && <span className="etiquette">{ligne.nature}</span>}
-                <EtatDeTache ligne={ligne} retour={retour} />
-                <span className="journal-auteur">
-                  {ligne.c_est_moi ? 'vous' : (ligne.auteur_nom ?? 'auteur inconnu')}
-                </span>
-              </div>
-              <p className="prose">{ligne.texte}</p>
-            </li>
+            <LigneDeSuivi
+              key={ligne.id}
+              ligne={ligne}
+              retour={retour}
+              enCorrection={ligne.id === corrige}
+              versCorrection={adresse({ note: ligne.id })}
+              versLecture={adresse({ note: null })}
+            />
           ))}
         </ol>
       )}

@@ -1,7 +1,6 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { dateEnLettres } from '@/lib/format';
-import EtatDeTache from '@/components/EtatDeTache';
+import LigneDeSuivi from '@/components/LigneDeSuivi';
 import {
   A_FAIRE,
   apercuDuDossier,
@@ -44,7 +43,12 @@ function premier(valeur: string | string[] | undefined): string {
 export default async function ActionCandidat({
   searchParams,
 }: {
-  searchParams: Promise<{ vue?: string | string[]; erreur?: string | string[] }>;
+  searchParams: Promise<{
+    vue?: string | string[];
+    /** La note ouverte en correction. */
+    note?: string | string[];
+    erreur?: string | string[];
+  }>;
 }) {
   const profil = await exigerProfil();
   if (profil.role === 'chercheur') redirect(accueilDuRole(profil.role));
@@ -52,6 +56,7 @@ export default async function ActionCandidat({
   const parametres = await searchParams;
   const demandee = premier(parametres.vue);
   const refus = phraseDeRefus(premier(parametres.erreur));
+  const corrige = premier(parametres.note) || null;
 
   const [candidats, notes] = await Promise.all([
     listerCandidatsDeLaLoge(),
@@ -139,6 +144,7 @@ export default async function ActionCandidat({
               candidat={candidat}
               notes={journal.get(candidat.id) ?? []}
               retour={adresse(vue)}
+              corrige={corrige}
             />
           ))}
         </div>
@@ -152,11 +158,14 @@ function Dossier({
   candidat,
   notes,
   retour,
+  corrige,
 }: {
   candidat: LigneCandidat;
   notes: LigneDeLaLoge[];
   /** Cet écran, vue comprise : on note sans le quitter. */
   retour: string;
+  /** La note ouverte en correction, s'il y en a une sur cet écran. */
+  corrige: string | null;
 }) {
   const nom = nomDeFamilleDabord(candidat.nom, candidat.prenom);
   const sous = [candidat.metier, candidat.referent_nom && `suivi par ${candidat.referent_nom}`]
@@ -200,20 +209,22 @@ function Dossier({
           action={`/api/candidats/${candidat.id}/suivi`}
         >
           <input type="hidden" name="retour" value={retour} />
-          <input
-            type="text"
+          <textarea
             name="texte"
             required
             maxLength={4000}
+            rows={2}
             placeholder="Ce qui s’est passé, ou ce qui reste à faire…"
-            aria-label={`Noter quelque chose pour ${nom}`}
+            aria-label={`Ajouter un commentaire pour ${nom}`}
           />
-          <button className="bouton bouton--fort" type="submit">
-            Noter
-          </button>
-          <button className="bouton" type="submit" name="etat" value={A_FAIRE}>
-            À faire
-          </button>
+          <div className="suivi-noter-pied">
+            <button className="bouton bouton--fort" type="submit">
+              Ajouter
+            </button>
+            <button className="bouton" type="submit" name="etat" value={A_FAIRE}>
+              À faire
+            </button>
+          </div>
         </form>
       )}
 
@@ -226,17 +237,14 @@ function Dossier({
       ) : (
         <ol className="journal-lignes">
           {visibles.map((note) => (
-            <li key={note.id} className="journal-ligne">
-              <div className="journal-ligne-tete">
-                <time dateTime={note.fait_le}>{dateEnLettres(note.fait_le)}</time>
-                {note.nature && <span className="etiquette">{note.nature}</span>}
-                <EtatDeTache ligne={note} retour={retour} />
-                <span className="journal-auteur">
-                  {note.c_est_moi ? 'vous' : (note.auteur_nom ?? 'auteur inconnu')}
-                </span>
-              </div>
-              <p className="prose">{note.texte}</p>
-            </li>
+            <LigneDeSuivi
+              key={note.id}
+              ligne={note}
+              retour={retour}
+              enCorrection={note.id === corrige}
+              versCorrection={`${retour}${retour.includes('?') ? '&' : '?'}note=${note.id}`}
+              versLecture={retour}
+            />
           ))}
         </ol>
       )}

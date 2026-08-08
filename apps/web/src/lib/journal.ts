@@ -27,8 +27,14 @@ export type LigneDeJournal = {
    */
   etat_par_nom: string | null;
   /**
-   * L'écran a-t-il le droit de proposer de refermer ? Faux pour une
-   * administratrice sans fiche de référent : elle lit, elle n'agit pas.
+   * Qui a corrigé le texte en dernier (migration 0025). Corriger la note d'un
+   * collègue est permis ; le taire ne le serait pas.
+   */
+  modifie_par_nom: string | null;
+  /**
+   * L'écran a-t-il le droit de proposer de refermer, corriger ou retirer ?
+   * Faux pour une administratrice sans fiche de référent : elle lit, elle
+   * n'agit pas.
    */
   je_peux_agir: boolean;
   /** Le mien : l'écran ne propose de corriger que ce qu'on a écrit. */

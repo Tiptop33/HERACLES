@@ -27,6 +27,8 @@ type Parametres = {
   vue?: string | string[];
   fiche?: string | string[];
   onglet?: string | string[];
+  /** La note du journal ouverte en correction. */
+  note?: string | string[];
   /** Ce que la route d'écriture du journal a répondu, quand elle a refusé. */
   erreur?: string | string[];
 };
@@ -61,6 +63,9 @@ export default async function PosteDeTravail({
   const demande = premier(parametres.fiche);
   const demandeOnglet = premier(parametres.onglet);
   const onglet: Onglet = estOnglet(demandeOnglet) ? demandeOnglet : 'profil';
+  // La note ouverte en correction. Elle vit dans l'adresse comme le reste :
+  // un rafraîchissement ne referme pas ce qu'on était en train d'écrire.
+  const corrige = premier(parametres.note) || null;
 
   const tous = await listerCandidatsDeLaLoge();
 
@@ -91,6 +96,7 @@ export default async function PosteDeTravail({
     if (vue !== ouverture) p.set('vue', vue);
     if (demande) p.set('fiche', demande);
     if (onglet !== 'profil') p.set('onglet', onglet);
+    if (corrige) p.set('note', corrige);
     // `erreur` n'est pas repris : il vaut pour l'envoi qui vient d'échouer, et
     // le traîner d'un clic à l'autre ferait porter le refus à un autre geste.
 
@@ -183,6 +189,7 @@ export default async function PosteDeTravail({
             onglet={onglet}
             journal={journal}
             refus={premier(parametres.erreur) || null}
+            corrige={corrige}
             adresse={adresse}
           />
         ) : demande ? (
