@@ -79,7 +79,9 @@ select public.verifier(
     and public.famille_de_recherche('Apprentissage')      = 'alternance'
     and public.famille_de_recherche('stage en alternance') = 'alternance'
     and public.famille_de_recherche('Stage conventionné') = 'stage'
-    and public.famille_de_recherche('changement d''Emploi') = 'emploi',
+    -- Sa propre famille depuis 0032, et non plus « emploi ».
+    and public.famille_de_recherche('changement d''Emploi') = 'changement'
+    and public.famille_de_recherche('emploi') = 'emploi',
   'alternance, stage et emploi se reconnaissent dans le libellé libre de Bubble');
 
 select public.verifier(

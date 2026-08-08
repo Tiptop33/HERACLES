@@ -15,7 +15,8 @@ export type Chiffres = {
   enAttente: number;
   offresEnCours: number;
   referents: number;
-  urgences: { emploi: number; alternance: number; stage: number };
+  /** Les quatre familles de recherche, comptées sur les dossiers en cours (0032). */
+  urgences: { emploi: number; alternance: number; stage: number; changement: number };
 };
 
 const AUCUN: Chiffres = {
@@ -23,7 +24,7 @@ const AUCUN: Chiffres = {
   enAttente: 0,
   offresEnCours: 0,
   referents: 0,
-  urgences: { emploi: 0, alternance: 0, stage: 0 },
+  urgences: { emploi: 0, alternance: 0, stage: 0, changement: 0 },
 };
 
 export async function lireChiffres(): Promise<Chiffres> {
@@ -42,6 +43,7 @@ export async function lireChiffres(): Promise<Chiffres> {
       emploi: ligne.urgence_emploi ?? 0,
       alternance: ligne.urgence_alternance ?? 0,
       stage: ligne.urgence_stage ?? 0,
+      changement: ligne.urgence_changement ?? 0,
     },
   };
 }
@@ -57,7 +59,7 @@ export type Demande = {
    * carte se lirait faux, et on ne saurait jamais que la colonne est à
    * remplir.
    */
-  famille: 'emploi' | 'alternance' | 'stage' | null;
+  famille: 'emploi' | 'alternance' | 'stage' | 'changement' | null;
   cree_le: string | null;
 };
 

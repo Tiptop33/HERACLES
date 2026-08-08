@@ -35,7 +35,11 @@
 -- ---------------------------------------------------------------------------
 -- 1. Les chiffres de l'accueil
 -- ---------------------------------------------------------------------------
-create or replace function public.accueil_chiffres()
+-- `drop` puis `create` : le type de retour a changé depuis (0032), et
+-- `replace` le refuserait au second passage.
+drop function if exists public.accueil_chiffres();
+
+create function public.accueil_chiffres()
 returns table (
   mes_candidats       integer,
   en_attente          integer,

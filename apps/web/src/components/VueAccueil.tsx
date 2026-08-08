@@ -9,10 +9,19 @@ import { depuis, initiales, nomComplet } from '@/lib/format';
  * montrer. La séparation permet de regarder l'écran sans la pile Supabase —
  * et c'est en le regardant qu'on voit ce qu'on avait mal imaginé.
  */
+/**
+ * Les quatre familles de recherche, dans l'ordre où elles s'affichent.
+ *
+ * « Changement d'emploi » est venu en dernier (migration 0032) et y reste :
+ * ce sont trois fiches sur cent sept, et l'œil doit trouver « Emploi » en
+ * tête. Chercher un premier emploi et vouloir en changer n'appellent pas le
+ * même accompagnement — les confondre annonçait 55 emplois pour 52.
+ */
 export const FAMILLES = [
   { cle: 'emploi', libelle: 'Emploi' },
   { cle: 'alternance', libelle: 'Alternance' },
   { cle: 'stage', libelle: 'Stage' },
+  { cle: 'changement', libelle: 'Changement d’emploi' },
 ] as const;
 
 export default function VueAccueil({
