@@ -1,5 +1,6 @@
 import Link from 'next/link';
-import EtatDeTache from '@/components/EtatDeTache';
+import EtatDeTache, { GesteDeTache } from '@/components/EtatDeTache';
+import { Corbeille, Stylo } from '@/components/Icones';
 import { dateEnLettres } from '@/lib/format';
 import { NATURES, type LigneDeJournal } from '@/lib/journal';
 
@@ -90,7 +91,7 @@ export default function LigneDeSuivi({
       <div className="journal-ligne-tete">
         <time dateTime={ligne.fait_le}>{dateEnLettres(ligne.fait_le)}</time>
         {ligne.nature && <span className="etiquette">{ligne.nature}</span>}
-        <EtatDeTache ligne={ligne} retour={retour} />
+        <EtatDeTache ligne={ligne} />
         <span className="journal-auteur">
           {ligne.c_est_moi ? 'vous' : (ligne.auteur_nom ?? 'auteur inconnu')}
           {/* Corriger la note d'un collègue est permis (0025) ; le taire ne
@@ -98,25 +99,40 @@ export default function LigneDeSuivi({
           {ligne.modifie_par_nom && ` · corrigé par ${ligne.modifie_par_nom}`}
         </span>
 
+        {/* Les trois gestes, dans l'ordre où on les fait : corriger la note,
+            refermer la tâche, et retirer en dernier — c'est celui qu'on fait
+            le moins souvent, et celui qu'on regrette. Des icônes plutôt que
+            des mots : la ligne porte déjà une date, une nature, un état et un
+            nom, et trois verbes de plus la rendaient illisible. Le mot reste,
+            dans l'infobulle et pour le lecteur d'écran. */}
         {ligne.je_peux_agir && (
-          <>
-            <Link className="journal-agir-lien" href={versCorrection}>
-              Modifier
-            </Link>
-            <form
-              method="post"
-              action={`/api/suivi/${ligne.id}/retirer`}
-              className="journal-agir"
+          <span className="gestes journal-gestes">
+            <Link
+              className="geste geste--corriger"
+              href={versCorrection}
+              aria-label="Corriger cette note"
+              title="Corriger cette note"
             >
+              <Stylo />
+            </Link>
+
+            <GesteDeTache ligne={ligne} retour={retour} />
+
+            <form method="post" action={`/api/suivi/${ligne.id}/retirer`}>
               <input type="hidden" name="geste" value="retirer" />
               <input type="hidden" name="retour" value={retour} />
               {/* « Retirer » et non « Supprimer » : le mot dit ce qui se passe
                   vraiment — la ligne quitte l'écran, elle reste en base. */}
-              <button type="submit" title="La note quitte le journal, sans être effacée">
-                Retirer
+              <button
+                type="submit"
+                className="geste geste--retirer"
+                aria-label="Retirer cette note"
+                title="La note quitte le journal, sans être effacée"
+              >
+                <Corbeille />
               </button>
             </form>
-          </>
+          </span>
         )}
       </div>
       <p className="prose">{ligne.texte}</p>

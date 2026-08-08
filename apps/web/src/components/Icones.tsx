@@ -48,6 +48,89 @@ export function Corbeille() {
   );
 }
 
+/** La coche : la tâche est faite, l'appuyer la referme. */
+export function Coche() {
+  return (
+    <svg
+      className="icone icone--coche"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <circle cx="12" cy="12" r="9" />
+      <path d="m8.4 12.3 2.5 2.5 4.7-5.5" />
+    </svg>
+  );
+}
+
+/** La flèche qui revient sur ses pas : la tâche était close, l'appuyer la rouvre. */
+export function FlecheRetour() {
+  return (
+    <svg
+      className="icone icone--fleche-retour"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M3 12a9 9 0 1 0 9-9 9.7 9.7 0 0 0-6.7 2.7L3 8" />
+      <path d="M3 3v5h5" />
+    </svg>
+  );
+}
+
+/** La feuille cornée : un document déposé, qui s'ouvre. */
+export function Feuille() {
+  return (
+    <svg
+      className="icone icone--feuille"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.7"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M14.5 2.5H6.5a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V7.5Z" />
+      <path d="M14.5 2.5v5h5" />
+    </svg>
+  );
+}
+
+/**
+ * La même feuille, barrée d'un trait : la place d'un document, et rien dedans.
+ *
+ * C'est le tiret que la carte écrivait, rentré dans la feuille — la place
+ * existe, elle est vide. Un document manquant se distingue ainsi d'un document
+ * déposé à la forme, sans avoir à lire l'étiquette.
+ */
+export function FeuilleVide() {
+  return (
+    <svg
+      className="icone icone--feuille"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.7"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M14.5 2.5H6.5a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V7.5Z" />
+      <path d="M14.5 2.5v5h5" />
+      <path d="M9 14.5h6" />
+    </svg>
+  );
+}
+
 export function Roue() {
   return (
     <svg
