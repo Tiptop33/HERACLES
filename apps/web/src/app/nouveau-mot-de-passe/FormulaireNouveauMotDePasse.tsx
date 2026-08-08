@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import ChampMotDePasse from '@/components/ChampMotDePasse';
 import { REGLES, force, premiereFaute } from '@/lib/motdepasse';
 
 type Erreur = { champ: string | null; message: string };
@@ -62,33 +63,27 @@ export default function FormulaireNouveauMotDePasse({
     <form onSubmit={soumettre} action="/api/nouveau-mot-de-passe" method="post" noValidate>
       {erreur && erreur.champ === null && <p className="erreur">{erreur.message}</p>}
 
-      <label className={`champ${erreur?.champ === 'motDePasse' ? ' champ--faux' : ''}`}>
-        <span className="visuellement-cache">Nouveau mot de passe</span>
-        <input
-          name="motDePasse"
-          type="password"
-          autoComplete="new-password"
-          placeholder="Nouveau mot de passe"
-          value={motDePasse}
-          onChange={(e) => setMotDePasse(e.target.value)}
-          required
-        />
-        {erreur?.champ === 'motDePasse' && <span className="erreur-champ">{erreur.message}</span>}
-      </label>
+      <ChampMotDePasse
+        nom="motDePasse"
+        libelle="Nouveau mot de passe"
+        libelleCache
+        placeholder="Nouveau mot de passe"
+        autoComplete="new-password"
+        valeur={motDePasse}
+        surSaisie={setMotDePasse}
+        erreur={erreur?.champ === 'motDePasse' ? erreur.message : null}
+      />
 
-      <label className={`champ${erreur?.champ === 'confirmation' ? ' champ--faux' : ''}`}>
-        <span className="visuellement-cache">Répétez le mot de passe</span>
-        <input
-          name="confirmation"
-          type="password"
-          autoComplete="new-password"
-          placeholder="Répétez le mot de passe"
-          value={confirmation}
-          onChange={(e) => setConfirmation(e.target.value)}
-          required
-        />
-        {erreur?.champ === 'confirmation' && <span className="erreur-champ">{erreur.message}</span>}
-      </label>
+      <ChampMotDePasse
+        nom="confirmation"
+        libelle="Répétez le mot de passe"
+        libelleCache
+        placeholder="Répétez le mot de passe"
+        autoComplete="new-password"
+        valeur={confirmation}
+        surSaisie={setConfirmation}
+        erreur={erreur?.champ === 'confirmation' ? erreur.message : null}
+      />
 
       <div
         className="jauge-force"
