@@ -128,7 +128,10 @@ begin;
 commit;
 
 -- ---------------------------------------------------------------------------
-\echo '— refermer n a pas ouvert la reecriture'
+-- Depuis 0025, la loge corrige aussi le texte — mais par une fonction, qui
+-- laisse son nom. L'`update` direct sur la table, lui, n'a jamais bougé : il
+-- reste réservé à l'auteur, et c'est ce que ce bloc éprouve.
+\echo '— refermer n a pas ouvert l update direct de la table'
 -- ---------------------------------------------------------------------------
 begin;
   set local role authenticated;
@@ -141,7 +144,7 @@ commit;
 
 select public.verifier(
   (select count(*) from public.suivi where texte = 'réécrit par Ulla') = 0,
-  'Ulla peut refermer, mais pas réécrire — c''est la frontière que 0024 déplace, et pas plus');
+  'Ulla ne réécrit pas la table en direct — la policy de 0021 tient toujours');
 
 -- ---------------------------------------------------------------------------
 \echo '— une autre loge ne referme rien'

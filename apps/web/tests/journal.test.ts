@@ -18,6 +18,7 @@ function ligne(etat: string | null): LigneDeJournal {
     texte: 'Relance de l’entreprise.',
     auteur_nom: 'P Paul',
     etat_par_nom: null,
+    modifie_par_nom: null,
     je_peux_agir: true,
     c_est_moi: false,
     cree_le: null,

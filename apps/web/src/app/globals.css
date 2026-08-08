@@ -2643,32 +2643,38 @@ a.poste-document:hover {
   font-style: normal;
 }
 
-/* Noter sans ouvrir la fiche. Une seule ligne : ce qui s'écrit ici est court —
-   « rappelé, sans réponse » —, et le journal entier se lit dans la fiche. */
+/* Noter sans ouvrir la fiche. Le champ est multi-ligne comme dans la fiche :
+   un commentaire de suivi tient rarement sur une ligne, et un champ qui ne
+   montre pas ce qu'on y écrit décourage d'écrire. */
 .suivi-noter {
   display: flex;
+  flex-direction: column;
   gap: 0.4rem;
-  flex-wrap: wrap;
   margin: 0.6rem 0 0.8rem;
 }
 
-.suivi-noter input[type='text'] {
+.suivi-noter textarea {
   font: inherit;
   font-size: 0.9rem;
-  /* Il prend la place qui reste, sans jamais pousser les boutons hors du
-     cadre : 10 rem de base, et il rétrécit avant eux. */
-  flex: 1 1 10rem;
-  min-width: 0;
+  width: 100%;
   padding: 0.5rem 0.6rem;
   border: 1px solid var(--bordure);
   border-radius: 9px;
   background: var(--surface-creuse);
   color: inherit;
+  resize: vertical;
+  min-height: 3.2rem;
 }
 
-.suivi-noter input[type='text']:focus-visible {
+.suivi-noter textarea:focus-visible {
   outline: 2px solid var(--marque);
   outline-offset: 1px;
+}
+
+.suivi-noter-pied {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
 }
 
 /* Refermer une tâche, à même la ligne du journal. Un bouton de la taille d'un
@@ -2693,16 +2699,31 @@ a.poste-document:hover {
   color: var(--encre);
 }
 
-.journal-agir button:focus-visible {
+.journal-agir button:focus-visible,
+.journal-agir-lien:focus-visible {
   outline: 2px solid var(--candidat);
   outline-offset: 2px;
   border-radius: 2px;
 }
 
+/* « Modifier » est un lien et non un bouton : il ouvre un formulaire par
+   l'adresse, comme les onglets de la fiche. Il se pose donc à côté de
+   « Retirer » et doit lui ressembler. */
+.journal-agir-lien {
+  font-size: 0.76rem;
+  color: var(--encre-douce);
+  text-underline-offset: 2px;
+}
+
+.journal-agir-lien:hover {
+  color: var(--encre);
+}
+
 /* Ni le champ de saisie ni les gestes n'ont de sens sur une feuille. */
 @media print {
   .suivi-noter,
-  .journal-agir {
+  .journal-agir,
+  .journal-agir-lien {
     display: none;
   }
 }
