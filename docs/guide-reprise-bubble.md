@@ -175,10 +175,15 @@ Storage est une étape à part, à faire avant la bascule du 5 décembre.
 `0033765730385` y est devenu `33765730385`. La reprise les met en texte — ce qui empêche que
 ça recommence — mais ne peut pas restaurer ce qui a été perdu avant elle.
 
-**Dix types de données manquent encore.** `PROVINCE`, `LOGES`, secteurs d'activité, métiers,
-codes NAF, tâches… sont référencés par des champs mais n'étaient pas exposés par l'API au
-moment du relevé. Leurs identifiants sont conservés (colonnes `..._bubble_id`) : quand tu les
+**Dix types de données manquent encore** dans la base *en service*. `PROVINCE`, `LOGES`,
+secteurs d'activité, métiers, codes NAF… sont référencés par des champs mais ne sont pas
+exposés par son API. Leurs identifiants sont conservés (colonnes `..._bubble_id`) : quand tu les
 auras exposés à l'étape 4, dis-le moi et j'ajoute les tables correspondantes.
+
+La base de **l'éditeur**, elle, les expose — c'est pourquoi le script les reprend là, en JSON,
+dans la table `bubble_brut`. Les identifiants étant communs aux deux bases, ce qui vient de
+l'éditeur se rattache aux vraies fiches. Les **tâches** ont fait ce chemin-là : 467 lignes de
+suivi, reprises en brut puis dépliées dans le journal des candidats par la migration 0023.
 
 ---
 

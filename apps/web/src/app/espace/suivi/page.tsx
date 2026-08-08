@@ -1,7 +1,12 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { dateEnLettres } from '@/lib/format';
-import { lireJournalDeLaLoge, parCandidat, type LigneDeLaLoge } from '@/lib/journal';
+import {
+  lireJournalDeLaLoge,
+  parCandidat,
+  tacheOuverte,
+  type LigneDeLaLoge,
+} from '@/lib/journal';
 import { listerCandidatsDeLaLoge, nomDeFamilleDabord, type LigneCandidat } from '@/lib/poste';
 import { exigerProfil } from '@/lib/profil';
 import { accueilDuRole } from '@/lib/roles';
@@ -71,6 +76,14 @@ export default async function ActionCandidat({
 
   const sansNote = ranges.filter((c) => !journal.has(c.id)).length;
 
+  // Les tâches restées ouvertes dans Bubble (migration 0023). Sur cet écran-ci
+  // c'est le chiffre qui compte : ce n'est pas ce qui a été fait, c'est ce qui
+  // reste à faire.
+  const aFaire = ranges.reduce(
+    (compte, c) => compte + (journal.get(c.id)?.filter((n) => tacheOuverte(n.etat)).length ?? 0),
+    0,
+  );
+
   const adresse = (v: Vue) =>
     v === ouverture ? '/espace/suivi' : `/espace/suivi?vue=${v}`;
 
@@ -81,6 +94,7 @@ export default async function ActionCandidat({
           <h1>Action / Candidat</h1>
           <span className="compte">
             {ranges.length} dossier{ranges.length > 1 ? 's' : ''} en cours
+            {aFaire > 0 && ` · ${aFaire} tâche${aFaire > 1 ? 's' : ''} à faire`}
             {sansNote > 0 && ` · ${sansNote} sans aucune note`}
           </span>
         </div>
@@ -157,6 +171,13 @@ function Dossier({ candidat, notes }: { candidat: LigneCandidat; notes: LigneDeL
               <div className="journal-ligne-tete">
                 <time dateTime={note.fait_le}>{dateEnLettres(note.fait_le)}</time>
                 {note.nature && <span className="etiquette">{note.nature}</span>}
+                {note.etat && (
+                  <span
+                    className={`etat ${tacheOuverte(note.etat) ? 'etat--attente' : 'etat--clos'}`}
+                  >
+                    {note.etat}
+                  </span>
+                )}
                 <span className="journal-auteur">
                   {note.c_est_moi ? 'vous' : (note.auteur_nom ?? 'auteur inconnu')}
                 </span>

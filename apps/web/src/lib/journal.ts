@@ -14,6 +14,12 @@ export type LigneDeJournal = {
   /** Le jour de l'événement, pas celui de la saisie. */
   fait_le: string;
   nature: string | null;
+  /**
+   * Où en est la tâche, pour les lignes reprises de Bubble (migration 0023) :
+   * « En cours », « Terminer »… Les notes saisies dans HERACLES n'en ont pas —
+   * un journal se lit, il ne se coche pas.
+   */
+  etat: string | null;
   texte: string;
   auteur_nom: string | null;
   /** Le mien : l'écran ne propose de corriger que ce qu'on a écrit. */
@@ -39,6 +45,29 @@ export const NATURES = [
   'Document reçu',
 ] as const;
 
+/**
+ * Les états que Bubble donnait pour close. Relevé du 8 août 2026 sur les 467
+ * tâches : « En cours » (434), « Terminer » (28), « En attente » (3),
+ * « Réalisé » (1), « A vérifier » (1).
+ *
+ * Comme pour `CLOTURE` et `ARCHIVER` (voir `suivi.ts`), c'est une liste de
+ * choix que l'API rend en texte libre : rien ne garantit qu'elle ne gagnera
+ * pas une valeur d'ici la bascule. D'où le sens de la règle — on nomme ce qui
+ * ferme, et tout le reste reste ouvert. Une tâche close affichée « à faire »
+ * fait perdre une seconde ; une tâche à faire affichée close se perd.
+ */
+const ETAT_CLOS = /^(termin|r[ée]alis|fait|clos|cl[oô]tur|abandonn|annul)/i;
+
+/**
+ * Cette ligne est-elle une tâche encore ouverte ? Une note saisie dans
+ * HERACLES n'a pas d'état : ce n'est pas une tâche, et elle ne répond pas oui.
+ */
+export function tacheOuverte(etat: string | null | undefined): boolean {
+  const mot = etat?.trim();
+  if (!mot) return false;
+  return !ETAT_CLOS.test(mot);
+}
+
 export async function lireJournal(candidat: string): Promise<LigneDeJournal[]> {
   if (!/^[0-9a-f-]{36}$/i.test(candidat)) return [];
 
@@ -47,10 +76,15 @@ export async function lireJournal(candidat: string): Promise<LigneDeJournal[]> {
   return (data as LigneDeJournal[]) ?? [];
 }
 
-/** « 3 notes · la dernière il y a 5 jours », en tête de l'onglet. */
+/** « 3 notes · 1 tâche en cours », en tête de l'onglet. */
 export function resumeDuJournal(lignes: LigneDeJournal[]): string {
   if (lignes.length === 0) return 'rien de noté pour l’instant';
-  return `${lignes.length} note${lignes.length > 1 ? 's' : ''}`;
+
+  const notes = `${lignes.length} note${lignes.length > 1 ? 's' : ''}`;
+  const ouvertes = lignes.filter((l) => tacheOuverte(l.etat)).length;
+  if (ouvertes === 0) return notes;
+
+  return `${notes} · ${ouvertes} tâche${ouvertes > 1 ? 's' : ''} en cours`;
 }
 
 /** Une note, avec le candidat auquel elle se rattache. */

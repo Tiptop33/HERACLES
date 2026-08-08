@@ -105,6 +105,14 @@ echo "Les deux bases de Bubble n'exposent pas les mêmes types. On reprend ici"
 echo "ce que la première ne donnait pas, sans toucher aux tables déjà remplies."
 outil -e BUBBLE_VERSION=version-test -e SEULEMENT_BRUT=1 "$IMAGE" node import-bubble.mjs
 
+# ————— Passe 3 : les tâches, dépliées dans le journal —————
+etape "Tâches — de la réserve brute vers le journal des candidats"
+echo "Le type « tache » de Bubble n'a pas de table à lui : il arrive en JSON dans"
+echo "bubble_brut, d'où la migration 0023 le déplie — un candidat, un auteur, un"
+echo "jour, un état. Rejouable : une tâche déjà déversée est mise à jour."
+docker exec -i "$PREFIXE-db" psql -U postgres -d postgres -c "
+  select * from public.deverser_taches_bubble()"
+
 # ————— Les fichiers, si on les a demandés —————
 if [[ $FICHIERS -eq 1 ]]; then
   etape "Fichiers — du CDN de Bubble vers le stockage"
@@ -130,6 +138,7 @@ docker exec -i "$PREFIXE-db" psql -U postgres -d postgres -c "
   union all select 'loge', count(*) from public.loge
   union all select 'offre_emploi', count(*) from public.offre_emploi
   union all select 'document', count(*) from public.document
+  union all select 'suivi', count(*) from public.suivi
   union all select 'bubble_brut', count(*) from public.bubble_brut
   order by 1"
 

@@ -434,16 +434,45 @@ if (liaisons.length) console.log(`  loge_membre : ${liaisons.length} liens trait
 const traites = new Set(PLAN.map((e) => e.type));
 let exposes = [];
 
-try {
-  const reponse = await fetch(`${RACINE}/meta`, {
+async function typesExposes(racine) {
+  const reponse = await fetch(`${racine}/meta`, {
     headers: TOKEN ? { Authorization: `Bearer ${TOKEN}` } : {},
   });
-  if (reponse.ok) exposes = (await reponse.json()).get ?? [];
+  return reponse.ok ? ((await reponse.json()).get ?? []) : [];
+}
+
+try {
+  exposes = await typesExposes(RACINE);
 } catch {
   // Sans /meta, on se contente des types modélisés.
 }
 
-const restants = exposes.filter((t) => !traites.has(t));
+// Ce que la base **en service** expose, elle seule le donne.
+//
+// La base de l'éditeur porte des données plus maigres — 83 candidats contre
+// 107 le 4 août. C'est déjà la raison de `SEULEMENT_BRUT` pour les sept tables
+// modélisées ; la même règle vaut pour la réserve brute, sans quoi le second
+// passage écraserait dans `bubble_brut` ce que le premier venait d'y mettre.
+//
+// Aujourd'hui la base en service n'expose que les sept types du PLAN, déjà
+// écartés : cette liste est vide et rien ne change. Elle prendra son sens le
+// jour où l'on exposera `tache` côté production, comme le demande MAJBUBBLE.
+const reserves = new Set();
+if (SEULEMENT_BRUT && VERSION) {
+  try {
+    for (const type of await typesExposes(`https://${APP}.bubbleapps.io/api/1.1`)) {
+      if (!traites.has(type)) reserves.add(type);
+    }
+    if (reserves.size) {
+      console.log(`\nLaissés à la base en service : ${[...reserves].join(', ')}`);
+    }
+  } catch {
+    // Injoignable : on reprend tout, quitte à écraser. Mieux vaut une donnée
+    // un peu ancienne que pas de donnée du tout.
+  }
+}
+
+const restants = exposes.filter((t) => !traites.has(t) && !reserves.has(t));
 
 if (restants.length === 0) {
   console.log('\nAucun autre type exposé par l\'API.');

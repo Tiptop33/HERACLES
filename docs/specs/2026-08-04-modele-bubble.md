@@ -101,6 +101,13 @@ EMPLOI` 1.
 Et `TACHES` — la liste de suivi — n'est renseignée que sur **une seule fiche**, d'un seul
 renvoi.
 
+> **Relevé du 8 août 2026 : ce chiffre-là ne dit rien des tâches.** Le lien est porté par la
+> tâche, dans son champ `Num CANDIDAT tach`, et non par la fiche. Compté depuis le type
+> lui-même — `tache`, au singulier, exposé par la base de l'éditeur — il y a **467 tâches sur
+> 87 candidats**, dont 434 encore ouvertes. Elles sont reprises depuis la migration 0023 ; voir
+> `docs/reprise-bubble-releve.md`. La colonne `candidat.taches_bubble_ids` ne sert donc à rien :
+> elle recopie un lien qui existe déjà, mieux, de l'autre côté.
+
 ## Ce que ce modèle change dans le cadrage
 
 Le cadrage du 2026-08-04 avait été écrit sans connaître l'application existante. Trois de ses

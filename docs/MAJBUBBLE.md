@@ -18,7 +18,7 @@ Ce qui n'a pas été repris ce jour-là est perdu.
 sudo /opt/heracles-essai-depot/infra/essai/reprendre-bubble.sh --fichiers
 ```
 
-Elle enchaîne trois temps, et elle est **rejouable** — une fiche déjà reprise
+Elle enchaîne quatre temps, et elle est **rejouable** — une fiche déjà reprise
 est mise à jour, jamais dupliquée :
 
 1. **Les tables métier**, depuis la base Bubble *en service* : candidats,
@@ -26,7 +26,9 @@ est mise à jour, jamais dupliquée :
 2. **Les référentiels**, depuis la base de *l'éditeur*, en `SEULEMENT_BRUT=1` —
    les deux bases n'exposent pas les mêmes types, et la seconde ne doit pas
    écraser la première.
-3. **Les fichiers**, du CDN de Bubble vers le stockage Supabase. Reprenable :
+3. **Les tâches**, dépliées de la réserve brute vers le journal des candidats.
+   Aucun réseau : cette étape relit ce que les deux premières ont écrit.
+4. **Les fichiers**, du CDN de Bubble vers le stockage Supabase. Reprenable :
    interrompue, relancée, elle repart où elle en était.
 
 Sur la production, remplacer le chemin par celui du dépôt de production.
@@ -56,6 +58,15 @@ lectures — mais il doit s'expliquer.
 **Vérifier que les fichiers sont bien passés.** Tant qu'une colonne
 `..._chemin` est vide alors que son `..._url` ne l'est pas, le fichier reste à
 rapatrier. La migration `0005_fichiers.sql` porte les requêtes de contrôle.
+
+**Vérifier que les tâches sont bien arrivées.** La commande affiche le bilan du
+déversement ; il doit tomber juste avec ce que Bubble annonce, et `sans_candidat`
+doit être à zéro :
+
+```sql
+select count(*) as en_reserve from public.bubble_brut where type_bubble = 'tache';
+select count(*) as dans_le_journal from public.suivi where bubble_id is not null;
+```
 
 **Rattacher les comptes.** Les fiches arrivent de Bubble ; les comptes de
 connexion, eux, existent déjà. Rien ne les lie tant qu'on ne le demande pas :
@@ -89,18 +100,57 @@ sur place.
 `offre_cliquee`, `emailrelance`, `candidat_offre_cliquee` : zéro enregistrement
 au 4 août. À revérifier le jour venu, ils ont pu se remplir depuis.
 
-**Les tâches, et tout ce que l'API n'expose pas.** Vérifié le 7 août 2026 :
-`/api/1.1/meta` ne rend que sept types — `candidats`, `user`,
-`loges_referents`, `info_entreprise`, `offreemploi`, `pdfs`, `global`. Trois
-colonnes de notre modèle pointent vers des types absents de cette liste :
-`candidat.taches_bubble_ids` (`TACHES`), `referent.canaux_bubble_ids`
-(`Channels`), `parametre.whatsapp_bubble_ids` (`WHATSAPP`).
+**Tout ce que la base en service n'expose pas.** Vérifié le 7 août 2026, et
+toujours vrai le 8 : `/api/1.1/meta` ne rend que sept types — `candidats`,
+`user`, `loges_referents`, `info_entreprise`, `offreemploi`, `pdfs`, `global`.
+Trois colonnes de notre modèle pointent vers des types absents de cette liste :
+`candidat.taches_bubble_ids` (`tache`), `referent.canaux_bubble_ids`
+(`channel`), `parametre.whatsapp_bubble_ids` (`groupes_whatsapp`).
 
-*Ce que ça coûte, mesuré :* **une tâche, sur 107 candidats.** Un seul candidat
-en porte une. Il n'y a donc pas d'historique de suivi à sauver — contrairement
-à ce que cette page a d'abord annoncé. Exposer `TACHES` avant la bascule reste
-propre (Data → Data types, « expose via API »), mais ce n'est pas une urgence :
-c'est une ligne.
+**La base de l'éditeur, elle, expose les trois.** Et les identifiants sont
+communs aux deux bases — les 83 candidats de l'éditeur portent les mêmes `_id`
+que dans la base en service. C'est ce qui permet de reprendre ces types-là de
+l'éditeur et de les rattacher aux vraies fiches. Relevé du 8 août :
+
+| Type | Éditeur | En service | Ce qu'on en fait |
+| --- | ---: | --- | --- |
+| `tache` | **467** | 404 | déversé dans le journal — voir ci-dessous |
+| `groupes_whatsapp` | 1 | 404 | en réserve brute, rien n'en dépend |
+| `channel` | 0 | 404 | vide, rien à reprendre |
+
+### Les tâches : 467, et non une seule
+
+*Correction du 8 août 2026.* Cette page annonçait « une tâche, sur 107
+candidats ». **C'était lu du mauvais côté du lien.** Le champ `candidat.TACHES`
+— la liste inverse — n'est effectivement renseigné que sur une fiche ; mais le
+lien qui compte est porté par la tâche, dans son champ `Num CANDIDAT tach`.
+Compté depuis le type lui-même : **467 tâches, sur 87 candidats**, de mars 2023
+au 30 juillet 2026, écrites par 7 référents. Il y a bien un historique de suivi
+à sauver, et il est déjà là.
+
+Deux pièges de nommage expliquent qu'on soit passé à côté : le type s'appelle
+`tache`, au singulier, et non `TACHES` qui est le nom du champ ; et il n'existe
+que dans la base de l'éditeur, celle qu'on n'interroge qu'en `SEULEMENT_BRUT`.
+
+Les 467 sont donc **déjà dans `bubble_brut`** depuis la reprise du 7 août. La
+migration `0023_taches_bubble.sql` les déplie dans le journal des candidats
+(`suivi`) : un candidat, un auteur, un jour, un état. Elle se rejoue sans
+doubler, et rattrape au passage les tâches dont le candidat n'était pas encore
+en base. Le compte s'obtient en une ligne :
+
+```sql
+select * from public.deverser_taches_bubble();
+```
+
+`reprendre-bubble.sh` l'appelle désormais tout seul, et les migrations aussi au
+déploiement : il n'y a rien à lancer à la main.
+
+*Ce qui resterait propre à faire avant la bascule* : exposer `tache` sur la
+base **en service** (Data → Data types, « expose via API », puis **déployer** —
+le réglage est versionné). L'éditeur tient ce type à jour, mais rien ne le
+garantit d'ici décembre ; la base en service, elle, ne ment jamais.
+`import-bubble.mjs` est prêt pour ce jour-là : dès que la base en service
+expose un type, la passe de l'éditeur cesse d'y toucher.
 
 **En revanche, `ARCHIVER` ne doit pas être perdu — et il l'est aujourd'hui.**
 Relevé du 7 août sur les 107 fiches Bubble :
