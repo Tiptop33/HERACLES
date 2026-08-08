@@ -44,7 +44,20 @@ export type LigneCandidat = {
   c_est_mon_suivi: boolean;
   /** Personne ne l'accompagne. C'est ce que la maquette appelle « urgent ». */
   sans_referent: boolean;
+  /**
+   * Ce que la personne cherche (migration 0033) : c'est elle qui colore le
+   * liseré du rang. Vide quand le libellé venu de Bubble ne se reconnaît pas —
+   * le rang n'a alors pas de liseré, plutôt qu'une couleur prise au hasard.
+   *
+   * La règle de rangement vit dans `famille_de_recherche()`, en base, et nulle
+   * part ailleurs : une couleur de la liste ne peut donc pas contredire une
+   * pastille de l'accueil.
+   */
+  famille: Famille | null;
 };
+
+/** Les quatre familles de recherche, telles que la base les nomme. */
+export type Famille = 'emploi' | 'alternance' | 'stage' | 'changement';
 
 /** La fiche de droite, telle que 0020 la rend. */
 export type Fiche = {

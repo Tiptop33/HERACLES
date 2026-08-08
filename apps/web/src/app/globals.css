@@ -43,6 +43,16 @@
   --alerte-clair: #fdf3f2;
   --alerte-bordure: #f3c6c2;
 
+  /* Les quatre familles de recherche, pour le liseré des rangs de la liste.
+     Elles ne disent ni un état ni une action : elles distinguent, et c'est
+     tout ce qu'on leur demande. D'où quatre teintes franches et sans parenté
+     entre elles — on doit les séparer du coin de l'œil, sur trois pixels de
+     large et sans jamais les voir côte à côte. */
+  --famille-emploi: #2563c9;
+  --famille-alternance: #c0392b;
+  --famille-stage: #e07b00;
+  --famille-changement: #c2478f;
+
   --pas: clamp(0.9rem, 0.5rem + 1.2vw, 1.4rem);
   --corps: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   --mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
@@ -83,6 +93,13 @@
     --alerte: #f2867c;
     --alerte-clair: #2a1614;
     --alerte-bordure: #5c2b26;
+
+    /* Les mêmes quatre familles, éclaircies : sur un fond sombre, un bleu à
+       #2563c9 disparaît dans la bordure du rang. */
+    --famille-emploi: #79a9f2;
+    --famille-alternance: #f08a7e;
+    --famille-stage: #f0a03c;
+    --famille-changement: #e58cc0;
   }
 }
 
@@ -2164,6 +2181,35 @@ tbody tr:focus-within {
   border-bottom: 1px dashed var(--bordure);
   text-decoration: none;
   color: inherit;
+  /* Le liseré de la famille de recherche. Il est posé sur **tous** les rangs,
+     transparent quand le type ne se reconnaît pas : une bordure qui
+     n'apparaîtrait que sur certains décalerait les autres de trois pixels, et
+     la colonne de gauche ondulerait d'un rang à l'autre.
+
+     Une bordure, et non l'ombre intérieure du rang ouvert : les deux doivent
+     pouvoir se voir en même temps. Sur le candidat ouvert, le liseré de la
+     famille reste à gauche et le trait cyan de la sélection se pose juste à
+     côté, en dedans. */
+  border-left: 3px solid transparent;
+}
+
+/* Les quatre familles. La couleur ne dit rien à elle seule : chaque rang porte
+   aussi le mot, caché pour les yeux et lu par les lecteurs d'écran — même
+   règle que le point des « urgents ». */
+.poste-rang--emploi {
+  border-left-color: var(--famille-emploi);
+}
+
+.poste-rang--alternance {
+  border-left-color: var(--famille-alternance);
+}
+
+.poste-rang--stage {
+  border-left-color: var(--famille-stage);
+}
+
+.poste-rang--changement {
+  border-left-color: var(--famille-changement);
 }
 
 .poste-rang:hover {
