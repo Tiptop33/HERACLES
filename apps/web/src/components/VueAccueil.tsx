@@ -86,7 +86,10 @@ export default function VueAccueil({
                 <p className="carte-nom">{nomComplet(d.prenom, d.nom) || 'Sans nom'}</p>
                 <p className="maigre">{d.ville ?? '—'}</p>
                 <p className="maigre">
-                  {FAMILLES.find((f) => f.cle === d.famille)?.libelle ?? 'Emploi'}
+                  {/* « Emploi » par défaut était un mensonge commode : une
+                      recherche non renseignée s'affichait comme un emploi, et
+                      rien ne disait qu'il y avait une colonne à remplir. */}
+                  {FAMILLES.find((f) => f.cle === d.famille)?.libelle ?? 'Type non renseigné'}
                   {d.cree_le ? ` · ${depuis(d.cree_le)}` : ''}
                 </p>
               </article>

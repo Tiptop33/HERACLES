@@ -42,8 +42,11 @@ insert into public.candidat (bubble_id, nom, prenom, ville, type_emploi, loge_id
    (select id from public.referent where bubble_id = 'ref-0011-ada'),
    now() - interval '10 days');
 
+-- « emploi » et non « CDD » : depuis 0031, seuls les libellés de la liste
+-- Bubble désignent une famille. L'intention de ce jeu d'essai — un candidat
+-- par famille de recherche — demande donc le mot que Bubble emploie.
 insert into public.candidat (bubble_id, nom, prenom, ville, type_emploi, loge_id, cree_le) values
-  ('cand-0011-emploi',     'Attente', 'Emma', 'Bordeaux', 'CDD',
+  ('cand-0011-emploi',     'Attente', 'Emma', 'Bordeaux', 'emploi',
    (select id from public.loge where bubble_id = 'loge-0011-guyenne'), now() - interval '3 days'),
   ('cand-0011-alternance', 'Attente', 'Alix', 'Talence',  'Contrat d''alternance',
    (select id from public.loge where bubble_id = 'loge-0011-guyenne'), now() - interval '2 days'),
@@ -69,13 +72,21 @@ on conflict do nothing;
 -- ---------------------------------------------------------------------------
 \echo '— la famille de recherche se lit dans le libelle libre de Bubble'
 -- ---------------------------------------------------------------------------
+-- Depuis 0031, il n'y a plus d'« emploi par défaut » : ce qui ne se reconnaît
+-- pas ne se range nulle part. Les trois familles, elles, se lisent comme avant.
 select public.verifier(
   public.famille_de_recherche('Contrat d''alternance') = 'alternance'
-    and public.famille_de_recherche('Apprentissage')   = 'alternance'
+    and public.famille_de_recherche('Apprentissage')      = 'alternance'
+    and public.famille_de_recherche('stage en alternance') = 'alternance'
     and public.famille_de_recherche('Stage conventionné') = 'stage'
-    and public.famille_de_recherche('CDI')             = 'emploi'
-    and public.famille_de_recherche(null)              = 'emploi',
-  'alternance, stage, et emploi par défaut — y compris quand la colonne est vide');
+    and public.famille_de_recherche('changement d''Emploi') = 'emploi',
+  'alternance, stage et emploi se reconnaissent dans le libellé libre de Bubble');
+
+select public.verifier(
+  public.famille_de_recherche(null)  is null
+    and public.famille_de_recherche('')    is null
+    and public.famille_de_recherche('CDI') is null,
+  'et ce qu''on ne reconnaît pas ne devient pas un emploi pour autant');
 
 -- ---------------------------------------------------------------------------
 \echo '— les chiffres d une referente ne parlent que de sa loge'
@@ -92,6 +103,9 @@ begin;
     (select en_attente from public.accueil_chiffres()) = 3,
     'trois attendent encore quelqu''un — le clôturé n''en est pas, celui de Quercy non plus');
 
+  -- Depuis 0031 ces trois-là comptent les dossiers **en cours de la loge**, et
+  -- non plus les seuls candidats en attente. Sam, que suit Ada, porte « CDI » :
+  -- un libellé qu'on ne reconnaît pas, et qui n'entre donc dans aucune pastille.
   select public.verifier(
     (select urgence_emploi from public.accueil_chiffres()) = 1
       and (select urgence_alternance from public.accueil_chiffres()) = 1

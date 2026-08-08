@@ -2484,6 +2484,32 @@ a.poste-document .poste-document-type {
   }
 }
 
+/* Sur une tablette, le volet empilé reste collé sous la barre.
+ *
+ * Entre 736 et 896 px — toute tablette en portrait —, la fiche prend la pleine
+ * largeur et le volet passe au-dessus. Immobile, il obligeait à remonter une
+ * fiche entière pour changer de candidat : le geste le plus fréquent de
+ * l'écran devenait le plus coûteux. Collé, la liste reste sous la main pendant
+ * que la fiche défile.
+ *
+ * La borne basse compte autant que la haute. En dessous de 736 px la colonne
+ * de navigation s'est déjà couchée en bandeau, et sur un téléphone la hauteur
+ * est ce qui manque le plus : quatorze rem retenues en permanence y coûteraient
+ * plus qu'elles ne rapportent. Le volet y reste donc immobile, et se dépasse.
+ *
+ * Quatorze rem plutôt que dix-huit : ce qui est pris ici l'est tout le temps.
+ * Le `z-index` tient la fiche dessous — sans lui elle défilerait au travers,
+ * le fond opaque du volet ne suffisant pas à la masquer.
+ */
+@media (min-width: 46.01rem) and (max-width: 56rem) {
+  .poste-volet {
+    position: sticky;
+    top: var(--barre-h);
+    z-index: 5;
+    max-height: 14rem;
+  }
+}
+
 /* ————— Le journal d'un candidat (onglet « Suivi ») ————— */
 
 .journal {
