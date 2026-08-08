@@ -31,7 +31,11 @@ export default function VueAccueil({
   estReferent: boolean;
 }) {
   const compteurs = [
-    { n: chiffres.mesCandidats, l: 'candidats suivis' },
+    // « de la loge » sur les deux cadres qui en parlent : depuis la migration
+    // 0030, celui-ci compte les candidats accompagnés de la loge entière, et
+    // non les seuls dossiers de qui regarde. Sans ces trois mots, on lisait
+    // « les miens ».
+    { n: chiffres.mesCandidats, l: 'candidats suivis de la loge' },
     { n: chiffres.enAttente, l: 'en attente de référent' },
     { n: chiffres.offresEnCours, l: 'offres en cours' },
     { n: chiffres.referents, l: 'référents de la loge' },
@@ -82,7 +86,10 @@ export default function VueAccueil({
                 <p className="carte-nom">{nomComplet(d.prenom, d.nom) || 'Sans nom'}</p>
                 <p className="maigre">{d.ville ?? '—'}</p>
                 <p className="maigre">
-                  {FAMILLES.find((f) => f.cle === d.famille)?.libelle ?? 'Emploi'}
+                  {/* « Emploi » par défaut était un mensonge commode : une
+                      recherche non renseignée s'affichait comme un emploi, et
+                      rien ne disait qu'il y avait une colonne à remplir. */}
+                  {FAMILLES.find((f) => f.cle === d.famille)?.libelle ?? 'Type non renseigné'}
                   {d.cree_le ? ` · ${depuis(d.cree_le)}` : ''}
                 </p>
               </article>

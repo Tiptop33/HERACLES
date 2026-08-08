@@ -51,7 +51,13 @@ export type Demande = {
   prenom: string | null;
   nom: string | null;
   ville: string | null;
-  famille: 'emploi' | 'alternance' | 'stage';
+  /**
+   * Vide quand le type de recherche ne se reconnaît pas (migration 0031). On
+   * le dit plutôt que de ranger la personne dans « Emploi » par défaut : la
+   * carte se lirait faux, et on ne saurait jamais que la colonne est à
+   * remplir.
+   */
+  famille: 'emploi' | 'alternance' | 'stage' | null;
   cree_le: string | null;
 };
 

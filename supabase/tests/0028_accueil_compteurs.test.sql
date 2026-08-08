@@ -126,9 +126,12 @@ begin;
     (select en_attente from public.accueil_chiffres()) = 2,
     'Sonia que personne n''a prise, et Paul que son parrain ne suit pas');
 
+  -- Depuis 0031 la pastille compte les dossiers en cours de la loge, et non
+  -- plus les seuls candidats en attente. Paul y figure toujours — c'est le
+  -- seul dossier de Guyenne dont le type se reconnaisse.
   select public.verifier(
     (select urgence_alternance from public.accueil_chiffres()) = 1,
-    'Paul pèse sur la pastille de l''alternance : c''est un référent qu''il attend');
+    'Paul pèse sur la pastille de l''alternance');
 
   select public.verifier(
     (select count(*) from public.demandes_en_attente(24)
