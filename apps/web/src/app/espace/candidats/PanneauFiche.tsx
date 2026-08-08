@@ -87,8 +87,11 @@ export default function PanneauFiche({
             className="poste-tete-portrait"
             src={`/espace/candidats/${fiche.id}/photo`}
             alt=""
-            width={52}
-            height={52}
+            // 104 et non 52 : la taille rendue a doublé, et ces deux nombres
+            // servent à réserver la place avant que l'image arrive. Faux, ils
+            // feraient sauter l'en-tête au chargement.
+            width={104}
+            height={104}
           />
         ) : (
           <span className="poste-tete-portrait poste-tete-initiales" aria-hidden="true">

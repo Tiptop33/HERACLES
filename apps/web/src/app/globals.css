@@ -2194,8 +2194,13 @@ tbody tr:focus-within {
      Une bordure, et non l'ombre intérieure du rang ouvert : les deux doivent
      pouvoir se voir en même temps. Sur le candidat ouvert, le liseré de la
      famille reste à gauche et le trait cyan de la sélection se pose juste à
-     côté, en dedans. */
-  border-left: 3px solid transparent;
+     côté, en dedans.
+
+     Six pixels et non trois : depuis que la liste est rangée par famille
+     (0034), le liseré ne marque plus un rang isolé mais le flanc d'un bloc
+     entier. Un trait plus large se lit comme une colonne, et c'est ce qu'on
+     lui demande maintenant. */
+  border-left: 6px solid transparent;
 }
 
 /* Les quatre familles. La couleur ne dit rien à elle seule : chaque rang porte
@@ -2336,19 +2341,25 @@ tbody tr:focus-within {
   flex-wrap: wrap;
 }
 
+/* Le portrait en tête de fiche, à droite de la liste. Six rem et demie, le
+   double des trois et quart d'origine : on ouvre une fiche pour reconnaître
+   quelqu'un, et une vignette de la taille d'une pastille ne le permettait
+   pas. La photo est ce que la fiche a de plus rapide à lire. */
 .poste-tete-portrait {
-  width: 3.25rem;
-  height: 3.25rem;
+  width: 6.5rem;
+  height: 6.5rem;
   border-radius: 50%;
   object-fit: cover;
   background: var(--candidat-clair);
   flex: none;
 }
 
+/* Les initiales suivent : dans un rond deux fois plus grand, une lettre de
+   1,05 rem flotterait au milieu du vide. */
 .poste-tete-initiales {
   display: grid;
   place-items: center;
-  font-size: 1.05rem;
+  font-size: 2.1rem;
   font-weight: 700;
   color: var(--candidat);
 }
