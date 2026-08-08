@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { resumeDuJournal, tacheOuverte, type LigneDeJournal } from '../src/lib/journal';
+import {
+  APERCU,
+  apercuDuDossier,
+  resumeDuJournal,
+  tacheOuverte,
+  type LigneDeJournal,
+} from '../src/lib/journal';
 
 /** Une ligne de journal, réduite à ce que les fonctions regardent. */
 function ligne(etat: string | null): LigneDeJournal {
@@ -41,6 +47,44 @@ describe('tacheOuverte', () => {
   // le même des deux côtés — une tâche à faire qui s'affiche close se perd.
   it('tient pour ouvert un état qu’elle ne connaît pas', () => {
     expect(tacheOuverte('À relancer en septembre')).toBe(true);
+  });
+});
+
+describe('apercuDuDossier', () => {
+  it('montre tout quand le dossier tient dans l’aperçu', () => {
+    const notes = [ligne('En cours'), ligne(null)];
+    expect(apercuDuDossier(notes)).toEqual({ visibles: notes, reste: 0, resteOuvert: 0 });
+  });
+
+  it('coupe au-delà, et compte ce qui suit', () => {
+    const notes = Array.from({ length: 25 }, () => ligne(null));
+    const vu = apercuDuDossier(notes);
+
+    expect(vu.visibles).toHaveLength(APERCU);
+    expect(vu.reste).toBe(25 - APERCU);
+    // Le début du tableau, et non un échantillon : le journal arrive trié du
+    // plus récent au plus ancien, et c'est le récent qu'on montre.
+    expect(vu.visibles[0]).toBe(notes[0]);
+  });
+
+  // Le cas qui justifie `resteOuvert` : une tâche en cours peut être ancienne,
+  // donc repliée. La taire ferait disparaître du travail à faire.
+  it('signale les tâches en cours qu’il replie', () => {
+    const notes = [
+      ...Array.from({ length: APERCU }, () => ligne('Terminer')),
+      ligne('En cours'),
+      ligne('En attente'),
+      ligne('Terminer'),
+    ];
+    const vu = apercuDuDossier(notes);
+
+    expect(vu.reste).toBe(3);
+    expect(vu.resteOuvert).toBe(2);
+  });
+
+  it('ne compte pas les notes sans état comme des tâches en cours', () => {
+    const notes = Array.from({ length: APERCU + 4 }, () => ligne(null));
+    expect(apercuDuDossier(notes).resteOuvert).toBe(0);
   });
 });
 

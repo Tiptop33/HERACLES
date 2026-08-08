@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { dateEnLettres } from '@/lib/format';
 import {
+  apercuDuDossier,
   lireJournalDeLaLoge,
   parCandidat,
   tacheOuverte,
@@ -141,12 +142,18 @@ function Dossier({ candidat, notes }: { candidat: LigneCandidat; notes: LigneDeL
     .filter(Boolean)
     .join(' · ');
 
+  // Cet écran répond à « quoi de neuf ? ». Le journal entier, lui, se lit dans
+  // la fiche : c'est l'espace du candidat, et il n'a pas de raison d'être
+  // recopié ici. Les dossiers repris de Bubble en portent jusqu'à vingt-cinq.
+  const { visibles, reste, resteOuvert } = apercuDuDossier(notes);
+  const saFiche = `/espace/candidats?fiche=${candidat.id}&onglet=suivi`;
+
   return (
     <section className="bloc suivi-dossier">
       <div className="suivi-dossier-tete">
         <div>
           <h2 className="suivi-dossier-nom">
-            <Link href={`/espace/candidats?fiche=${candidat.id}&onglet=suivi`}>{nom}</Link>
+            <Link href={saFiche}>{nom}</Link>
           </h2>
           <p className="maigre">{sous || 'métier non renseigné'}</p>
         </div>
@@ -162,11 +169,11 @@ function Dossier({ candidat, notes }: { candidat: LigneCandidat; notes: LigneDeL
         /* Le cas qui justifie l'écran : sans lui, un dossier dont personne
            n'a rien noté ne se signale nulle part. */
         <p className="suivi-silence">
-          Rien de noté. <Link href={`/espace/candidats?fiche=${candidat.id}&onglet=suivi`}>Ouvrir son journal</Link>
+          Rien de noté. <Link href={saFiche}>Ouvrir son journal</Link>
         </p>
       ) : (
         <ol className="journal-lignes">
-          {notes.map((note) => (
+          {visibles.map((note) => (
             <li key={note.id} className="journal-ligne">
               <div className="journal-ligne-tete">
                 <time dateTime={note.fait_le}>{dateEnLettres(note.fait_le)}</time>
@@ -186,6 +193,20 @@ function Dossier({ candidat, notes }: { candidat: LigneCandidat; notes: LigneDeL
             </li>
           ))}
         </ol>
+      )}
+
+      {/* Ce qui reste se lit dans la fiche. On dit combien de tâches y sont
+          encore ouvertes : le journal se lit du plus récent au plus ancien, et
+          rien ne garantit qu'une tâche en cours soit récente — la replier sans
+          le dire reviendrait à la perdre. */}
+      {reste > 0 && (
+        <p className="suivi-silence">
+          <Link href={saFiche}>
+            Voir les {reste} autres notes
+            {resteOuvert > 0 &&
+              `, dont ${resteOuvert} tâche${resteOuvert > 1 ? 's' : ''} en cours`}
+          </Link>
+        </p>
       )}
     </section>
   );

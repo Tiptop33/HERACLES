@@ -87,6 +87,48 @@ export function resumeDuJournal(lignes: LigneDeJournal[]): string {
   return `${notes} · ${ouvertes} tâche${ouvertes > 1 ? 's' : ''} en cours`;
 }
 
+/**
+ * Combien de notes « Action / Candidat » montre par dossier avant de renvoyer
+ * à la fiche.
+ *
+ * Cinq, parce que la reprise de Bubble donne une médiane de quatre tâches par
+ * candidat : la majorité des dossiers s'affichent donc en entier, et le lien
+ * n'apparaît que là où il sert. Les plus chargés en portent vingt-cinq — c'est
+ * eux qu'il s'agit de ne pas dérouler sur un écran qui répond à « quoi de
+ * neuf ? », et non à « tout ce qui s'est passé ».
+ */
+export const APERCU = 5;
+
+/** Ce qu'un dossier montre, et ce qu'il renvoie à sa fiche. */
+export type Apercu<T> = {
+  visibles: T[];
+  /** Les notes qui restent, à lire dans la fiche. */
+  reste: number;
+  /** Parmi elles, les tâches encore ouvertes — celles qu'on ne veut pas taire. */
+  resteOuvert: number;
+};
+
+/**
+ * Les premières notes d'un dossier, et le compte de ce qui suit.
+ *
+ * Le compte des tâches ouvertes qui restent est donné à part : le journal se
+ * lit du plus récent au plus ancien, et rien ne garantit qu'une tâche en cours
+ * soit récente. La replier sans le dire reviendrait à la perdre.
+ */
+export function apercuDuDossier<T extends { etat: string | null }>(
+  notes: T[],
+  combien: number = APERCU,
+): Apercu<T> {
+  const visibles = notes.slice(0, combien);
+  const suite = notes.slice(combien);
+
+  return {
+    visibles,
+    reste: suite.length,
+    resteOuvert: suite.filter((n) => tacheOuverte(n.etat)).length,
+  };
+}
+
 /** Une note, avec le candidat auquel elle se rattache. */
 export type LigneDeLaLoge = LigneDeJournal & { candidat_id: string };
 
