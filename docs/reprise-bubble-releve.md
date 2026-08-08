@@ -44,6 +44,32 @@ Deux points à reprendre à la lumière de ces chiffres : les loges ne sont plus
 de l'annuaire en montre cinq — et la répartition des référents entre elles est à revérifier
 avant de préparer les invitations.
 
+## Les tâches, relevées le 8 août 2026
+
+Le type `tache` — au singulier, et non `TACHES` qui est le nom du champ — n'est pas exposé par
+la base en service (HTTP 404), mais il l'est par celle de l'éditeur, qui le tient à jour.
+
+| | |
+| --- | ---: |
+| Tâches | **467** |
+| Candidats concernés | 87 |
+| Auteurs | 7 |
+| De | 14 mars 2023 |
+| À | 30 juillet 2026 |
+
+Leur état, tel que Bubble le porte : `En cours` 434, `Terminer` 28, `En attente` 3, `Réalisé` 1,
+`A vérifier` 1. **Quatre cent trente-quatre tâches restent ouvertes** — ce n'est pas un
+historique mort, c'est du travail en cours.
+
+Le rattachement tombe juste : les 87 candidats visés existent tous dans la base **en service**
+(87 sur 87), et les 7 auteurs aussi. Les `_id` sont communs aux deux bases — les 83 candidats
+de l'éditeur portent les mêmes que dans la base en service.
+
+Ces 467 tâches étaient donc déjà sur le serveur depuis la reprise du 7 août, en JSON dans
+`bubble_brut`. La migration `0023_taches_bubble.sql` les déplie dans `suivi`, le journal des
+candidats. Le relevé précédent annonçait « une seule tâche » : c'était le champ inverse
+`candidat.TACHES` qui avait été compté, et non le type lui-même.
+
 ## Pourquoi deux sources
 
 Au moment de la reprise, les deux bases de Bubble n'étaient pas au même niveau :

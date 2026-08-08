@@ -3,7 +3,7 @@ import BoutonImprimer from '@/components/BoutonImprimer';
 import { Stylo } from '@/components/Icones';
 import { DrapeauFrance } from '../referents/DrapeauFrance';
 import { dateEnLettres, enEtiquettes, initiales, telephone } from '@/lib/format';
-import { NATURES, type LigneDeJournal } from '@/lib/journal';
+import { NATURES, resumeDuJournal, tacheOuverte, type LigneDeJournal } from '@/lib/journal';
 import { nomDeFamilleDabord, type FicheOuverte, type LigneCandidat } from '@/lib/poste';
 
 /**
@@ -193,6 +193,11 @@ function Suivi({
         </p>
       )}
 
+      {/* Ce que porte le dossier avant même de le lire : combien de notes, et
+          combien de tâches restent ouvertes. Les secondes viennent de Bubble
+          (migration 0023) et sont, pour beaucoup de dossiers, tout ce qu'il y a. */}
+      {journal.length > 0 && <p className="maigre">{resumeDuJournal(journal)}</p>}
+
       {fiche.modifiable ? (
         <form className="journal-ecrire" method="post" action={`/api/candidats/${fiche.id}/suivi`}>
           <textarea
@@ -255,6 +260,13 @@ function Suivi({
               <div className="journal-ligne-tete">
                 <time dateTime={ligne.fait_le}>{dateEnLettres(ligne.fait_le)}</time>
                 {ligne.nature && <span className="etiquette">{ligne.nature}</span>}
+                {ligne.etat && (
+                  <span
+                    className={`etat ${tacheOuverte(ligne.etat) ? 'etat--attente' : 'etat--clos'}`}
+                  >
+                    {ligne.etat}
+                  </span>
+                )}
                 <span className="journal-auteur">
                   {ligne.c_est_moi ? 'vous' : (ligne.auteur_nom ?? 'auteur inconnu')}
                 </span>

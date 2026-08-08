@@ -290,6 +290,46 @@ const LIENS = [
   ['document', 'loge_bubble_id', 'loge', 'loge_id'],
 ];
 
+// --- Le jeton ---------------------------------------------------------------
+// Ce qu'il faut savoir quand Bubble en refuse un. Écrit une fois, dit partout
+// où le cas se présente.
+const JETON_REFUSE = [
+  '',
+  "  Les réglages d'API de Bubble sont VERSIONNÉS. Un jeton créé dans",
+  "  l'éditeur n'existe pour l'application en service qu'une fois celle-ci",
+  '  déployée — c\'est la même mécanique qui fait que les deux bases n\'exposent',
+  '  pas les mêmes types. Vérifier aussi qu\'il n\'a pas été régénéré depuis, et',
+  '  qu\'il a été recopié en entier.',
+  '',
+  '  Cette API répond AUSSI sans jeton, tant qu\'elle est ouverte. Pour',
+  '  débloquer tout de suite, relancer sans BUBBLE_TOKEN — sans oublier que',
+  "  c'est précisément l'ouverture qu'il faudra refermer avant la bascule.",
+].join('\n');
+
+/**
+ * Le jeton passe-t-il ? On le demande avant les trois passes plutôt qu'au
+ * milieu : un jeton refusé arrête la reprise de toute façon, autant que ce
+ * soit avant d'avoir écrit la moitié des tables.
+ *
+ * Le contrôle porte sur une lecture de données, et non sur `/meta` — celui-ci
+ * répond 200 quel que soit le jeton, y compris inventé. Il ne prouverait rien.
+ */
+async function verifierLeJeton() {
+  if (!TOKEN) return;
+
+  const reponse = await fetch(`${RACINE}/obj/${PLAN[0].type}?limit=1`, {
+    headers: { Authorization: `Bearer ${TOKEN}` },
+  });
+
+  // 404 : le type n'est pas exposé par cette base. C'est un autre sujet, et la
+  // suite le dira mieux — ici on ne juge que le jeton.
+  if (reponse.status === 401 || reponse.status === 403) {
+    console.error(`Le jeton est refusé par ${RACINE} (HTTP ${reponse.status}).`);
+    console.error(JETON_REFUSE);
+    process.exit(1);
+  }
+}
+
 // --- Lecture de Bubble -----------------------------------------------------
 async function* lireType(type) {
   let curseur = 0;
@@ -302,6 +342,16 @@ async function* lireType(type) {
     });
 
     if (!reponse.ok) {
+      // Un 401 n'arrive qu'avec un jeton : sans en-tête du tout, cette API
+      // répond 200 à qui la sonde. C'est donc le jeton qui est refusé, pas
+      // l'accès qui manque — et le message doit le dire, sans quoi on cherche
+      // du côté des droits alors qu'il suffirait de l'enlever.
+      if (reponse.status === 401 || reponse.status === 403) {
+        throw new Error(
+          `${type} : HTTP ${reponse.status} — le jeton n'est pas reconnu par cette base.\n` +
+            JETON_REFUSE,
+        );
+      }
       throw new Error(`${type} : HTTP ${reponse.status} — ${reponse.statusText}`);
     }
 
@@ -362,6 +412,8 @@ await client.connect();
 console.log(`Reprise depuis ${APP}${TOKEN ? ' (avec jeton)' : ' (sans jeton)'}`);
 if (LIMITE !== Infinity) console.log(`⚠ limité à ${LIMITE} enregistrements par type`);
 console.log();
+
+await verifierLeJeton();
 
 const liaisons = [];
 const compteurs = {};
@@ -434,16 +486,45 @@ if (liaisons.length) console.log(`  loge_membre : ${liaisons.length} liens trait
 const traites = new Set(PLAN.map((e) => e.type));
 let exposes = [];
 
-try {
-  const reponse = await fetch(`${RACINE}/meta`, {
+async function typesExposes(racine) {
+  const reponse = await fetch(`${racine}/meta`, {
     headers: TOKEN ? { Authorization: `Bearer ${TOKEN}` } : {},
   });
-  if (reponse.ok) exposes = (await reponse.json()).get ?? [];
+  return reponse.ok ? ((await reponse.json()).get ?? []) : [];
+}
+
+try {
+  exposes = await typesExposes(RACINE);
 } catch {
   // Sans /meta, on se contente des types modélisés.
 }
 
-const restants = exposes.filter((t) => !traites.has(t));
+// Ce que la base **en service** expose, elle seule le donne.
+//
+// La base de l'éditeur porte des données plus maigres — 83 candidats contre
+// 107 le 4 août. C'est déjà la raison de `SEULEMENT_BRUT` pour les sept tables
+// modélisées ; la même règle vaut pour la réserve brute, sans quoi le second
+// passage écraserait dans `bubble_brut` ce que le premier venait d'y mettre.
+//
+// Aujourd'hui la base en service n'expose que les sept types du PLAN, déjà
+// écartés : cette liste est vide et rien ne change. Elle prendra son sens le
+// jour où l'on exposera `tache` côté production, comme le demande MAJBUBBLE.
+const reserves = new Set();
+if (SEULEMENT_BRUT && VERSION) {
+  try {
+    for (const type of await typesExposes(`https://${APP}.bubbleapps.io/api/1.1`)) {
+      if (!traites.has(type)) reserves.add(type);
+    }
+    if (reserves.size) {
+      console.log(`\nLaissés à la base en service : ${[...reserves].join(', ')}`);
+    }
+  } catch {
+    // Injoignable : on reprend tout, quitte à écraser. Mieux vaut une donnée
+    // un peu ancienne que pas de donnée du tout.
+  }
+}
+
+const restants = exposes.filter((t) => !traites.has(t) && !reserves.has(t));
 
 if (restants.length === 0) {
   console.log('\nAucun autre type exposé par l\'API.');

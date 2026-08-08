@@ -175,10 +175,15 @@ Storage est une étape à part, à faire avant la bascule du 5 décembre.
 `0033765730385` y est devenu `33765730385`. La reprise les met en texte — ce qui empêche que
 ça recommence — mais ne peut pas restaurer ce qui a été perdu avant elle.
 
-**Dix types de données manquent encore.** `PROVINCE`, `LOGES`, secteurs d'activité, métiers,
-codes NAF, tâches… sont référencés par des champs mais n'étaient pas exposés par l'API au
-moment du relevé. Leurs identifiants sont conservés (colonnes `..._bubble_id`) : quand tu les
+**Dix types de données manquent encore** dans la base *en service*. `PROVINCE`, `LOGES`,
+secteurs d'activité, métiers, codes NAF… sont référencés par des champs mais ne sont pas
+exposés par son API. Leurs identifiants sont conservés (colonnes `..._bubble_id`) : quand tu les
 auras exposés à l'étape 4, dis-le moi et j'ajoute les tables correspondantes.
+
+La base de **l'éditeur**, elle, les expose — c'est pourquoi le script les reprend là, en JSON,
+dans la table `bubble_brut`. Les identifiants étant communs aux deux bases, ce qui vient de
+l'éditeur se rattache aux vraies fiches. Les **tâches** ont fait ce chemin-là : 467 lignes de
+suivi, reprises en brut puis dépliées dans le journal des candidats par la migration 0023.
 
 ---
 
@@ -188,7 +193,8 @@ auras exposés à l'étape 4, dis-le moi et j'ajoute les tables correspondantes.
 | --- | --- |
 | `Cannot connect to the Docker daemon` | Docker n'est pas démarré. Lance Docker Desktop. |
 | `port is already allocated` | Un autre projet occupe un port. Les nôtres sont 54331-54334 et 3002 ; vérifie qu'aucune autre pile Supabase ne tourne. |
-| `HTTP 401` ou `403` à l'import | Jeton absent, mal copié, ou type non exposé (étape 4). |
+| `HTTP 401` ou `403` à l'import | **Le jeton est refusé** — ce n'est jamais qu'il manque : sans jeton, cette API répond `200`. Les réglages d'API de Bubble sont versionnés : un jeton créé dans l'éditeur n'existe pour l'application *en service* qu'une fois celle-ci déployée. Vérifier aussi qu'il n'a pas été régénéré, et qu'il est recopié en entier. Pour débloquer tout de suite : relancer sans `BUBBLE_TOKEN`. |
+| `HTTP 404 Type not found` | Ce type-là n'est pas exposé par cette base (étape 4). L'autre base de Bubble l'expose peut-être : c'est le cas de `tache`. |
 | `HTTP 400 invalid appname` | Le nom de l'application est faux. Il se lit dans l'URL de l'éditeur Bubble. |
 | `DATABASE_URL manquante` | Sous PowerShell, la ligne `$env:DATABASE_URL = "…"` n'a pas été validée : recolle-la seule, puis Entrée. Sous macOS/Linux, les trois lignes forment **une seule** commande — garde les `\` en fin de ligne. |
 | `ECONNREFUSED` à l'import | Supabase est arrêté. Reviens dans le dossier `HERACLES` et refais `npx supabase start`. |
