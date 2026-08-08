@@ -1,6 +1,11 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { lireCorps, origine, vientDUnFormulaire } from '@/lib/formulaire';
+import {
+  destinationInterne,
+  lireCorps,
+  origine,
+  vientDUnFormulaire,
+} from '@/lib/formulaire';
 import { supabaseServer } from '@/lib/supabase-server';
 
 /**
@@ -21,6 +26,13 @@ const Formulaire = z.object({
     .min(1, 'Une note vide ne dit rien.')
     .max(4000, 'Cette note est trop longue.'),
   nature: z.string().trim().max(120, 'Cette nature est trop longue.').optional(),
+  // Vide : une note, ce qui a eu lieu. Rempli : une tâche, ce qui reste à
+  // faire. Le formulaire n'envoie que `A_FAIRE`, mais la valeur est validée
+  // ici comme le reste — un champ caché se réécrit dans le navigateur.
+  etat: z.string().trim().max(120, 'Cet état est trop long.').optional(),
+  // D'où l'on écrit : la fiche, ou la liste « Action / Candidat ». On y
+  // revient après coup, plutôt que de renvoyer tout le monde dans la fiche.
+  retour: z.string().optional(),
   // Vide, c'est aujourd'hui. La base a le même défaut ; on ne le recopie ici
   // que pour laisser antidater — on note le lundi l'appel du vendredi.
   fait_le: z
@@ -45,12 +57,23 @@ export async function POST(requete: Request, { params }: { params: Promise<{ id:
 
 async function traiter(requete: Request, candidat: string) {
   const natif = vientDUnFormulaire(requete);
+  const corps = await lireCorps(requete);
+
+  // Où renvoyer après coup. `destinationInterne` écarte `//ailleurs.example` :
+  // sans ce contrôle, un formulaire fabriqué déposerait la personne hors du
+  // site juste après qu'elle a écrit dans un dossier.
+  const demande = destinationInterne(corps?.retour);
 
   const repondre = (code: string | null, message: string | null, statut = 400) => {
     if (natif) {
-      const vers = new URL('/espace/candidats', origine(requete));
-      vers.searchParams.set('fiche', candidat);
-      vers.searchParams.set('onglet', 'suivi');
+      const vers = demande
+        ? new URL(demande, origine(requete))
+        : (() => {
+            const fiche = new URL('/espace/candidats', origine(requete));
+            fiche.searchParams.set('fiche', candidat);
+            fiche.searchParams.set('onglet', 'suivi');
+            return fiche;
+          })();
       if (code) vers.searchParams.set('erreur', code);
       return NextResponse.redirect(vers, 303);
     }
@@ -63,7 +86,7 @@ async function traiter(requete: Request, candidat: string) {
     return repondre('introuvable', 'Ce candidat n’existe pas.', 404);
   }
 
-  const lu = Formulaire.safeParse(await lireCorps(requete));
+  const lu = Formulaire.safeParse(corps);
   if (!lu.success) {
     return repondre('vide', lu.error.issues[0]?.message ?? 'Note invalide.');
   }
@@ -95,6 +118,7 @@ async function traiter(requete: Request, candidat: string) {
     auteur_id: moi.id,
     texte: lu.data.texte,
     nature: lu.data.nature?.trim() || null,
+    etat: lu.data.etat?.trim() || null,
     ...(lu.data.fait_le ? { fait_le: lu.data.fait_le } : {}),
   });
 

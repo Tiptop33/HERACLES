@@ -1,9 +1,16 @@
 import Link from 'next/link';
 import BoutonImprimer from '@/components/BoutonImprimer';
+import EtatDeTache from '@/components/EtatDeTache';
 import { Stylo } from '@/components/Icones';
 import { DrapeauFrance } from '../referents/DrapeauFrance';
 import { dateEnLettres, enEtiquettes, initiales, telephone } from '@/lib/format';
-import { NATURES, resumeDuJournal, tacheOuverte, type LigneDeJournal } from '@/lib/journal';
+import {
+  A_FAIRE,
+  NATURES,
+  phraseDeRefus,
+  resumeDuJournal,
+  type LigneDeJournal,
+} from '@/lib/journal';
 import { nomDeFamilleDabord, type FicheOuverte, type LigneCandidat } from '@/lib/poste';
 
 /**
@@ -149,7 +156,12 @@ export default function PanneauFiche({
         {onglet === 'documents' ? (
           <Documents fiche={fiche} />
         ) : onglet === 'suivi' ? (
-          <Suivi fiche={fiche} journal={journal} refus={refus} />
+          <Suivi
+            fiche={fiche}
+            journal={journal}
+            refus={refus}
+            retour={adresse({ onglet: 'suivi' })}
+          />
         ) : (
           <Profil fiche={fiche} />
         )}
@@ -157,16 +169,6 @@ export default function PanneauFiche({
     </>
   );
 }
-
-/** Ce que la route d'écriture a refusé, dit à qui a cliqué. */
-const REFUS: Record<string, string> = {
-  vide: 'Une note vide ne dit rien.',
-  droit: 'Seuls le référent et le parrain de ce candidat écrivent dans son journal.',
-  'sans-fiche': 'Votre compte n’est rattaché à aucune fiche de référent.',
-  introuvable: 'Ce candidat n’existe plus.',
-  session: 'Votre session a expiré. Reconnectez-vous.',
-  echec: 'La note n’a pas pu être enregistrée.',
-};
 
 /**
  * Le journal : ce qui s'est passé, daté. On écrit en haut, on lit en dessous,
@@ -180,16 +182,19 @@ function Suivi({
   fiche,
   journal,
   refus,
+  retour,
 }: {
   fiche: FicheOuverte;
   journal: LigneDeJournal[];
   refus: string | null;
+  /** Où revenir après avoir écrit ou refermé : cette fiche, cet onglet. */
+  retour: string;
 }) {
   return (
     <div className="journal">
       {refus && (
         <p className="erreur" role="alert">
-          {REFUS[refus] ?? 'La note n’a pas pu être enregistrée.'}
+          {phraseDeRefus(refus)}
         </p>
       )}
 
@@ -236,8 +241,15 @@ function Suivi({
               className="journal-date"
             />
 
+            {/* Deux boutons, un seul formulaire. « Noter » vient en premier :
+                c'est lui que la touche Entrée déclenche, et le geste courant
+                est de consigner ce qui a eu lieu. « À faire » pose l'état, et
+                ne l'envoie que si c'est lui qu'on a pressé. */}
             <button className="bouton bouton--fort" type="submit">
               Noter
+            </button>
+            <button className="bouton" type="submit" name="etat" value={A_FAIRE}>
+              À faire
             </button>
           </div>
         </form>
@@ -260,13 +272,7 @@ function Suivi({
               <div className="journal-ligne-tete">
                 <time dateTime={ligne.fait_le}>{dateEnLettres(ligne.fait_le)}</time>
                 {ligne.nature && <span className="etiquette">{ligne.nature}</span>}
-                {ligne.etat && (
-                  <span
-                    className={`etat ${tacheOuverte(ligne.etat) ? 'etat--attente' : 'etat--clos'}`}
-                  >
-                    {ligne.etat}
-                  </span>
-                )}
+                <EtatDeTache ligne={ligne} retour={retour} />
                 <span className="journal-auteur">
                   {ligne.c_est_moi ? 'vous' : (ligne.auteur_nom ?? 'auteur inconnu')}
                 </span>
