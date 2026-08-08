@@ -25,6 +25,11 @@
 # faire. Il ouvre une connexion, rien de plus : la clé n'accepte qu'un seul
 # geste, fixé du côté du serveur, et c'est lui qui va chercher `main` sur
 # GitHub. Ce qui tourne vient donc du dépôt, et non de cette machine-ci.
+#
+# Cette connexion, elle, se retente : jusqu'à cinq fois, en espaçant les
+# essais. Uniquement quand le serveur n'a pas répondu du tout — dès qu'il
+# parle, sa réponse fait foi et rien n'est rejoué. Le détail, et la soirée qui
+# l'a motivé, sont au pas « Déclencher le déploiement ».
 
 name: Déployer l'instance d'essai
 
@@ -100,6 +105,11 @@ jobs:
     needs: verifier
     runs-on: ubuntu-latest
     environment: essai
+    # Un déploiement prend une minute. Trente, c'est de quoi encaisser les
+    # cinq tentatives et une reconstruction sans cache — au-delà, quelque
+    # chose est resté suspendu, et mieux vaut rendre la main que tenir la
+    # place jusqu'à la limite de six heures.
+    timeout-minutes: 30
 
     steps:
       - name: Préparer la connexion
@@ -129,15 +139,66 @@ jobs:
           HOTE: ${{ secrets.VPS_HOTE }}
           UTILISATEUR: ${{ secrets.VPS_UTILISATEUR }}
         run: |
-          set -euo pipefail
+          set -uo pipefail
+
           # Aucune commande n'est passée, et ce n'est pas un oubli : la clé
           # n'en accepte qu'une, inscrite dans `authorized_keys` du côté du
           # serveur. Ce qu'écrirait cette machine-ci ne serait pas lu.
           #
           # Le serveur va chercher `main` sur GitHub, joue les migrations et
           # reconstruit. Sa sortie remonte ici, d'où le journal de ce pas.
-          ssh -i ~/.ssh/id_deploiement -o StrictHostKeyChecking=yes \
-            "$UTILISATEUR@$HOTE"
+          #
+          # ————— Pourquoi on réessaie —————
+          #
+          # Le 8 août 2026, deux déploiements de suite se sont perdus sur un
+          # « Connection timed out » : le serveur n'a pas répondu à 23h32, il
+          # répondait de nouveau à 23h35, sans que rien n'ait changé entre les
+          # deux. Un commit juste ne doit pas rester à quai pour trois minutes
+          # d'absence.
+          #
+          # **On ne réessaie que ce qui n'a jamais atteint le serveur.** Dès
+          # qu'il a répondu, sa réponse fait foi : une migration qui échoue,
+          # une empreinte qui ne correspond pas ou une clé refusée arrêtent
+          # tout, sur-le-champ. Rejouer une empreinte fausse reviendrait à
+          # insister auprès d'une machine qui n'est pas la nôtre.
+          CONNEXION_PERDUE='ssh: connect to host|Connection timed out|Connection refused|No route to host|Operation timed out|Network is unreachable|Host is unreachable'
+
+          # Quinze secondes pour établir la connexion, au lieu des deux
+          # minutes treize que le système laisse filer par défaut : on veut
+          # savoir vite, pour réessayer plusieurs fois dans le même temps.
+          ATTENTES=(15 30 60 120)
+          journal="$(mktemp)"
+
+          for essai in 0 1 2 3 4; do
+            if (( essai > 0 )); then
+              attente=${ATTENTES[$((essai - 1))]}
+              echo "::warning::Serveur injoignable — nouvelle tentative dans ${attente} s (${essai}/4)."
+              sleep "$attente"
+            fi
+
+            code=0
+            ssh -i ~/.ssh/id_deploiement \
+                -o StrictHostKeyChecking=yes \
+                -o ConnectTimeout=15 \
+                -o ServerAliveInterval=30 \
+                -o ServerAliveCountMax=20 \
+                "$UTILISATEUR@$HOTE" > "$journal" 2>&1 || code=$?
+            cat "$journal"
+
+            if (( code == 0 )); then
+              exit 0
+            fi
+
+            # 255 est le code que `ssh` garde pour ses propres échecs ; tout
+            # autre code vient du serveur, et lui appartient.
+            if (( code != 255 )) || ! grep -qE "$CONNEXION_PERDUE" "$journal"; then
+              echo "::error::Le déploiement s'est arrêté (code $code). Le serveur a répondu : sa sortie est ci-dessus."
+              exit "$code"
+            fi
+          done
+
+          echo "::error::Le serveur est resté injoignable pendant les cinq tentatives, soit près de quatre minutes. Rien n'a été déployé ; l'instance tourne encore sur la version précédente."
+          exit 1
 
       - name: Effacer la clé
         if: always()
