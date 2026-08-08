@@ -15,6 +15,10 @@ import {
   type Vue,
 } from '@/lib/poste';
 import { initiales } from '@/lib/format';
+// Les libellés des quatre familles vivent avec les pastilles de l'accueil : un
+// seul endroit où lire « Changement d'emploi », et donc une seule façon de
+// l'écrire.
+import { FAMILLES } from '@/components/VueAccueil';
 import { jeSuisReferent, lireJournal, lireRetirees } from '@/lib/journal';
 import { exigerProfil } from '@/lib/profil';
 import { accueilDuRole } from '@/lib/roles';
@@ -234,9 +238,20 @@ function Rang({
 }) {
   const nom = nomDeFamilleDabord(ligne.nom, ligne.prenom);
   const sous = sousTitreDuRang(ligne);
+  const famille = FAMILLES.find((f) => f.cle === ligne.famille);
 
   return (
-    <Link className="poste-rang" href={vers} aria-current={ouverte ? 'true' : undefined}>
+    <Link
+      className={`poste-rang${famille ? ` poste-rang--${famille.cle}` : ''}`}
+      href={vers}
+      aria-current={ouverte ? 'true' : undefined}
+    >
+      {/* Le liseré de gauche dit la famille par sa couleur ; ce mot la dit aux
+          lecteurs d'écran, et à qui ne distingue pas ces quatre teintes. Une
+          couleur seule ne renseigne personne — c'est la règle du point des
+          « urgents », et elle vaut ici aussi. */}
+      {famille && <span className="visuellement-cache">{famille.libelle}. </span>}
+
       {ligne.a_une_photo ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img

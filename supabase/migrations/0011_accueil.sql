@@ -77,7 +77,13 @@ comment on function public.famille_de_recherche(text) is
 -- ---------------------------------------------------------------------------
 -- 4. Les chiffres de l'accueil, en une seule ligne
 -- ---------------------------------------------------------------------------
-create or replace function public.accueil_chiffres()
+-- `drop` puis `create`, et non `create or replace` : cette fonction a gagné
+-- une colonne depuis (0032), et `replace` refuse un type de retour différent.
+-- Sans cette ligne, la migration ne se rejoue pas sur une base déjà à jour —
+-- or le serveur les rejoue toutes, à chaque déploiement.
+drop function if exists public.accueil_chiffres();
+
+create function public.accueil_chiffres()
 returns table (
   mes_candidats       integer,
   en_attente          integer,

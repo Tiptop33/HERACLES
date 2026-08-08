@@ -27,11 +27,13 @@ on conflict do nothing;
 -- ---------------------------------------------------------------------------
 \echo '— les quatre libelles de Bubble, ranges comme l association les entend'
 -- ---------------------------------------------------------------------------
+-- Depuis 0032, « changement d'Emploi » a sa propre pastille : les quatre
+-- valeurs de Bubble donnent donc quatre familles, une chacune.
 select public.verifier(
-  public.famille_de_recherche('emploi')               = 'emploi'
-    and public.famille_de_recherche('changement d''Emploi') = 'emploi'
-    and public.famille_de_recherche('stage en alternance') = 'alternance'
-    and public.famille_de_recherche('stage')               = 'stage',
+  public.famille_de_recherche('emploi')                   = 'emploi'
+    and public.famille_de_recherche('changement d''Emploi') = 'changement'
+    and public.famille_de_recherche('stage en alternance')  = 'alternance'
+    and public.famille_de_recherche('stage')                = 'stage',
   'les quatre valeurs relevées sur les 107 fiches trouvent chacune sa pastille');
 
 -- Le mot « stage » ouvre le libellé de l'alternance : c'est l'ordre des tests,
@@ -74,9 +76,11 @@ begin;
   set local role authenticated;
   set local request.jwt.claims = '{"sub":"aaaaaaaa-0031-0000-0000-00000000000a"}';
 
+  -- Un seul emploi depuis 0032 : Elias, qui porte « changement d'Emploi », a
+  -- quitté cette pastille pour la sienne.
   select public.verifier(
-    (select urgence_emploi from public.accueil_chiffres()) = 2,
-    'deux emplois — dont celui qu''Ada accompagne déjà');
+    (select urgence_emploi from public.accueil_chiffres()) = 1,
+    'un emploi — celui qu''Ada accompagne déjà');
 
   select public.verifier(
     (select urgence_alternance from public.accueil_chiffres()) = 1,
@@ -98,7 +102,7 @@ begin;
   -- à l'appel, et c'est ce qu'on veut. Avant 0031 ils auraient dit « Emploi »
   -- tous les deux, et le cadre aurait annoncé quatre emplois pour deux.
   select public.verifier(
-    (select urgence_emploi + urgence_alternance + urgence_stage
+    (select urgence_emploi + urgence_alternance + urgence_stage + urgence_changement
        from public.accueil_chiffres()) = 4,
     'quatre dossiers rangés sur six en cours — les deux illisibles restent dehors');
 
@@ -115,9 +119,9 @@ begin;
   set local request.jwt.claims = '{"sub":"aaaaaaaa-0031-0000-0000-00000000000a"}';
 
   -- Clara porte « emploi » et un dossier refermé : si elle entrait, la
-  -- première pastille dirait trois.
+  -- première pastille dirait deux.
   select public.verifier(
-    (select urgence_emploi from public.accueil_chiffres()) = 2,
+    (select urgence_emploi from public.accueil_chiffres()) = 1,
     'Clara est clôturée : son emploi ne compte plus');
 commit;
 
