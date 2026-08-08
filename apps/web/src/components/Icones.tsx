@@ -86,6 +86,51 @@ export function FlecheRetour() {
   );
 }
 
+/** La feuille cornée : un document déposé, qui s'ouvre. */
+export function Feuille() {
+  return (
+    <svg
+      className="icone icone--feuille"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.7"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M14.5 2.5H6.5a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V7.5Z" />
+      <path d="M14.5 2.5v5h5" />
+    </svg>
+  );
+}
+
+/**
+ * La même feuille, barrée d'un trait : la place d'un document, et rien dedans.
+ *
+ * C'est le tiret que la carte écrivait, rentré dans la feuille — la place
+ * existe, elle est vide. Un document manquant se distingue ainsi d'un document
+ * déposé à la forme, sans avoir à lire l'étiquette.
+ */
+export function FeuilleVide() {
+  return (
+    <svg
+      className="icone icone--feuille"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.7"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M14.5 2.5H6.5a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V7.5Z" />
+      <path d="M14.5 2.5v5h5" />
+      <path d="M9 14.5h6" />
+    </svg>
+  );
+}
+
 export function Roue() {
   return (
     <svg

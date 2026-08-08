@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import BoutonImprimer from '@/components/BoutonImprimer';
 import LigneDeSuivi from '@/components/LigneDeSuivi';
-import { Stylo } from '@/components/Icones';
+import { Feuille, FeuilleVide, Stylo } from '@/components/Icones';
 import { DrapeauFrance } from '../referents/DrapeauFrance';
 import { dateEnLettres, enEtiquettes, initiales, telephone } from '@/lib/format';
 import {
@@ -500,6 +500,11 @@ function Profil({ fiche }: { fiche: FicheOuverte }) {
  * Trois états, et il faut les trois : le fichier est chez nous et s'ouvre ;
  * il est encore chez Bubble et ne s'ouvre pas — c'est ce que MAJBUBBLE
  * rapatriera avant le 5 décembre ; ou il n'a jamais existé.
+ *
+ * **Une feuille plutôt que le mot « PDF ».** La maquette écrivait le format,
+ * mais la carte l'écrivait au jugé : tout fichier déposé s'annonçait « PDF »,
+ * y compris les `.docx` et les `.odt` que la reprise de Bubble ramène. Le
+ * dessin ne ment pas — c'est un document, et le nom dit lequel.
  */
 function Documents({ fiche }: { fiche: FicheOuverte }) {
   const documents = [
@@ -527,13 +532,18 @@ function Documents({ fiche }: { fiche: FicheOuverte }) {
               key={genre}
               className="poste-document"
               href={`/espace/referent/candidats/${fiche.id}/document/${genre}`}
+              title={`Ouvrir : ${libelle}`}
             >
-              <span className="poste-document-type">PDF</span>
+              <span className="poste-document-type">
+                <Feuille />
+              </span>
               <span>{libelle}</span>
             </a>
           );
         }
 
+        // Chez Bubble, le fichier existe : la feuille reste pleine, et c'est la
+        // carte entière qui dit, en pointillé, qu'elle ne s'ouvre pas encore.
         if (url) {
           return (
             <div
@@ -541,7 +551,9 @@ function Documents({ fiche }: { fiche: FicheOuverte }) {
               className="poste-document poste-document--absent"
               title="Pas encore rapatrié depuis Bubble"
             >
-              <span className="poste-document-type">PDF</span>
+              <span className="poste-document-type">
+                <Feuille />
+              </span>
               <span>{libelle}</span>
               <small>chez Bubble</small>
             </div>
@@ -550,7 +562,9 @@ function Documents({ fiche }: { fiche: FicheOuverte }) {
 
         return (
           <div key={genre} className="poste-document poste-document--absent">
-            <span className="poste-document-type">—</span>
+            <span className="poste-document-type">
+              <FeuilleVide />
+            </span>
             <span>{libelle}</span>
             <small>non fourni</small>
           </div>
@@ -561,7 +575,9 @@ function Documents({ fiche }: { fiche: FicheOuverte }) {
           l'affichette est un document à produire, pas à stocker. Elle reste
           ici, éteinte, à sa place définitive. */}
       <div className="poste-document poste-document--absent" title="À venir au lot 4">
-        <span className="poste-document-type">—</span>
+        <span className="poste-document-type">
+          <FeuilleVide />
+        </span>
         <span>Affichette</span>
         <small>à venir</small>
       </div>

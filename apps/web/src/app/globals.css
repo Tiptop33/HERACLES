@@ -2402,14 +2402,25 @@ a.poste-document:hover {
   background: var(--candidat-clair);
 }
 
+/* La feuille en haut de la carte. Elle a remplacé le mot « PDF » : ce n'est
+   plus le format qui s'annonce — la carte l'écrivait au jugé —, c'est qu'il y
+   a là un document, ou qu'il n'y en a pas. */
 .poste-document-type {
-  font-family: var(--mono);
-  font-size: 0.62rem;
-  letter-spacing: 0.08em;
-  padding: 0.15rem 0.4rem;
-  border-radius: 3px;
-  background: var(--surface-creuse);
+  display: grid;
+  place-items: center;
   color: var(--encre-douce);
+}
+
+.poste-document-type .icone {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+/* Cyan sur la seule carte qui s'ouvre : la couleur d'action de partout, et le
+   trait plein de sa bordure la dit déjà — les deux disent la même chose, ce
+   qui se remarque du coin de l'œil. */
+a.poste-document .poste-document-type {
+  color: var(--marque);
 }
 
 .poste-document--absent {
