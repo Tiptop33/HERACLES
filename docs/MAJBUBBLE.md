@@ -39,7 +39,7 @@ Sur la production, remplacer le chemin par celui du dépôt de production.
 | --- | --- |
 | **Sauvegarder** | `sudo /opt/heracles-essai-depot/infra/essai/sauvegarder.sh`, et **sortir l'archive du VPS** — voir [`sauvegarde.md`](sauvegarde.md) |
 | **L'API Bubble doit répondre** | si elle a été refermée entre-temps, la rouvrir avec un jeton pour la durée de l'opération, et la refermer après |
-| **Un jeton** | `BUBBLE_TOKEN=xxx sudo -E …` — l'API répond aussi sans, mais c'est à éviter |
+| **Un jeton** | `BUBBLE_TOKEN=xxx sudo -E …` — l'API répond aussi sans, mais c'est à éviter. **Un jeton refusé donne `HTTP 401` et arrête tout** : les réglages d'API de Bubble sont versionnés, un jeton créé dans l'éditeur n'existe côté application en service qu'une fois celle-ci déployée. La reprise le vérifie avant d'écrire quoi que ce soit, et le dit. Relancer sans `BUBBLE_TOKEN` débloque — au prix de laisser la porte ouverte le temps de l'opération. |
 | **La pile doit être en marche** | migrations jouées, `auth` en place |
 
 ## Après

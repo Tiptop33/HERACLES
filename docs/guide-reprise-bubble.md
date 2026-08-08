@@ -193,7 +193,8 @@ suivi, reprises en brut puis dépliées dans le journal des candidats par la mig
 | --- | --- |
 | `Cannot connect to the Docker daemon` | Docker n'est pas démarré. Lance Docker Desktop. |
 | `port is already allocated` | Un autre projet occupe un port. Les nôtres sont 54331-54334 et 3002 ; vérifie qu'aucune autre pile Supabase ne tourne. |
-| `HTTP 401` ou `403` à l'import | Jeton absent, mal copié, ou type non exposé (étape 4). |
+| `HTTP 401` ou `403` à l'import | **Le jeton est refusé** — ce n'est jamais qu'il manque : sans jeton, cette API répond `200`. Les réglages d'API de Bubble sont versionnés : un jeton créé dans l'éditeur n'existe pour l'application *en service* qu'une fois celle-ci déployée. Vérifier aussi qu'il n'a pas été régénéré, et qu'il est recopié en entier. Pour débloquer tout de suite : relancer sans `BUBBLE_TOKEN`. |
+| `HTTP 404 Type not found` | Ce type-là n'est pas exposé par cette base (étape 4). L'autre base de Bubble l'expose peut-être : c'est le cas de `tache`. |
 | `HTTP 400 invalid appname` | Le nom de l'application est faux. Il se lit dans l'URL de l'éditeur Bubble. |
 | `DATABASE_URL manquante` | Sous PowerShell, la ligne `$env:DATABASE_URL = "…"` n'a pas été validée : recolle-la seule, puis Entrée. Sous macOS/Linux, les trois lignes forment **une seule** commande — garde les `\` en fin de ligne. |
 | `ECONNREFUSED` à l'import | Supabase est arrêté. Reviens dans le dossier `HERACLES` et refais `npx supabase start`. |

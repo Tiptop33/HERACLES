@@ -290,6 +290,46 @@ const LIENS = [
   ['document', 'loge_bubble_id', 'loge', 'loge_id'],
 ];
 
+// --- Le jeton ---------------------------------------------------------------
+// Ce qu'il faut savoir quand Bubble en refuse un. Écrit une fois, dit partout
+// où le cas se présente.
+const JETON_REFUSE = [
+  '',
+  "  Les réglages d'API de Bubble sont VERSIONNÉS. Un jeton créé dans",
+  "  l'éditeur n'existe pour l'application en service qu'une fois celle-ci",
+  '  déployée — c\'est la même mécanique qui fait que les deux bases n\'exposent',
+  '  pas les mêmes types. Vérifier aussi qu\'il n\'a pas été régénéré depuis, et',
+  '  qu\'il a été recopié en entier.',
+  '',
+  '  Cette API répond AUSSI sans jeton, tant qu\'elle est ouverte. Pour',
+  '  débloquer tout de suite, relancer sans BUBBLE_TOKEN — sans oublier que',
+  "  c'est précisément l'ouverture qu'il faudra refermer avant la bascule.",
+].join('\n');
+
+/**
+ * Le jeton passe-t-il ? On le demande avant les trois passes plutôt qu'au
+ * milieu : un jeton refusé arrête la reprise de toute façon, autant que ce
+ * soit avant d'avoir écrit la moitié des tables.
+ *
+ * Le contrôle porte sur une lecture de données, et non sur `/meta` — celui-ci
+ * répond 200 quel que soit le jeton, y compris inventé. Il ne prouverait rien.
+ */
+async function verifierLeJeton() {
+  if (!TOKEN) return;
+
+  const reponse = await fetch(`${RACINE}/obj/${PLAN[0].type}?limit=1`, {
+    headers: { Authorization: `Bearer ${TOKEN}` },
+  });
+
+  // 404 : le type n'est pas exposé par cette base. C'est un autre sujet, et la
+  // suite le dira mieux — ici on ne juge que le jeton.
+  if (reponse.status === 401 || reponse.status === 403) {
+    console.error(`Le jeton est refusé par ${RACINE} (HTTP ${reponse.status}).`);
+    console.error(JETON_REFUSE);
+    process.exit(1);
+  }
+}
+
 // --- Lecture de Bubble -----------------------------------------------------
 async function* lireType(type) {
   let curseur = 0;
@@ -302,6 +342,16 @@ async function* lireType(type) {
     });
 
     if (!reponse.ok) {
+      // Un 401 n'arrive qu'avec un jeton : sans en-tête du tout, cette API
+      // répond 200 à qui la sonde. C'est donc le jeton qui est refusé, pas
+      // l'accès qui manque — et le message doit le dire, sans quoi on cherche
+      // du côté des droits alors qu'il suffirait de l'enlever.
+      if (reponse.status === 401 || reponse.status === 403) {
+        throw new Error(
+          `${type} : HTTP ${reponse.status} — le jeton n'est pas reconnu par cette base.\n` +
+            JETON_REFUSE,
+        );
+      }
       throw new Error(`${type} : HTTP ${reponse.status} — ${reponse.statusText}`);
     }
 
@@ -362,6 +412,8 @@ await client.connect();
 console.log(`Reprise depuis ${APP}${TOKEN ? ' (avec jeton)' : ' (sans jeton)'}`);
 if (LIMITE !== Infinity) console.log(`⚠ limité à ${LIMITE} enregistrements par type`);
 console.log();
+
+await verifierLeJeton();
 
 const liaisons = [];
 const compteurs = {};
