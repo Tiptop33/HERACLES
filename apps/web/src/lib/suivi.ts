@@ -42,6 +42,11 @@ function rempli(valeur: unknown): boolean {
  * rien. Si la liste ne contient que des motifs de clôture, elle ne change rien ;
  * si c'est une liste oui/non, elle évite qu'un « Non » vide l'écran de tout le
  * monde. Le mauvais côté de l'erreur n'est pas le même des deux côtés.
+ *
+ * **La base applique la même règle**, dans `public.mot_de_fermeture()`
+ * (migration 0029). Les deux se lisent ensemble : elles ont divergé une fois —
+ * la base prenait les treize « Non » de `ARCHIVER` pour des dossiers clos, et
+ * tous les compteurs affichaient zéro. Si l'une change, l'autre change.
  */
 const NEGATION = /^(non|no|false|0|aucun|aucune)\b/i;
 
