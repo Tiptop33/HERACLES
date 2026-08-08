@@ -10,6 +10,7 @@ import {
   phraseDeRefus,
   resumeDuJournal,
   type LigneDeJournal,
+  type LigneRetiree,
 } from '@/lib/journal';
 import { nomDeFamilleDabord, type FicheOuverte, type LigneCandidat } from '@/lib/poste';
 
@@ -54,6 +55,7 @@ export default function PanneauFiche({
   journal,
   refus,
   corrige,
+  retirees,
   adresse,
 }: {
   fiche: FicheOuverte;
@@ -66,6 +68,8 @@ export default function PanneauFiche({
   refus: string | null;
   /** La note ouverte en correction, portée par l'adresse. */
   corrige: string | null;
+  /** Ce qui a été écarté du journal, et qu'on peut rendre. */
+  retirees: LigneRetiree[];
   adresse: (ajout: Record<string, string | null>) => string;
 }) {
   const nom = nomDeFamilleDabord(fiche.nom, fiche.prenom);
@@ -164,6 +168,7 @@ export default function PanneauFiche({
             journal={journal}
             refus={refus}
             corrige={corrige}
+            retirees={retirees}
             adresse={adresse}
             retour={adresse({ onglet: 'suivi' })}
           />
@@ -188,6 +193,7 @@ function Suivi({
   journal,
   refus,
   corrige,
+  retirees,
   adresse,
   retour,
 }: {
@@ -195,6 +201,7 @@ function Suivi({
   journal: LigneDeJournal[];
   refus: string | null;
   corrige: string | null;
+  retirees: LigneRetiree[];
   adresse: (ajout: Record<string, string | null>) => string;
   /** Où revenir après avoir écrit, corrigé ou retiré : cette fiche, cet onglet. */
   retour: string;
@@ -288,7 +295,62 @@ function Suivi({
           ))}
         </ol>
       )}
+
+      <NotesRetirees retirees={retirees} retour={retour} />
     </div>
+  );
+}
+
+/**
+ * Ce qui a été écarté du journal, et qui peut revenir.
+ *
+ * C'est ce bloc qui fait la différence entre retirer et effacer. Sans lui, le
+ * retrait doux ne serait qu'une suppression avec une colonne en plus : la
+ * ligne serait invisible, donc perdue en pratique.
+ *
+ * Replié par défaut — `<details>`, sans une ligne de script. Ce qu'on a
+ * écarté n'a pas à encombrer la lecture courante du dossier ; il faut
+ * seulement pouvoir y revenir.
+ */
+function NotesRetirees({ retirees, retour }: { retirees: LigneRetiree[]; retour: string }) {
+  if (retirees.length === 0) return null;
+
+  return (
+    <details className="journal-retirees">
+      <summary>
+        {retirees.length} note{retirees.length > 1 ? 's' : ''} retirée
+        {retirees.length > 1 ? 's' : ''}
+      </summary>
+
+      <ol className="journal-lignes">
+        {retirees.map((note) => (
+          <li key={note.id} className="journal-ligne">
+            <div className="journal-ligne-tete">
+              <time dateTime={note.fait_le}>{dateEnLettres(note.fait_le)}</time>
+              <span className="journal-auteur">
+                {note.auteur_nom ?? 'auteur inconnu'}
+                {note.retire_par_nom && ` · retirée par ${note.retire_par_nom}`}
+              </span>
+
+              {note.je_peux_agir && (
+                <form
+                  method="post"
+                  action={`/api/suivi/${note.id}/retirer`}
+                  className="journal-agir"
+                >
+                  <input type="hidden" name="geste" value="rendre" />
+                  <input type="hidden" name="retour" value={retour} />
+                  <button type="submit" title="La note revient dans le journal">
+                    Rendre
+                  </button>
+                </form>
+              )}
+            </div>
+            <p className="prose">{note.texte}</p>
+          </li>
+        ))}
+      </ol>
+    </details>
   );
 }
 

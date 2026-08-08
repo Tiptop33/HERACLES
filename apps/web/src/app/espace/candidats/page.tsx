@@ -15,7 +15,7 @@ import {
   type Vue,
 } from '@/lib/poste';
 import { initiales } from '@/lib/format';
-import { lireJournal } from '@/lib/journal';
+import { lireJournal, lireRetirees } from '@/lib/journal';
 import { exigerProfil } from '@/lib/profil';
 import { accueilDuRole } from '@/lib/roles';
 import PanneauFiche, { estOnglet, type Onglet } from './PanneauFiche';
@@ -88,6 +88,9 @@ export default async function PosteDeTravail({
   // Le journal ne se charge que si on le regarde. Un onglet fermé ne doit rien
   // coûter — ni au serveur, ni au réseau : ce sont des notes sur des personnes.
   const journal = fiche && onglet === 'suivi' ? await lireJournal(fiche.id) : [];
+  // Ce qui a été écarté du journal. Chargé avec lui, et pour la même raison :
+  // un onglet fermé ne doit rien coûter.
+  const retirees = fiche && onglet === 'suivi' ? await lireRetirees(fiche.id) : [];
 
   /** L'adresse de ce même écran, avec un paramètre en plus ou en moins. */
   const adresse = (ajout: Record<string, string | null>) => {
@@ -190,6 +193,7 @@ export default async function PosteDeTravail({
             journal={journal}
             refus={premier(parametres.erreur) || null}
             corrige={corrige}
+            retirees={retirees}
             adresse={adresse}
           />
         ) : demande ? (
