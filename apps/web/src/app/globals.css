@@ -53,7 +53,11 @@
      brique et l'orange du stage se ressemblaient trop. Le rouge s'éclaircit,
      l'écart se voit. */
   --famille-alternance: #f0565c;
-  --famille-stage: #e07b00;
+  /* Vert, et non l'orange d'abord posé : l'ambre servait déjà au point des
+     « urgents », dans la même liste et à quelques centimètres. Deux ambres
+     côte à côte pour deux choses sans rapport, c'était une confusion de plus
+     à démêler à chaque lecture. */
+  --famille-stage: #1a9e4b;
   --famille-changement: #c2478f;
 
   --pas: clamp(0.9rem, 0.5rem + 1.2vw, 1.4rem);
@@ -103,7 +107,10 @@
     /* Le saumon d'abord posé ici tirait vers l'orange, et les deux se
        confondaient plus encore qu'en thème clair. Un rouge franc, éclairci. */
     --famille-alternance: #ff868b;
-    --famille-stage: #f0a03c;
+    /* Un vert franc plutôt que le vert-de-gris du référent, qui vit dans les
+       étiquettes d'état : deux verts proches diraient deux choses différentes
+       sur le même écran. */
+    --famille-stage: #63d17c;
     --famille-changement: #e58cc0;
   }
 }
