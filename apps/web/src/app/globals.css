@@ -2719,11 +2719,39 @@ a.poste-document:hover {
   color: var(--encre);
 }
 
-/* Ni le champ de saisie ni les gestes n'ont de sens sur une feuille. */
+/* Ce qui a été écarté du journal. Replié, et discret : on ne le consulte que
+   lorsqu'on cherche quelque chose qui a disparu. */
+.journal-retirees {
+  margin-top: 1rem;
+  border-top: 1px solid var(--bordure);
+  padding-top: 0.6rem;
+}
+
+.journal-retirees > summary {
+  font-size: 0.8rem;
+  color: var(--encre-tres-douce);
+  cursor: pointer;
+}
+
+.journal-retirees > summary:focus-visible {
+  outline: 2px solid var(--candidat);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* Le texte des notes écartées reste lisible, mais ne rivalise pas avec le
+   journal courant. */
+.journal-retirees .journal-ligne .prose {
+  color: var(--encre-douce);
+}
+
+/* Ni le champ de saisie ni les gestes n'ont de sens sur une feuille. Ce qui a
+   été retiré du journal non plus : la fiche s'imprime telle qu'elle se lit. */
 @media print {
   .suivi-noter,
   .journal-agir,
-  .journal-agir-lien {
+  .journal-agir-lien,
+  .journal-retirees {
     display: none;
   }
 }

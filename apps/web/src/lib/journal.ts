@@ -182,6 +182,35 @@ export function apercuDuDossier<T extends { etat: string | null }>(
   };
 }
 
+/**
+ * Une note écartée du journal (migration 0025). Elle n'est pas effacée : on la
+ * lit encore, on sait qui l'a retirée, et elle se rend.
+ */
+export type LigneRetiree = {
+  id: string;
+  fait_le: string;
+  texte: string;
+  auteur_nom: string | null;
+  retire_par_nom: string | null;
+  retire_le: string | null;
+  je_peux_agir: boolean;
+};
+
+/**
+ * Ce qui a été retiré du journal d'un candidat.
+ *
+ * C'est ce qui fait la différence entre retirer et effacer : sans cette
+ * liste, le retrait doux ne serait qu'une suppression avec une colonne en
+ * plus.
+ */
+export async function lireRetirees(candidat: string): Promise<LigneRetiree[]> {
+  if (!/^[0-9a-f-]{36}$/i.test(candidat)) return [];
+
+  const supabase = await supabaseServer();
+  const { data } = await supabase.rpc('suivi_retire_du_candidat', { candidat });
+  return (data as LigneRetiree[]) ?? [];
+}
+
 /** Une note, avec le candidat auquel elle se rattache. */
 export type LigneDeLaLoge = LigneDeJournal & { candidat_id: string };
 
