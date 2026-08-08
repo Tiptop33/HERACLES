@@ -56,6 +56,7 @@ export default function PanneauFiche({
   refus,
   corrige,
   retirees,
+  jePeuxNoter,
   adresse,
 }: {
   fiche: FicheOuverte;
@@ -70,6 +71,8 @@ export default function PanneauFiche({
   corrige: string | null;
   /** Ce qui a été écarté du journal, et qu'on peut rendre. */
   retirees: LigneRetiree[];
+  /** Le compte a-t-il une fiche de référent ? C'est tout ce qu'écrire demande. */
+  jePeuxNoter: boolean;
   adresse: (ajout: Record<string, string | null>) => string;
 }) {
   const nom = nomDeFamilleDabord(fiche.nom, fiche.prenom);
@@ -169,6 +172,7 @@ export default function PanneauFiche({
             refus={refus}
             corrige={corrige}
             retirees={retirees}
+            jePeuxNoter={jePeuxNoter}
             adresse={adresse}
             retour={adresse({ onglet: 'suivi' })}
           />
@@ -194,6 +198,7 @@ function Suivi({
   refus,
   corrige,
   retirees,
+  jePeuxNoter,
   adresse,
   retour,
 }: {
@@ -202,6 +207,7 @@ function Suivi({
   refus: string | null;
   corrige: string | null;
   retirees: LigneRetiree[];
+  jePeuxNoter: boolean;
   adresse: (ajout: Record<string, string | null>) => string;
   /** Où revenir après avoir écrit, corrigé ou retiré : cette fiche, cet onglet. */
   retour: string;
@@ -219,7 +225,7 @@ function Suivi({
           (migration 0023) et sont, pour beaucoup de dossiers, tout ce qu'il y a. */}
       {journal.length > 0 && <p className="maigre">{resumeDuJournal(journal)}</p>}
 
-      {fiche.modifiable ? (
+      {jePeuxNoter ? (
         <form className="journal-ecrire" method="post" action={`/api/candidats/${fiche.id}/suivi`}>
           <textarea
             name="texte"
@@ -271,15 +277,15 @@ function Suivi({
         </form>
       ) : (
         <p className="aide">
-          Vous lisez le journal de ce candidat parce qu’il est de votre loge. Seuls son
-          référent et son parrain y écrivent.
+          Votre compte n’est rattaché à aucune fiche de référent : vous lisez ce journal,
+          vous n’y écrivez pas.
         </p>
       )}
 
       {journal.length === 0 ? (
         <p className="poste-fiche-vide">
           Rien de noté pour l’instant
-          {fiche.modifiable ? ' — la première note ouvre le dossier.' : '.'}
+          {jePeuxNoter ? ' — la première note ouvre le dossier.' : '.'}
         </p>
       ) : (
         <ol className="journal-lignes">

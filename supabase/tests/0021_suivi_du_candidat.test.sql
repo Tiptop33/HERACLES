@@ -92,8 +92,12 @@ begin;
 commit;
 
 -- ---------------------------------------------------------------------------
-\echo '— une collegue de loge lit, mais n ecrit pas'
+\echo '— une collegue de loge lit, et ecrit aussi'
 -- ---------------------------------------------------------------------------
+-- Cette section disait l'inverse jusqu'au 8 août 2026 : écrire était réservé
+-- au référent et au parrain. La migration 0027 l'a ouvert à toute la loge,
+-- pour que la règle d'écriture rejoigne celle de la correction (0025) — on ne
+-- pouvait pas réécrire le mot d'un collègue sans pouvoir en écrire un soi-même.
 begin;
   set local role authenticated;
   set local request.jwt.claims = '{"sub":"aaaaaaaa-3333-0000-0000-000000000028"}';
@@ -109,24 +113,23 @@ begin;
     'et aucune de ces lignes n''est la sienne');
 commit;
 
--- Écrire, en revanche, lui est refusé : la RLS ne rend pas d'erreur sur un
--- insert, elle le rejette. C'est ce qu'on vérifie.
-do $$
-begin
+begin;
   set local role authenticated;
-  perform set_config('request.jwt.claims',
-    '{"sub":"aaaaaaaa-3333-0000-0000-000000000028"}', true);
-  begin
-    insert into public.suivi (candidat_id, auteur_id, texte)
-    values (current_setting('essai.nadia')::uuid,
-            current_setting('essai.rlise')::uuid,
-            'écrit par Lise');
-    raise exception 'ÉCHEC — Lise a pu écrire dans un journal qu''elle n''accompagne pas';
-  exception when insufficient_privilege then
-    raise notice '  ok — écrire reste réservé au référent et au parrain';
-  end;
-end
-$$;
+  set local request.jwt.claims = '{"sub":"aaaaaaaa-3333-0000-0000-000000000028"}';
+
+  -- Le cas d'usage qui a fait bouger la règle : Lise prend l'appel d'un
+  -- dossier qu'elle n'accompagne pas. Sans cela, l'appel n'est noté nulle part.
+  insert into public.suivi (candidat_id, auteur_id, fait_le, texte)
+  values (:'nadia'::uuid, :'r_lise'::uuid, date '2026-03-20',
+          'Appel pris pour Karim, absent.');
+
+  select public.verifier(
+    (select count(*) from public.suivi_du_candidat(:'nadia'::uuid)) = 3,
+    'Lise écrit dans le journal d''une candidate de sa loge');
+commit;
+
+-- Ce qui reste refusé : signer du nom d'un autre. On écrit chez un collègue,
+-- jamais à sa place.
 
 -- ---------------------------------------------------------------------------
 \echo '— on ne signe pas du nom d un collegue'
@@ -169,7 +172,7 @@ begin;
   set local request.jwt.claims = '{"sub":"aaaaaaaa-3333-0000-0000-000000000030"}';
 
   select public.verifier(
-    (select count(*) from public.suivi_du_candidat(:'nadia'::uuid)) = 2,
+    (select count(*) from public.suivi_du_candidat(:'nadia'::uuid)) = 3,
     'Nina lit le journal de Nadia');
 commit;
 
@@ -239,9 +242,9 @@ begin;
   -- miennes », la fonction dit « celles de ma loge ». Deux questions, deux
   -- réponses.
   select public.verifier(
-    (select count(*) from public.suivi) = 0
-      and (select count(*) from public.suivi_du_candidat(current_setting('essai.nadia')::uuid)) = 2,
-    'Lise n''en lit aucune en direct, et les deux par la fonction');
+    (select count(*) from public.suivi) = 1
+      and (select count(*) from public.suivi_du_candidat(current_setting('essai.nadia')::uuid)) = 3,
+    'Lise ne lit en direct que la sienne, et les trois par la fonction');
 commit;
 
 -- ---------------------------------------------------------------------------

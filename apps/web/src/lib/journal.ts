@@ -3,10 +3,13 @@ import { supabaseServer } from './supabase-server';
 /**
  * Le journal d'un candidat : ce qui s'est passé, daté (migration 0021).
  *
- * Lire passe par `suivi_du_candidat()`, qui applique la règle de la fiche —
- * la loge. Écrire passe par la table, donc par la RLS : le référent et le
- * parrain, personne d'autre. Les deux ne se ressemblent pas parce qu'elles ne
- * répondent pas à la même question.
+ * Lire passe par `suivi_du_candidat()`, écrire par la table et sa RLS. Depuis
+ * la migration 0027, les deux appliquent la même règle : **la loge**. Qui a le
+ * droit de voir un dossier a le droit d'y écrire, de corriger et de retirer —
+ * une règle de moins à retenir, et celle que l'usage réclamait.
+ *
+ * Ce qui reste étroit : on signe de son nom, et la correction directe du
+ * texte en base demeure réservée à son auteur.
  */
 
 export type LigneDeJournal = {
@@ -97,7 +100,7 @@ export const TERMINEE = 'Terminer';
  */
 const REFUS: Record<string, string> = {
   vide: 'Une note vide ne dit rien.',
-  droit: 'Seuls le référent et le parrain de ce candidat écrivent dans son journal.',
+  droit: 'Ce candidat n’est pas de vos loges : vous ne pouvez pas écrire dans son journal.',
   'sans-fiche': 'Votre compte n’est rattaché à aucune fiche de référent.',
   introuvable: 'Ce candidat n’existe plus.',
   etat: 'Cet état ne se pose pas ici.',
@@ -119,6 +122,20 @@ export function tacheOuverte(etat: string | null | undefined): boolean {
   const mot = etat?.trim();
   if (!mot) return false;
   return !ETAT_CLOS.test(mot);
+}
+
+/**
+ * Ai-je quelqu'un à mettre en auteur ? Autrement dit : mon compte est-il
+ * rattaché à une fiche de référent (migration 0027) ?
+ *
+ * Depuis que toute la loge écrit, c'est la seule condition qui reste — la
+ * lecture porte le droit. Une administratrice sans fiche lit les journaux et
+ * n'y écrit pas ; la policy la refuserait de toute façon.
+ */
+export async function jeSuisReferent(): Promise<boolean> {
+  const supabase = await supabaseServer();
+  const { data } = await supabase.rpc('je_suis_referent');
+  return data === true;
 }
 
 export async function lireJournal(candidat: string): Promise<LigneDeJournal[]> {

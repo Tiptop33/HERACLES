@@ -4,6 +4,7 @@ import LigneDeSuivi from '@/components/LigneDeSuivi';
 import {
   A_FAIRE,
   apercuDuDossier,
+  jeSuisReferent,
   lireJournalDeLaLoge,
   parCandidat,
   phraseDeRefus,
@@ -58,9 +59,10 @@ export default async function ActionCandidat({
   const refus = phraseDeRefus(premier(parametres.erreur));
   const corrige = premier(parametres.note) || null;
 
-  const [candidats, notes] = await Promise.all([
+  const [candidats, notes, jePeuxNoter] = await Promise.all([
     listerCandidatsDeLaLoge(),
     lireJournalDeLaLoge(),
+    jeSuisReferent(),
   ]);
 
   // Comme le poste de travail : on ouvre sur les siens, sauf si l'on n'en
@@ -145,6 +147,7 @@ export default async function ActionCandidat({
               notes={journal.get(candidat.id) ?? []}
               retour={adresse(vue)}
               corrige={corrige}
+              jePeuxNoter={jePeuxNoter}
             />
           ))}
         </div>
@@ -159,6 +162,7 @@ function Dossier({
   notes,
   retour,
   corrige,
+  jePeuxNoter,
 }: {
   candidat: LigneCandidat;
   notes: LigneDeLaLoge[];
@@ -166,6 +170,8 @@ function Dossier({
   retour: string;
   /** La note ouverte en correction, s'il y en a une sur cet écran. */
   corrige: string | null;
+  /** Le compte a-t-il une fiche de référent ? C'est tout ce qu'écrire demande. */
+  jePeuxNoter: boolean;
 }) {
   const nom = nomDeFamilleDabord(candidat.nom, candidat.prenom);
   const sous = [candidat.metier, candidat.referent_nom && `suivi par ${candidat.referent_nom}`]
@@ -199,10 +205,10 @@ function Dossier({
           travail plutôt qu'un tableau : on descend la liste des dossiers en
           cours et on consigne au fil de l'eau.
 
-          Réservé à ceux qui accompagnent — `c_est_mon_suivi` porte la même
-          règle que la policy d'écriture de 0021, référent ou parrain. En vue
-          « La loge », les dossiers des collègues restent en lecture. */}
-      {candidat.c_est_mon_suivi && (
+          Sur tous les dossiers, y compris ceux des collègues (0027) : celui qui
+          prend l'appel est rarement celui qui accompagne, et une note qu'on ne
+          peut pas écrire n'est écrite nulle part. */}
+      {jePeuxNoter && (
         <form
           className="suivi-noter"
           method="post"
