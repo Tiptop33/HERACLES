@@ -373,6 +373,56 @@ h3 {
   border-color: var(--alerte);
 }
 
+/* L'œil qui montre le mot de passe.
+ *
+ * Le bouton se pose dans le champ plutôt qu'à côté : à côté, il rognerait la
+ * largeur de saisie sur un téléphone. Le texte saisi s'arrête avant lui — d'où
+ * le retrait à droite, sans quoi les derniers caractères passeraient dessous.
+ *
+ * Ce bloc vient après les règles de `.entree-carte` : à spécificité égale,
+ * c'est le dernier qui gagne, et le raccourci `padding` des écrans d'entrée
+ * effacerait sinon ce retrait. */
+.champ-oeil {
+  position: relative;
+  display: flex;
+}
+
+.champ .champ-oeil input {
+  padding-right: 2.8rem;
+}
+
+.champ-oeil .oeil {
+  position: absolute;
+  top: 50%;
+  right: 0.4rem;
+  transform: translateY(-50%);
+  display: grid;
+  place-items: center;
+  /* La cible reste large : on l'appuie du pouce, souvent en marchant. */
+  width: 2.1rem;
+  height: 2.1rem;
+  padding: 0;
+  border: 0;
+  border-radius: 7px;
+  background: none;
+  color: var(--encre-tres-douce);
+  cursor: pointer;
+}
+
+.champ-oeil .oeil:hover {
+  color: var(--encre-douce);
+}
+
+.champ-oeil .oeil:focus-visible {
+  outline: 2px solid var(--marque);
+  outline-offset: 1px;
+}
+
+.champ-oeil .icone--oeil {
+  width: 1.15rem;
+  height: 1.15rem;
+}
+
 .entree-ligne {
   display: flex;
   align-items: center;

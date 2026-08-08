@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import BoutonGoogle from '@/components/BoutonGoogle';
+import ChampMotDePasse from '@/components/ChampMotDePasse';
 
 /** Sur quel champ porte l'erreur — pour l'afficher sous celui-là, et pas ailleurs. */
 type Erreur = { champ: 'email' | 'motDePasse' | null; message: string };
@@ -76,11 +77,12 @@ export default function FormulaireConnexion({
         {erreur?.champ === 'email' && <span className="erreur-champ">{erreur.message}</span>}
       </label>
 
-      <label className={`champ${faux('motDePasse')}`}>
-        <span>Mot de passe</span>
-        <input name="motDePasse" type="password" autoComplete="current-password" required />
-        {erreur?.champ === 'motDePasse' && <span className="erreur-champ">{erreur.message}</span>}
-      </label>
+      <ChampMotDePasse
+        nom="motDePasse"
+        libelle="Mot de passe"
+        autoComplete="current-password"
+        erreur={erreur?.champ === 'motDePasse' ? erreur.message : null}
+      />
 
       {erreur && erreur.champ === null && <p className="erreur">{erreur.message}</p>}
 

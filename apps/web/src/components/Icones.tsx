@@ -66,6 +66,46 @@ export function Roue() {
   );
 }
 
+/** L'œil ouvert : le mot de passe est masqué, l'appuyer le montre. */
+export function Oeil() {
+  return (
+    <svg
+      className="icone icone--oeil"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
+  );
+}
+
+/** L'œil barré : le mot de passe est en clair, l'appuyer le remasque. */
+export function OeilBarre() {
+  return (
+    <svg
+      className="icone icone--oeil"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M10.7 5.1A10.6 10.6 0 0 1 12 5c6.4 0 10 7 10 7a17.9 17.9 0 0 1-3.2 4.2" />
+      <path d="M6.7 6.7A17.5 17.5 0 0 0 2 12s3.6 7 10 7a10.5 10.5 0 0 0 4.4-.9" />
+      <path d="M9.9 9.9a3 3 0 0 0 4.2 4.2" />
+      <path d="m3 3 18 18" />
+    </svg>
+  );
+}
+
 /** La poignée qu'on attrape pour ranger : six points, comme partout. */
 export function Poignee() {
   return (

@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import ChampMotDePasse from '@/components/ChampMotDePasse';
 import { REGLES, force, premiereFaute } from '@/lib/motdepasse';
 
 /**
@@ -154,19 +155,16 @@ export default function FormulaireInvitation({
         <input value={email} readOnly aria-label="Adresse e-mail" />
       </label>
 
-      <label className={`champ${erreur?.champ === 'motDePasse' ? ' champ--faux' : ''}`}>
-        <span className="visuellement-cache">Mot de passe</span>
-        <input
-          name="motDePasse"
-          type="password"
-          placeholder="Mot de passe"
-          autoComplete="new-password"
-          value={motDePasse}
-          onChange={(e) => setMotDePasse(e.target.value)}
-          required
-        />
-        {erreur?.champ === 'motDePasse' && <span className="erreur-champ">{erreur.message}</span>}
-      </label>
+      <ChampMotDePasse
+        nom="motDePasse"
+        libelle="Mot de passe"
+        libelleCache
+        placeholder="Mot de passe"
+        autoComplete="new-password"
+        valeur={motDePasse}
+        surSaisie={setMotDePasse}
+        erreur={erreur?.champ === 'motDePasse' ? erreur.message : null}
+      />
 
       <div className="jauge-force" role="img" aria-label={`Force du mot de passe : ${niveau} sur 4`}>
         {[1, 2, 3, 4].map((s) => (
