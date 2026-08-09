@@ -211,9 +211,28 @@ function FeuilleDAppel({
         </ol>
       )}
 
-      <p className="maigre" style={{ marginTop: '0.8rem' }}>
-        Chaque clic est enregistré tout de suite. <Link href="/espace/reunion">Fermer la feuille</Link>
-      </p>
+      {/* Fermer la feuille n'est pas un simple retour : c'est la fin de
+          l'appel. Ceux que personne n'a nommés sont marqués absents à cet
+          instant (migration 0039) — dans une feuille d'appel, celui qu'on n'a
+          pas appelé n'était pas là, et laisser la case vide perdrait
+          l'information au moment même où elle est complète. Un état déjà posé
+          n'est jamais touché, et rouvrir la feuille permet de corriger. */}
+      <form method="post" action={`/api/reunions/${reunion.id}/clore`} className="appel-clore">
+        <input type="hidden" name="retour" value="/espace/reunion" />
+        <p className="maigre">
+          Chaque clic est enregistré tout de suite.{' '}
+          {n.aAppeler > 0 && (
+            <>
+              À la fermeture, {n.aAppeler === 1 ? 'le référent' : `les ${n.aAppeler} référents`}{' '}
+              que l’appel n’a pas {n.aAppeler === 1 ? 'nommé' : 'nommés'} ser
+              {n.aAppeler === 1 ? 'a noté absent' : 'ont notés absents'}.
+            </>
+          )}
+        </p>
+        <button className="bouton" type="submit">
+          Fermer la feuille
+        </button>
+      </form>
     </section>
   );
 }
