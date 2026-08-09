@@ -113,6 +113,16 @@ echo "jour, un état. Rejouable : une tâche déjà déversée est mise à jour.
 docker exec -i "$PREFIXE-db" psql -U postgres -d postgres -c "
   select * from public.deverser_taches_bubble()"
 
+# ————— Passe 4 : les réunions et leurs appels —————
+etape "Réunions — de la réserve brute vers le registre"
+echo "Même cas que les tâches : le type « reunion » de Bubble n'a pas de table à"
+echo "lui, il arrive en JSON dans bubble_brut. La migration 0036 le déplie en"
+echo "réunions et en pointages — la liste « referent » donne les présents,"
+echo "« EXCUSE » les excusés. Rejouable : une réunion déjà déversée est mise à"
+echo "jour, jamais dupliquée, et son retrait éventuel est préservé."
+docker exec -i "$PREFIXE-db" psql -U postgres -d postgres -c "
+  select * from public.deverser_reunions_bubble()"
+
 # ————— Les fichiers, si on les a demandés —————
 if [[ $FICHIERS -eq 1 ]]; then
   etape "Fichiers — du CDN de Bubble vers le stockage"
@@ -139,6 +149,8 @@ docker exec -i "$PREFIXE-db" psql -U postgres -d postgres -c "
   union all select 'offre_emploi', count(*) from public.offre_emploi
   union all select 'document', count(*) from public.document
   union all select 'suivi', count(*) from public.suivi
+  union all select 'reunion', count(*) from public.reunion
+  union all select 'appel', count(*) from public.appel
   union all select 'bubble_brut', count(*) from public.bubble_brut
   order by 1"
 

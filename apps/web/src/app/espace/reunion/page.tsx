@@ -298,8 +298,10 @@ function LigneDeFeuille({
    */
   const propose = enLigne && ligne.etat === null ? PRESENT : null;
 
-  // Ce qu'on a vu de cette personne depuis le début de l'exercice. C'est ce
-  // chiffre qui donne son sens à l'appel : sans lui, on coche sans savoir.
+  // Ce que porte cette personne **sur cette réunion**, et rien d'autre : le
+  // cumul de l'exercice a été retiré en 0045. Le chiffre vaut donc zéro ou un,
+  // et double ce que disent déjà les trois boutons — c'est le choix qui a été
+  // fait, et il se défait par une migration qui remet les bornes de 0036.
   const assiduite = [
     ligne.presences > 0 && `${ligne.presences} présence${ligne.presences > 1 ? 's' : ''}`,
     ligne.excuses > 0 && `${ligne.excuses} excuse${ligne.excuses > 1 ? 's' : ''}`,
@@ -329,7 +331,10 @@ function LigneDeFeuille({
 
       <span className="appel-nom">
         {nom}
-        <small>{assiduite || 'aucune présence cette année'}</small>
+        {/* « pas encore appelé » et non « aucune présence cette année » : la
+            ligne ne parle plus que de cette réunion, elle ne peut plus rien
+            dire de l'exercice. */}
+        <small>{assiduite || (ligne.etat ? `${ligne.etat.toLowerCase()}` : 'pas encore appelé')}</small>
       </span>
 
       <span className="appel-segments" role="group" aria-label={`Appel de ${nom}`}>
