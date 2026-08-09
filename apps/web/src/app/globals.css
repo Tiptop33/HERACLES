@@ -2897,11 +2897,15 @@ a.poste-document .poste-document-type {
 .registre tbody tr:last-child td { border-bottom: 0; }
 .registre tr[aria-current='true'] { background: var(--candidat-clair); }
 
-.bouton--petit { padding: .22rem .6rem; font-size: .78rem; border-radius: 7px; }
+/* Les gestes du registre sont les mêmes ronds que ceux de l'annuaire : le
+   stylo rouvre l'appel, la corbeille ouvre la confirmation. Ils se rangent à
+   droite, contre le bord de la table. */
+.registre td .gestes { justify-content: flex-end; }
 
 /* L'appel se fait à l'écran, il ne s'imprime pas — le registre, lui, oui. */
 @media print {
   .reunion-ouvrir,
+  .registre td .gestes,
   .appel-segments {
     display: none;
   }
