@@ -98,9 +98,9 @@ begin;
   select public.pointer_a_l_appel(:'novembre'::uuid, :'r_yann'::uuid, 'Présent');
 
   select public.verifier(
-    (select presences from public.feuille_d_appel(:'novembre'::uuid)
-      where referent_id = :'r_yann'::uuid) = 1,
-    'sa présence compte dans l''exercice 2026-2027');
+    (select count(*) from public.registre_des_reunions()
+      where id = :'novembre'::uuid) = 1,
+    'elle figure au registre de l''exercice 2026-2027');
 commit;
 
 begin;
@@ -115,14 +115,16 @@ begin;
   set local request.jwt.claims = '{"sub":"aaaaaaaa-3333-0000-0000-000000000142"}';
 
   select public.verifier(
-    (select presences from public.feuille_d_appel(:'novembre'::uuid)
-      where referent_id = :'r_yann'::uuid) = 0,
-    'et n''y compte plus dès qu''on ramène les bornes en arrière');
-
-  select public.verifier(
     (select count(*) from public.registre_des_reunions()
       where id = :'novembre'::uuid) = 0,
-    'la réunion quitte le registre de l''exercice');
+    'et elle en sort dès qu''on ramène les bornes en arrière');
+
+  -- Sa feuille, elle, ne bouge pas : depuis 0045 elle ne compte qu'elle-même,
+  -- et les dates d'exercice ne la commandent plus.
+  select public.verifier(
+    (select presences from public.feuille_d_appel(:'novembre'::uuid)
+      where referent_id = :'r_yann'::uuid) = 1,
+    'sa feuille garde sa présence — l''exercice ne commande que le registre');
 
   select public.verifier(
     (select count(*) from public.registre_hors_exercice()

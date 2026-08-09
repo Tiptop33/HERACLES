@@ -89,11 +89,14 @@ begin;
     (select presents from public.registre_hors_exercice() where id = :'apres'::uuid) = 1,
     'la réunion hors bornes affiche bien sa présence');
 
-  -- Une seule des deux entre dans l'assiduité : celle de l'exercice.
+  -- Chaque feuille ne compte qu'elle-même depuis 0045 : celle de février n'a
+  -- rien à voir avec celle d'août, et réciproquement.
   select public.verifier(
     (select presences from public.feuille_d_appel(:'apres'::uuid)
-      where referent_id = :'r_noe'::uuid) = 1,
-    'mais l''assiduité de l''exercice n''en compte qu''une — celle de février');
+      where referent_id = :'r_noe'::uuid) = 1
+      and (select presences from public.feuille_d_appel(:'dedans'::uuid)
+            where referent_id = :'r_noe'::uuid) = 1,
+    'et chaque feuille porte sa propre présence, sans les additionner');
 commit;
 
 -- ---------------------------------------------------------------------------

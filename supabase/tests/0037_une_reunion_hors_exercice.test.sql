@@ -93,11 +93,13 @@ begin;
       and (select effectif from public.la_reunion(:'tardive'::uuid)) = 1,
     'la feuille compte sa présence, même hors exercice');
 
-  -- L'assiduité, elle, reste bornée : c'est tout l'objet de l'exercice.
+  -- Depuis 0045, les comptes de la feuille ne portent que sur la réunion
+  -- ouverte : les bornes de l'exercice ne les commandent plus. Le registre,
+  -- lui, reste borné — c'est ce qu'affirme le premier contrôle ci-dessus.
   select public.verifier(
     (select presences from public.feuille_d_appel(:'tardive'::uuid)
-      where referent_id = :'r_maya'::uuid) = 0,
-    'mais l''assiduité de l''exercice ne la compte pas');
+      where referent_id = :'r_maya'::uuid) = 1,
+    'et sa ligne aussi, puisque la feuille ne compte plus qu''elle-même');
 commit;
 
 -- ---------------------------------------------------------------------------
