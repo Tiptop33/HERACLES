@@ -55,7 +55,7 @@ export const FAMILLES: readonly Famille[] = [
     entrees: [
       { libelle: 'Référents', vers: '/espace/referents' },
       { libelle: 'Correspondants', vers: null, lot: 'lot 5' },
-      { libelle: 'Réunion', vers: null, lot: 'lot 5' },
+      { libelle: 'Réunion', vers: '/espace/reunion' },
     ],
   },
   {

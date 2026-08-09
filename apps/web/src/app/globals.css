@@ -2787,3 +2787,122 @@ a.poste-document .poste-document-type {
     display: none;
   }
 }
+
+/* ————— « Réunion » : l'appel des référents ————— */
+
+.reunion-ouvrir {
+  display: flex; align-items: flex-end; justify-content: space-between;
+  gap: 1rem; flex-wrap: wrap;
+}
+
+.reunion-ouvrir h2 { margin: 0 0 .2rem; }
+.reunion-ouvrir .maigre { margin: 0; max-width: 42ch; }
+
+.reunion-ouvrir-form { display: flex; gap: .4rem; flex-wrap: wrap; align-items: center; }
+
+.reunion-ouvrir-form input {
+  font: inherit; font-size: .9rem; padding: .45rem .6rem;
+  border: 1px solid var(--bordure); border-radius: 9px;
+  background: var(--surface-creuse); color: inherit;
+}
+
+.reunion-ouvrir-form input:focus-visible {
+  outline: 2px solid var(--marque); outline-offset: 1px;
+}
+
+.appel { margin-top: 1rem; }
+
+.appel-tete {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  gap: 1rem; flex-wrap: wrap; margin-bottom: .9rem;
+}
+.appel-tete h2 { margin: 0 0 .15rem; }
+.appel-tete .maigre { margin: 0; }
+.appel-compte { display: flex; gap: .4rem; flex-wrap: wrap; align-items: center; }
+
+/* La feuille : des lignes qui se touchent, séparées d'un filet — c'est un
+   registre qu'on descend du regard, pas une collection de cartes. */
+.appel-feuille {
+  list-style: none; margin: 0; padding: 0;
+  display: flex; flex-direction: column; gap: 1px;
+  background: var(--bordure); border: 1px solid var(--bordure);
+  border-radius: 10px; overflow: hidden;
+}
+
+.appel-ligne {
+  display: flex; align-items: center; gap: .8rem;
+  background: var(--surface); padding: .45rem .7rem;
+}
+
+/* Un liseré à gauche redit l'état sans couleur de fond : la ligne reste
+   lisible, et l'on voit d'un coup d'œil où en est l'appel. */
+.appel-ligne[data-etat='Présent'] { box-shadow: inset .22rem 0 0 var(--referent); }
+.appel-ligne[data-etat='Excusé']  { box-shadow: inset .22rem 0 0 var(--attention); }
+.appel-ligne[data-etat='Absent']  { box-shadow: inset .22rem 0 0 var(--encre-tres-douce); }
+
+.appel-portrait {
+  width: 44px; height: 44px; flex: 0 0 auto;
+  border-radius: 50%; object-fit: cover;
+  background: var(--surface-creuse);
+}
+
+.appel-initiales {
+  display: flex; align-items: center; justify-content: center;
+  font-size: .82rem; font-weight: 700; color: var(--encre-douce);
+}
+
+.appel-nom { flex: 1 1 auto; min-width: 0; font-size: .95rem; }
+.appel-nom small { display: block; font-size: .75rem; color: var(--encre-tres-douce); }
+
+/* Trois formulaires côte à côte, mais un seul objet à l'œil : chaque bouton
+   envoie sa réponse aussitôt, sans quoi un téléphone qui se verrouille au
+   milieu de l'appel emporterait tout. */
+.appel-segments {
+  display: flex; flex: 0 0 auto;
+  border: 1px solid var(--bordure-nette); border-radius: 2rem; overflow: hidden;
+}
+
+.appel-segments form + form button { border-left: 1px solid var(--bordure); }
+
+.appel-segments button {
+  font: inherit; font-size: .78rem; font-weight: 600;
+  padding: .26rem .7rem; border: 0; cursor: pointer;
+  background: var(--surface); color: var(--encre-douce);
+}
+
+.appel-segments button:hover { background: var(--surface-creuse); }
+.appel-segments button:focus-visible { outline: 2px solid var(--marque); outline-offset: -2px; }
+
+.appel-segments button[aria-pressed='true'][data-etat='Présent'] {
+  background: var(--referent); color: var(--sur-marque);
+}
+.appel-segments button[aria-pressed='true'][data-etat='Excusé'] {
+  background: var(--attention); color: var(--sur-marque);
+}
+.appel-segments button[aria-pressed='true'][data-etat='Absent'] {
+  background: var(--encre-tres-douce); color: var(--sur-marque);
+}
+
+/* Le registre. Une table large déborde sur un téléphone : elle défile dans
+   son cadre, jamais la page. */
+.table-large { overflow-x: auto; margin-top: .8rem; }
+
+.registre { width: 100%; border-collapse: collapse; font-size: .9rem; }
+.registre th, .registre td { text-align: left; padding: .45rem .55rem; border-bottom: 1px solid var(--bordure); }
+.registre th {
+  font-size: .74rem; letter-spacing: .06em; text-transform: uppercase;
+  color: var(--encre-tres-douce); font-weight: 600;
+}
+.registre td.n, .registre th.n { text-align: right; font-variant-numeric: tabular-nums; }
+.registre tbody tr:last-child td { border-bottom: 0; }
+.registre tr[aria-current='true'] { background: var(--candidat-clair); }
+
+.bouton--petit { padding: .22rem .6rem; font-size: .78rem; border-radius: 7px; }
+
+/* L'appel se fait à l'écran, il ne s'imprime pas — le registre, lui, oui. */
+@media print {
+  .reunion-ouvrir,
+  .appel-segments {
+    display: none;
+  }
+}
