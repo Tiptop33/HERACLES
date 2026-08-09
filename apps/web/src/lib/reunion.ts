@@ -61,6 +61,11 @@ export type LigneDeRegistre = {
   effectif: number;
   retiree: boolean;
   retire_par_nom: string | null;
+  /**
+   * Le jour du retrait. Rendu par `registre_des_retirees()` seulement — c'est
+   * la seule liste où la question se pose.
+   */
+  retire_le?: string | null;
 };
 
 export async function lireFeuilleDAppel(reunion: string): Promise<LigneDAppel[]> {
@@ -107,6 +112,20 @@ export async function lireRegistre(avecRetirees = false): Promise<LigneDeRegistr
 export async function lireRegistreHorsExercice(): Promise<LigneDeRegistre[]> {
   const supabase = await supabaseServer();
   const { data } = await supabase.rpc('registre_hors_exercice');
+  return (data as LigneDeRegistre[]) ?? [];
+}
+
+/**
+ * Les réunions retirées de la loge, toutes dates confondues (migration 0040).
+ *
+ * Sans cette liste, retirer une réunion revenait à la perdre : elle quittait
+ * les deux registres, et il fallait connaître son adresse pour la rendre —
+ * donc l'avoir notée avant de la retirer. « Retirer n'est pas effacer »
+ * n'était vrai que pour qui avait pris ses précautions.
+ */
+export async function lireRegistreDesRetirees(): Promise<LigneDeRegistre[]> {
+  const supabase = await supabaseServer();
+  const { data } = await supabase.rpc('registre_des_retirees');
   return (data as LigneDeRegistre[]) ?? [];
 }
 

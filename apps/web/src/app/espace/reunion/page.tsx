@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { Corbeille, Stylo } from '@/components/Icones';
+import { Corbeille, FlecheRetour, Stylo } from '@/components/Icones';
 import { dateEnLettres, initiales, nomAffichable } from '@/lib/format';
 import { exigerProfil } from '@/lib/profil';
 import {
@@ -10,6 +10,7 @@ import {
   compter,
   lireFeuilleDAppel,
   lireRegistre,
+  lireRegistreDesRetirees,
   lireRegistreHorsExercice,
   lireUneReunion,
   phraseDeRefusReunion,
@@ -39,6 +40,7 @@ export default async function Reunion({
   searchParams: Promise<{
     appel?: string | string[];
     retirer?: string | string[];
+    rendre?: string | string[];
     erreur?: string | string[];
   }>;
 }) {
@@ -54,8 +56,9 @@ export default async function Reunion({
   // La réunion ouverte se lit par son identifiant, et non dans le registre :
   // celui-ci ne rend que l'exercice en cours, et une réunion tenue hors bornes
   // ne s'affichait alors nulle part (migration 0037).
-  const [registre, horsExercice, feuille, laReunion] = await Promise.all([
+  const [registre, retirees, horsExercice, feuille, laReunion] = await Promise.all([
     lireRegistre(),
+    lireRegistreDesRetirees(),
     lireRegistreHorsExercice(),
     ouverte ? lireFeuilleDAppel(ouverte) : Promise.resolve([]),
     ouverte ? lireUneReunion(ouverte) : Promise.resolve(null),
@@ -81,6 +84,10 @@ export default async function Reunion({
   const aRetirer =
     [...registre, ...horsExercice].find((r) => r.id === premier(parametres.retirer)) ?? null;
 
+  // Son symétrique : rendre une réunion retirée. Elle ne se cherche que dans
+  // les retirées — on ne rend pas ce qui n'a pas été retiré.
+  const aRendre = retirees.find((r) => r.id === premier(parametres.rendre)) ?? null;
+
   return (
     <main className="corps">
       {refus && (
@@ -105,11 +112,13 @@ export default async function Reunion({
       )}
 
       <Registre lignes={registre} ouverte={ouverte} adresse={adresse} />
+      <Retirees lignes={retirees} adresse={adresse} />
       <RegistrePasse lignes={horsExercice} ouverte={ouverte} adresse={adresse} />
 
       {aRetirer && (
         <FenetreDeRetrait reunion={aRetirer} fermer={adresse({ retirer: null })} />
       )}
+      {aRendre && <FenetreDeRetour reunion={aRendre} fermer={adresse({ rendre: null })} />}
     </main>
   );
 }
@@ -348,6 +357,92 @@ function Registre({
 }
 
 /**
+ * « Les réunions retirées » — ce qu'on a sorti du registre, et qu'on peut y
+ * remettre.
+ *
+ * Sans cette liste, retirer une réunion revenait à la perdre : elle quittait
+ * les deux registres, et il fallait connaître son adresse pour la rendre —
+ * donc l'avoir notée **avant** de la retirer. « Retirer n'est pas effacer »
+ * n'était vrai que pour qui avait pris ses précautions.
+ *
+ * Toutes dates confondues, contrairement aux deux registres : une réunion
+ * retirée l'an dernier, ou depuis la clôture, tombait dans le même trou.
+ *
+ * Le cadre reste affiché même vide. Il est toujours à la même place, donc
+ * l'écran ne change pas de forme d'une visite à l'autre.
+ */
+function Retirees({ lignes, adresse }: { lignes: LigneDeRegistre[]; adresse: Adresse }) {
+  return (
+    <section className="bloc" style={{ marginTop: '1rem' }}>
+      <h2>Les réunions retirées</h2>
+      <p className="maigre">
+        Retirer n’est pas effacer. L’appel de ces réunions est resté en base : les rendre
+        au registre remet leurs pointages au compte de l’exercice.
+      </p>
+
+      {lignes.length === 0 ? (
+        <p className="vide-liste">Aucune réunion retirée.</p>
+      ) : (
+        <div className="table-large">
+          <table className="registre">
+            <thead>
+              <tr>
+                <th scope="col">Date</th>
+                <th scope="col">Retirée</th>
+                <th scope="col" className="n">Présents</th>
+                <th scope="col" className="n">Excusés</th>
+                <th scope="col">
+                  <span className="visuellement-cache">Gestes</span>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {lignes.map((r) => (
+                <tr key={r.id}>
+                  <td>
+                    <time dateTime={r.tenue_le}>{dateEnLettres(r.tenue_le)}</time>
+                    {r.lieu && <small className="maigre"> · {r.lieu}</small>}
+                    {/* Rendue, elle ne compterait toujours pas : le dire ici
+                        évite d'attendre des chiffres qui ne viendront pas. */}
+                    {r.hors_exercice && <small className="maigre"> · hors exercice</small>}
+                  </td>
+                  <td className="maigre">
+                    {r.retire_le ? dateEnLettres(r.retire_le.slice(0, 10)) : '—'}
+                    {r.retire_par_nom && <small> · {r.retire_par_nom}</small>}
+                  </td>
+                  <td className="n">{r.presents}</td>
+                  <td className="n">{r.excuses}</td>
+                  <td>
+                    <span className="gestes">
+                      <Link
+                        href={`/espace/reunion?appel=${r.id}`}
+                        className="geste geste--corriger"
+                        aria-label={`Voir l’appel du ${dateEnLettres(r.tenue_le)}`}
+                        title="Voir l’appel, sans la rendre"
+                      >
+                        <Stylo />
+                      </Link>
+                      <Link
+                        href={adresse({ rendre: r.id })}
+                        className="geste"
+                        aria-label={`Rendre la réunion du ${dateEnLettres(r.tenue_le)} au registre`}
+                        title="Rendre au registre"
+                      >
+                        <FlecheRetour />
+                      </Link>
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </section>
+  );
+}
+
+/**
  * « Le registre de l'exercice passé » — tout ce qui tombe hors des bornes.
  *
  * Des deux côtés, et c'est voulu : les réunions des exercices précédents, mais
@@ -530,6 +625,69 @@ function FenetreDeRetrait({
             <input type="hidden" name="retour" value="/espace/reunion" />
             <button className="bouton bouton--danger" type="submit">
               Retirer du registre
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * La fenêtre de confirmation avant de rendre une réunion au registre.
+ *
+ * Le geste n'est pas dangereux — il répare, il ne détruit rien. Mais il
+ * modifie l'assiduité de toute la loge d'un coup, et cela se dit avant, pas
+ * après.
+ */
+function FenetreDeRetour({ reunion, fermer }: { reunion: LigneDeRegistre; fermer: string }) {
+  const pointes = reunion.presents + reunion.excuses;
+
+  return (
+    <div className="fenetre-fond">
+      <Link href={fermer} className="fenetre-voile" aria-label="Fermer sans rien rendre" />
+
+      <div className="fenetre" role="dialog" aria-modal="true" aria-labelledby="retour-reunion">
+        <h2 id="retour-reunion">
+          Rendre la réunion du {dateEnLettres(reunion.tenue_le)} au registre&nbsp;?
+        </h2>
+
+        <p>
+          Elle a été retirée
+          {reunion.retire_par_nom ? ` par ${reunion.retire_par_nom}` : ''}
+          {reunion.retire_le ? `, le ${dateEnLettres(reunion.retire_le.slice(0, 10))}` : ''}.{' '}
+          {pointes === 0 ? (
+            <>Personne n’y avait été appelé : la rendre ne changera aucun compteur.</>
+          ) : (
+            <>
+              Ses{' '}
+              <strong>
+                {reunion.presents} présence{reunion.presents > 1 ? 's' : ''} et{' '}
+                {reunion.excuses} excuse{reunion.excuses > 1 ? 's' : ''}
+              </strong>{' '}
+              n’ont jamais quitté la base : la rendre les remet au compte de l’exercice.
+            </>
+          )}
+        </p>
+
+        {/* Rendue, une réunion hors bornes reste hors bornes. Le taire ferait
+            attendre des chiffres qui ne viendraient pas. */}
+        {reunion.hors_exercice && (
+          <p className="aide">
+            Cette réunion tombe hors de l’exercice en cours : rendue, elle reparaîtra au
+            registre de l’exercice passé, et ne comptera toujours dans aucun total.
+          </p>
+        )}
+
+        <div className="fenetre-gestes">
+          <Link href={fermer} className="bouton">
+            Annuler
+          </Link>
+          <form method="post" action={`/api/reunions/${reunion.id}/retirer`}>
+            <input type="hidden" name="geste" value="rendre" />
+            <input type="hidden" name="retour" value="/espace/reunion" />
+            <button className="bouton bouton--fort" type="submit">
+              Rendre au registre
             </button>
           </form>
         </div>
