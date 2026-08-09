@@ -23,6 +23,11 @@ export const RUBRIQUES: readonly Rubrique[] = [
     propos: 'Les titres qu’un référent peut porter, dans l’ordre où vous les voulez.',
   },
   {
+    libelle: 'Exercice',
+    vers: '/espace/parametres/exercice',
+    propos: 'Les dates entre lesquelles se comptent les réunions et l’assiduité.',
+  },
+  {
     libelle: 'Loges',
     vers: null,
     propos: 'Les loges, leurs noms et leurs emblèmes.',
