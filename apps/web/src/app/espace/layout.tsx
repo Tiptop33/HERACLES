@@ -1,6 +1,7 @@
 import Barre from '@/components/Barre';
 import Colonne from '@/components/Colonne';
 import { cheminLogo } from '@/lib/logo';
+import { lireLesConnectes } from '@/lib/presence';
 import { exigerProfil } from '@/lib/profil';
 import { referentCourant } from '@/lib/candidat';
 
@@ -16,11 +17,14 @@ export default async function EspaceLayout({ children }: { children: React.React
 
   if (profil.role === 'chercheur') return <>{children}</>;
 
-  const referent = profil.role === 'referent' ? await referentCourant() : null;
+  const [referent, connectes] = await Promise.all([
+    profil.role === 'referent' ? referentCourant() : Promise.resolve(null),
+    lireLesConnectes(),
+  ]);
 
   return (
     <div className="atelier">
-      <Colonne profil={profil} logo={cheminLogo} />
+      <Colonne profil={profil} logo={cheminLogo} connectes={connectes} />
 
       <div className="atelier-corps">
         <Barre

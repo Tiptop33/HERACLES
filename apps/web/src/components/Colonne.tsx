@@ -4,7 +4,9 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { PARAMETRES, estCourante, famillesDuRole } from '@/lib/navigation';
 import { nomAffichable } from '@/lib/format';
+import type { Connecte } from '@/lib/presence';
 import type { Profil } from '@/lib/profil';
+import Connectes from './Connectes';
 import { Roue } from './Icones';
 
 /**
@@ -18,7 +20,16 @@ import { Roue } from './Icones';
  * Les entrées dont l'écran n'existe pas encore sont éteintes plutôt
  * qu'absentes — voir `lib/navigation.ts` pour la raison.
  */
-export default function Colonne({ profil, logo }: { profil: Profil; logo: string | null }) {
+export default function Colonne({
+  profil,
+  logo,
+  connectes = [],
+}: {
+  profil: Profil;
+  logo: string | null;
+  /** Les collègues de la loge dont la session est ouverte (migration 0042). */
+  connectes?: Connecte[];
+}) {
   const chemin = usePathname() ?? '';
   const familles = famillesDuRole(profil.role);
   const nom = nomAffichable(profil.prenom, profil.nom, profil.email);
@@ -33,6 +44,10 @@ export default function Colonne({ profil, logo }: { profil: Profil; logo: string
         <span className="colonne-titre">HERACLES</span>
         {nom && <span className="colonne-qui">{nom}</span>}
       </div>
+
+      {/* Sous son propre nom : les autres. Le premier rendu vient du serveur,
+          la suite d'un rafraîchissement toutes les trente secondes. */}
+      <Connectes initiaux={connectes} />
 
       <Link
         href="/espace/accueil"

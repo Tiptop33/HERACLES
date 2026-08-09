@@ -66,6 +66,11 @@ export type LigneDeRegistre = {
    * la seule liste où la question se pose.
    */
   retire_le?: string | null;
+  /**
+   * Reprise de Bubble : elle se retire, elle ne s'efface pas. La prochaine
+   * reprise la recréerait (migration 0041).
+   */
+  venue_de_bubble?: boolean;
 };
 
 export async function lireFeuilleDAppel(reunion: string): Promise<LigneDAppel[]> {
@@ -113,6 +118,21 @@ export async function lireRegistreHorsExercice(): Promise<LigneDeRegistre[]> {
   const supabase = await supabaseServer();
   const { data } = await supabase.rpc('registre_hors_exercice');
   return (data as LigneDeRegistre[]) ?? [];
+}
+
+/**
+ * Le droit d'effacer une réunion pour de bon (migration 0041).
+ *
+ * L'administrateur, le Vénérable Maître et le Secrétaire. Le pointage et le
+ * retrait, eux, restent ouverts à toute la loge : ils se défont.
+ *
+ * La base refuse de toute façon — ceci ne sert qu'à ne pas montrer un geste
+ * qui échouerait.
+ */
+export async function puisJeEffacerDesReunions(): Promise<boolean> {
+  const supabase = await supabaseServer();
+  const { data } = await supabase.rpc('puis_je_effacer_des_reunions');
+  return data === true;
 }
 
 /**
@@ -172,6 +192,10 @@ const REFUS: Record<string, string> = {
   date: 'Cette date ne se lit pas.',
   session: 'Votre session a expiré. Reconnectez-vous.',
   echec: 'L’appel n’a pas pu être enregistré.',
+  droit:
+    'Seuls l’administrateur, le Vénérable Maître et le Secrétaire peuvent effacer une réunion.',
+  bubble:
+    'Cette réunion vient de Bubble : elle reviendrait à la prochaine reprise. Retirez-la du registre plutôt que de l’effacer.',
 };
 
 export function phraseDeRefusReunion(code: string | null | undefined): string | null {
