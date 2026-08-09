@@ -43,7 +43,7 @@ async function traiter(requete: Request, ligne: string) {
 
   const repondre = (code: string | null, message: string | null, statut = 400) => {
     if (natif) {
-      const vers = new URL(demande ?? '/espace/suivi', origine(requete));
+      const vers = new URL(demande ?? '/espace/candidats', origine(requete));
       if (code) vers.searchParams.set('erreur', code);
       return NextResponse.redirect(vers, 303);
     }

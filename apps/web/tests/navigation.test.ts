@@ -12,9 +12,16 @@ describe('les cinq familles', () => {
     ]);
   });
 
-  it('reprennent les dix-sept entrées de l’application Bubble', () => {
+  it('reprennent les entrées de l’application Bubble', () => {
     const total = FAMILLES.reduce((n, f) => n + f.entrees.length, 0);
-    expect(total).toBe(16); // les 17 moins « Accueil », qui reste seul en tête
+    // Les 17 de Bubble, moins « Accueil » qui reste seul en tête, moins
+    // « Action / Candidat » retiré du menu le 8 août 2026.
+    expect(total).toBe(15);
+  });
+
+  it('ne propose plus « Action / Candidat »', () => {
+    const libelles = FAMILLES.flatMap((f) => f.entrees.map((e) => e.libelle));
+    expect(libelles).not.toContain('Action / Candidat');
   });
 });
 

@@ -33,7 +33,11 @@ export const FAMILLES: readonly Famille[] = [
     nom: 'Suivi',
     entrees: [
       { libelle: 'Candidats', vers: '/espace/candidats' },
-      { libelle: 'Action / Candidat', vers: '/espace/suivi' },
+      // « Action / Candidat » a été retiré du menu le 8 août 2026. L'écran
+      // existe toujours à `/espace/suivi` : le journal de toute la loge d'un
+      // seul tenant, avec de quoi noter sans ouvrir chaque fiche. Il n'est
+      // plus proposé, il n'est pas supprimé — le rendre au menu tient en une
+      // ligne le jour où l'usage le réclamera.
       { libelle: 'Relation', vers: null, lot: 'lot 4' },
       { libelle: 'Messagerie', vers: null, lot: 'lot 5' },
     ],
