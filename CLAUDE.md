@@ -109,6 +109,26 @@ Avant tout commit touchant à l'application :
 cd apps/web && npm run lint && npm test && npm run build
 ```
 
+## L'écran ne change pas sans qu'on l'ait demandé
+
+**Toute modification visuelle se demande avant de se faire.** Ajouter un élément, en retirer
+un, en afficher un, en masquer un, en déplacer un, remplacer un libellé par une icône, changer
+un ordre d'affichage : la question se pose d'abord, et l'on attend la réponse.
+
+Ce qui a été demandé explicitement est déjà répondu — on ne redemande pas une corbeille qu'on
+vient de commander. La règle porte sur **ce qui vient en plus** : les décisions prises en
+chemin, jugées « cohérentes » ou « pendant qu'on y est ». C'est exactement là qu'un écran
+dérive sans que personne ne l'ait voulu.
+
+Deux exceptions, et deux seulement :
+
+- **une correction de panne** — un élément qui n'apparaît pas, une donnée invisible, un bouton
+  qui ne mène nulle part. Rétablir ce qui devait être là n'est pas un changement d'écran ;
+- **ce qu'impose une règle de ce fichier** — la sécurité, le vocabulaire, la langue.
+
+Dans le doute, poser la question. Une question coûte une minute ; un écran qu'il faut défaire
+coûte une journée, et la confiance de ceux qui s'en servent.
+
 ## Isolation vis-à-vis de MyCollabus
 
 HERACLES est **totalement isolé** d'EKOPLAN / MyCollabus : dépôt, nom de stack, ports, base de
