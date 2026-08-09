@@ -41,6 +41,11 @@ export type LigneDAppel = {
 
 /** Une réunion au registre, avec ses comptes. */
 export type LigneDeRegistre = {
+  /**
+   * Hors des bornes de l'exercice. Rendu par `la_reunion()` seulement : le
+   * registre, lui, ne montre que l'exercice, donc la question ne s'y pose pas.
+   */
+  hors_exercice?: boolean;
   id: string;
   tenue_le: string;
   lieu: string | null;
@@ -58,6 +63,23 @@ export async function lireFeuilleDAppel(reunion: string): Promise<LigneDAppel[]>
   const supabase = await supabaseServer();
   const { data } = await supabase.rpc('feuille_d_appel', { reunion_choisie: reunion });
   return (data as LigneDAppel[]) ?? [];
+}
+
+/**
+ * Une réunion précise, par son identifiant — **sans passer par le registre**.
+ *
+ * C'est la correction de la migration 0037. Chercher la réunion ouverte dans
+ * le registre paraissait économique, mais le registre ne rend que l'exercice
+ * en cours : une réunion tenue hors bornes existait sans jamais s'afficher.
+ * Le cas n'avait rien de théorique — l'exercice enregistré s'est terminé le
+ * 31 juillet 2026.
+ */
+export async function lireUneReunion(reunion: string): Promise<LigneDeRegistre | null> {
+  if (!/^[0-9a-f-]{36}$/i.test(reunion)) return null;
+
+  const supabase = await supabaseServer();
+  const { data } = await supabase.rpc('la_reunion', { reunion_choisie: reunion });
+  return ((data as LigneDeRegistre[]) ?? [])[0] ?? null;
 }
 
 export async function lireRegistre(avecRetirees = false): Promise<LigneDeRegistre[]> {

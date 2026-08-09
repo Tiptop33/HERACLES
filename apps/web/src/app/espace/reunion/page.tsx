@@ -9,6 +9,7 @@ import {
   compter,
   lireFeuilleDAppel,
   lireRegistre,
+  lireUneReunion,
   phraseDeRefusReunion,
   type LigneDAppel,
   type LigneDeRegistre,
@@ -43,12 +44,14 @@ export default async function Reunion({
   const ouverte = premier(parametres.appel);
   const refus = phraseDeRefusReunion(premier(parametres.erreur));
 
-  const [registre, feuille] = await Promise.all([
+  // La réunion ouverte se lit par son identifiant, et non dans le registre :
+  // celui-ci ne rend que l'exercice en cours, et une réunion tenue hors bornes
+  // ne s'affichait alors nulle part (migration 0037).
+  const [registre, feuille, laReunion] = await Promise.all([
     lireRegistre(),
     ouverte ? lireFeuilleDAppel(ouverte) : Promise.resolve([]),
+    ouverte ? lireUneReunion(ouverte) : Promise.resolve(null),
   ]);
-
-  const laReunion = registre.find((r) => r.id === ouverte) ?? null;
   const aujourdhui = new Date().toISOString().slice(0, 10);
 
   return (
@@ -137,6 +140,17 @@ function FeuilleDAppel({
             {reunion.lieu ? `${reunion.lieu} · ` : ''}
             {lignes.length} référent{lignes.length > 1 ? 's' : ''}
           </p>
+
+          {/* Une réunion hors des bornes de l'exercice s'appelle et se compte
+              comme les autres, mais n'entre dans aucun total. Le taire
+              donnerait des chiffres d'assiduité inexplicables. */}
+          {reunion.hors_exercice && (
+            <p className="aide">
+              Cette réunion est hors de l’exercice en cours : elle ne compte dans aucun
+              total, et n’apparaît pas au registre. Les dates d’exercice se règlent dans
+              les paramètres de l’application.
+            </p>
+          )}
         </div>
 
         <div className="appel-compte">
