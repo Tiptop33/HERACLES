@@ -1664,6 +1664,13 @@ tbody tr:focus-within {
   color: var(--alerte);
 }
 
+/* Effacer voisine avec retirer, et ne se défait pas. Même famille de couleur,
+   ton plus sombre : assez proche pour qu'on comprenne la parenté, assez
+   différent pour qu'on ne les confonde pas du coin de l'œil. */
+.geste--effacer {
+  color: #8f1d1d;
+}
+
 /* Refermer une tâche, ou la rouvrir : le cyan, parce que c'est une action et
    que l'action est cyan partout. L'ambre et le violet disent où en est la
    tâche — c'est l'affaire de l'étiquette posée juste à côté, pas du bouton. */
@@ -2901,6 +2908,27 @@ a.poste-document .poste-document-type {
    stylo rouvre l'appel, la corbeille ouvre la confirmation. Ils se rangent à
    droite, contre le bord de la table. */
 .registre td .gestes { justify-content: flex-end; }
+
+/* Un cadre qu'on déplie. Le triangle natif est remplacé par le nôtre, sans
+   quoi il s'aligne mal avec un titre. Tout tient dans `<details>` : le repli
+   fonctionne même si le JavaScript ne charge pas. */
+.repli > summary {
+  display: flex; align-items: baseline; gap: .6rem;
+  cursor: pointer; list-style: none; user-select: none;
+}
+.repli > summary::-webkit-details-marker { display: none; }
+.repli > summary::before {
+  content: '';
+  flex: 0 0 auto; width: 0; height: 0; align-self: center;
+  border-left: 6px solid currentColor;
+  border-top: 4.5px solid transparent;
+  border-bottom: 4.5px solid transparent;
+  color: var(--encre-tres-douce);
+  transition: transform .15s ease;
+}
+.repli[open] > summary::before { transform: rotate(90deg); }
+.repli > summary h2 { display: inline; margin: 0; }
+.repli > summary:focus-visible { outline: 2px solid var(--marque); outline-offset: 3px; border-radius: 4px; }
 
 /* Le pied de la feuille : la phrase à gauche, le bouton de fermeture à
    droite. Fermer enregistre les absents — ce n'est pas un lien de retour, et

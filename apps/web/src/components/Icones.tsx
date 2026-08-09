@@ -48,6 +48,31 @@ export function Corbeille() {
   );
 }
 
+/**
+ * La croix dans son cercle : effacer pour de bon.
+ *
+ * Volontairement distincte de la corbeille, qui ne fait que retirer. Deux
+ * gestes voisins qui ne se défont pas de la même façon ne peuvent pas porter
+ * le même dessin.
+ */
+export function Croix() {
+  return (
+    <svg
+      className="icone icone--croix"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <circle cx="12" cy="12" r="9" />
+      <path d="m9 9 6 6M15 9l-6 6" />
+    </svg>
+  );
+}
+
 /** La coche : la tâche est faite, l'appuyer la referme. */
 export function Coche() {
   return (

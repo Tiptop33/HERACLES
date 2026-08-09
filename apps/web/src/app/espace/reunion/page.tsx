@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { Corbeille, FlecheRetour, Stylo } from '@/components/Icones';
+import { Corbeille, Croix, FlecheRetour, Stylo } from '@/components/Icones';
 import { dateEnLettres, initiales, nomAffichable } from '@/lib/format';
 import { exigerProfil } from '@/lib/profil';
 import {
@@ -14,6 +14,7 @@ import {
   lireRegistreHorsExercice,
   lireUneReunion,
   phraseDeRefusReunion,
+  puisJeEffacerDesReunions,
   rangerParPresences,
   type LigneDAppel,
   type LigneDeRegistre,
@@ -41,6 +42,7 @@ export default async function Reunion({
     appel?: string | string[];
     retirer?: string | string[];
     rendre?: string | string[];
+    effacer?: string | string[];
     erreur?: string | string[];
   }>;
 }) {
@@ -56,12 +58,13 @@ export default async function Reunion({
   // La réunion ouverte se lit par son identifiant, et non dans le registre :
   // celui-ci ne rend que l'exercice en cours, et une réunion tenue hors bornes
   // ne s'affichait alors nulle part (migration 0037).
-  const [registre, retirees, horsExercice, feuille, laReunion] = await Promise.all([
+  const [registre, retirees, horsExercice, feuille, laReunion, peutEffacer] = await Promise.all([
     lireRegistre(),
     lireRegistreDesRetirees(),
     lireRegistreHorsExercice(),
     ouverte ? lireFeuilleDAppel(ouverte) : Promise.resolve([]),
     ouverte ? lireUneReunion(ouverte) : Promise.resolve(null),
+    puisJeEffacerDesReunions(),
   ]);
   const aujourdhui = new Date().toISOString().slice(0, 10);
 
@@ -88,6 +91,12 @@ export default async function Reunion({
   // les retirées — on ne rend pas ce qui n'a pas été retiré.
   const aRendre = retirees.find((r) => r.id === premier(parametres.rendre)) ?? null;
 
+  // Effacer ne se cherche que dans le registre de l'exercice : c'est le seul
+  // cadre qui porte le geste.
+  const aEffacer = peutEffacer
+    ? (registre.find((r) => r.id === premier(parametres.effacer) && !r.venue_de_bubble) ?? null)
+    : null;
+
   return (
     <main className="corps">
       {refus && (
@@ -111,7 +120,12 @@ export default async function Reunion({
         <OuvrirUneReunion aujourdhui={aujourdhui} />
       )}
 
-      <Registre lignes={registre} ouverte={ouverte} adresse={adresse} />
+      <Registre
+        lignes={registre}
+        ouverte={ouverte}
+        adresse={adresse}
+        peutEffacer={peutEffacer}
+      />
       <Retirees lignes={retirees} adresse={adresse} />
       <RegistrePasse lignes={horsExercice} ouverte={ouverte} adresse={adresse} />
 
@@ -119,6 +133,9 @@ export default async function Reunion({
         <FenetreDeRetrait reunion={aRetirer} fermer={adresse({ retirer: null })} />
       )}
       {aRendre && <FenetreDeRetour reunion={aRendre} fermer={adresse({ rendre: null })} />}
+      {aEffacer && (
+        <FenetreDEffacement reunion={aEffacer} fermer={adresse({ effacer: null })} />
+      )}
     </main>
   );
 }
@@ -330,10 +347,12 @@ function Registre({
   lignes,
   ouverte,
   adresse,
+  peutEffacer,
 }: {
   lignes: LigneDeRegistre[];
   ouverte: string;
   adresse: Adresse;
+  peutEffacer: boolean;
 }) {
   if (lignes.length === 0) {
     return (
@@ -351,7 +370,12 @@ function Registre({
         paramètres de l’application ; une réunion hors de ces bornes ne compte pas.
       </p>
 
-      <TableauDuRegistre lignes={rangerParPresences(lignes)} ouverte={ouverte} adresse={adresse} />
+      <TableauDuRegistre
+        lignes={rangerParPresences(lignes)}
+        ouverte={ouverte}
+        adresse={adresse}
+        peutEffacer={peutEffacer}
+      />
     </section>
   );
 }
@@ -370,11 +394,24 @@ function Registre({
  *
  * Le cadre reste affiché même vide. Il est toujours à la même place, donc
  * l'écran ne change pas de forme d'une visite à l'autre.
+ *
+ * **Replié par défaut.** C'est une réserve, pas un registre : on y va quand on
+ * cherche quelque chose, et le reste du temps il n'a pas à pousser les deux
+ * autres cadres vers le bas. `<details>` fait cela sans une ligne de script —
+ * le repli fonctionne même si le JavaScript ne charge pas.
  */
 function Retirees({ lignes, adresse }: { lignes: LigneDeRegistre[]; adresse: Adresse }) {
   return (
-    <section className="bloc" style={{ marginTop: '1rem' }}>
-      <h2>Les réunions retirées</h2>
+    <details className="bloc repli" style={{ marginTop: '1rem' }}>
+      <summary>
+        <h2>Les réunions retirées</h2>
+        <span className="compte">
+          {lignes.length === 0
+            ? 'aucune'
+            : `${lignes.length} réunion${lignes.length > 1 ? 's' : ''}`}
+        </span>
+      </summary>
+
       <p className="maigre">
         Retirer n’est pas effacer. L’appel de ces réunions est resté en base : les rendre
         au registre remet leurs pointages au compte de l’exercice.
@@ -438,7 +475,7 @@ function Retirees({ lignes, adresse }: { lignes: LigneDeRegistre[]; adresse: Adr
           </table>
         </div>
       )}
-    </section>
+    </details>
   );
 }
 
@@ -497,12 +534,18 @@ function TableauDuRegistre({
   ouverte,
   adresse,
   periode = false,
+  peutEffacer = false,
 }: {
   lignes: LigneDeRegistre[];
   ouverte: string;
   adresse: Adresse;
   /** Dire de quel côté des bornes chaque réunion tombe. */
   periode?: boolean;
+  /**
+   * Montrer le geste d'effacement. Faux partout sauf au registre de
+   * l'exercice : c'est le seul cadre qui le porte.
+   */
+  peutEffacer?: boolean;
 }) {
   return (
     <div className="table-large">
@@ -556,6 +599,21 @@ function TableauDuRegistre({
                   >
                     <Corbeille />
                   </Link>
+                  {/* Effacer est un second geste, et non la corbeille : celle-ci
+                      se défait, celui-là non. Il ne s'affiche ni pour qui n'en
+                      a pas le droit, ni sur une réunion reprise de Bubble —
+                      que la prochaine reprise recréerait. Un bouton qui échoue
+                      toujours vaut moins qu'un bouton qui n'est pas là. */}
+                  {peutEffacer && !r.venue_de_bubble && (
+                    <Link
+                      href={adresse({ effacer: r.id })}
+                      className="geste geste--effacer"
+                      aria-label={`Effacer définitivement la réunion du ${dateEnLettres(r.tenue_le)}`}
+                      title="Effacer pour de bon"
+                    >
+                      <Croix />
+                    </Link>
+                  )}
                 </span>
               </td>
             </tr>
@@ -688,6 +746,71 @@ function FenetreDeRetour({ reunion, fermer }: { reunion: LigneDeRegistre; fermer
             <input type="hidden" name="retour" value="/espace/reunion" />
             <button className="bouton bouton--fort" type="submit">
               Rendre au registre
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * La fenêtre de confirmation avant d'effacer une réunion pour de bon.
+ *
+ * Celle-ci n'a pas de symétrique : rien ne défait ce geste. Elle le dit deux
+ * fois — dans la phrase et dans le libellé du bouton — parce qu'elle voisine
+ * avec la corbeille, qui, elle, se rattrape.
+ */
+function FenetreDEffacement({
+  reunion,
+  fermer,
+}: {
+  reunion: LigneDeRegistre;
+  fermer: string;
+}) {
+  const pointes = reunion.presents + reunion.excuses;
+
+  return (
+    <div className="fenetre-fond">
+      <Link href={fermer} className="fenetre-voile" aria-label="Fermer sans rien effacer" />
+
+      <div className="fenetre" role="dialog" aria-modal="true" aria-labelledby="effacement-reunion">
+        <h2 id="effacement-reunion">
+          Effacer la réunion du {dateEnLettres(reunion.tenue_le)}&nbsp;?
+        </h2>
+
+        <p>
+          {pointes === 0 ? (
+            <>
+              Personne n’y a été appelé. La réunion quittera la base, et{' '}
+              <strong>rien ne la ramènera</strong>.
+            </>
+          ) : (
+            <>
+              La réunion et ses{' '}
+              <strong>
+                {pointes} pointage{pointes > 1 ? 's' : ''}
+              </strong>{' '}
+              quitteront la base. <strong>Rien ne les ramènera.</strong>
+            </>
+          )}
+        </p>
+
+        {/* La différence d'avec la corbeille, écrite noir sur blanc : les deux
+            gestes se ressemblent, leurs conséquences non. */}
+        <p className="aide">
+          Ce n’est pas un retrait. Si vous voulez seulement la sortir du registre en
+          gardant l’appel, fermez cette fenêtre et prenez la corbeille.
+        </p>
+
+        <div className="fenetre-gestes">
+          <Link href={fermer} className="bouton">
+            Annuler
+          </Link>
+          <form method="post" action={`/api/reunions/${reunion.id}/effacer`}>
+            <input type="hidden" name="retour" value="/espace/reunion" />
+            <button className="bouton bouton--danger" type="submit">
+              Effacer pour de bon
             </button>
           </form>
         </div>
