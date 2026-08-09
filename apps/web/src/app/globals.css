@@ -2709,102 +2709,6 @@ a.poste-document .poste-document-type {
   }
 }
 
-/* ————— « Action / Candidat » : le suivi de la loge, d'un seul tenant ————— */
-
-.suivi-loge {
-  display: flex;
-  flex-direction: column;
-  gap: 0.8rem;
-}
-
-.suivi-dossier-tete {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.7rem;
-  margin-bottom: 0.7rem;
-  padding-bottom: 0.6rem;
-  border-bottom: 1px dashed var(--bordure);
-}
-
-.suivi-dossier-tete > div:first-child {
-  flex: 1;
-  min-width: 0;
-}
-
-/* Le nom reprend la place d'un titre de bloc sans en reprendre l'allure : ici
-   c'est une personne, pas une rubrique. Le sélecteur passe par `.bloc` pour
-   l'emporter sur `.bloc h2`, qui met les titres en petites capitales grises —
-   un nom propre n'a rien à y faire. */
-.bloc .suivi-dossier-nom {
-  font-size: 1rem;
-  font-weight: 800;
-  letter-spacing: 0;
-  text-transform: none;
-  color: var(--encre);
-  margin: 0;
-}
-
-.suivi-dossier-nom a {
-  text-decoration: none;
-  color: inherit;
-}
-
-.suivi-dossier-nom a:hover {
-  text-decoration: underline;
-}
-
-.suivi-dossier-tete p {
-  margin: 0.1rem 0 0;
-  font-size: 0.82rem;
-}
-
-/* Le dossier sur lequel rien n'a été noté. C'est le cas qui justifie l'écran :
-   il ne doit donc pas se lire comme une case vide, mais comme une invitation. */
-.suivi-silence {
-  margin: 0;
-  font-size: 0.85rem;
-  color: var(--encre-tres-douce);
-  font-style: italic;
-}
-
-.suivi-silence a {
-  font-style: normal;
-}
-
-/* Noter sans ouvrir la fiche. Le champ est multi-ligne comme dans la fiche :
-   un commentaire de suivi tient rarement sur une ligne, et un champ qui ne
-   montre pas ce qu'on y écrit décourage d'écrire. */
-.suivi-noter {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-  margin: 0.6rem 0 0.8rem;
-}
-
-.suivi-noter textarea {
-  font: inherit;
-  font-size: 0.9rem;
-  width: 100%;
-  padding: 0.5rem 0.6rem;
-  border: 1px solid var(--bordure);
-  border-radius: 9px;
-  background: var(--surface-creuse);
-  color: inherit;
-  resize: vertical;
-  min-height: 3.2rem;
-}
-
-.suivi-noter textarea:focus-visible {
-  outline: 2px solid var(--marque);
-  outline-offset: 1px;
-}
-
-.suivi-noter-pied {
-  display: flex;
-  gap: 0.4rem;
-  flex-wrap: wrap;
-}
-
 /* Les trois gestes d'une note, rangés à droite de sa ligne, comme dans
    l'annuaire et dans le collège : à la même place d'un écran à l'autre, et en
    colonne quand on descend le journal. */
@@ -2877,7 +2781,6 @@ a.poste-document .poste-document-type {
 /* Ni le champ de saisie ni les gestes n'ont de sens sur une feuille. Ce qui a
    été retiré du journal non plus : la fiche s'imprime telle qu'elle se lit. */
 @media print {
-  .suivi-noter,
   .journal-agir,
   .journal-gestes,
   .journal-retirees {

@@ -7,8 +7,7 @@ import { NATURES, type LigneDeJournal } from '@/lib/journal';
 /**
  * Une ligne du journal : ce qu'elle dit, et les gestes qu'on peut y faire.
  *
- * Le même composant sert dans la fiche et dans « Action / Candidat » — une
- * note doit se corriger là où on la lit, sinon on ne la corrige pas.
+ * Une note doit se corriger là où on la lit, sinon on ne la corrige pas.
  *
  * **Corriger ouvre un formulaire par un lien, pas par un bouton qui déplie.**
  * C'est la convention des onglets de la fiche : ce qu'on ne regarde pas n'est

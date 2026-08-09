@@ -126,7 +126,7 @@ select public.verifier(
   'sans intitulé ni date, la ligne est gardée quand même — repliée sur sa création');
 
 -- ---------------------------------------------------------------------------
-\echo '— l etat remonte jusqu a l ecran, par les deux fonctions de lecture'
+\echo '— l etat remonte jusqu a l ecran'
 -- ---------------------------------------------------------------------------
 begin;
   set local role authenticated;
@@ -138,9 +138,9 @@ begin;
     'la fiche rend l''état de la tâche');
 
   select public.verifier(
-    (select etat from public.suivi_de_la_loge()
+    (select etat from public.suivi_du_candidat(:'rosa'::uuid)
       where texte = 'Dossier transmis.') = 'Terminer',
-    'la liste de la loge aussi');
+    'y compris pour une tâche close');
 commit;
 
 -- ---------------------------------------------------------------------------

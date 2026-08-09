@@ -95,8 +95,8 @@ export const TERMINEE = 'Terminer';
  *
  * Les routes renvoient un **code** dans l'adresse, jamais la phrase : un
  * message porté par l'URL est un message qu'un lien fabriqué peut faire dire
- * ce qu'il veut. La traduction se fait ici, une fois, pour les deux écrans qui
- * savent écrire — la fiche et « Action / Candidat ».
+ * ce qu'il veut. La traduction se fait ici, une fois, pour l'écran qui
+ * sait écrire — la fiche du candidat.
  */
 const REFUS: Record<string, string> = {
   vide: 'Une note vide ne dit rien.',
@@ -158,48 +158,6 @@ export function resumeDuJournal(lignes: LigneDeJournal[]): string {
 }
 
 /**
- * Combien de notes « Action / Candidat » montre par dossier avant de renvoyer
- * à la fiche.
- *
- * Cinq, parce que la reprise de Bubble donne une médiane de quatre tâches par
- * candidat : la majorité des dossiers s'affichent donc en entier, et le lien
- * n'apparaît que là où il sert. Les plus chargés en portent vingt-cinq — c'est
- * eux qu'il s'agit de ne pas dérouler sur un écran qui répond à « quoi de
- * neuf ? », et non à « tout ce qui s'est passé ».
- */
-export const APERCU = 5;
-
-/** Ce qu'un dossier montre, et ce qu'il renvoie à sa fiche. */
-export type Apercu<T> = {
-  visibles: T[];
-  /** Les notes qui restent, à lire dans la fiche. */
-  reste: number;
-  /** Parmi elles, les tâches encore ouvertes — celles qu'on ne veut pas taire. */
-  resteOuvert: number;
-};
-
-/**
- * Les premières notes d'un dossier, et le compte de ce qui suit.
- *
- * Le compte des tâches ouvertes qui restent est donné à part : le journal se
- * lit du plus récent au plus ancien, et rien ne garantit qu'une tâche en cours
- * soit récente. La replier sans le dire reviendrait à la perdre.
- */
-export function apercuDuDossier<T extends { etat: string | null }>(
-  notes: T[],
-  combien: number = APERCU,
-): Apercu<T> {
-  const visibles = notes.slice(0, combien);
-  const suite = notes.slice(combien);
-
-  return {
-    visibles,
-    reste: suite.length,
-    resteOuvert: suite.filter((n) => tacheOuverte(n.etat)).length,
-  };
-}
-
-/**
  * Une note écartée du journal (migration 0025). Elle n'est pas effacée : on la
  * lit encore, on sait qui l'a retirée, et elle se rend.
  */
@@ -228,32 +186,3 @@ export async function lireRetirees(candidat: string): Promise<LigneRetiree[]> {
   return (data as LigneRetiree[]) ?? [];
 }
 
-/** Une note, avec le candidat auquel elle se rattache. */
-export type LigneDeLaLoge = LigneDeJournal & { candidat_id: string };
-
-/**
- * Toutes les notes qu'on a le droit de lire, du plus récent au plus ancien
- * (migration 0022). Même règle que la fiche : cette liste épargne d'ouvrir
- * cent sept dossiers, elle n'en ouvre aucun de plus.
- */
-export async function lireJournalDeLaLoge(): Promise<LigneDeLaLoge[]> {
-  const supabase = await supabaseServer();
-  const { data } = await supabase.rpc('suivi_de_la_loge');
-  return (data as LigneDeLaLoge[]) ?? [];
-}
-
-/** Les notes rangées par candidat, du plus récemment touché au plus ancien. */
-export function parCandidat<T extends { candidat_id: string }>(
-  lignes: T[],
-): Map<string, T[]> {
-  const par = new Map<string, T[]>();
-  // `lignes` arrive déjà triée par date décroissante : en la parcourant dans
-  // l'ordre, chaque groupe garde ce tri, et le premier candidat rencontré est
-  // celui dont la note est la plus fraîche.
-  for (const l of lignes) {
-    const deja = par.get(l.candidat_id);
-    if (deja) deja.push(l);
-    else par.set(l.candidat_id, [l]);
-  }
-  return par;
-}
