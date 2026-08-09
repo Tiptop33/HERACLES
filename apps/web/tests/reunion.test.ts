@@ -6,7 +6,9 @@ import {
   compter,
   estUnEtat,
   phraseDeRefusReunion,
+  rangerParPresences,
   type LigneDAppel,
+  type LigneDeRegistre,
 } from '../src/lib/reunion';
 
 /** Une ligne de feuille d'appel, réduite à ce que le comptage regarde. */
@@ -57,6 +59,49 @@ describe('estUnEtat', () => {
     for (const faux of ['present', 'Présente', '', null, undefined, 42, {}]) {
       expect(estUnEtat(faux), String(faux)).toBe(false);
     }
+  });
+});
+
+/** Une ligne de registre, réduite à ce que le classement regarde. */
+function seance(tenue_le: string, presents: number): LigneDeRegistre {
+  return {
+    id: crypto.randomUUID(),
+    tenue_le,
+    lieu: null,
+    presents,
+    excuses: 0,
+    absents: 0,
+    effectif: 12,
+    retiree: false,
+    retire_par_nom: null,
+  };
+}
+
+describe('rangerParPresences', () => {
+  it('met la réunion la plus suivie en tête', () => {
+    const registre = [seance('2026-01-10', 3), seance('2026-02-10', 9), seance('2026-03-10', 6)];
+    expect(rangerParPresences(registre).map((r) => r.presents)).toEqual([9, 6, 3]);
+  });
+
+  // Sans départage, l'ordre serait celui que la base a rendu : deux affichages
+  // successifs ne se ressembleraient pas, et la liste paraîtrait bouger seule.
+  it('départage deux réunions à égalité par la plus récente', () => {
+    const registre = [seance('2026-01-10', 5), seance('2026-05-04', 5), seance('2026-03-10', 5)];
+    expect(rangerParPresences(registre).map((r) => r.tenue_le)).toEqual([
+      '2026-05-04',
+      '2026-03-10',
+      '2026-01-10',
+    ]);
+  });
+
+  it('ne touche pas à la liste reçue', () => {
+    const registre = [seance('2026-01-10', 1), seance('2026-02-10', 8)];
+    rangerParPresences(registre);
+    expect(registre.map((r) => r.presents)).toEqual([1, 8]);
+  });
+
+  it('ne bronche pas sur un registre vide', () => {
+    expect(rangerParPresences([])).toEqual([]);
   });
 });
 

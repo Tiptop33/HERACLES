@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
+import { Corbeille, Stylo } from '@/components/Icones';
 import { dateEnLettres, initiales, nomAffichable } from '@/lib/format';
 import { exigerProfil } from '@/lib/profil';
 import {
@@ -9,7 +10,10 @@ import {
   compter,
   lireFeuilleDAppel,
   lireRegistre,
+  lireRegistreHorsExercice,
+  lireUneReunion,
   phraseDeRefusReunion,
+  rangerParPresences,
   type LigneDAppel,
   type LigneDeRegistre,
 } from '@/lib/reunion';
@@ -32,7 +36,11 @@ export const metadata = { title: 'Réunion — HERACLES' };
 export default async function Reunion({
   searchParams,
 }: {
-  searchParams: Promise<{ appel?: string | string[]; erreur?: string | string[] }>;
+  searchParams: Promise<{
+    appel?: string | string[];
+    retirer?: string | string[];
+    erreur?: string | string[];
+  }>;
 }) {
   const profil = await exigerProfil();
   if (profil.role === 'chercheur') redirect(accueilDuRole(profil.role));
@@ -43,13 +51,35 @@ export default async function Reunion({
   const ouverte = premier(parametres.appel);
   const refus = phraseDeRefusReunion(premier(parametres.erreur));
 
-  const [registre, feuille] = await Promise.all([
+  // La réunion ouverte se lit par son identifiant, et non dans le registre :
+  // celui-ci ne rend que l'exercice en cours, et une réunion tenue hors bornes
+  // ne s'affichait alors nulle part (migration 0037).
+  const [registre, horsExercice, feuille, laReunion] = await Promise.all([
     lireRegistre(),
+    lireRegistreHorsExercice(),
     ouverte ? lireFeuilleDAppel(ouverte) : Promise.resolve([]),
+    ouverte ? lireUneReunion(ouverte) : Promise.resolve(null),
   ]);
-
-  const laReunion = registre.find((r) => r.id === ouverte) ?? null;
   const aujourdhui = new Date().toISOString().slice(0, 10);
+
+  /** L'adresse de cette même page, avec un paramètre en plus ou en moins. */
+  const adresse = (ajout?: Record<string, string | null>) => {
+    const p = new URLSearchParams();
+    if (ouverte) p.set('appel', ouverte);
+    for (const [cle, valeur] of Object.entries(ajout ?? {})) {
+      if (valeur === null) p.delete(cle);
+      else p.set(cle, valeur);
+    }
+    const suite = p.toString();
+    return suite ? `/espace/reunion?${suite}` : '/espace/reunion';
+  };
+
+  // La fenêtre de confirmation est rendue par le serveur, sur la seule foi de
+  // l'adresse : elle s'ouvre sans une ligne de script, et le bouton « retour »
+  // du navigateur la referme. Elle se cherche dans les deux registres, sans
+  // quoi une réunion hors bornes s'afficherait avec une corbeille inerte.
+  const aRetirer =
+    [...registre, ...horsExercice].find((r) => r.id === premier(parametres.retirer)) ?? null;
 
   return (
     <main className="corps">
@@ -74,7 +104,12 @@ export default async function Reunion({
         <OuvrirUneReunion aujourdhui={aujourdhui} />
       )}
 
-      <Registre lignes={registre} ouverte={ouverte} />
+      <Registre lignes={registre} ouverte={ouverte} adresse={adresse} />
+      <RegistrePasse lignes={horsExercice} ouverte={ouverte} adresse={adresse} />
+
+      {aRetirer && (
+        <FenetreDeRetrait reunion={aRetirer} fermer={adresse({ retirer: null })} />
+      )}
     </main>
   );
 }
@@ -137,6 +172,17 @@ function FeuilleDAppel({
             {reunion.lieu ? `${reunion.lieu} · ` : ''}
             {lignes.length} référent{lignes.length > 1 ? 's' : ''}
           </p>
+
+          {/* Une réunion hors des bornes de l'exercice s'appelle et se compte
+              comme les autres, mais n'entre dans aucun total. Le taire
+              donnerait des chiffres d'assiduité inexplicables. */}
+          {reunion.hors_exercice && (
+            <p className="aide">
+              Cette réunion est hors de l’exercice en cours : elle ne compte dans aucun
+              total, et n’apparaît pas au registre. Les dates d’exercice se règlent dans
+              les paramètres de l’application.
+            </p>
+          )}
         </div>
 
         <div className="appel-compte">
@@ -165,9 +211,28 @@ function FeuilleDAppel({
         </ol>
       )}
 
-      <p className="maigre" style={{ marginTop: '0.8rem' }}>
-        Chaque clic est enregistré tout de suite. <Link href="/espace/reunion">Fermer la feuille</Link>
-      </p>
+      {/* Fermer la feuille n'est pas un simple retour : c'est la fin de
+          l'appel. Ceux que personne n'a nommés sont marqués absents à cet
+          instant (migration 0039) — dans une feuille d'appel, celui qu'on n'a
+          pas appelé n'était pas là, et laisser la case vide perdrait
+          l'information au moment même où elle est complète. Un état déjà posé
+          n'est jamais touché, et rouvrir la feuille permet de corriger. */}
+      <form method="post" action={`/api/reunions/${reunion.id}/clore`} className="appel-clore">
+        <input type="hidden" name="retour" value="/espace/reunion" />
+        <p className="maigre">
+          Chaque clic est enregistré tout de suite.{' '}
+          {n.aAppeler > 0 && (
+            <>
+              À la fermeture, {n.aAppeler === 1 ? 'le référent' : `les ${n.aAppeler} référents`}{' '}
+              que l’appel n’a pas {n.aAppeler === 1 ? 'nommé' : 'nommés'} ser
+              {n.aAppeler === 1 ? 'a noté absent' : 'ont notés absents'}.
+            </>
+          )}
+        </p>
+        <button className="bouton" type="submit">
+          Fermer la feuille
+        </button>
+      </form>
     </section>
   );
 }
@@ -239,8 +304,28 @@ function LigneDeFeuille({
   );
 }
 
-/** Le registre de l'exercice, et les gestes sur chaque réunion. */
-function Registre({ lignes, ouverte }: { lignes: LigneDeRegistre[]; ouverte: string }) {
+/** L'adresse de la page, avec un paramètre en plus ou en moins. */
+type Adresse = (ajout?: Record<string, string | null>) => string;
+
+/**
+ * Le registre de l'exercice, **rangé par nombre de présences**, de la mieux
+ * suivie à la moins suivie.
+ *
+ * C'est un classement, pas une chronologie : la question qu'on pose à ce
+ * tableau est « quelles réunions ont réuni du monde », et la date reste lisible
+ * sur chaque ligne. À égalité de présences, la plus récente passe devant — sans
+ * quoi l'ordre dépendrait de celui que la base a rendu, et deux affichages
+ * successifs ne se ressembleraient pas.
+ */
+function Registre({
+  lignes,
+  ouverte,
+  adresse,
+}: {
+  lignes: LigneDeRegistre[];
+  ouverte: string;
+  adresse: Adresse;
+}) {
   if (lignes.length === 0) {
     return (
       <p className="vide-liste">
@@ -253,56 +338,202 @@ function Registre({ lignes, ouverte }: { lignes: LigneDeRegistre[]; ouverte: str
     <section className="bloc" style={{ marginTop: '1rem' }}>
       <h2>Le registre de l’exercice</h2>
       <p className="maigre">
-        Les dates d’exercice viennent des paramètres de l’application. Une réunion hors
-        de ces bornes ne compte pas.
+        De la réunion la plus suivie à la moins suivie. Les dates d’exercice viennent des
+        paramètres de l’application ; une réunion hors de ces bornes ne compte pas.
       </p>
 
-      <div className="table-large">
-        <table className="registre">
-          <thead>
-            <tr>
-              <th scope="col">Date</th>
-              <th scope="col" className="n">Présents</th>
-              <th scope="col" className="n">Excusés</th>
-              <th scope="col" className="n">Absents</th>
-              <th scope="col">
-                <span className="visuellement-cache">Gestes</span>
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {lignes.map((r) => (
-              <tr key={r.id} aria-current={r.id === ouverte ? 'true' : undefined}>
-                <td>
-                  <Link href={`/espace/reunion?appel=${r.id}`}>
-                    <time dateTime={r.tenue_le}>{dateEnLettres(r.tenue_le)}</time>
-                  </Link>
-                  {r.lieu && <small className="maigre"> · {r.lieu}</small>}
-                </td>
-                <td className="n">{r.presents}</td>
-                <td className="n">{r.excuses}</td>
-                <td className="n">{r.absents}</td>
-                <td>
-                  <span className="gestes">
-                    <Link className="bouton bouton--petit" href={`/espace/reunion?appel=${r.id}`}>
-                      Modifier
-                    </Link>
-                    {/* La confirmation est un `<dialog>` par ligne : sans
-                        JavaScript le bouton reste un lien vers la page de
-                        confirmation, avec lui il ouvre la fenêtre sur place. */}
-                    <Link
-                      className="bouton bouton--petit bouton--danger"
-                      href={`/espace/reunion/${r.id}/retirer`}
-                    >
-                      Retirer
-                    </Link>
-                  </span>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <TableauDuRegistre lignes={rangerParPresences(lignes)} ouverte={ouverte} adresse={adresse} />
     </section>
+  );
+}
+
+/**
+ * « Le registre de l'exercice passé » — tout ce qui tombe hors des bornes.
+ *
+ * Des deux côtés, et c'est voulu : les réunions des exercices précédents, mais
+ * aussi celles tenues **depuis la clôture**. Ce second cas est le plus gênant,
+ * parce qu'il grandit tous les jours tant que les dates d'exercice n'ont pas
+ * été remises à jour, et que ces réunions n'apparaissaient jusqu'ici nulle
+ * part. Ici, elles portent la mention « après la clôture ».
+ *
+ * Ordre chronologique, la plus récente d'abord : sur un registre d'archives on
+ * cherche une date, pas un classement.
+ */
+function RegistrePasse({
+  lignes,
+  ouverte,
+  adresse,
+}: {
+  lignes: LigneDeRegistre[];
+  ouverte: string;
+  adresse: Adresse;
+}) {
+  if (lignes.length === 0) return null;
+
+  const depuisLaCloture = lignes.filter((r) => r.avant === false).length;
+
+  return (
+    <section className="bloc" style={{ marginTop: '1rem' }}>
+      <h2>Le registre de l’exercice passé</h2>
+      <p className="maigre">
+        Les réunions qui tombent hors des bornes de l’exercice en cours. Elles se
+        consultent et se corrigent comme les autres, mais n’entrent dans aucun total
+        d’assiduité.
+      </p>
+
+      {depuisLaCloture > 0 && (
+        <p className="aide">
+          {depuisLaCloture === 1
+            ? 'Une réunion a été tenue après la clôture de l’exercice.'
+            : `${depuisLaCloture} réunions ont été tenues après la clôture de l’exercice.`}{' '}
+          Elles ne comptent pour personne tant que les dates d’exercice n’ont pas été
+          reportées dans les paramètres de l’application.
+        </p>
+      )}
+
+      <TableauDuRegistre lignes={lignes} ouverte={ouverte} adresse={adresse} periode />
+    </section>
+  );
+}
+
+/** Le tableau, commun aux deux registres : mêmes colonnes, mêmes gestes. */
+function TableauDuRegistre({
+  lignes,
+  ouverte,
+  adresse,
+  periode = false,
+}: {
+  lignes: LigneDeRegistre[];
+  ouverte: string;
+  adresse: Adresse;
+  /** Dire de quel côté des bornes chaque réunion tombe. */
+  periode?: boolean;
+}) {
+  return (
+    <div className="table-large">
+      <table className="registre">
+        <thead>
+          <tr>
+            <th scope="col">Date</th>
+            <th scope="col" className="n">Présents</th>
+            <th scope="col" className="n">Excusés</th>
+            <th scope="col" className="n">Absents</th>
+            <th scope="col">
+              <span className="visuellement-cache">Gestes</span>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {lignes.map((r) => (
+            <tr key={r.id} aria-current={r.id === ouverte ? 'true' : undefined}>
+              <td>
+                <Link href={`/espace/reunion?appel=${r.id}`}>
+                  <time dateTime={r.tenue_le}>{dateEnLettres(r.tenue_le)}</time>
+                </Link>
+                {r.lieu && <small className="maigre"> · {r.lieu}</small>}
+                {periode && (
+                  <small className="maigre">
+                    {' '}
+                    · {r.avant ? 'exercice précédent' : 'après la clôture'}
+                  </small>
+                )}
+              </td>
+              <td className="n">{r.presents}</td>
+              <td className="n">{r.excuses}</td>
+              <td className="n">{r.absents}</td>
+              <td>
+                <span className="gestes">
+                  <Link
+                    href={`/espace/reunion?appel=${r.id}`}
+                    className="geste geste--corriger"
+                    aria-label={`Reprendre l’appel du ${dateEnLettres(r.tenue_le)}`}
+                    title="Reprendre l’appel"
+                  >
+                    <Stylo />
+                  </Link>
+                  {/* La corbeille n'efface pas : elle ouvre la fenêtre de
+                      confirmation, qui dit ce qu'on perd avant de le perdre. */}
+                  <Link
+                    href={adresse({ retirer: r.id })}
+                    className="geste geste--retirer"
+                    aria-label={`Retirer la réunion du ${dateEnLettres(r.tenue_le)}`}
+                    title="Retirer cette réunion"
+                  >
+                    <Corbeille />
+                  </Link>
+                </span>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+/**
+ * La fenêtre de confirmation avant de retirer une réunion.
+ *
+ * Elle dit **ce qu'on perd**, chiffres à l'appui, plutôt que « êtes-vous
+ * sûr ? » — une question à laquelle on répond oui sans lire. Elle se referme
+ * de trois façons : « Annuler », un clic à côté, et le bouton « retour » du
+ * navigateur, puisque son ouverture n'est qu'une adresse.
+ */
+function FenetreDeRetrait({
+  reunion,
+  fermer,
+}: {
+  reunion: LigneDeRegistre;
+  fermer: string;
+}) {
+  const pointes = reunion.presents + reunion.excuses;
+
+  return (
+    <div className="fenetre-fond">
+      <Link href={fermer} className="fenetre-voile" aria-label="Fermer sans rien retirer" />
+
+      <div className="fenetre" role="dialog" aria-modal="true" aria-labelledby="retrait-reunion">
+        <h2 id="retrait-reunion">
+          Retirer la réunion du {dateEnLettres(reunion.tenue_le)}&nbsp;?
+        </h2>
+
+        <p>
+          {pointes === 0 ? (
+            <>Personne n’a encore été appelé à cette réunion.</>
+          ) : (
+            <>
+              <strong>
+                {reunion.presents} présence{reunion.presents > 1 ? 's' : ''} et{' '}
+                {reunion.excuses} excuse{reunion.excuses > 1 ? 's' : ''}
+              </strong>{' '}
+              quitteront les compteurs de l’exercice, et cette réunion n’apparaîtra plus au
+              registre.
+            </>
+          )}
+        </p>
+
+        {/* Ce que le mot « retirer » veut dire ici, écrit en toutes lettres :
+            promettre une suppression qui n'en est pas serait pire que de ne
+            rien dire. */}
+        <p className="aide">
+          Retirer n’est pas effacer. L’appel reste en base, et la page{' '}
+          <Link href={`/espace/reunion/${reunion.id}/retirer`}>de cette réunion</Link> permettra
+          de la rendre au registre.
+        </p>
+
+        <div className="fenetre-gestes">
+          <Link href={fermer} className="bouton">
+            Annuler
+          </Link>
+          <form method="post" action={`/api/reunions/${reunion.id}/retirer`}>
+            <input type="hidden" name="geste" value="retirer" />
+            <input type="hidden" name="retour" value="/espace/reunion" />
+            <button className="bouton bouton--danger" type="submit">
+              Retirer du registre
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
   );
 }

@@ -41,6 +41,17 @@ export type LigneDAppel = {
 
 /** Une réunion au registre, avec ses comptes. */
 export type LigneDeRegistre = {
+  /**
+   * Hors des bornes de l'exercice. Rendu par `la_reunion()` seulement : le
+   * registre, lui, ne montre que l'exercice, donc la question ne s'y pose pas.
+   */
+  hors_exercice?: boolean;
+  /**
+   * Avant le début de l'exercice — donc un exercice précédent. Rendu par
+   * `registre_hors_exercice()` seulement, où toutes les lignes débordent : il
+   * reste à dire de quel côté.
+   */
+  avant?: boolean;
   id: string;
   tenue_le: string;
   lieu: string | null;
@@ -60,12 +71,61 @@ export async function lireFeuilleDAppel(reunion: string): Promise<LigneDAppel[]>
   return (data as LigneDAppel[]) ?? [];
 }
 
+/**
+ * Une réunion précise, par son identifiant — **sans passer par le registre**.
+ *
+ * C'est la correction de la migration 0037. Chercher la réunion ouverte dans
+ * le registre paraissait économique, mais le registre ne rend que l'exercice
+ * en cours : une réunion tenue hors bornes existait sans jamais s'afficher.
+ * Le cas n'avait rien de théorique — l'exercice enregistré s'est terminé le
+ * 31 juillet 2026.
+ */
+export async function lireUneReunion(reunion: string): Promise<LigneDeRegistre | null> {
+  if (!/^[0-9a-f-]{36}$/i.test(reunion)) return null;
+
+  const supabase = await supabaseServer();
+  const { data } = await supabase.rpc('la_reunion', { reunion_choisie: reunion });
+  return ((data as LigneDeRegistre[]) ?? [])[0] ?? null;
+}
+
 export async function lireRegistre(avecRetirees = false): Promise<LigneDeRegistre[]> {
   const supabase = await supabaseServer();
   const { data } = await supabase.rpc('registre_des_reunions', {
     avec_retirees: avecRetirees,
   });
   return (data as LigneDeRegistre[]) ?? [];
+}
+
+/**
+ * Les réunions qui tombent hors des bornes de l'exercice (migration 0038).
+ *
+ * Des deux côtés : les exercices précédents, et les réunions tenues depuis la
+ * clôture. Ce second cas n'a rien de théorique — l'exercice enregistré s'est
+ * terminé le 31 juillet 2026, donc toute réunion tenue aujourd'hui atterrit
+ * ici et nulle part ailleurs.
+ */
+export async function lireRegistreHorsExercice(): Promise<LigneDeRegistre[]> {
+  const supabase = await supabaseServer();
+  const { data } = await supabase.rpc('registre_hors_exercice');
+  return (data as LigneDeRegistre[]) ?? [];
+}
+
+/**
+ * Le registre rangé par nombre de présences, de la mieux suivie à la moins
+ * suivie.
+ *
+ * C'est un classement, pas une chronologie : la question posée au tableau est
+ * « quelles réunions ont réuni du monde ». À égalité de présences, la plus
+ * récente passe devant — sans ce départage, l'ordre dépendrait de celui que
+ * la base a rendu, et deux affichages successifs ne se ressembleraient pas.
+ *
+ * La liste reçue n'est pas modifiée : `sort` trie sur place, et un tableau
+ * rendu par une lecture n'a pas à changer sous les pieds de son appelant.
+ */
+export function rangerParPresences(lignes: LigneDeRegistre[]): LigneDeRegistre[] {
+  return [...lignes].sort(
+    (a, b) => b.presents - a.presents || b.tenue_le.localeCompare(a.tenue_le),
+  );
 }
 
 /** Ce que l'en-tête de la feuille annonce : trois nombres, et rien d'autre. */
