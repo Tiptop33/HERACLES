@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { supabaseServer } from '@/lib/supabase-server';
+import { jeMeConnecte } from '@/lib/presence';
 import { accueilDuRole } from '@/lib/roles';
 import {
   destinationInterne,
@@ -57,6 +58,10 @@ export async function POST(requete: Request) {
       { status: 401 },
     );
   }
+
+  // La session est ouverte : les collègues de la loge le verront dans leur
+  // colonne de gauche (migration 0042).
+  await jeMeConnecte();
 
   // La RLS ne laisse lire que sa propre ligne : pas de filtre à écrire ici.
   const { data: profil } = await supabase.from('profil').select('role').single();

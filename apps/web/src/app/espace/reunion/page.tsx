@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { Corbeille, Croix, FlecheRetour, Stylo } from '@/components/Icones';
 import { dateEnLettres, initiales, nomAffichable } from '@/lib/format';
+import { lireLesConnectes } from '@/lib/presence';
 import { exigerProfil } from '@/lib/profil';
 import {
   ABSENT,
@@ -58,14 +59,21 @@ export default async function Reunion({
   // La réunion ouverte se lit par son identifiant, et non dans le registre :
   // celui-ci ne rend que l'exercice en cours, et une réunion tenue hors bornes
   // ne s'affichait alors nulle part (migration 0037).
-  const [registre, retirees, horsExercice, feuille, laReunion, peutEffacer] = await Promise.all([
-    lireRegistre(),
-    lireRegistreDesRetirees(),
-    lireRegistreHorsExercice(),
-    ouverte ? lireFeuilleDAppel(ouverte) : Promise.resolve([]),
-    ouverte ? lireUneReunion(ouverte) : Promise.resolve(null),
-    puisJeEffacerDesReunions(),
-  ]);
+  const [registre, retirees, horsExercice, feuille, laReunion, peutEffacer, connectes] =
+    await Promise.all([
+      lireRegistre(),
+      lireRegistreDesRetirees(),
+      lireRegistreHorsExercice(),
+      ouverte ? lireFeuilleDAppel(ouverte) : Promise.resolve([]),
+      ouverte ? lireUneReunion(ouverte) : Promise.resolve(null),
+      puisJeEffacerDesReunions(),
+      ouverte ? lireLesConnectes() : Promise.resolve([]),
+    ]);
+
+  // Ceux dont la session est ouverte : sur la feuille, leur bouton « Présent »
+  // paraît déjà choisi tant que personne ne les a appelés. Rien n'est en base
+  // pour autant — voir `LigneDeFeuille`.
+  const enLigne = new Set(connectes.map((c) => c.referent_id));
   const aujourdhui = new Date().toISOString().slice(0, 10);
 
   /** L'adresse de cette même page, avec un paramètre en plus ou en moins. */
@@ -115,7 +123,7 @@ export default async function Reunion({
       </div>
 
       {ouverte && laReunion ? (
-        <FeuilleDAppel reunion={laReunion} lignes={feuille} />
+        <FeuilleDAppel reunion={laReunion} lignes={feuille} connectes={enLigne} />
       ) : (
         <OuvrirUneReunion aujourdhui={aujourdhui} />
       )}
@@ -180,9 +188,12 @@ function OuvrirUneReunion({ aujourdhui }: { aujourdhui: string }) {
 function FeuilleDAppel({
   reunion,
   lignes,
+  connectes,
 }: {
   reunion: LigneDeRegistre;
   lignes: LigneDAppel[];
+  /** Ceux dont la session est ouverte : « Présent » leur est proposé. */
+  connectes: Set<string>;
 }) {
   const n = compter(lignes);
   const retour = `/espace/reunion?appel=${reunion.id}`;
@@ -232,6 +243,7 @@ function FeuilleDAppel({
               ligne={ligne}
               reunion={reunion.id}
               retour={retour}
+              enLigne={connectes.has(ligne.referent_id)}
             />
           ))}
         </ol>
@@ -268,12 +280,23 @@ function LigneDeFeuille({
   ligne,
   reunion,
   retour,
+  enLigne = false,
 }: {
   ligne: LigneDAppel;
   reunion: string;
   retour: string;
+  /** Sa session est ouverte : « Présent » lui est proposé, sans être posé. */
+  enLigne?: boolean;
 }) {
   const nom = nomAffichable(ligne.prenom, ligne.nom, null) ?? 'Référent sans nom';
+
+  /**
+   * Le bouton proposé à celui qui est en ligne, tant que personne ne l'a
+   * appelé. Rien n'est en base : l'en-tête ne le compte pas, et il faut
+   * cliquer pour l'enregistrer — le pointillé du bouton dit cette différence,
+   * sans quoi la feuille aurait l'air remplie alors qu'elle ne l'est pas.
+   */
+  const propose = enLigne && ligne.etat === null ? PRESENT : null;
 
   // Ce qu'on a vu de cette personne depuis le début de l'exercice. C'est ce
   // chiffre qui donne son sens à l'appel : sans lui, on coche sans savoir.
@@ -285,7 +308,7 @@ function LigneDeFeuille({
     .join(' · ');
 
   return (
-    <li className="appel-ligne" data-etat={ligne.etat ?? ''}>
+    <li className="appel-ligne" data-etat={ligne.etat ?? ''} data-en-ligne={enLigne || undefined}>
       {/* La photo tout à gauche, avant le nom : on reconnaît un visage plus
           vite qu'on ne lit un patronyme, et l'appel se fait des gens devant
           soi. Les initiales prennent le relais quand Bubble n'a pas de photo. */}
@@ -318,8 +341,11 @@ function LigneDeFeuille({
             <button
               type="submit"
               data-etat={etat}
+              data-propose={propose === etat || undefined}
               aria-pressed={ligne.etat === etat}
-              aria-label={`${etat} — ${nom}`}
+              aria-label={
+                propose === etat ? `${etat} — ${nom}, en ligne, à confirmer` : `${etat} — ${nom}`
+              }
             >
               {etat}
             </button>

@@ -1275,6 +1275,55 @@ tbody tr:focus-within {
   letter-spacing: 0.08em;
 }
 
+/* « Qui est là » — les visages des collègues de la loge, sous son propre nom.
+   Un ornement : discret, et sans conséquence s'il n'apparaît pas. */
+.colonne-connectes {
+  padding: 0 0.9rem 0.7rem;
+  margin-bottom: 0.3rem;
+  border-bottom: 1px solid var(--bordure);
+}
+
+.colonne-connectes-titre {
+  margin: 0 0 0.4rem;
+  font-size: 0.64rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--encre-tres-douce);
+}
+
+.connectes-visages {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.connectes-visages li { display: flex; }
+
+.connectes-visages img,
+.connecte-initiales {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  object-fit: cover;
+  /* Le liseré vert : la marque de « en ce moment ». Assez fin pour ne pas
+     transformer la colonne en guirlande. */
+  box-shadow: 0 0 0 2px var(--surface), 0 0 0 3px var(--referent);
+}
+
+.connecte-initiales {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface-creuse);
+  color: var(--encre-douce);
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
 .colonne-qui {
   font-size: 0.72rem;
   color: var(--encre-douce);
@@ -1508,6 +1557,12 @@ tbody tr:focus-within {
   }
 
   .colonne-qui {
+    display: none;
+  }
+
+  /* En bandeau, la colonne devient une barre : les visages n'y tiendraient
+     pas, et ce n'est pas ce qu'on vient y chercher. */
+  .colonne-connectes {
     display: none;
   }
 
@@ -2929,6 +2984,20 @@ a.poste-document .poste-document-type {
 .repli[open] > summary::before { transform: rotate(90deg); }
 .repli > summary h2 { display: inline; margin: 0; }
 .repli > summary:focus-visible { outline: 2px solid var(--marque); outline-offset: 3px; border-radius: 4px; }
+
+/* Le bouton « Présent » proposé à qui est en ligne, tant que personne ne l'a
+   appelé. Pointillé, et non plein : le plein dit « c'est en base », et ça ne
+   l'est pas encore. La feuille ne doit pas avoir l'air remplie quand elle ne
+   l'est pas. */
+.appel-segments button[data-propose] {
+  border: 1px dashed var(--referent);
+  color: var(--referent);
+  background: transparent;
+}
+.appel-segments button[data-propose]::after {
+  content: ' ?';
+  opacity: .55;
+}
 
 /* Le pied de la feuille : la phrase à gauche, le bouton de fermeture à
    droite. Fermer enregistre les absents — ce n'est pas un lien de retour, et
