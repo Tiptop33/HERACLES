@@ -156,6 +156,27 @@ jobs:
           # deux. Un commit juste ne doit pas rester à quai pour trois minutes
           # d'absence.
           #
+          # ————— Pourquoi on réessaie plus longtemps —————
+          #
+          # Le 9 août, deux fois encore, et plus longtemps : injoignable de
+          # 21h59 à 22h04, puis de 22h55 à 23h00. La boucle abandonnait au bout
+          # de quatre minutes ; les coupures en duraient cinq et six. Chaque
+          # fois, la relance à la main passait du premier coup.
+          #
+          # Le journal du serveur a tranché : `sshd` n'a **rien vu** de ces
+          # tentatives — pas même un refus. Les paquets sont jetés avant lui.
+          # Et pendant ce temps le HTTPS répondait sans faillir, sur la même
+          # machine, aux mêmes minutes : la machine tourne, c'est le port 22
+          # qui est muet. La cause est en amont, dans un pare-feu — celui de
+          # l'hôte ou celui de l'hébergeur —, et elle reste à trouver.
+          #
+          # D'ici là : huit tentatives étalées sur un quart d'heure. Cela
+          # couvre largement les quatre coupures observées, dont la plus longue
+          # a duré six minutes. **C'est un contournement, pas une réparation** :
+          # le jour où le port 22 restera fermé pour de bon, ce déploiement-ci
+          # mettra un quart d'heure à le dire au lieu de quatre minutes. C'est
+          # le prix, et il est moindre qu'un déploiement perdu par soirée.
+          #
           # **On ne réessaie que ce qui n'a jamais atteint le serveur.** Dès
           # qu'il a répondu, sa réponse fait foi : une migration qui échoue,
           # une empreinte qui ne correspond pas ou une clé refusée arrêtent
@@ -166,13 +187,20 @@ jobs:
           # Quinze secondes pour établir la connexion, au lieu des deux
           # minutes treize que le système laisse filer par défaut : on veut
           # savoir vite, pour réessayer plusieurs fois dans le même temps.
-          ATTENTES=(15 30 60 120)
+          #
+          # Les attentes montent puis se stabilisent à trois minutes : au-delà,
+          # doubler encore ne servirait qu'à passer à côté du moment où le
+          # serveur revient. Total : 15 + 30 + 60 + 120 + 180 × 3 = 12 min 45 s
+          # d'attente, plus huit connexions de 15 s au pire — environ un quart
+          # d'heure.
+          ATTENTES=(15 30 60 120 180 180 180)
+          TENTATIVES=${#ATTENTES[@]}
           journal="$(mktemp)"
 
-          for essai in 0 1 2 3 4; do
+          for essai in $(seq 0 "$TENTATIVES"); do
             if (( essai > 0 )); then
               attente=${ATTENTES[$((essai - 1))]}
-              echo "::warning::Serveur injoignable — nouvelle tentative dans ${attente} s (${essai}/4)."
+              echo "::warning::Serveur injoignable — nouvelle tentative dans ${attente} s (${essai}/${TENTATIVES})."
               sleep "$attente"
             fi
 
@@ -197,7 +225,7 @@ jobs:
             fi
           done
 
-          echo "::error::Le serveur est resté injoignable pendant les cinq tentatives, soit près de quatre minutes. Rien n'a été déployé ; l'instance tourne encore sur la version précédente."
+          echo "::error::Le serveur est resté injoignable pendant les $((TENTATIVES + 1)) tentatives, soit un quart d'heure. Rien n'a été déployé ; l'instance tourne encore sur la version précédente. Les coupures observées jusqu'ici duraient six minutes au plus : au-delà d'un quart d'heure, ce n'est plus un passage à vide — regardez le pare-feu de l'hôte et celui de l'hébergeur."
           exit 1
 
       - name: Effacer la clé
