@@ -145,6 +145,27 @@ select * from public.deverser_taches_bubble();
 `reprendre-bubble.sh` l'appelle désormais tout seul, et les migrations aussi au
 déploiement : il n'y a rien à lancer à la main.
 
+### Les réunions — même piège, découvert plus tard
+
+`reunion` est dans le même cas que `tache` : pas de table à lui dans le PLAN de
+`import-bubble.mjs`, donc il arrive en JSON dans `bubble_brut` par la passe de
+la réserve brute. `0036_reunions_et_appels.sql` le déplie en réunions **et en
+pointages** — la liste `referent` du JSON donne les présents, `EXCUSE` les
+excusés ; ce que Bubble ne dit pas, on ne l'invente pas, et les absents se
+déduisent de l'effectif.
+
+```sql
+select * from public.deverser_reunions_bubble();
+```
+
+**Ce déversement manquait au script jusqu'au 9 août 2026.** La fonction
+existait depuis 0036, mais rien ne l'appelait : `reprendre-bubble.sh` déversait
+les tâches et s'arrêtait là. Une reprise complète aurait donc rempli
+`bubble_brut` sans jamais garnir le registre — les réunions et toute
+l'assiduité perdues en silence, sans message d'erreur, le jour de la bascule.
+C'est corrigé, et le récapitulatif de fin de script compte désormais `reunion`
+et `appel` : un zéro s'y verrait.
+
 *Ce qui resterait propre à faire avant la bascule* : exposer `tache` sur la
 base **en service** (Data → Data types, « expose via API », puis **déployer** —
 le réglage est versionné). L'éditeur tient ce type à jour, mais rien ne le
