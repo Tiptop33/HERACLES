@@ -1,0 +1,27 @@
+-- ---------------------------------------------------------------------------
+-- 0035 — l'écran « Action / Candidat » disparaît, sa fonction avec lui
+--
+-- Ce que ça change : rien de visible. L'entrée avait quitté le menu, l'écran
+-- est maintenant supprimé, et `suivi_de_la_loge()` n'a plus personne pour
+-- l'appeler.
+--
+-- POURQUOI RETIRER LA FONCTION PLUTÔT QUE LA LAISSER DORMIR
+--
+-- Elle ne coûtait rien à garder, et c'est justement le raisonnement qu'il faut
+-- éviter. Le dépôt tient une règle depuis le début : une porte ne s'ouvre
+-- qu'avec l'écran qui la justifie. `suivi_de_la_loge()` était exécutable par
+-- toute session connectée et rendait, d'un seul appel, l'ensemble des notes de
+-- suivi lisibles par l'appelant. C'est exactement ce que faisait l'écran — et
+-- l'écran n'existe plus.
+--
+-- Elle n'ouvrait rien de plus que la fiche, note pour note. Mais une surface
+-- d'API que plus rien n'emprunte est une surface qu'on ne surveille plus, et
+-- dont personne ne se souvient le jour où elle sert à autre chose.
+--
+-- CE QUI RESTE
+--
+-- `suivi_du_candidat()` — le journal d'une personne, dans sa fiche. C'est là
+-- que le suivi se lit et s'écrit désormais, et c'est la seule porte.
+-- ---------------------------------------------------------------------------
+
+drop function if exists public.suivi_de_la_loge();

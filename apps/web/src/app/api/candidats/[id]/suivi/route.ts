@@ -11,10 +11,9 @@ import { supabaseServer } from '@/lib/supabase-server';
 /**
  * Écrire une ligne dans le journal d'un candidat.
  *
- * Rien n'est vérifié ici sur le droit : la policy `suivi_ecriture_accompagnes`
- * (migration 0021) ne laisse écrire que le référent et le parrain du candidat,
- * et exige que l'auteur déclaré soit soi. L'insertion échoue d'elle-même
- * autrement. Cette route ne fait que traduire son refus en une phrase
+ * Rien n'est vérifié ici sur le droit : la policy `suivi_ecriture_loge`
+ * (migration 0027) ne laisse écrire que dans un dossier de ses loges, et exige
+ * que l'auteur déclaré soit soi. L'insertion échoue d'elle-même autrement. Cette route ne fait que traduire son refus en une phrase
  * française — et poser l'auteur, que le formulaire n'a pas à porter : un
  * champ caché « qui écrit » se réécrit dans le navigateur.
  */
@@ -30,8 +29,8 @@ const Formulaire = z.object({
   // faire. Le formulaire n'envoie que `A_FAIRE`, mais la valeur est validée
   // ici comme le reste — un champ caché se réécrit dans le navigateur.
   etat: z.string().trim().max(120, 'Cet état est trop long.').optional(),
-  // D'où l'on écrit : la fiche, ou la liste « Action / Candidat ». On y
-  // revient après coup, plutôt que de renvoyer tout le monde dans la fiche.
+  // D'où l'on écrit — la fiche, et l'onglet ouvert. On y revient après coup,
+  // plutôt que sur une adresse nue.
   retour: z.string().optional(),
   // Vide, c'est aujourd'hui. La base a le même défaut ; on ne le recopie ici
   // que pour laisser antidater — on note le lundi l'appel du vendredi.
@@ -123,11 +122,11 @@ async function traiter(requete: Request, candidat: string) {
   });
 
   if (error) {
-    // 42501 : la policy. On n'accompagne pas ce candidat.
+    // 42501 : la policy. Ce candidat n'est pas de nos loges.
     if (error.code === '42501') {
       return repondre(
         'droit',
-        'Seuls le référent et le parrain de ce candidat écrivent dans son journal.',
+        'Ce candidat n’est pas de vos loges : vous ne pouvez pas écrire dans son journal.',
         403,
       );
     }

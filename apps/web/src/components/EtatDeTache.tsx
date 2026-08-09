@@ -9,8 +9,8 @@ import { A_FAIRE, TERMINEE, tacheOuverte, type LigneDeJournal } from '@/lib/jour
  * autres gestes, à droite. Ce que l'on lit d'un côté, ce que l'on fait de
  * l'autre.
  *
- * Le même dessin sert dans la fiche et dans « Action / Candidat » : une tâche
- * doit se refermer là où on la lit, sinon elle ne se referme jamais.
+ * Une tâche doit se refermer là où on la lit, sinon elle ne se referme
+ * jamais.
  */
 
 type Tache = Pick<LigneDeJournal, 'id' | 'etat' | 'etat_par_nom' | 'je_peux_agir'>;

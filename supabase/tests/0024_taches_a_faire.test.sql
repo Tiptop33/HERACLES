@@ -111,9 +111,8 @@ begin;
   set local request.jwt.claims = '{"sub":"aaaaaaaa-3333-0000-0000-000000000042"}';
 
   select public.verifier(
-    (select bool_and(je_peux_agir) from public.suivi_du_candidat(:'wanda'::uuid))
-      and (select bool_and(je_peux_agir) from public.suivi_de_la_loge()),
-    'Ulla a une fiche de référent : les deux lectures lui disent qu''elle peut agir');
+    (select bool_and(je_peux_agir) from public.suivi_du_candidat(:'wanda'::uuid)),
+    'Ulla a une fiche de référent : la lecture lui dit qu''elle peut agir');
 commit;
 
 begin;
