@@ -1984,6 +1984,20 @@ tbody tr:focus-within {
   user-select: none;
 }
 
+/* Les deux dates de l'exercice, côte à côte, et le bouton au bout : elles se
+   lisent comme un intervalle, elles doivent s'écrire comme un intervalle. Sur
+   un téléphone la ligne se replie et les champs prennent toute la largeur. */
+.exercice {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.8rem;
+  margin: 1.1rem 0;
+}
+
+.exercice .champ { flex: 1 1 11rem; margin-bottom: 0; }
+.exercice .champ input { width: 100%; }
+
 .college-ajout {
   display: flex;
   gap: 0.5rem;
