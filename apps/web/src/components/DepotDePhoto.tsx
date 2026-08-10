@@ -1,6 +1,5 @@
 'use client';
 
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useRef, useState } from 'react';
 
@@ -107,18 +106,12 @@ export default function DepotDePhoto({
           />
         </label>
 
+        {/* « Retirer » n'est plus ici mais sous le portrait (`PortraitDeposable`) :
+            le geste qui enlève une photo est là où la photo se trouve, et il
+            n'y a aucune raison qu'il existe à deux endroits. */}
         <button type="submit" className="bouton bouton--fort" disabled={envoi || !choisi}>
           {envoi ? 'Dépôt…' : aUnePhoto ? 'Remplacer' : 'Déposer'}
         </button>
-
-        {/* Un lien, et non un bouton dans ce formulaire-ci : il n'envoie rien,
-            il ouvre la fenêtre de confirmation — laquelle n'est qu'une adresse,
-            donc le bouton « retour » du navigateur la referme. */}
-        {aUnePhoto && (
-          <Link href={`${retour}?photo=retirer`} className="bouton bouton--danger">
-            Retirer
-          </Link>
-        )}
       </form>
 
       <p className="aide">
