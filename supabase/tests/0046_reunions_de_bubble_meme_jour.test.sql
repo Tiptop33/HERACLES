@@ -192,16 +192,26 @@ select public.verifier(
 -- migration paraissait pourtant bonne — elle l'était. C'est ce test-ci qui
 -- défaisait son travail.
 --
--- Les deux migrations qui redéfinissent `ouvrir_une_reunion` après 0036 sont
--- donc rejouées derrière, comme le ferait le serveur.
+-- Toutes les migrations qui redéfinissent `ouvrir_une_reunion` après 0036 sont
+-- donc rejouées derrière, dans l'ordre, comme le ferait le serveur.
 \i supabase/migrations/0046_reunions_de_bubble_meme_jour.sql
 \i supabase/migrations/0053_pointer_a_l_ouverture.sql
+\i supabase/migrations/0054_me_pointer_a_l_ouverture.sql
 
--- Le garde-fou : si une migration à venir redéfinit `ouvrir_une_reunion` sans
--- être ajoutée aux deux lignes ci-dessus, c'est ici que ça se verra — et non
--- trois tests plus loin, sous la forme d'un pointage qui manque.
+-- Le garde-fou. `ouvrir_une_reunion` porte dans son corps un repère de
+-- version ; il est comparé ici au numéro de la dernière migration qui la
+-- redéfinit.
+--
+-- QUI ÉCRIT LA PROCHAINE : deux gestes, pas un.
+--   1. ajouter son `\i` à la liste ci-dessus ;
+--   2. avancer le numéro sur la ligne qui suit, et dans le corps de la
+--      fonction.
+--
+-- Sans quoi ce contrôle échoue ici, franchement, plutôt que trois tests plus
+-- loin sous la forme d'un pointage qui manque — ce qui est exactement arrivé
+-- à 0053.
 select public.verifier(
-  (select prosrc like '%pointer_les_connectes%'
+  (select prosrc like '%version 0054%'
      from pg_proc p join pg_namespace n on n.oid = p.pronamespace
     where n.nspname = 'public' and p.proname = 'ouvrir_une_reunion'),
   'et ouvrir_une_reunion est bien revenue a sa version courante');

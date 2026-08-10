@@ -76,14 +76,20 @@ select public.verifier(
   'Cleo aussi');
 
 -- ---------------------------------------------------------------------------
-\echo '— celle qui ouvre l appel ne se pointe pas elle-meme'
+\echo '— la liste des connectes exclut toujours celle qui appelle'
 -- ---------------------------------------------------------------------------
--- `les_connectes()` exclut l'appelant (0042) : sa case reste la seule vide, et
--- c'est la première chose qu'on remarquera sur l'écran.
-select public.verifier(
-  (select count(*) from public.appel where reunion_id = :'seance'::uuid
-     and referent_id = :'r_ana'::uuid) = 0,
-  'la ligne d Ana reste a cocher');
+-- `les_connectes()` exclut l'appelant (0042), et c'est ce dont 0053 hérite :
+-- son pointage ne peut pas marquer Ana. Que la feuille la montre pourtant
+-- présente vient d'ailleurs — de 0054, qui pose sa ligne à part, et dont c'est
+-- le test qui l'éprouve.
+begin;
+  set local role authenticated;
+  set local request.jwt.claims = '{"sub":"aaaaaaaa-5300-0000-0000-000000000191"}';
+  select public.verifier(
+    (select count(*) from public.les_connectes()
+      where referent_id = :'r_ana'::uuid) = 0,
+    'Ana ne figure pas dans la liste que 0053 recopie');
+commit;
 
 -- ---------------------------------------------------------------------------
 \echo '— celui qui n est pas en ligne n est pas pointe'
@@ -146,18 +152,19 @@ select public.verifier(
 -- ---------------------------------------------------------------------------
 \echo '— la feuille ne compte que ce qui a ete pose'
 -- ---------------------------------------------------------------------------
--- Bo et Eve présents, Cleo absente, Ana et Dim encore à appeler.
+-- Ana, Bo et Eve présents — Ana par 0054, les deux autres par 0053 —, Cleo
+-- absente, et Dim seul encore à appeler.
 begin;
   set local role authenticated;
   set local request.jwt.claims = '{"sub":"aaaaaaaa-5300-0000-0000-000000000191"}';
 
   select public.verifier(
-    (select count(*) from public.feuille_d_appel(:'seance'::uuid) where etat = 'Présent') = 2,
-    'deux presents');
+    (select count(*) from public.feuille_d_appel(:'seance'::uuid) where etat = 'Présent') = 3,
+    'trois presents');
 
   select public.verifier(
-    (select count(*) from public.feuille_d_appel(:'seance'::uuid) where etat is null) = 2,
-    'et deux personnes restent a appeler');
+    (select count(*) from public.feuille_d_appel(:'seance'::uuid) where etat is null) = 1,
+    'et une seule personne reste a appeler');
 commit;
 
 -- ---------------------------------------------------------------------------
@@ -178,12 +185,19 @@ select public.verifier(
   :'chez_flo' <> :'seance',
   'chaque loge tient sa propre feuille');
 
+-- Flo seule : personne d'autre n'est en ligne à Blois. Sa propre ligne vient
+-- de 0054 — c'est l'unique pointage de sa feuille.
 select public.verifier(
-  (select count(*) from public.appel where reunion_id = :'chez_flo'::uuid) = 0,
-  'Blois n a personne d autre en ligne : sa feuille s ouvre vide');
+  (select count(*) from public.appel where reunion_id = :'chez_flo'::uuid) = 1,
+  'Blois n a que Flo, qui vient d ouvrir');
 
 select public.verifier(
-  (select count(*) from public.appel where reunion_id = :'seance'::uuid) = 3,
+  (select referent_id from public.appel where reunion_id = :'chez_flo'::uuid)
+    = (select id from public.referent where bubble_id = 'ref-0053-flo'),
+  'et c est bien elle, aucun connecte de Tours n a franchi la cloison');
+
+select public.verifier(
+  (select count(*) from public.appel where reunion_id = :'seance'::uuid) = 4,
   'et la feuille de Tours n a pas bouge');
 
 \echo ''

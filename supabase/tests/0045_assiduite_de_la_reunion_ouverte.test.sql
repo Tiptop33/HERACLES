@@ -83,11 +83,19 @@ commit;
 -- ---------------------------------------------------------------------------
 \echo '— rien tant que personne n a ete appele'
 -- ---------------------------------------------------------------------------
+-- La réunion est posée directement, sans passer par `ouvrir_une_reunion` :
+-- depuis 0054, ouvrir marque celui qui ouvre, et Ivan étant seul dans sa loge,
+-- il ne resterait aucune ligne sans état à éprouver. Ce qui se joue ici est le
+-- comptage d'une ligne vide, pas la façon d'ouvrir la feuille.
+insert into public.reunion (loge_id, tenue_le, ouverte_par)
+values ((select id from public.loge where bubble_id = 'loge-0045'),
+        current_date - 5,
+        :'r_ivan'::uuid)
+returning id as vierge \gset
+
 begin;
   set local role authenticated;
   set local request.jwt.claims = '{"sub":"aaaaaaaa-3333-0000-0000-000000000151"}';
-
-  select public.ouvrir_une_reunion(current_date - 5) as vierge \gset
 
   select public.verifier(
     (select etat from public.feuille_d_appel(:'vierge'::uuid)

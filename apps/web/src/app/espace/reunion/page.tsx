@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { Corbeille, Croix, FlecheRetour, Stylo } from '@/components/Icones';
+import { referentCourant } from '@/lib/candidat';
 import { dateEnLettres, initiales, nomAffichable } from '@/lib/format';
 import { lireLesConnectes } from '@/lib/presence';
 import { exigerProfil } from '@/lib/profil';
@@ -59,7 +60,7 @@ export default async function Reunion({
   // La réunion ouverte se lit par son identifiant, et non dans le registre :
   // celui-ci ne rend que l'exercice en cours, et une réunion tenue hors bornes
   // ne s'affichait alors nulle part (migration 0037).
-  const [registre, retirees, horsExercice, feuille, laReunion, peutEffacer, connectes] =
+  const [registre, retirees, horsExercice, feuille, laReunion, peutEffacer, connectes, moi] =
     await Promise.all([
       lireRegistre(),
       lireRegistreDesRetirees(),
@@ -68,6 +69,10 @@ export default async function Reunion({
       ouverte ? lireUneReunion(ouverte) : Promise.resolve(null),
       puisJeEffacerDesReunions(),
       ouverte ? lireLesConnectes() : Promise.resolve([]),
+      // Ma propre fiche : `les_connectes()` ne me rend jamais, et sans elle ma
+      // ligne serait la seule sans pastille sur une feuille où tout le monde
+      // en a une. Lue seulement quand une feuille est ouverte.
+      ouverte ? referentCourant() : Promise.resolve(null),
     ]);
 
   // Ceux dont la session est ouverte. Depuis 0053, ouvrir l'appel les a déjà
@@ -78,7 +83,14 @@ export default async function Reunion({
   // Restent les retardataires, connectés après l'ouverture : eux n'ont rien en
   // base, et gardent le bouton « Présent » en pointillé le temps qu'on les
   // coche — voir `LigneDeFeuille`.
+  //
+  // Je m'y ajoute : `les_connectes()` m'exclut, parce qu'elle sert d'abord la
+  // colonne de gauche, où se voir soi-même n'apprendrait rien (0042). Sur une
+  // feuille d'appel c'est l'inverse — je regarde cet écran, donc je suis en
+  // ligne, et ma ligne mérite sa pastille comme les autres. Le pointage suit
+  // la même logique, par une ligne à part (0054).
   const enLigne = new Set(connectes.map((c) => c.referent_id));
+  if (moi) enLigne.add(moi.id);
   const aujourdhui = new Date().toISOString().slice(0, 10);
 
   /** L'adresse de cette même page, avec un paramètre en plus ou en moins. */
