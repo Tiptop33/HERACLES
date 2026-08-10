@@ -26,10 +26,36 @@
 # geste, fixé du côté du serveur, et c'est lui qui va chercher `main` sur
 # GitHub. Ce qui tourne vient donc du dépôt, et non de cette machine-ci.
 #
-# Cette connexion, elle, se retente : jusqu'à cinq fois, en espaçant les
-# essais. Uniquement quand le serveur n'a pas répondu du tout — dès qu'il
-# parle, sa réponse fait foi et rien n'est rejoué. Le détail, et la soirée qui
-# l'a motivé, sont au pas « Déclencher le déploiement ».
+# ————— Cette connexion se retente, mais AILLEURS —————
+#
+# Trois travaux de déploiement à la file, chacun sur une machine que GitHub
+# choisit — donc à chaque fois une adresse différente. Le second ne part que
+# si le premier a échoué **sans que le serveur réponde**, le troisième de même.
+# Dès que le serveur parle, sa réponse fait foi et la chaîne s'arrête net.
+#
+# CE QUI A ÉTÉ ESSAYÉ AVANT, ET POURQUOI ÇA NE MARCHAIT PAS
+#
+# On réessayait sur place, cinq fois, puis huit fois en espaçant jusqu'à un
+# quart d'heure. Relevé des 9 et 10 août 2026 :
+#
+#   | run | depuis la même machine | relance sur une autre |
+#   | --- | ---------------------- | --------------------- |
+#   | #48 | 5 échecs en 4 min      | ✓ 52 s                |
+#   | #50 | 5 échecs en 4 min      | ✓ 54 s                |
+#   | #53 | 8 échecs en 15 min     | —                     |
+#
+# Attendre n'a jamais rien donné ; changer de machine a toujours marché, du
+# premier coup. Et pendant ces quinze minutes le HTTPS répondait normalement,
+# tandis que `sshd` ne voyait strictement rien arriver — pas même un refus.
+#
+# La seule explication qui tienne : le blocage est **par adresse source**.
+# Certaines plages de runners GitHub sont jetées par un pare-feu en amont ;
+# celles-là ne passeront jamais, quel que soit le temps qu'on leur laisse. Une
+# autre machine tire une autre plage, et passe aussitôt.
+#
+# D'où ceci. Ce n'est toujours qu'un contournement : la cause est dans un
+# pare-feu — celui de l'hôte ou celui de l'hébergeur —, et elle reste à
+# trouver.
 
 name: Déployer l'instance d'essai
 
@@ -100,134 +126,111 @@ jobs:
           PGPASSWORD: postgres
         run: ./supabase/tests/executer.sh
 
+  # ———————————————————————————————————————————————————————————————————————————
+  # Trois tentatives, trois machines. Le geste lui-même est dans l'action
+  # `.github/actions/deployer-par-ssh` : écrit une fois, appelé trois fois.
+  #
+  # `continue-on-error` sur les deux premières : leur échec ne doit pas peindre
+  # tout le run en rouge alors qu'une autre machine va reprendre. C'est le
+  # travail « Verdict », à la fin, qui tranche — et lui seul.
+  # ———————————————————————————————————————————————————————————————————————————
   deployer:
     name: Déployer
     needs: verifier
     runs-on: ubuntu-latest
     environment: essai
-    # Un déploiement prend une minute. Trente, c'est de quoi encaisser les
-    # cinq tentatives et une reconstruction sans cache — au-delà, quelque
-    # chose est resté suspendu, et mieux vaut rendre la main que tenir la
-    # place jusqu'à la limite de six heures.
-    timeout-minutes: 30
-
+    continue-on-error: true
+    # Une tentative qui aboutit prend une minute ; une reconstruction sans
+    # cache, quelques-unes. Quinze suffisent, et rendent la main au lieu de
+    # tenir la place jusqu'à la limite de six heures.
+    timeout-minutes: 15
+    outputs:
+      reussi: ${{ steps.essai.outputs.reussi }}
+      injoignable: ${{ steps.essai.outputs.injoignable }}
     steps:
-      - name: Préparer la connexion
+      - uses: actions/checkout@v4
+      - id: essai
+        uses: ./.github/actions/deployer-par-ssh
+        with:
+          cle: ${{ secrets.VPS_CLE_SSH }}
+          empreinte: ${{ secrets.VPS_EMPREINTE }}
+          hote: ${{ secrets.VPS_HOTE }}
+          utilisateur: ${{ secrets.VPS_UTILISATEUR }}
+
+  deployer-2:
+    name: Déployer — deuxième machine
+    needs: [verifier, deployer]
+    # Seulement si la première n'a pas abouti ET que le serveur n'a rien dit.
+    # S'il a répondu — migration en échec, clé refusée —, rien à retenter.
+    if: >-
+      always()
+      && needs.deployer.outputs.reussi != 'true'
+      && needs.deployer.outputs.injoignable == 'true'
+    runs-on: ubuntu-latest
+    environment: essai
+    continue-on-error: true
+    timeout-minutes: 15
+    outputs:
+      reussi: ${{ steps.essai.outputs.reussi }}
+      injoignable: ${{ steps.essai.outputs.injoignable }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: essai
+        uses: ./.github/actions/deployer-par-ssh
+        with:
+          cle: ${{ secrets.VPS_CLE_SSH }}
+          empreinte: ${{ secrets.VPS_EMPREINTE }}
+          hote: ${{ secrets.VPS_HOTE }}
+          utilisateur: ${{ secrets.VPS_UTILISATEUR }}
+
+  deployer-3:
+    name: Déployer — troisième machine
+    needs: [verifier, deployer, deployer-2]
+    if: >-
+      always()
+      && needs.deployer-2.outputs.reussi != 'true'
+      && needs.deployer-2.outputs.injoignable == 'true'
+    runs-on: ubuntu-latest
+    environment: essai
+    timeout-minutes: 15
+    outputs:
+      reussi: ${{ steps.essai.outputs.reussi }}
+      injoignable: ${{ steps.essai.outputs.injoignable }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: essai
+        uses: ./.github/actions/deployer-par-ssh
+        with:
+          cle: ${{ secrets.VPS_CLE_SSH }}
+          empreinte: ${{ secrets.VPS_EMPREINTE }}
+          hote: ${{ secrets.VPS_HOTE }}
+          utilisateur: ${{ secrets.VPS_UTILISATEUR }}
+
+  # Le seul travail qui décide de la couleur du run. Sans lui, une tentative
+  # rattrapée par la suivante laisserait le run en rouge, et un échec réel
+  # pourrait passer pour vert à cause des `continue-on-error`.
+  verdict:
+    name: Verdict
+    needs: [verifier, deployer, deployer-2, deployer-3]
+    # `always()` est nécessaire : les tentatives peuvent être en échec ou
+    # sautées, et sans lui ce travail ne partirait pas — donc personne ne
+    # dirait rien. En revanche si la vérification a échoué, il n'y a pas eu de
+    # déploiement à juger.
+    if: always() && needs.verifier.result == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Une machine a-t-elle déployé ?
         env:
-          CLE: ${{ secrets.VPS_CLE_SSH }}
-          EMPREINTE: ${{ secrets.VPS_EMPREINTE }}
-          HOTE: ${{ secrets.VPS_HOTE }}
+          UN: ${{ needs.deployer.outputs.reussi }}
+          DEUX: ${{ needs.deployer-2.outputs.reussi }}
+          TROIS: ${{ needs.deployer-3.outputs.reussi }}
         run: |
           set -euo pipefail
-          test -n "$CLE"   || { echo "Le secret VPS_CLE_SSH manque."; exit 1; }
-          test -n "$HOTE"  || { echo "Le secret VPS_HOTE manque."; exit 1; }
-
-          mkdir -p ~/.ssh && chmod 700 ~/.ssh
-          printf '%s\n' "$CLE" > ~/.ssh/id_deploiement
-          chmod 600 ~/.ssh/id_deploiement
-
-          if [ -n "$EMPREINTE" ]; then
-            printf '%s\n' "$EMPREINTE" > ~/.ssh/known_hosts
-          else
-            echo "::warning::VPS_EMPREINTE est vide — le serveur est accepté sur parole."
-            ssh-keyscan -H "$HOTE" >> ~/.ssh/known_hosts 2>/dev/null
-          fi
-          chmod 600 ~/.ssh/known_hosts
-
-      - name: Déclencher le déploiement
-        env:
-          HOTE: ${{ secrets.VPS_HOTE }}
-          UTILISATEUR: ${{ secrets.VPS_UTILISATEUR }}
-        run: |
-          set -uo pipefail
-
-          # Aucune commande n'est passée, et ce n'est pas un oubli : la clé
-          # n'en accepte qu'une, inscrite dans `authorized_keys` du côté du
-          # serveur. Ce qu'écrirait cette machine-ci ne serait pas lu.
-          #
-          # Le serveur va chercher `main` sur GitHub, joue les migrations et
-          # reconstruit. Sa sortie remonte ici, d'où le journal de ce pas.
-          #
-          # ————— Pourquoi on réessaie —————
-          #
-          # Le 8 août 2026, deux déploiements de suite se sont perdus sur un
-          # « Connection timed out » : le serveur n'a pas répondu à 23h32, il
-          # répondait de nouveau à 23h35, sans que rien n'ait changé entre les
-          # deux. Un commit juste ne doit pas rester à quai pour trois minutes
-          # d'absence.
-          #
-          # ————— Pourquoi on réessaie plus longtemps —————
-          #
-          # Le 9 août, deux fois encore, et plus longtemps : injoignable de
-          # 21h59 à 22h04, puis de 22h55 à 23h00. La boucle abandonnait au bout
-          # de quatre minutes ; les coupures en duraient cinq et six. Chaque
-          # fois, la relance à la main passait du premier coup.
-          #
-          # Le journal du serveur a tranché : `sshd` n'a **rien vu** de ces
-          # tentatives — pas même un refus. Les paquets sont jetés avant lui.
-          # Et pendant ce temps le HTTPS répondait sans faillir, sur la même
-          # machine, aux mêmes minutes : la machine tourne, c'est le port 22
-          # qui est muet. La cause est en amont, dans un pare-feu — celui de
-          # l'hôte ou celui de l'hébergeur —, et elle reste à trouver.
-          #
-          # D'ici là : huit tentatives étalées sur un quart d'heure. Cela
-          # couvre largement les quatre coupures observées, dont la plus longue
-          # a duré six minutes. **C'est un contournement, pas une réparation** :
-          # le jour où le port 22 restera fermé pour de bon, ce déploiement-ci
-          # mettra un quart d'heure à le dire au lieu de quatre minutes. C'est
-          # le prix, et il est moindre qu'un déploiement perdu par soirée.
-          #
-          # **On ne réessaie que ce qui n'a jamais atteint le serveur.** Dès
-          # qu'il a répondu, sa réponse fait foi : une migration qui échoue,
-          # une empreinte qui ne correspond pas ou une clé refusée arrêtent
-          # tout, sur-le-champ. Rejouer une empreinte fausse reviendrait à
-          # insister auprès d'une machine qui n'est pas la nôtre.
-          CONNEXION_PERDUE='ssh: connect to host|Connection timed out|Connection refused|No route to host|Operation timed out|Network is unreachable|Host is unreachable'
-
-          # Quinze secondes pour établir la connexion, au lieu des deux
-          # minutes treize que le système laisse filer par défaut : on veut
-          # savoir vite, pour réessayer plusieurs fois dans le même temps.
-          #
-          # Les attentes montent puis se stabilisent à trois minutes : au-delà,
-          # doubler encore ne servirait qu'à passer à côté du moment où le
-          # serveur revient. Total : 15 + 30 + 60 + 120 + 180 × 3 = 12 min 45 s
-          # d'attente, plus huit connexions de 15 s au pire — environ un quart
-          # d'heure.
-          ATTENTES=(15 30 60 120 180 180 180)
-          TENTATIVES=${#ATTENTES[@]}
-          journal="$(mktemp)"
-
-          for essai in $(seq 0 "$TENTATIVES"); do
-            if (( essai > 0 )); then
-              attente=${ATTENTES[$((essai - 1))]}
-              echo "::warning::Serveur injoignable — nouvelle tentative dans ${attente} s (${essai}/${TENTATIVES})."
-              sleep "$attente"
-            fi
-
-            code=0
-            ssh -i ~/.ssh/id_deploiement \
-                -o StrictHostKeyChecking=yes \
-                -o ConnectTimeout=15 \
-                -o ServerAliveInterval=30 \
-                -o ServerAliveCountMax=20 \
-                "$UTILISATEUR@$HOTE" > "$journal" 2>&1 || code=$?
-            cat "$journal"
-
-            if (( code == 0 )); then
+          for r in "$UN" "$DEUX" "$TROIS"; do
+            if [ "$r" = "true" ]; then
+              echo "Déployé."
               exit 0
             fi
-
-            # 255 est le code que `ssh` garde pour ses propres échecs ; tout
-            # autre code vient du serveur, et lui appartient.
-            if (( code != 255 )) || ! grep -qE "$CONNEXION_PERDUE" "$journal"; then
-              echo "::error::Le déploiement s'est arrêté (code $code). Le serveur a répondu : sa sortie est ci-dessus."
-              exit "$code"
-            fi
           done
-
-          echo "::error::Le serveur est resté injoignable pendant les $((TENTATIVES + 1)) tentatives, soit un quart d'heure. Rien n'a été déployé ; l'instance tourne encore sur la version précédente. Les coupures observées jusqu'ici duraient six minutes au plus : au-delà d'un quart d'heure, ce n'est plus un passage à vide — regardez le pare-feu de l'hôte et celui de l'hébergeur."
+          echo "::error::Aucune des machines essayées n'a pu joindre le serveur, ou le serveur a refusé. Rien n'a été déployé ; l'instance tourne encore sur la version précédente. Si les trois disent « injoignable », le pare-feu de l'hôte ou celui de l'hébergeur jette les adresses des runners — voir l'en-tête de ce fichier."
           exit 1
-
-      - name: Effacer la clé
-        if: always()
-        run: rm -f ~/.ssh/id_deploiement
