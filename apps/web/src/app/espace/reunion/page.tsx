@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import { Corbeille, Croix, FlecheRetour, Stylo } from '@/components/Icones';
 import { referentCourant } from '@/lib/candidat';
 import { dateEnLettres, initiales, nomAffichable } from '@/lib/format';
+import { lireMesPostes, phraseDeRefusPoste, type Poste } from '@/lib/postes';
 import { lireLesConnectes } from '@/lib/presence';
 import { exigerProfil } from '@/lib/profil';
 import {
@@ -46,6 +47,7 @@ export default async function Reunion({
     rendre?: string | string[];
     effacer?: string | string[];
     erreur?: string | string[];
+    erreur_poste?: string | string[];
   }>;
 }) {
   const profil = await exigerProfil();
@@ -56,11 +58,12 @@ export default async function Reunion({
 
   const ouverte = premier(parametres.appel);
   const refus = phraseDeRefusReunion(premier(parametres.erreur));
+  const refusPoste = phraseDeRefusPoste(premier(parametres.erreur_poste));
 
   // La réunion ouverte se lit par son identifiant, et non dans le registre :
   // celui-ci ne rend que l'exercice en cours, et une réunion tenue hors bornes
   // ne s'affichait alors nulle part (migration 0037).
-  const [registre, retirees, horsExercice, feuille, laReunion, peutEffacer, connectes, moi] =
+  const [registre, retirees, horsExercice, feuille, laReunion, peutEffacer, connectes, moi, postes] =
     await Promise.all([
       lireRegistre(),
       lireRegistreDesRetirees(),
@@ -73,6 +76,9 @@ export default async function Reunion({
       // ligne serait la seule sans pastille sur une feuille où tout le monde
       // en a une. Lue seulement quand une feuille est ouverte.
       ouverte ? referentCourant() : Promise.resolve(null),
+      // Les postes à pourvoir ne dépendent d'aucune réunion : le cadre est là
+      // qu'une feuille soit ouverte ou non.
+      lireMesPostes(),
     ]);
 
   // Ceux dont la session est ouverte. Depuis 0053, ouvrir l'appel les a déjà
@@ -129,6 +135,11 @@ export default async function Reunion({
           {refus}
         </p>
       )}
+      {refusPoste && (
+        <p className="erreur" role="alert">
+          {refusPoste}
+        </p>
+      )}
 
       <div className="entete-liste">
         <div>
@@ -144,6 +155,8 @@ export default async function Reunion({
       ) : (
         <OuvrirUneReunion aujourdhui={aujourdhui} />
       )}
+
+      <PostesAPourvoir postes={postes} retour={adresse()} />
 
       <Registre
         lignes={registre}
@@ -162,6 +175,84 @@ export default async function Reunion({
         <FenetreDEffacement reunion={aEffacer} fermer={adresse({ effacer: null })} />
       )}
     </main>
+  );
+}
+
+/**
+ * Les postes à pourvoir : l'autre moitié de l'affiche.
+ *
+ * D'un côté ceux qui cherchent, de l'autre ce qu'il y a à prendre. Ce cadre
+ * est ici parce que c'est ici qu'on produit l'affiche — on la prépare là où
+ * on l'imprime, plutôt que sur un écran de plus.
+ *
+ * Il ne dépend d'aucune réunion : la loge tient sa liste toute l'année, et
+ * chaque affiche publie ce qui est ouvert le jour où on la tire.
+ */
+function PostesAPourvoir({ postes, retour }: { postes: Poste[]; retour: string }) {
+  return (
+    <section className="bloc">
+      <div className="entete-liste">
+        <div>
+          <h2>Postes à pourvoir</h2>
+          <span className="compte">
+            {postes.length} poste{postes.length > 1 ? 's' : ''} ouvert
+            {postes.length > 1 ? 's' : ''} — l’affiche les publie
+          </span>
+        </div>
+      </div>
+
+      {postes.length > 0 && (
+        <ul className="postes">
+          {postes.map((poste) => (
+            <li key={poste.id} className="poste-ligne">
+              <span className="poste-quoi">
+                {poste.intitule}
+                <small>
+                  {[poste.societe, poste.ville, poste.contact, poste.email]
+                    .filter(Boolean)
+                    .join(' · ') || 'société et contact non renseignés'}
+                </small>
+              </span>
+
+              {/* Retirer ne perd rien : la ligne reste en base, le poste sort
+                  de l'affiche. D'où l'absence de fenêtre de confirmation. */}
+              <form method="post" action={`/api/postes/${poste.id}/retirer`}>
+                <input type="hidden" name="retour" value={retour} />
+                <button
+                  type="submit"
+                  className="geste geste--retirer"
+                  aria-label={`Retirer le poste : ${poste.intitule}`}
+                  title="Retirer de l’affiche"
+                >
+                  <Corbeille />
+                </button>
+              </form>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {/* Seul l’intitulé est exigé : un poste se remonte souvent avant d’être
+          complet, et une saisie qui exige tout est une saisie qu’on remet. */}
+      <form method="post" action="/api/postes" className="poste-ajout">
+        <input type="hidden" name="retour" value={retour} />
+        <input
+          type="text"
+          name="intitule"
+          required
+          maxLength={300}
+          placeholder="Le poste"
+          aria-label="Intitulé du poste à pourvoir"
+        />
+        <input type="text" name="societe" maxLength={200} placeholder="Société" aria-label="Société" />
+        <input type="text" name="ville" maxLength={120} placeholder="Ville" aria-label="Ville" />
+        <input type="text" name="contact" maxLength={200} placeholder="Contact" aria-label="Personne à joindre" />
+        <input type="text" name="email" maxLength={200} placeholder="E-mail" aria-label="Adresse électronique du contact" />
+        <button className="bouton bouton--fort" type="submit">
+          Noter
+        </button>
+      </form>
+    </section>
   );
 }
 

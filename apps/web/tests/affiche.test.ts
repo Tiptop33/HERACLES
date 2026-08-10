@@ -2,6 +2,7 @@ import { inflateSync } from 'node:zlib';
 import { describe, expect, it } from 'vitest';
 import { construireAffiche, intitule, jourEntier } from '../src/lib/affiche';
 import type { Dossier } from '../src/lib/dossiers';
+import type { Poste } from '../src/lib/postes';
 
 /**
  * L'affiche circule. Le contrôle qui compte ici n'est donc pas la mise en page
@@ -84,6 +85,7 @@ describe('ce que l’affiche ne dit pas', () => {
       tenueLe: '2026-06-10',
       loge: 'Gironde',
       dossiers: [dossier(), dossier({ numero: 811, nom: 'GIGUET', prenom: 'Julia' })],
+      postes: [],
       contacts: [],
     });
 
@@ -104,6 +106,7 @@ describe('ce que l’affiche ne dit pas', () => {
       tenueLe: '2026-06-10',
       loge: 'Gironde',
       dossiers: [dossier({ commentaire: 'ne doit pas circuler' })],
+      postes: [],
       contacts: [],
     });
     expect(texteImprime(octets)).not.toContain('ne doit pas circuler');
@@ -114,6 +117,7 @@ describe('ce que l’affiche ne dit pas', () => {
       tenueLe: '2026-06-10',
       loge: 'Gironde',
       dossiers: [dossier({ numero: 807 })],
+      postes: [],
       contacts: [],
     });
     expect(texteImprime(octets)).toContain('807');
@@ -126,6 +130,7 @@ describe('le pied de l’affiche', () => {
       tenueLe: '2026-06-10',
       loge: 'Gironde',
       dossiers: [dossier()],
+      postes: [],
       contacts: [],
     });
     // Rien d’inventé, rien emprunté : l’affiche sort sans pied.
@@ -138,9 +143,57 @@ describe('le pied de l’affiche', () => {
       tenueLe: '2026-06-10',
       loge: 'Gironde',
       dossiers: [dossier()],
+      postes: [],
       contacts: ['Camille EXEMPLE, Présidente, Tél : 00 00 00 00 00'],
     });
     expect(texteImprime(octets)).toContain('Camille EXEMPLE');
+  });
+});
+
+function poste(reste: Partial<Poste> = {}): Poste {
+  return {
+    id: '00000000-0000-0000-0000-0000000000aa',
+    intitule: '6 ARCHITECTES',
+    societe: 'SAS EXEMPLE',
+    ville: 'Albi',
+    contact: 'Camille EXEMPLE',
+    email: 'recrutement@exemple.test',
+    remonte_le: '2026-06-01',
+    ...reste,
+  };
+}
+
+describe('les postes à pourvoir', () => {
+  it('paraissent avec leur société, leur ville et leur contact', async () => {
+    const octets = await construireAffiche({
+      tenueLe: '2026-06-10', loge: 'Gironde', dossiers: [dossier()],
+      postes: [poste()], contacts: [],
+    });
+    const texte = texteImprime(octets);
+    expect(texte).toContain('POSTE');
+    expect(texte).toContain('6 ARCHITECTES');
+    expect(texte).toContain('SAS EXEMPLE');
+    expect(texte).toContain('Camille EXEMPLE');
+    expect(texte).toContain('recrutement@exemple.test');
+  });
+
+  it('laissent le document muet quand il n’y a rien à proposer', async () => {
+    // Un titre suivi d’un tableau vide, sur une feuille qu’on punaise, se lit
+    // comme une panne plutôt que comme « rien ce mois-ci ».
+    const octets = await construireAffiche({
+      tenueLe: '2026-06-10', loge: 'Gironde', dossiers: [dossier()],
+      postes: [], contacts: [],
+    });
+    expect(texteImprime(octets)).not.toContain('POSTE');
+  });
+
+  it('tiennent un poste dont on ne sait que l’intitulé', async () => {
+    const octets = await construireAffiche({
+      tenueLe: '2026-06-10', loge: null, dossiers: [],
+      postes: [poste({ societe: null, ville: null, contact: null, email: null })],
+      contacts: [],
+    });
+    expect(texteImprime(octets)).toContain('6 ARCHITECTES');
   });
 });
 
@@ -150,6 +203,7 @@ describe('le document lui-même', () => {
       tenueLe: '2026-06-10',
       loge: null,
       dossiers: [],
+      postes: [],
       contacts: [],
     });
     expect(Buffer.from(octets.slice(0, 5)).toString()).toBe('%PDF-');
@@ -158,11 +212,11 @@ describe('le document lui-même', () => {
 
   it('marque « CV » sur les seuls dossiers qui en ont un', async () => {
     const avec = await construireAffiche({
-      tenueLe: '2026-06-10', loge: null, contacts: [],
+      tenueLe: '2026-06-10', loge: null, postes: [], contacts: [],
       dossiers: [dossier({ a_un_cv: true })],
     });
     const sans = await construireAffiche({
-      tenueLe: '2026-06-10', loge: null, contacts: [],
+      tenueLe: '2026-06-10', loge: null, postes: [], contacts: [],
       dossiers: [dossier({ a_un_cv: false })],
     });
     expect(texteImprime(avec)).toContain('CV');
@@ -177,6 +231,7 @@ describe('le document lui-même', () => {
       tenueLe: '2026-06-10',
       loge: 'Gironde 中文',
       dossiers: [dossier({ recherche: 'ALTERNANCE 🚀 — 2ᵉ année' })],
+      postes: [],
       contacts: ['Contact 👍'],
     });
     expect(Buffer.from(octets.slice(0, 5)).toString()).toBe('%PDF-');

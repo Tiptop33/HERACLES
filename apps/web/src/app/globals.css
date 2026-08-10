@@ -3102,6 +3102,36 @@ a.poste-document .poste-document-type {
   background: var(--encre-tres-douce); color: var(--sur-marque);
 }
 
+/* ---------------------------------------------------------------------------
+   Les postes à pourvoir : la liste, puis la ligne de saisie.
+   --------------------------------------------------------------------------- */
+.postes {
+  list-style: none; margin: .6rem 0 0; padding: 0;
+  display: flex; flex-direction: column; gap: 1px;
+  background: var(--bordure); border: 1px solid var(--bordure);
+  border-radius: 10px; overflow: hidden;
+}
+
+.poste-ligne {
+  display: flex; align-items: center; gap: .8rem;
+  background: var(--surface); padding: .45rem .7rem;
+}
+
+.poste-quoi { flex: 1 1 auto; min-width: 0; font-size: .95rem; }
+.poste-quoi small { display: block; font-size: .78rem; color: var(--encre-tres-douce); }
+
+/* La saisie tient sur une ligne quand la place le permet, et se replie sans
+   rien perdre sur un téléphone. Seul l'intitulé est large : c'est le seul
+   champ exigé, et le plus long à écrire. */
+.poste-ajout {
+  display: flex; flex-wrap: wrap; gap: .4rem;
+  margin-top: .7rem; padding-top: .7rem;
+  border-top: 1px solid var(--bordure);
+}
+.poste-ajout input { flex: 1 1 8rem; min-width: 0; }
+.poste-ajout input[name='intitule'] { flex: 2 1 14rem; }
+.poste-ajout button { flex: 0 0 auto; }
+
 /* Le registre. Une table large déborde sur un téléphone : elle défile dans
    son cadre, jamais la page. */
 .table-large { overflow-x: auto; margin-top: .8rem; }

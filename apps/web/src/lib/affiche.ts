@@ -1,4 +1,5 @@
 import type { Dossier } from './dossiers';
+import type { Poste } from './postes';
 import { dateEnLettres } from './format';
 import { Feuille, lisible, type Colonne } from './pdf';
 
@@ -50,9 +51,10 @@ export async function construireAffiche(options: {
   tenueLe: string;
   loge: string | null;
   dossiers: Dossier[];
+  postes: Poste[];
   contacts: string[];
 }): Promise<Uint8Array> {
-  const { tenueLe, loge, dossiers, contacts } = options;
+  const { tenueLe, loge, dossiers, postes, contacts } = options;
   const feuille = await Feuille.ouvrir();
 
   feuille.centre(OBEDIENCE, { taille: 9, gras: false });
@@ -95,6 +97,43 @@ export async function construireAffiche(options: {
   if (dossiers.length === 0) {
     feuille.espace(4);
     feuille.texte('Aucun dossier en cours à ce jour.', { taille: 9 });
+  }
+
+  // ------------------------------------------------------- postes à pourvoir
+  //
+  // L'autre moitié du document. Le seul endroit de l'affiche où paraissent des
+  // coordonnées — celles d'un recruteur, jamais d'un candidat.
+  //
+  // Absent quand il n'y a rien : un titre suivi d'un tableau vide, sur une
+  // feuille qu'on punaise, se lit comme une panne plutôt que comme « rien ce
+  // mois-ci ».
+  if (postes.length > 0) {
+    feuille.espace(16);
+    feuille.centre(
+      `${postes.length} POSTE${postes.length > 1 ? 'S' : ''} À POURVOIR`,
+      { taille: 12 },
+    );
+    feuille.espace(6);
+
+    const colonnesPostes: Colonne[] = [
+      { titre: 'LE POSTE', largeur: 150 },
+      { titre: 'SOCIÉTÉ', largeur: 105 },
+      { titre: 'VILLE', largeur: 70 },
+      { titre: 'CONTACT', largeur: 92 },
+      { titre: 'E-MAIL', largeur: 110 },
+    ];
+
+    feuille.tableau(
+      colonnesPostes,
+      postes.map((p) => [
+        p.intitule,
+        p.societe ?? '',
+        p.ville ?? '',
+        p.contact ?? '',
+        p.email ?? '',
+      ]),
+      8.5,
+    );
   }
 
   // Le pied. Il ne s'imprime que si l'installation a posé ses coordonnées :

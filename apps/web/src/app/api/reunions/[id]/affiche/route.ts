@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { construireAffiche, nomDeLAffiche } from '@/lib/affiche';
 import { referentCourant } from '@/lib/candidat';
 import { lireContactsDeLaCommission, lireDossiers } from '@/lib/dossiers';
+import { lirePostes } from '@/lib/postes';
 import { lireUneReunion } from '@/lib/reunion';
 import { supabaseServer } from '@/lib/supabase-server';
 
@@ -37,8 +38,9 @@ export async function GET(_requete: Request, { params }: { params: Promise<{ id:
       return NextResponse.json({ erreur: 'Cette réunion n’existe pas.' }, { status: 404 });
     }
 
-    const [dossiers, contacts, moi] = await Promise.all([
+    const [dossiers, postes, contacts, moi] = await Promise.all([
       lireDossiers(id),
+      lirePostes(id),
       lireContactsDeLaCommission(),
       referentCourant(),
     ]);
@@ -47,6 +49,7 @@ export async function GET(_requete: Request, { params }: { params: Promise<{ id:
       tenueLe: reunion.tenue_le,
       loge: moi?.loge ?? null,
       dossiers,
+      postes,
       contacts,
     });
 
