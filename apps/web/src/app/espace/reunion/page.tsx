@@ -307,9 +307,23 @@ function FeuilleDAppel({
             </>
           )}
         </p>
-        <button className="bouton" type="submit">
-          Fermer la feuille
-        </button>
+        <span className="appel-gestes">
+          {/* Le compte rendu, tel que la commission le produit après chaque
+              réunion : la liste des candidats et les présences. C'est une
+              lecture — le document ne fige rien, il se redemande autant de
+              fois qu'on veut, et il suit la feuille tant qu'on la corrige. */}
+          <a
+            className="bouton"
+            href={`/api/reunions/${reunion.id}/compte-rendu`}
+            target="_blank"
+            rel="noopener"
+          >
+            Compte rendu
+          </a>
+          <button className="bouton" type="submit">
+            Fermer la feuille
+          </button>
+        </span>
       </form>
     </section>
   );
