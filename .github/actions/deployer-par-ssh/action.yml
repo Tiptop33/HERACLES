@@ -1,0 +1,121 @@
+# Une tentative de déploiement, depuis la machine où elle tourne.
+#
+# Extraite du workflow pour pouvoir être appelée par plusieurs travaux : le
+# déploiement se rejoue sur une **autre machine**, et non sur la même, parce
+# que c'est la machine — son adresse — qui décide de passer ou non.
+#
+# Voir l'en-tête de `deployer-essai.yml` pour le pourquoi.
+
+name: Déployer par SSH
+description: Une tentative de déploiement vers le VPS, avec son verdict.
+
+inputs:
+  cle:
+    description: La clé privée de déploiement.
+    required: true
+  empreinte:
+    description: L'empreinte du serveur, pour known_hosts.
+    required: false
+  hote:
+    description: L'hôte du VPS.
+    required: true
+  utilisateur:
+    description: Le compte de déploiement sur le VPS.
+    required: true
+
+outputs:
+  reussi:
+    description: '« true » si le serveur a déployé.'
+    value: ${{ steps.ssh.outputs.reussi }}
+  injoignable:
+    description: >-
+      « true » si le serveur n'a jamais répondu. C'est le seul cas où une autre
+      machine a une chance : dès que le serveur a répondu, sa réponse fait foi
+      et il n'y a rien à réessayer.
+    value: ${{ steps.ssh.outputs.injoignable }}
+
+runs:
+  using: composite
+  steps:
+    - name: Préparer la connexion
+      shell: bash
+      env:
+        CLE: ${{ inputs.cle }}
+        EMPREINTE: ${{ inputs.empreinte }}
+        HOTE: ${{ inputs.hote }}
+      run: |
+        set -euo pipefail
+        test -n "$CLE"  || { echo "Le secret VPS_CLE_SSH manque."; exit 1; }
+        test -n "$HOTE" || { echo "Le secret VPS_HOTE manque."; exit 1; }
+
+        mkdir -p ~/.ssh && chmod 700 ~/.ssh
+        printf '%s\n' "$CLE" > ~/.ssh/id_deploiement
+        chmod 600 ~/.ssh/id_deploiement
+
+        if [ -n "$EMPREINTE" ]; then
+          printf '%s\n' "$EMPREINTE" > ~/.ssh/known_hosts
+        else
+          echo "::warning::VPS_EMPREINTE est vide — le serveur est accepté sur parole."
+          ssh-keyscan -H "$HOTE" >> ~/.ssh/known_hosts 2>/dev/null
+        fi
+        chmod 600 ~/.ssh/known_hosts
+
+    - name: Déclencher le déploiement
+      id: ssh
+      shell: bash
+      env:
+        HOTE: ${{ inputs.hote }}
+        UTILISATEUR: ${{ inputs.utilisateur }}
+      run: |
+        set -uo pipefail
+
+        # Aucune commande n'est passée, et ce n'est pas un oubli : la clé n'en
+        # accepte qu'une, inscrite dans `authorized_keys` du côté du serveur.
+        # Ce qu'écrirait cette machine-ci ne serait pas lu.
+        #
+        # Le serveur va chercher `main` sur GitHub, joue les migrations et
+        # reconstruit. Sa sortie remonte ici, d'où le journal de ce pas.
+        CONNEXION_PERDUE='ssh: connect to host|Connection timed out|Connection refused|No route to host|Operation timed out|Network is unreachable|Host is unreachable'
+
+        journal="$(mktemp)"
+        code=0
+
+        # Une seule tentative depuis cette machine. Réessayer d'ici ne sert à
+        # rien : quinze minutes d'essais depuis la même adresse n'ont jamais
+        # rien donné, le 9 août. C'est le travail suivant, sur une autre
+        # machine, qui retente.
+        ssh -i ~/.ssh/id_deploiement \
+            -o StrictHostKeyChecking=yes \
+            -o ConnectTimeout=15 \
+            -o ServerAliveInterval=30 \
+            -o ServerAliveCountMax=20 \
+            "$UTILISATEUR@$HOTE" > "$journal" 2>&1 || code=$?
+        cat "$journal"
+
+        if (( code == 0 )); then
+          echo 'reussi=true'       >> "$GITHUB_OUTPUT"
+          echo 'injoignable=false' >> "$GITHUB_OUTPUT"
+          exit 0
+        fi
+
+        echo 'reussi=false' >> "$GITHUB_OUTPUT"
+
+        # 255 est le code que `ssh` garde pour ses propres échecs ; tout autre
+        # code vient du serveur, et lui appartient. Une migration qui échoue,
+        # une empreinte qui ne correspond pas ou une clé refusée arrêtent tout :
+        # rejouer ailleurs reviendrait à insister auprès d'une machine qui n'est
+        # pas la nôtre, ou à retenter une erreur qui se reproduira à l'identique.
+        if (( code != 255 )) || ! grep -qE "$CONNEXION_PERDUE" "$journal"; then
+          echo 'injoignable=false' >> "$GITHUB_OUTPUT"
+          echo "::error::Le déploiement s'est arrêté (code $code). Le serveur a répondu : sa sortie est ci-dessus. Aucune autre machine ne sera essayée."
+          exit "$code"
+        fi
+
+        echo 'injoignable=true' >> "$GITHUB_OUTPUT"
+        echo "::warning::Serveur injoignable depuis cette machine ($(hostname)). Une autre va être essayée."
+        exit 1
+
+    - name: Effacer la clé
+      if: always()
+      shell: bash
+      run: rm -f ~/.ssh/id_deploiement
