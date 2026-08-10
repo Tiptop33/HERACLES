@@ -180,5 +180,31 @@ select public.verifier(
     where indexname = 'reunion_loge_jour_idx'),
   'et l''index est bien resté partiel');
 
+-- ---------------------------------------------------------------------------
+-- Remettre la base dans l'état où le déploiement la laisse
+-- ---------------------------------------------------------------------------
+-- 0036 recrée `ouvrir_une_reunion` dans sa version d'origine. Sur le serveur
+-- cela ne se voit pas : les migrations suivantes se rejouent derrière, dans
+-- l'ordre, et la remettent à jour. Ici, rejouer 0036 seul laisse une fonction
+-- périmée à TOUS les tests qui suivent, sans que rien ne le signale.
+--
+-- 0053 s'en est aperçu : son pointage à l'ouverture ne se posait jamais, et la
+-- migration paraissait pourtant bonne — elle l'était. C'est ce test-ci qui
+-- défaisait son travail.
+--
+-- Les deux migrations qui redéfinissent `ouvrir_une_reunion` après 0036 sont
+-- donc rejouées derrière, comme le ferait le serveur.
+\i supabase/migrations/0046_reunions_de_bubble_meme_jour.sql
+\i supabase/migrations/0053_pointer_a_l_ouverture.sql
+
+-- Le garde-fou : si une migration à venir redéfinit `ouvrir_une_reunion` sans
+-- être ajoutée aux deux lignes ci-dessus, c'est ici que ça se verra — et non
+-- trois tests plus loin, sous la forme d'un pointage qui manque.
+select public.verifier(
+  (select prosrc like '%pointer_les_connectes%'
+     from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+    where n.nspname = 'public' and p.proname = 'ouvrir_une_reunion'),
+  'et ouvrir_une_reunion est bien revenue a sa version courante');
+
 \echo ''
 \echo 'Tous les contrôles de 0046_reunions_de_bubble_meme_jour.sql sont passés.'

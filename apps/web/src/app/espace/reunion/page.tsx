@@ -70,9 +70,14 @@ export default async function Reunion({
       ouverte ? lireLesConnectes() : Promise.resolve([]),
     ]);
 
-  // Ceux dont la session est ouverte : sur la feuille, leur bouton « Présent »
-  // paraît déjà choisi tant que personne ne les a appelés. Rien n'est en base
-  // pour autant — voir `LigneDeFeuille`.
+  // Ceux dont la session est ouverte. Depuis 0053, ouvrir l'appel les a déjà
+  // marqués présents : la plupart portent donc un état en base, et leur ligne
+  // n'a plus rien de provisoire. La pastille verte du portrait dit qu'ils sont
+  // connectés — c'est la connexion qu'elle montre, pas le pointage.
+  //
+  // Restent les retardataires, connectés après l'ouverture : eux n'ont rien en
+  // base, et gardent le bouton « Présent » en pointillé le temps qu'on les
+  // coche — voir `LigneDeFeuille`.
   const enLigne = new Set(connectes.map((c) => c.referent_id));
   const aujourdhui = new Date().toISOString().slice(0, 10);
 
@@ -337,20 +342,35 @@ function LigneDeFeuille({
       {/* La photo tout à gauche, avant le nom : on reconnaît un visage plus
           vite qu'on ne lit un patronyme, et l'appel se fait des gens devant
           soi. Les initiales prennent le relais quand Bubble n'a pas de photo. */}
-      {ligne.a_une_photo ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          className="appel-portrait"
-          src={`/espace/referents/${ligne.referent_id}/photo`}
-          alt=""
-          width={44}
-          height={44}
-        />
-      ) : (
-        <span className="appel-portrait appel-initiales" aria-hidden="true">
-          {initiales(ligne.prenom, ligne.nom)}
-        </span>
-      )}
+      <span className="appel-visage">
+        {ligne.a_une_photo ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            className="appel-portrait"
+            src={`/espace/referents/${ligne.referent_id}/photo`}
+            alt=""
+            width={44}
+            height={44}
+          />
+        ) : (
+          <span className="appel-portrait appel-initiales" aria-hidden="true">
+            {initiales(ligne.prenom, ligne.nom)}
+          </span>
+        )}
+
+        {/* La pastille : « sa session est ouverte, en ce moment ». Depuis que
+            l'ouverture pointe les connectés, leur bouton « Présent » est plein
+            comme celui d'une personne cochée à la main — sans elle, plus rien
+            à l'écran ne dirait d'où vient ce pointage. Elle reste ensuite,
+            quel que soit l'état posé : elle parle de la connexion, pas de
+            l'appel. */}
+        {enLigne && (
+          <>
+            <span className="appel-pastille" aria-hidden="true" />
+            <span className="visuellement-cache">en ligne</span>
+          </>
+        )}
+      </span>
 
       <span className="appel-nom">
         {nom}
