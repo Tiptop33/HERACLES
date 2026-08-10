@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 import { PARAMETRES, estCourante, famillesDuRole } from '@/lib/navigation';
 import { nomAffichable } from '@/lib/format';
 import type { Connecte } from '@/lib/presence';
-import type { Profil } from '@/lib/profil';
+import type { MaPhoto, Profil } from '@/lib/profil';
 import Connectes from './Connectes';
 import { Roue } from './Icones';
 
@@ -24,11 +24,17 @@ export default function Colonne({
   profil,
   logo,
   connectes = [],
+  photo = null,
 }: {
   profil: Profil;
   logo: string | null;
   /** Les collègues de la loge dont la session est ouverte (migration 0042). */
   connectes?: Connecte[];
+  /**
+   * Ma fiche de référent, et si elle porte un visage (migration 0047). `null`
+   * pour qui n'a pas de fiche.
+   */
+  photo?: MaPhoto | null;
 }) {
   const chemin = usePathname() ?? '';
   const familles = famillesDuRole(profil.role);
@@ -43,6 +49,24 @@ export default function Colonne({
         </span>
         <span className="colonne-titre">HERACLES</span>
         {nom && <span className="colonne-qui">{nom}</span>}
+
+        {/* Votre visage, sous votre nom — ou sous votre adresse, faute de nom.
+            `alt` vide à dessein : le nom est juste au-dessus, et le faire
+            relire par un lecteur d'écran ne dirait rien de plus.
+
+            Rien du tout quand la fiche ne porte pas de photo rapatriée. Un
+            cadre vide, ou une silhouette, laisserait croire à une image qui ne
+            charge pas — alors qu'il n'y a simplement rien à montrer. */}
+        {photo?.a_une_photo && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            className="colonne-portrait"
+            src={`/espace/referents/${photo.referent_id}/photo`}
+            alt=""
+            width={44}
+            height={44}
+          />
+        )}
       </div>
 
       {/* Sous son propre nom : les autres. Le premier rendu vient du serveur,

@@ -2,7 +2,7 @@ import Barre from '@/components/Barre';
 import Colonne from '@/components/Colonne';
 import { cheminLogo } from '@/lib/logo';
 import { lireLesConnectes } from '@/lib/presence';
-import { exigerProfil } from '@/lib/profil';
+import { exigerProfil, lireMaPhoto } from '@/lib/profil';
 import { referentCourant } from '@/lib/candidat';
 
 /**
@@ -17,14 +17,19 @@ export default async function EspaceLayout({ children }: { children: React.React
 
   if (profil.role === 'chercheur') return <>{children}</>;
 
-  const [referent, connectes] = await Promise.all([
+  // `lireMaPhoto()` sans condition de rôle : un administrateur peut avoir sa
+  // fiche de référent, et la fonction rend simplement `null` quand il n'y en
+  // a pas. Réserver l'appel aux référents priverait de photo ceux qui en ont
+  // une, pour une économie d'une requête.
+  const [referent, connectes, maPhoto] = await Promise.all([
     profil.role === 'referent' ? referentCourant() : Promise.resolve(null),
     lireLesConnectes(),
+    lireMaPhoto(),
   ]);
 
   return (
     <div className="atelier">
-      <Colonne profil={profil} logo={cheminLogo} connectes={connectes} />
+      <Colonne profil={profil} logo={cheminLogo} connectes={connectes} photo={maPhoto} />
 
       <div className="atelier-corps">
         <Barre

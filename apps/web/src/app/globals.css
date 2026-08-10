@@ -1334,6 +1334,18 @@ tbody tr:focus-within {
   line-height: 1.35;
 }
 
+/* Son propre visage, sous son nom (migration 0047).
+   Plus grand que les vignettes de « Aussi en ligne » — 44 px contre 30, la
+   taille du rond de la maquette — et sans leur liseré vert : celui-ci dit
+   « en ce moment », ce qui n'a aucun sens appliqué à soi-même. */
+.colonne-portrait {
+  width: 44px;
+  height: 44px;
+  margin-top: 0.15rem;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
 .colonne-famille-nom {
   margin: 0.9rem 0 0.25rem;
   padding: 0 1.1rem;
@@ -1556,7 +1568,10 @@ tbody tr:focus-within {
     height: 1.8rem;
   }
 
-  .colonne-qui {
+  /* En bandeau, le nom disparaît — et le portrait avec lui : il est « sous le
+     nom », il n'a pas de place propre une fois le nom parti. */
+  .colonne-qui,
+  .colonne-portrait {
     display: none;
   }
 
