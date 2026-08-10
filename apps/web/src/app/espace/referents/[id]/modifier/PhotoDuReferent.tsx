@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useRef, useState } from 'react';
 
@@ -91,6 +92,18 @@ export default function PhotoDuReferent({
         <button type="submit" className="bouton bouton--fort" disabled={envoi || !choisi}>
           {envoi ? 'Dépôt…' : aUnePhoto ? 'Remplacer' : 'Déposer'}
         </button>
+
+        {/* Un lien, et non un bouton dans ce formulaire-ci : il n'envoie rien,
+            il ouvre la fenêtre de confirmation — laquelle n'est qu'une adresse,
+            donc le bouton « retour » du navigateur la referme. */}
+        {aUnePhoto && (
+          <Link
+            href={`/espace/referents/${id}/modifier?photo=retirer`}
+            className="bouton bouton--danger"
+          >
+            Retirer
+          </Link>
+        )}
       </form>
 
       <p className="aide">

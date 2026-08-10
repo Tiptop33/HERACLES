@@ -6,7 +6,11 @@ import { supabaseAdmin } from '@/lib/supabase-admin';
 import { supabaseServer } from '@/lib/supabase-server';
 
 /**
- * Déposer la photo d'un référent. **Réservé aux administrateurs.**
+ * La photo d'un référent : la déposer, ou la retirer. **Réservé aux
+ * administrateurs.**
+ *
+ * Deux gestes à la même adresse, comme pour les réunions : un champ caché
+ * `geste` dit lequel. Sans lui, on déposerait.
  *
  * L'ordre imposé par le projet, et il compte doublement ici puisque le fichier
  * part dans un seau que `service_role` ouvre en grand :
@@ -26,6 +30,10 @@ import { supabaseServer } from '@/lib/supabase-server';
  * l'identifiant de la fiche. Même déposée cent fois, une photo n'occupe qu'une
  * place, et `poser_la_photo_du_referent()` (migration 0048) refuserait de
  * toute façon un chemin d'ailleurs.
+ *
+ * Retirer efface le fichier du seau, et non seulement le chemin sur la fiche.
+ * Un visage qui resterait dans le stockage après qu'on a demandé de l'enlever
+ * ne serait pas un oubli de ménage.
  */
 
 /** Cinq mégaoctets : large pour un portrait, trop peu pour servir de dépôt. */
@@ -55,6 +63,46 @@ async function traiter(requete: Request, params: Promise<{ id: string }>) {
   if (!z.uuid().safeParse(id).success) return refuser('inconnu', 'Fiche inconnue.', 404);
 
   const champs = await requete.formData().catch(() => null);
+
+  // 1. La session.
+  const supabase = await supabaseServer();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return refuser('session', 'Session expirée.', 401);
+
+  // 2. Le droit, dit par la base. Les fonctions de 0048 et 0049 le
+  //    redemanderont — ceci ne sert qu'à ne rien remuer dans le seau pour
+  //    quelqu'un qui allait être refusé.
+  const { data: admin } = await supabase.rpc('est_admin');
+  if (admin !== true) return refuser('refus', 'Cette fiche n’est pas modifiable.', 403);
+
+  // 3. Le seau, enfin — et pas avant.
+  const stockage = supabaseAdmin().storage.from('documents');
+
+  // Deux gestes à la même adresse, comme pour les réunions : un champ caché
+  // dit lequel. Retirer d'abord, parce qu'il n'attend aucun fichier.
+  if (champs?.get('geste') === 'retirer') {
+    const { data: retiree, error } = await supabase.rpc('retirer_la_photo_du_referent', {
+      referent_choisi: id,
+    });
+
+    if (error) {
+      console.error('[referents/photo] retrait refusé', error);
+      return refuser('refus', 'Cette fiche n’est pas modifiable.', 403);
+    }
+
+    // Le visage quitte le stockage. Le laisser après qu'on a demandé de
+    // l'enlever ne serait pas un oubli de ménage : ce sont des données
+    // personnelles, et elles ne restent pas « au cas où ».
+    if (typeof retiree === 'string') {
+      const { error: souciMenage } = await stockage.remove([retiree]);
+      if (souciMenage) console.error('[referents/photo] fichier non effacé', souciMenage);
+    }
+
+    return repondre(requete, natif, id);
+  }
+
   const depose = champs?.get('photo');
   if (!(depose instanceof File) || depose.size === 0) {
     return refuser('photo-absente', 'Choisissez une image à déposer.');
@@ -74,22 +122,9 @@ async function traiter(requete: Request, params: Promise<{ id: string }>) {
     );
   }
 
-  // 1. La session.
-  const supabase = await supabaseServer();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return refuser('session', 'Session expirée.', 401);
-
-  // 2. Le droit, dit par la base. `poser_la_photo_du_referent()` le
-  //    redemandera — ceci ne sert qu'à ne pas écrire dans le seau pour rien.
-  const { data: admin } = await supabase.rpc('est_admin');
-  if (admin !== true) return refuser('refus', 'Cette fiche n’est pas modifiable.', 403);
-
-  // 3. Le seau, enfin. Le chemin se déduit de la fiche : rien de ce que
-  //    l'appelant a envoyé n'entre dans le nom du fichier.
+  // Le chemin se déduit de la fiche : rien de ce que l'appelant a envoyé
+  // n'entre dans le nom du fichier.
   const chemin = `referent/photo/${id}.${format}`;
-  const stockage = supabaseAdmin().storage.from('documents');
 
   const { error: souciDepot } = await stockage.upload(chemin, octets, {
     contentType: typeDeFichier(chemin),
@@ -126,10 +161,18 @@ async function traiter(requete: Request, params: Promise<{ id: string }>) {
     if (souciMenage) console.error('[referents/photo] ancienne photo non effacée', souciMenage);
   }
 
-  // `maj` fait redemander la photo au navigateur, qui la garde cinq minutes :
-  // sans lui, celle qu'on vient de déposer resterait invisible sur l'écran
-  // même où on l'a déposée. Ici et non au rendu de la page — une valeur qui
-  // change à chaque affichage y serait interdite, et à raison.
+  return repondre(requete, natif, id);
+}
+
+/**
+ * La réponse, commune aux deux gestes.
+ *
+ * `maj` fait redemander la photo au navigateur, qui la garde cinq minutes :
+ * sans lui, celle qu'on vient de déposer resterait invisible sur l'écran même
+ * où on l'a déposée. Ici et non au rendu de la page — une valeur qui change à
+ * chaque affichage y serait interdite, et à raison.
+ */
+function repondre(requete: Request, natif: boolean, id: string) {
   const grain = String(Date.now());
 
   if (natif) {
