@@ -7,7 +7,6 @@ import { nomsDuCollege } from '@/lib/college-serveur';
 import { initiales, nomComplet } from '@/lib/format';
 import { exigerProfil } from '@/lib/profil';
 import { accueilDuRole } from '@/lib/roles';
-import DepotDePhoto from '@/components/DepotDePhoto';
 import PortraitDeposable from '@/components/PortraitDeposable';
 import FenetreDeRetraitDePhoto from '@/components/FenetreDeRetraitDePhoto';
 import FormulaireReferent from './FormulaireReferent';
@@ -109,11 +108,14 @@ export default async function ModifierReferent({
         erreurInitiale={message ? { champ: null, message } : null}
       />
 
-      <DepotDePhoto
-        action={`/api/referents/${fiche.id}/photo`}
-        retour={`/espace/referents/${fiche.id}/modifier`}
-        aUnePhoto={fiche.a_une_photo}
-      />
+      {/* Pas de cadre « La photo » ici : tout se fait sur le portrait, en haut
+          de l'écran — on y glisse une image, on double-clique dedans, et le
+          bouton qui l'enlève est juste dessous. Le cadre faisait doublon avec
+          un geste qu'on a déjà sous les yeux.
+
+          Ce qui s'en va avec lui : le champ de fichier, donc le dépôt au
+          clavier et sans JavaScript. Sur cet écran, changer une photo demande
+          désormais une souris. « Mon compte » garde le sien. */}
 
       {!fiche.compte_rattache && (
         <section className="bloc">
