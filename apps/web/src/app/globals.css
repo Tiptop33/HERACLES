@@ -3015,6 +3015,15 @@ a.poste-document .poste-document-type {
 .appel-tete .maigre { margin: 0; }
 .appel-compte { display: flex; gap: .4rem; flex-wrap: wrap; align-items: center; }
 
+/* Le raccourci « tous les présents », à côté des compteurs. Plus petit qu'un
+   bouton ordinaire : il accompagne des chiffres, il ne commande pas l'écran —
+   « Fermer la feuille », en bas, reste le geste principal. */
+.appel-tous {
+  padding: 0.3rem 0.6rem;
+  font-size: 0.74rem;
+  border-radius: 7px;
+}
+
 /* La feuille : des lignes qui se touchent, séparées d'un filet — c'est un
    registre qu'on descend du regard, pas une collection de cartes. */
 .appel-feuille {
