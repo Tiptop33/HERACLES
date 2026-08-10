@@ -314,6 +314,14 @@ function FeuilleDAppel({
               fois qu'on veut, et il suit la feuille tant qu'on la corrige. */}
           <a
             className="bouton"
+            href={`/api/reunions/${reunion.id}/affiche`}
+            target="_blank"
+            rel="noopener"
+          >
+            Affiche
+          </a>
+          <a
+            className="bouton"
             href={`/api/reunions/${reunion.id}/compte-rendu`}
             target="_blank"
             rel="noopener"

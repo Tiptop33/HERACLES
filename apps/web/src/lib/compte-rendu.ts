@@ -1,3 +1,4 @@
+import type { Dossier } from './dossiers';
 import { dateEnLettres } from './format';
 import { Feuille, lisible, type Colonne } from './pdf';
 import { supabaseServer } from './supabase-server';
@@ -28,30 +29,12 @@ export type LignePresence = {
   taux: number;
 };
 
-export type LigneCandidatRendu = {
-  candidat_id: string;
-  numero: number | null;
-  ouvert_le: string | null;
-  emploi: string | null;
-  recherche: string | null;
-  nom: string | null;
-  prenom: string | null;
-  referent_nom: string | null;
-  commentaire: string | null;
-};
 
 export async function lirePresences(reunion: string): Promise<LignePresence[]> {
   if (!/^[0-9a-f-]{36}$/i.test(reunion)) return [];
   const supabase = await supabaseServer();
   const { data } = await supabase.rpc('compte_rendu_presences', { reunion_choisie: reunion });
   return (data as LignePresence[]) ?? [];
-}
-
-export async function lireCandidats(reunion: string): Promise<LigneCandidatRendu[]> {
-  if (!/^[0-9a-f-]{36}$/i.test(reunion)) return [];
-  const supabase = await supabaseServer();
-  const { data } = await supabase.rpc('compte_rendu_candidats', { reunion_choisie: reunion });
-  return (data as LigneCandidatRendu[]) ?? [];
 }
 
 /**
@@ -97,7 +80,7 @@ export async function construireCompteRendu(options: {
   lieu: string | null;
   loge: string | null;
   presences: LignePresence[];
-  candidats: LigneCandidatRendu[];
+  candidats: Dossier[];
 }): Promise<Uint8Array> {
   const { tenueLe, lieu, loge, presences, candidats } = options;
   const feuille = await Feuille.ouvrir();
@@ -106,7 +89,8 @@ export async function construireCompteRendu(options: {
   feuille.centre(PROVINCE, { taille: 9, gras: false });
   feuille.espace(4);
   feuille.centre(`COMMISSION EMPLOI « HERACLES »${loge ? ` — ${loge}` : ''}`, { taille: 13 });
-  feuille.centre(`Compte rendu des travaux de la commission du ${dateEnLettres(tenueLe)}`, {
+  const leJour = dateEnLettres(tenueLe) ?? tenueLe;
+  feuille.centre(`Compte rendu des travaux de la commission du ${leJour}`, {
     taille: 10,
     gras: false,
   });

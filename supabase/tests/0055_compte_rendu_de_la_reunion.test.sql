@@ -165,6 +165,9 @@ insert into public.candidat (numero, nom, prenom, loge_id, referent_id,
   (904, 'IMBERT', 'Zoé',   :'l_dax'::uuid, null,
    'Vendeuse', 'COMMERCE', null, null, current_date - 70);
 
+-- Un CV joint sur le 900, aucun sur le 903 : c'est ce que l'affiche marque.
+update public.candidat set cv_chemin = 'candidats/900/cv.pdf' where numero = 900;
+
 select id as c_duval from public.candidat where numero = 900 \gset
 
 insert into public.suivi (candidat_id, auteur_id, fait_le, texte) values
@@ -176,21 +179,21 @@ begin;
   set local request.jwt.claims = '{"sub":"aaaaaaaa-5500-0000-0000-000000000191"}';
 
   select public.verifier(
-    (select count(*) from public.compte_rendu_candidats(:'seance'::uuid)) = 2,
+    (select count(*) from public.dossiers_en_cours(:'seance'::uuid)) = 2,
     'deux dossiers en cours : le 900 et le 903');
 
   select public.verifier(
-    (select count(*) from public.compte_rendu_candidats(:'seance'::uuid)
+    (select count(*) from public.dossiers_en_cours(:'seance'::uuid)
       where numero in (901, 902)) = 0,
     'ni le cloture, ni l archive');
 
   select public.verifier(
-    (select count(*) from public.compte_rendu_candidats(:'seance'::uuid)
+    (select count(*) from public.dossiers_en_cours(:'seance'::uuid)
       where numero = 903) = 1,
     'mais bien celui dont Bubble dit « Non » : il n est pas referme');
 
   select public.verifier(
-    (select count(*) from public.compte_rendu_candidats(:'seance'::uuid)
+    (select count(*) from public.dossiers_en_cours(:'seance'::uuid)
       where numero = 904) = 0,
     'et rien de la loge voisine');
 commit;
@@ -203,25 +206,32 @@ begin;
   set local request.jwt.claims = '{"sub":"aaaaaaaa-5500-0000-0000-000000000191"}';
 
   select public.verifier(
-    (select commentaire from public.compte_rendu_candidats(:'seance'::uuid) where numero = 900)
+    (select commentaire from public.dossiers_en_cours(:'seance'::uuid) where numero = 900)
       = 'contact ce jour, attente réponse',
     'le dernier mot du journal, pas le premier');
 
   select public.verifier(
-    (select referent_nom from public.compte_rendu_candidats(:'seance'::uuid) where numero = 900) = 'OMBRE'
-    and (select referent_nom from public.compte_rendu_candidats(:'seance'::uuid) where numero = 903) is null,
+    (select referent_nom from public.dossiers_en_cours(:'seance'::uuid) where numero = 900) = 'OMBRE'
+    and (select referent_nom from public.dossiers_en_cours(:'seance'::uuid) where numero = 903) is null,
     'le referent quand il y en a un, et rien quand il n y en a pas');
 
   select public.verifier(
-    (select emploi from public.compte_rendu_candidats(:'seance'::uuid) where numero = 900) = 'Chef de travaux'
-    and (select recherche from public.compte_rendu_candidats(:'seance'::uuid) where numero = 900)
+    (select emploi from public.dossiers_en_cours(:'seance'::uuid) where numero = 900) = 'Chef de travaux'
+    and (select recherche from public.dossiers_en_cours(:'seance'::uuid) where numero = 900)
           = 'DIRECTION DE TRAVAUX / CHEF DE TRAVAUX BTP',
     'le metier court et la recherche longue, comme sur le document');
 
   select public.verifier(
-    (select ouvert_le from public.compte_rendu_candidats(:'seance'::uuid) where numero = 900)
+    (select ouvert_le from public.dossiers_en_cours(:'seance'::uuid) where numero = 900)
       = current_date - 120,
     'et la date d ouverture du dossier');
+
+  -- La mention « CV » de l'affiche : elle ne dit pas ce que vaut le dossier,
+  -- seulement qu'un CV y est joint.
+  select public.verifier(
+    (select a_un_cv from public.dossiers_en_cours(:'seance'::uuid) where numero = 900) = true
+    and (select a_un_cv from public.dossiers_en_cours(:'seance'::uuid) where numero = 903) = false,
+    'et la mention CV, pour celui qui en a un');
 commit;
 
 -- ---------------------------------------------------------------------------
@@ -237,7 +247,7 @@ begin;
     'aucune presence pour la reunion de Dax');
 
   select public.verifier(
-    (select count(*) from public.compte_rendu_candidats(:'chez_rita'::uuid)) = 0,
+    (select count(*) from public.dossiers_en_cours(:'chez_rita'::uuid)) = 0,
     'et aucun candidat non plus');
 commit;
 
@@ -254,7 +264,7 @@ begin
     raise notice '  ok — anon n''a pas le droit de lire les presences';
   end;
   begin
-    perform public.compte_rendu_candidats('00000000-0000-0000-0000-000000000000'::uuid);
+    perform public.dossiers_en_cours('00000000-0000-0000-0000-000000000000'::uuid);
     raise exception 'ÉCHEC — anon a pu lire les candidats';
   exception when insufficient_privilege then
     raise notice '  ok — ni les candidats';

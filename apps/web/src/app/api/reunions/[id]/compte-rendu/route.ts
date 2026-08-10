@@ -1,11 +1,7 @@
 import { NextResponse } from 'next/server';
-import {
-  construireCompteRendu,
-  lireCandidats,
-  lirePresences,
-  nomDuFichier,
-} from '@/lib/compte-rendu';
+import { construireCompteRendu, lirePresences, nomDuFichier } from '@/lib/compte-rendu';
 import { referentCourant } from '@/lib/candidat';
+import { lireDossiers } from '@/lib/dossiers';
 import { lireUneReunion } from '@/lib/reunion';
 import { supabaseServer } from '@/lib/supabase-server';
 
@@ -54,7 +50,7 @@ export async function GET(_requete: Request, { params }: { params: Promise<{ id:
     // réunion : `lireUneReunion()` n'aurait rien rendu autrement.
     const [presences, candidats, moi] = await Promise.all([
       lirePresences(id),
-      lireCandidats(id),
+      lireDossiers(id),
       referentCourant(),
     ]);
 

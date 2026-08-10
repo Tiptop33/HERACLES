@@ -2,7 +2,8 @@ import { PDFDocument } from 'pdf-lib';
 import { describe, expect, it } from 'vitest';
 import { construireCompteRendu, jour, marque, nomComplet } from '../src/lib/compte-rendu';
 import { Feuille, lisible } from '../src/lib/pdf';
-import type { LigneCandidatRendu, LignePresence } from '../src/lib/compte-rendu';
+import type { LignePresence } from '../src/lib/compte-rendu';
+import type { Dossier } from '../src/lib/dossiers';
 
 /**
  * Le compte rendu part par courriel, et il porte des coordonnées : il doit se
@@ -25,7 +26,7 @@ function presence(reste: Partial<LignePresence> = {}): LignePresence {
   };
 }
 
-function candidat(reste: Partial<LigneCandidatRendu> = {}): LigneCandidatRendu {
+function candidat(reste: Partial<Dossier> = {}): Dossier {
   return {
     candidat_id: '00000000-0000-0000-0000-000000000002',
     numero: 900,
@@ -36,6 +37,7 @@ function candidat(reste: Partial<LigneCandidatRendu> = {}): LigneCandidatRendu {
     prenom: 'Chloé',
     referent_nom: 'OMBRE',
     commentaire: 'contact ce jour',
+    a_un_cv: true,
     ...reste,
   };
 }

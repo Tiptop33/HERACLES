@@ -8,8 +8,10 @@
 --
 --   · `compte_rendu_presences()` — le tableau des présences : nom, e-mail,
 --     téléphone, l'état du jour, et le taux de présence sur l'exercice ;
---   · `compte_rendu_candidats()` — la liste des candidats : date, emploi
---     recherché, nom, référent, dernier commentaire, numéro de dossier.
+--   · `dossiers_en_cours()` — la liste des candidats : date, emploi recherché,
+--     nom, référent, dernier commentaire, numéro de dossier, et si un CV est
+--     joint. Elle ne porte pas le nom d'un document parce qu'elle en sert
+--     deux : le compte rendu la donne avec les noms, l'affiche sans.
 --
 -- Rien ne s'écrit ici. Le document est une photographie de ce que la base sait
 -- déjà ; c'est la feuille d'appel qui le remplit, réunion après réunion.
@@ -110,9 +112,11 @@ revoke all on function public.compte_rendu_presences(uuid) from public, anon;
 grant execute on function public.compte_rendu_presences(uuid) to authenticated;
 
 -- ---------------------------------------------------------------------------
--- La liste des candidats
+-- Les dossiers en cours
 -- ---------------------------------------------------------------------------
-create or replace function public.compte_rendu_candidats(reunion_choisie uuid)
+drop function if exists public.dossiers_en_cours(uuid);
+
+create function public.dossiers_en_cours(reunion_choisie uuid)
 returns table (
   candidat_id  uuid,
   numero       integer,
@@ -126,7 +130,9 @@ returns table (
   prenom       text,
   referent_nom text,
   /** Le dernier mot du journal de suivi, celui qu'on relit en séance. */
-  commentaire  text
+  commentaire  text,
+  /** L'affiche porte la mention « CV » sur les dossiers qui en ont un. */
+  a_un_cv      boolean
 )
 language sql
 stable
@@ -142,7 +148,8 @@ as $$
          c.emploi_recherche,
          c.nom, c.prenom,
          r.nom,
-         dernier.texte
+         dernier.texte,
+         (c.cv_chemin is not null or c.cv_url is not null)
     from public.candidat c
     join la_reunion lr on c.loge_id = lr.loge_id
     left join public.referent r on r.id = c.referent_id
@@ -161,10 +168,10 @@ as $$
    order by c.numero asc nulls last, c.nom, c.prenom
 $$;
 
-comment on function public.compte_rendu_candidats(uuid) is
-  'La liste des candidats du compte rendu : les dossiers en cours de la loge '
-  'de cette réunion, avec leur dernier commentaire de suivi. Clôturés et '
-  'archivés en sont exclus, selon mot_de_fermeture() (0029).';
+comment on function public.dossiers_en_cours(uuid) is
+  'Les dossiers en cours de la loge de cette réunion, avec leur dernier '
+  'commentaire de suivi. Clôturés et archivés en sont exclus, selon '
+  'mot_de_fermeture() (0029). Sert le compte rendu et l''affiche.';
 
-revoke all on function public.compte_rendu_candidats(uuid) from public, anon;
-grant execute on function public.compte_rendu_candidats(uuid) to authenticated;
+revoke all on function public.dossiers_en_cours(uuid) from public, anon;
+grant execute on function public.dossiers_en_cours(uuid) to authenticated;
