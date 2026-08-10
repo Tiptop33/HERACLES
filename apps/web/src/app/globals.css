@@ -1044,8 +1044,16 @@ tbody tr:focus-within {
 /* Le portrait qu'on change en y glissant une photo, ou en double-cliquant
    dedans. Le pointillé dit « posez quelque chose ici » sans avoir à l'écrire :
    c'est le trait des maquettes, celui qui marque un emplacement à remplir. */
+/* Le portrait et, dessous, le bouton qui l'enlève. En colonne : c'est ce qui
+   donne au bouton la largeur du portrait, sans avoir à répéter la mesure —
+   `width: 100%` suffit, et le jour où le portrait change de taille, le bouton
+   suit tout seul. */
 .portrait-depot {
   flex: none;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.35rem;
 }
 
 .portrait-cible {
@@ -1090,6 +1098,17 @@ tbody tr:focus-within {
 .initiales-portrait {
   display: grid;
   place-items: center;
+}
+
+/* Aussi large que la photo au-dessus, et pas plus : le libellé du bouton
+   ordinaire n'y tiendrait pas, d'où cette taille et ces marges resserrées. */
+.portrait-retirer {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.28rem 0.2rem;
+  font-size: 0.72rem;
+  text-align: center;
+  border-radius: 7px;
 }
 
 .portrait-erreur {

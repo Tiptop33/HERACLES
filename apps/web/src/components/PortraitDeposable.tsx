@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useRef, useState } from 'react';
 
 /**
@@ -112,6 +113,23 @@ export default function PortraitDeposable({
 
         {envoi && <span className="portrait-envoi">Dépôt…</span>}
       </div>
+
+      {/* Sous la photo, et large comme elle : le geste qui l'enlève est là où
+          elle est, et non dans un bloc plus bas où il faudrait aller le
+          chercher. Rien quand il n'y a pas de visage — il n'y aurait rien à
+          retirer.
+
+          Un lien, et non un bouton : il n'envoie rien, il ouvre la fenêtre de
+          confirmation, laquelle n'est qu'une adresse — donc le bouton
+          « retour » du navigateur la referme. */}
+      {src && (
+        <Link
+          href={`${retour}?photo=retirer`}
+          className="bouton bouton--danger portrait-retirer"
+        >
+          Retirer
+        </Link>
+      )}
 
       {/* Hors de tout formulaire, et jamais soumis : il ne sert qu'à ouvrir
           l'explorateur de fichiers au double-clic. Le champ visible du bloc
