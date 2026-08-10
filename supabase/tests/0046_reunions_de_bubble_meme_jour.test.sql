@@ -122,5 +122,63 @@ begin;
     'les six figurent au registre, à la même date');
 commit;
 
+-- ---------------------------------------------------------------------------
+\echo '— le deversement passe sur cinq reunions saisies le meme jour'
+-- ---------------------------------------------------------------------------
+-- Le cas de production du 10 août 2026, reproduit ici parce qu'il a bloqué
+-- tous les déploiements : 0036 déverse les réunions à la fin de la migration.
+-- Avec cinq réunions Bubble sur un même jour de saisie, elle échouait — donc
+-- 0046, qui corrige l'index, n'était jamais atteinte. Blocage circulaire.
+insert into public.bubble_brut (type_bubble, bubble_id, donnees)
+select 'reunion', 'rb-0046-' || n,
+       jsonb_build_object(
+         '_id',          'rb-0046-' || n,
+         'Created Date', '2026-02-25T18:0' || n || ':00.000Z',
+         'Created By',   'ref-0046-yuri',
+         'referent',     jsonb_build_array('ref-0046-yuri'))
+  from generate_series(1, 5) as n
+on conflict (type_bubble, bubble_id) do nothing;
+
+select reunions as posees, pointages
+  from public.deverser_reunions_bubble() \gset
+
+select public.verifier(
+  :posees = 5,
+  'les cinq réunions du même jour de saisie sont déversées');
+
+select public.verifier(
+  :pointages = 5,
+  'et leurs cinq pointages avec elles');
+
+-- Rejouable : c'est ce que fait le serveur à chaque déploiement.
+select reunions as posees2 from public.deverser_reunions_bubble() \gset
+
+select public.verifier(
+  (select count(*) from public.reunion where bubble_id like 'rb-0046-%') = 5,
+  'rejouée, elle n''en crée pas cinq de plus');
+
+-- ---------------------------------------------------------------------------
+\echo '— et 0036 se rejoue sur une base qui porte deja ces reunions'
+-- ---------------------------------------------------------------------------
+-- **Le contrôle qui manquait.** Le serveur rejoue TOUTES les migrations à
+-- CHAQUE déploiement, et 0036 déverse les réunions à la fin. Le harnais les
+-- rejoue lui aussi, mais sur une base où `bubble_brut` est encore vide : la
+-- panne du 10 août lui échappait donc entièrement.
+--
+-- Ici les cinq réunions sont en place. Si 0036 rate, aucun déploiement ne
+-- passe plus — c'est exactement ce qui s'est produit.
+\i supabase/migrations/0036_reunions_et_appels.sql
+
+select public.verifier(
+  (select count(*) from public.reunion where bubble_id like 'rb-0046-%') = 5,
+  'la migration se rejoue sans broncher, données Bubble en place');
+
+-- L'index doit être ressorti partiel de ce passage : `if not exists` regarde
+-- le nom et non la définition, d'où le `drop` qui le précède.
+select public.verifier(
+  (select indexdef like '%bubble_id IS NULL%' from pg_indexes
+    where indexname = 'reunion_loge_jour_idx'),
+  'et l''index est bien resté partiel');
+
 \echo ''
 \echo 'Tous les contrôles de 0046_reunions_de_bubble_meme_jour.sql sont passés.'

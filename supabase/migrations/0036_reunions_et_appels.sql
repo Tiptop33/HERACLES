@@ -72,9 +72,24 @@ comment on column public.reunion.tenue_le is
 
 -- Une loge ne tient pas deux réunions le même jour. La contrainte attrape le
 -- double-clic et la saisie en double, qui fausseraient tous les compteurs.
+--
+-- `bubble_id is null` : elle ne vaut que pour ce qui s'ouvre ici. La raison
+-- est en tête de 0046 — Bubble n'enregistre pas la date des réunions, et cinq
+-- d'entre elles portent le même jour de saisie.
+--
+-- Pourquoi ce n'est pas 0046 seule qui le fait, alors qu'elle existe : cette
+-- migration-ci **déverse les réunions à la fin** (voir tout en bas). Sur un
+-- serveur qui a déjà repris Bubble, elle échouait donc ici même, et le
+-- déploiement s'arrêtait avant d'atteindre 0046 — la migration qui corrigeait
+-- précisément cela. C'est arrivé le 10 août 2026, et plus rien ne se déployait.
+--
+-- Le `drop` est nécessaire : `if not exists` regarde le nom, pas la
+-- définition, et aurait laissé l'ancien index en place.
+drop index if exists public.reunion_loge_jour_idx;
+
 create unique index if not exists reunion_loge_jour_idx
   on public.reunion (loge_id, tenue_le)
-  where retire_le is null;
+  where retire_le is null and bubble_id is null;
 
 create index if not exists reunion_registre_idx
   on public.reunion (loge_id, tenue_le desc)
