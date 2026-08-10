@@ -3166,6 +3166,10 @@ a.poste-document .poste-document-type {
 }
 .appel-clore p { margin: 0; flex: 1 1 18rem; }
 
+/* Les deux gestes du pied de feuille, côte à côte : demander le compte rendu,
+   et fermer l'appel. Ils restent groupés quand la phrase passe à la ligne. */
+.appel-gestes { display: flex; align-items: center; gap: .5rem; flex: 0 0 auto; }
+
 /* L'appel se fait à l'écran, il ne s'imprime pas — le registre, lui, oui. */
 @media print {
   .reunion-ouvrir,

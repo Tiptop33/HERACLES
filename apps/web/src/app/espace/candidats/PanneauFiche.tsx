@@ -124,6 +124,18 @@ export default function PanneauFiche({
         <div className="fiche-actions">
           <BoutonImprimer />
 
+          {/* L'affichette : ce dossier seul, mis en avant pour circuler. Elle
+              ne porte ni nom, ni ville, ni CV — seulement le numéro, qui sert
+              à revenir vers la commission. */}
+          <a
+            className="bouton"
+            href={`/api/candidats/${fiche.id}/affichette`}
+            target="_blank"
+            rel="noopener"
+          >
+            Affichette
+          </a>
+
           {/* Éteint, et à sa place définitive : c'est le geste que la maquette
               met ici, et le lot 4 l'apportera. */}
           <span className="bouton bouton--eteint" title="À venir au lot 4">
