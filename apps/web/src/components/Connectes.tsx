@@ -5,8 +5,8 @@ import { initiales, nomAffichable } from '@/lib/format';
 import type { Connecte } from '@/lib/presence';
 
 /**
- * « Qui est là » — les référents de la loge dont la session est ouverte, sous
- * votre nom dans la colonne de gauche.
+ * « Qui est là » — les référents de la loge qui sont devant leur écran en ce
+ * moment, sous votre nom dans la colonne de gauche.
  *
  * Une photo par personne, et son nom au survol. La vignette est un `title`
  * doublé d'un `aria-label` : pas d'infobulle maison, celle du navigateur
@@ -18,12 +18,23 @@ import type { Connecte } from '@/lib/presence';
  * touche que cette liste — le reste de l'écran ne bronche pas, et une saisie
  * en cours ne se perd pas.
  *
+ * **Ce passage est aussi ce qui prouve qu'on est là** (migration 0057). Il ne
+ * part que d'un onglet visible, et le serveur en note l'heure : deux minutes
+ * sans nouvelles, et l'on sort de la colonne des autres. C'est ce qui fait
+ * qu'un onglet fermé ne laisse pas un visage affiché jusqu'au soir.
+ *
  * Sans JavaScript, la liste rendue par le serveur reste affichée telle quelle.
  * Elle ne se met plus à jour, mais elle est là : c'est un ornement qui se
- * dégrade, pas une fonction qui disparaît.
+ * dégrade, pas une fonction qui disparaît. En revanche on ne donne alors aucun
+ * signe de vie, et l'on s'efface de la colonne des autres au bout de deux
+ * minutes — une présence qui se mesure ne peut pas se deviner.
  */
 
-/** Trente secondes : assez pour suivre, assez peu pour ne pas peser. */
+/**
+ * Trente secondes : assez pour suivre, assez peu pour ne pas peser. Le serveur
+ * accorde deux minutes de silence (0057), soit quatre fois cette cadence : de
+ * quoi perdre trois passages sans clignoter dans la colonne des autres.
+ */
 const CADENCE = 30_000;
 
 export default function Connectes({ initiaux }: { initiaux: Connecte[] }) {
@@ -48,6 +59,12 @@ export default function Connectes({ initiaux }: { initiaux: Connecte[] }) {
         // ferait croire que tout le monde est parti.
       }
     };
+
+    // Tout de suite, sans attendre la première demi-minute : une page qui
+    // s'ouvre est un signe de vie, et il faut le poser avant que les deux
+    // minutes du serveur ne s'écoulent. Sans lui, qui recharge sa page plus
+    // souvent que toutes les trente secondes n'en donnerait jamais aucun.
+    relire();
 
     const minuteur = setInterval(relire, CADENCE);
     document.addEventListener('visibilitychange', relire);

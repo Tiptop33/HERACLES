@@ -8,7 +8,7 @@ export async function POST(requete: Request) {
 
   // Avant `signOut()`, tant que la session vaut encore : après, la fonction ne
   // saurait plus quelle ligne effacer, et l'on resterait « là » aux yeux de la
-  // loge pendant douze heures.
+  // loge le temps que le silence fasse son œuvre — deux minutes (0057).
   await jeMeDeconnecte();
 
   await supabase.auth.signOut();

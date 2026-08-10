@@ -107,12 +107,18 @@ begin;
 commit;
 
 -- ---------------------------------------------------------------------------
-\echo '— la limite est la meme des deux cotes'
+\echo '— a onze heures la session est encore vivante pour je_me_connecte()'
 -- ---------------------------------------------------------------------------
--- Onze heures : `les_connectes()` le compte encore. `je_me_connecte()` doit
--- donc garder son heure — sinon une session vivante d'un côté serait close de
--- l'autre, et l'on reparaîtrait une fois sur deux.
-update public.profil set connecte_depuis = now() - interval '11 hours' where id = :'bora';
+-- Onze heures, soit en deçà des douze du garde-fou : `je_me_connecte()` garde
+-- donc son heure de début, sans quoi un second onglet ouvrirait une seconde
+-- session.
+--
+-- `les_connectes()`, elle, ne lit plus cette limite depuis 0057 : elle regarde
+-- le dernier signe de vie, qu'on pose ici en même temps. Les deux fonctions ne
+-- parlent plus de la même chose — l'une du début d'une session, l'autre de qui
+-- est devant son écran.
+update public.profil set connecte_depuis = now() - interval '11 hours', vu_le = now()
+ where id = :'bora';
 select connecte_depuis as onze_h from public.profil where id = :'bora' \gset
 
 begin;
@@ -130,7 +136,7 @@ begin;
   set local request.jwt.claims = '{"sub":"aaaaaaaa-5100-0000-0000-000000000181"}';
   select public.verifier(
     (select count(*) from public.les_connectes()) = 1,
-    'et les_connectes() le compte toujours');
+    'et les_connectes() le compte, puisqu''il donne signe de vie');
 commit;
 
 -- ---------------------------------------------------------------------------
