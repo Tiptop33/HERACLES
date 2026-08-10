@@ -54,8 +54,9 @@ select id as r_elias from public.referent where bubble_id = 'ref-0052-elias' \gs
 -- La réunion, ouverte par Alma — **avant** que personne ne soit en ligne.
 --
 -- L'ordre compte depuis 0053 : ouvrir l'appel pointe désormais les connectés.
--- Ouvrir d'abord laisse la feuille vide, et ce qui suit éprouve bien le bouton
--- de 0052, seul. Que l'ouverture pointe, c'est 0053 qui le vérifie.
+-- Ouvrir d'abord ne laisse donc sur la feuille que la ligne d'Alma — la sienne,
+-- posée par 0054 —, et ce qui suit éprouve bien le bouton de 0052, seul. Que
+-- l'ouverture pointe, ce sont 0053 et 0054 qui le vérifient.
 begin;
   set local role authenticated;
   set local request.jwt.claims = '{"sub":"aaaaaaaa-5200-0000-0000-000000000191"}';
@@ -63,8 +64,9 @@ begin;
 commit;
 
 select public.verifier(
-  (select count(*) from public.appel where reunion_id = :'seance'::uuid) = 0,
-  'personne en ligne a l ouverture : la feuille part vide');
+  (select count(*) from public.appel where reunion_id = :'seance'::uuid
+     and referent_id <> :'r_alma'::uuid) = 0,
+  'personne d autre en ligne a l ouverture : le bouton a tout a faire');
 
 -- Qui est là : Alma (elle tient l'appel), Bahia et Ciro. Elias a laissé un
 -- onglet ouvert il y a treize heures — le garde-fou l'écarte. Dan n'est jamais
@@ -113,10 +115,19 @@ select public.verifier(
 -- ---------------------------------------------------------------------------
 -- `les_connectes()` exclut l'appelant, et la feuille ne lui propose pas
 -- davantage son propre bouton : les deux disent la même chose.
-select public.verifier(
-  (select count(*) from public.appel where reunion_id = :'seance'::uuid
-     and referent_id = :'r_alma'::uuid) = 0,
-  'Alma n est pas pointee par son propre geste');
+--
+-- Sa ligne est bien sur la feuille depuis 0054, mais elle vient de
+-- l'ouverture, pas de ce geste-ci : le bouton n'a rendu qu'une seule case, et
+-- c'était celle de Bahia. Ce qui s'éprouve ici est donc la liste que le bouton
+-- recopie, où Alma ne peut pas se trouver.
+begin;
+  set local role authenticated;
+  set local request.jwt.claims = '{"sub":"aaaaaaaa-5200-0000-0000-000000000191"}';
+  select public.verifier(
+    (select count(*) from public.les_connectes()
+      where referent_id = :'r_alma'::uuid) = 0,
+    'Alma ne figure pas dans la liste que le bouton recopie');
+commit;
 
 -- ---------------------------------------------------------------------------
 \echo '— ceux qui ne sont pas en ligne ne sont pas touches'
@@ -138,8 +149,8 @@ begin;
 commit;
 
 select public.verifier(
-  (select count(*) from public.appel where reunion_id = :'seance'::uuid) = 2,
-  'la feuille porte toujours deux pointages');
+  (select count(*) from public.appel where reunion_id = :'seance'::uuid) = 3,
+  'la feuille porte toujours trois pointages — Alma, Bahia, Ciro');
 
 -- ---------------------------------------------------------------------------
 \echo '— une reunion d une autre loge ne se pointe pas'
@@ -153,7 +164,7 @@ begin;
 commit;
 
 select public.verifier(
-  (select count(*) from public.appel where reunion_id = :'seance'::uuid) = 2,
+  (select count(*) from public.appel where reunion_id = :'seance'::uuid) = 3,
   'et rien n a bouge sur la feuille');
 
 -- ---------------------------------------------------------------------------
@@ -164,12 +175,12 @@ begin;
   set local request.jwt.claims = '{"sub":"aaaaaaaa-5200-0000-0000-000000000191"}';
 
   select public.verifier(
-    (select count(*) from public.feuille_d_appel(:'seance'::uuid) where etat = 'Présent') = 1,
-    'un present sur la feuille');
+    (select count(*) from public.feuille_d_appel(:'seance'::uuid) where etat = 'Présent') = 2,
+    'deux presents sur la feuille — Alma par 0054, Bahia par le bouton');
 
   select public.verifier(
-    (select count(*) from public.feuille_d_appel(:'seance'::uuid) where etat is null) = 3,
-    'et trois personnes restent a appeler');
+    (select count(*) from public.feuille_d_appel(:'seance'::uuid) where etat is null) = 2,
+    'et deux personnes restent a appeler');
 commit;
 
 -- ---------------------------------------------------------------------------

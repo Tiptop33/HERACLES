@@ -82,9 +82,18 @@ begin;
     'et pas Kenza, qui siège à Rodez');
 
   -- Vide, et non « Absent » : tant que personne n'a appelé, on ne sait rien.
+  -- Iris exceptée : depuis 0054, ouvrir l'appel pose sa propre ligne. Ce
+  -- contrôle porte donc sur ceux que personne n'a encore nommés — c'est là que
+  -- se joue la distinction entre « pas encore appelé » et « absent ».
   select public.verifier(
-    (select bool_and(etat is null) from public.feuille_d_appel(:'reunion'::uuid)),
+    (select bool_and(etat is null) from public.feuille_d_appel(:'reunion'::uuid)
+      where referent_id <> :'r_iris'::uuid),
     'avant l''appel, aucun état — ce n''est pas la même chose qu''absent');
+
+  select public.verifier(
+    (select etat from public.feuille_d_appel(:'reunion'::uuid)
+      where referent_id = :'r_iris'::uuid) = 'Présent',
+    'Iris exceptee, qui vient d ouvrir la reunion');
 commit;
 
 -- ---------------------------------------------------------------------------
