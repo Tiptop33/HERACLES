@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { jeMeConnecte } from '@/lib/presence';
 import { supabaseServer } from '@/lib/supabase-server';
 import { accueilDuRole } from '@/lib/roles';
 import { destinationInterne, origine } from '@/lib/formulaire';
@@ -29,6 +30,16 @@ export async function GET(requete: Request) {
   if (error) {
     return NextResponse.redirect(new URL('/connexion?erreur=lien', racine));
   }
+
+  // La session est ouverte : les collègues de la loge le verront dans leur
+  // colonne de gauche (migration 0042). Ici comme dans `/api/connexion` — c'est
+  // par cette route qu'entrent Google, les liens de confirmation, les
+  // invitations et les réinitialisations de mot de passe. L'oublier rendait
+  // invisible dans « qui est là » quiconque n'entrait pas par le formulaire.
+  //
+  // Avant la redirection, et non après : la réponse suivante est un 302, et
+  // rien ne s'exécute une fois qu'elle est partie.
+  await jeMeConnecte();
 
   if (suite) {
     return NextResponse.redirect(new URL(suite, racine));

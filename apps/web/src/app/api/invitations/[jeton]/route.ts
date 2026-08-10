@@ -4,6 +4,7 @@ import { supabaseServer } from '@/lib/supabase-server';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { empreinte, lireInvitation } from '@/lib/invitation';
 import { premiereFaute } from '@/lib/motdepasse';
+import { jeMeConnecte } from '@/lib/presence';
 import { accueilDuRole } from '@/lib/roles';
 
 const Reponse = z.discriminatedUnion('reponse', [
@@ -95,6 +96,11 @@ export async function POST(requete: Request, { params }: { params: Promise<{ jet
     email: invitation.email,
     password: lu.data.motDePasse,
   });
+
+  // Une session ouverte se marque, ici comme aux deux autres portes : sans
+  // cela, quelqu'un qui vient d'accepter son invitation n'apparaîtrait dans la
+  // colonne de ses collègues qu'à sa deuxième visite (migration 0042).
+  await jeMeConnecte();
 
   return NextResponse.json({ ok: true, redirection: accueilDuRole(invitation.role) });
 }

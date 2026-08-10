@@ -25,7 +25,23 @@ export async function lireLesConnectes(): Promise<Connecte[]> {
   return (data as Connecte[]) ?? [];
 }
 
-/** À la connexion. Rejouable : un second onglet ne décale pas l'heure. */
+/**
+ * À la connexion. Rejouable : tant que la session est vivante, un second onglet
+ * ne décale pas l'heure de début ; passé les douze heures du garde-fou, elle en
+ * ouvre une neuve (migration 0051).
+ *
+ * **À appeler partout où une session s'ouvre**, et il y a trois portes :
+ *
+ *   · `/api/connexion` — le formulaire e-mail et mot de passe ;
+ *   · `/auth/callback` — Google, les liens de confirmation, d'invitation et de
+ *     réinitialisation : tout ce qui passe par `exchangeCodeForSession` ;
+ *   · `/api/invitations/<jeton>` — la session ouverte dans la foulée du choix
+ *     du mot de passe.
+ *
+ * La liste est écrite ici parce que l'oubli ne se voit pas : la personne entre
+ * normalement, travaille normalement, et n'apparaît simplement jamais dans la
+ * colonne de ses collègues. C'est ce qui est arrivé aux deux dernières.
+ */
 export async function jeMeConnecte(): Promise<void> {
   const supabase = await supabaseServer();
   await supabase.rpc('je_me_connecte');
