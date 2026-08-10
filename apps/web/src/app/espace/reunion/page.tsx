@@ -198,6 +198,12 @@ function FeuilleDAppel({
   const n = compter(lignes);
   const retour = `/espace/reunion?appel=${reunion.id}`;
 
+  // Ceux que le bouton de groupe marquerait : en ligne, et pas encore appelés.
+  // Les compter ici plutôt que côté base évite de proposer un geste qui ne
+  // ferait rien — quand tous les présents sont déjà cochés, le bouton n'a plus
+  // lieu d'être et disparaît.
+  const aCocher = lignes.filter((l) => connectes.has(l.referent_id) && l.etat === null).length;
+
   return (
     <section className="bloc appel">
       <div className="appel-tete">
@@ -227,6 +233,23 @@ function FeuilleDAppel({
           <span className="etat etat--attente">{n.excuses} excusés</span>
           <span className="etat etat--clos">{n.absents} absents</span>
           {n.aAppeler > 0 && <span className="maigre">{n.aAppeler} à appeler</span>}
+
+          {/* Le raccourci : cocher d'un coup ceux dont la feuille propose déjà
+              le bouton « Présent » en pointillé. L'écran le savait, il ne
+              faisait rien de ce savoir.
+
+              Rien à confirmer : ce geste ne pose que des états qu'on aurait
+              posés à la main, il n'écrase aucune réponse déjà donnée, et
+              chaque ligne se corrige d'un clic. Il disparaît quand il n'y a
+              plus personne à cocher. */}
+          {aCocher > 0 && (
+            <form method="post" action={`/api/reunions/${reunion.id}/presents`}>
+              <input type="hidden" name="retour" value={retour} />
+              <button type="submit" className="bouton bouton--fort appel-tous">
+                Présents : les {aCocher} en ligne
+              </button>
+            </form>
+          )}
         </div>
       </div>
 
