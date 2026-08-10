@@ -47,3 +47,21 @@ export async function exigerProfil(): Promise<Profil> {
   if (!profil) redirect('/connexion');
   return profil;
 }
+
+/**
+ * Ma fiche de référent, et si elle porte un visage (migration 0047).
+ *
+ * Séparé du profil, parce que ce n'en est pas : le compte porte la session,
+ * la fiche de référent porte la photo. L'identifiant rendu est celui de la
+ * **fiche** — c'est lui qu'attend `/espace/referents/<id>/photo`, et il n'est
+ * pas celui du compte.
+ *
+ * `null` pour qui n'a pas de fiche : un administrateur, par exemple.
+ */
+export type MaPhoto = { referent_id: string; a_une_photo: boolean };
+
+export async function lireMaPhoto(): Promise<MaPhoto | null> {
+  const supabase = await supabaseServer();
+  const { data } = await supabase.rpc('ma_photo');
+  return ((data as MaPhoto[]) ?? [])[0] ?? null;
+}
