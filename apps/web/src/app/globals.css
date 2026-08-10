@@ -1027,6 +1027,21 @@ tbody tr:focus-within {
   align-items: center;
 }
 
+/* Déposer une photo : le choix du fichier, puis le bouton. Sur une ligne quand
+   la place le permet, l'un sous l'autre sinon — le nom d'un fichier peut être
+   long, et il n'a pas à pousser le bouton hors de l'écran. */
+.photo-depot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 0.7rem;
+}
+
+.photo-depot .champ {
+  flex: 1 1 16rem;
+  margin: 0;
+}
+
 .blocs {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(19rem, 1fr));
