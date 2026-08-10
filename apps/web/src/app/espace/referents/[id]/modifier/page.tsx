@@ -8,6 +8,7 @@ import { initiales, nomComplet } from '@/lib/format';
 import { exigerProfil } from '@/lib/profil';
 import { accueilDuRole } from '@/lib/roles';
 import FormulaireReferent from './FormulaireReferent';
+import PhotoDuReferent from './PhotoDuReferent';
 
 export const metadata = { title: 'Modifier un référent — HERACLES' };
 
@@ -23,6 +24,10 @@ const ERREURS: Record<string, string> = {
   echec: 'L’enregistrement a échoué. Réessayez.',
   inconnu: 'Fiche inconnue.',
   indisponible: 'Le service est momentanément indisponible.',
+  'photo-absente': 'Choisissez une image à déposer.',
+  'photo-format': 'Ce fichier n’est pas une image reconnue : JPEG, PNG, WebP, GIF ou AVIF.',
+  'photo-taille': 'Cette image dépasse 5 Mo.',
+  'photo-echec': 'Le dépôt de l’image a échoué. Réessayez.',
 };
 
 export default async function ModifierReferent({
@@ -30,7 +35,7 @@ export default async function ModifierReferent({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ erreur?: string }>;
+  searchParams: Promise<{ erreur?: string; maj?: string }>;
 }) {
   const profil = await exigerProfil();
   // Deux fois, et ce n'est pas un oubli : ici pour répondre proprement, et dans
@@ -38,7 +43,20 @@ export default async function ModifierReferent({
   if (profil.role !== 'admin') redirect(accueilDuRole(profil.role));
 
   const { id } = await params;
-  const { erreur } = await searchParams;
+  const { erreur, maj } = await searchParams;
+
+  /**
+   * Le grain qui force le navigateur à redemander la photo.
+   *
+   * La photo est servie avec `max-age=300` : sans lui, celle qu'on vient de
+   * déposer resterait invisible cinq minutes sur l'écran même où on l'a
+   * déposée. Il n'est posé que par le dépôt — une visite ordinaire garde le
+   * cache, qui a sa raison d'être.
+   *
+   * Des chiffres, et rien d'autre : ce paramètre vient de l'adresse, donc de
+   * n'importe qui, et il finit dans un attribut `src`.
+   */
+  const grain = maj && /^\d{1,14}$/.test(maj) ? `?maj=${maj}` : '';
 
   const [fiche, loges, titres] = await Promise.all([
     lireFicheAnnuaire(id),
@@ -61,7 +79,9 @@ export default async function ModifierReferent({
             // eslint-disable-next-line @next/next/no-img-element
             <img
               className="portrait"
-              src={`/espace/referents/${fiche.id}/photo`}
+              /* `maj` ne dit rien au serveur : la route ne lit que
+                 l'identifiant. Il ne parle qu'au navigateur. */
+              src={`/espace/referents/${fiche.id}/photo${grain}`}
               alt=""
               width={67}
               height={67}
@@ -93,6 +113,8 @@ export default async function ModifierReferent({
         colleges={choixDeCollege(titres, fiche.college)}
         erreurInitiale={message ? { champ: null, message } : null}
       />
+
+      <PhotoDuReferent id={fiche.id} aUnePhoto={fiche.a_une_photo} />
 
       {!fiche.compte_rattache && (
         <section className="bloc">

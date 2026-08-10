@@ -1,5 +1,20 @@
 import { describe, expect, it } from 'vitest';
-import { enTeteDeTelechargement, extensionDe, typeDeFichier } from '../src/lib/fichiers';
+import {
+  enTeteDeTelechargement,
+  extensionDe,
+  formatDImage,
+  typeDeFichier,
+} from '../src/lib/fichiers';
+
+/** Un fichier réduit à ce que la reconnaissance regarde : son début. */
+function debut(...octets: (number | string)[]): Uint8Array {
+  const plat = octets.flatMap((o) =>
+    typeof o === 'string' ? [...o].map((c) => c.charCodeAt(0)) : [o],
+  );
+  // Une queue de zéros : un vrai fichier ne s'arrête pas à son en-tête, et la
+  // lecture ne doit pas dépendre de la longueur.
+  return new Uint8Array([...plat, ...Array(32).fill(0)]);
+}
 
 describe('typeDeFichier', () => {
   it('reconnaît ce que Bubble a déposé', () => {
@@ -57,5 +72,38 @@ describe('enTeteDeTelechargement', () => {
 
   it('ne rend jamais un nom vide', () => {
     expect(enTeteDeTelechargement('   ')).toContain('filename="document"');
+  });
+});
+
+describe('formatDImage', () => {
+  it('reconnaît les cinq formats que les navigateurs affichent', () => {
+    expect(formatDImage(debut(0xff, 0xd8, 0xff, 0xe0))).toBe('jpg');
+    expect(formatDImage(debut(0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a))).toBe('png');
+    expect(formatDImage(debut('GIF89a'))).toBe('gif');
+    expect(formatDImage(debut('RIFF', 0, 0, 0, 0, 'WEBP'))).toBe('webp');
+    expect(formatDImage(debut(0, 0, 0, 32, 'ftyp', 'avif'))).toBe('avif');
+    expect(formatDImage(debut(0, 0, 0, 32, 'ftyp', 'avis'))).toBe('avif');
+  });
+
+  // Le nom du fichier vient du navigateur : c'est le contenu qui décide, sinon
+  // un document quelconque se ferait servir comme une image.
+  it('refuse ce qui n’est pas une image, quel que soit son nom', () => {
+    expect(formatDImage(debut('%PDF-1.7'))).toBeNull();
+    expect(formatDImage(debut('<svg xmlns='))).toBeNull();
+    expect(formatDImage(debut('<!DOCTYPE html>'))).toBeNull();
+    expect(formatDImage(debut('PK', 3, 4))).toBeNull();
+  });
+
+  it('ne se laisse pas prendre à un début qui ressemble', () => {
+    // « RIFF » sans « WEBP » : un son .wav, par exemple.
+    expect(formatDImage(debut('RIFF', 0, 0, 0, 0, 'WAVE'))).toBeNull();
+    // Une boîte ISO-BMFF qui n'est pas de l'AVIF : une vidéo .mp4.
+    expect(formatDImage(debut(0, 0, 0, 32, 'ftyp', 'isom'))).toBeNull();
+    // Un PNG amputé de la fin de sa signature.
+    expect(formatDImage(new Uint8Array([0x89, 0x50, 0x4e, 0x47]))).toBeNull();
+  });
+
+  it('ne bronche pas sur un fichier vide', () => {
+    expect(formatDImage(new Uint8Array())).toBeNull();
   });
 });
