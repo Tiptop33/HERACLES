@@ -35,7 +35,7 @@ export default async function ModifierReferent({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ erreur?: string; maj?: string }>;
+  searchParams: Promise<{ erreur?: string; maj?: string; photo?: string }>;
 }) {
   const profil = await exigerProfil();
   // Deux fois, et ce n'est pas un oubli : ici pour répondre proprement, et dans
@@ -43,7 +43,7 @@ export default async function ModifierReferent({
   if (profil.role !== 'admin') redirect(accueilDuRole(profil.role));
 
   const { id } = await params;
-  const { erreur, maj } = await searchParams;
+  const { erreur, maj, photo } = await searchParams;
 
   /**
    * Le grain qui force le navigateur à redemander la photo.
@@ -129,6 +129,59 @@ export default async function ModifierReferent({
           </Link>
         </section>
       )}
+
+      {/* La fenêtre est rendue par le serveur, sur la seule foi de l'adresse :
+          elle s'ouvre sans une ligne de script, et le bouton « retour » du
+          navigateur la referme. Elle ne s'ouvre pas sur une fiche sans photo —
+          il n'y aurait rien à retirer. */}
+      {photo === 'retirer' && fiche.a_une_photo && (
+        <FenetreDeRetraitDePhoto id={fiche.id} nom={nom} />
+      )}
     </main>
+  );
+}
+
+/**
+ * La fenêtre de confirmation avant de retirer une photo.
+ *
+ * Elle dit **ce qu'on perd**, plutôt que « êtes-vous sûr ? » — une question à
+ * laquelle on répond oui sans lire. Et ce qu'on perd est réel : le fichier
+ * quitte le stockage, et l'adresse d'origine chez Bubble part avec lui, sans
+ * quoi la prochaine reprise remettrait le visage en place (migration 0049).
+ */
+function FenetreDeRetraitDePhoto({ id, nom }: { id: string; nom: string }) {
+  const fermer = `/espace/referents/${id}/modifier`;
+
+  return (
+    <div className="fenetre-fond">
+      <Link href={fermer} className="fenetre-voile" aria-label="Fermer sans rien retirer" />
+
+      <div className="fenetre" role="dialog" aria-modal="true" aria-labelledby="retrait-photo">
+        <h2 id="retrait-photo">Retirer la photo de {nom}&nbsp;?</h2>
+
+        <p>
+          Le fichier <strong>quittera le stockage</strong>, et la fiche n’aura plus de
+          visage — dans l’annuaire, sur la feuille d’appel et dans la colonne de gauche.
+        </p>
+
+        <p className="aide">
+          Rien ne défait ce geste. Si la photo venait de Bubble, son adresse d’origine est
+          effacée elle aussi : sans cela, la prochaine reprise la remettrait en place. Pour
+          changer de portrait sans le perdre, fermez cette fenêtre et déposez-en un autre.
+        </p>
+
+        <div className="fenetre-gestes">
+          <Link href={fermer} className="bouton">
+            Annuler
+          </Link>
+          <form method="post" action={`/api/referents/${id}/photo`} encType="multipart/form-data">
+            <input type="hidden" name="geste" value="retirer" />
+            <button className="bouton bouton--danger" type="submit">
+              Retirer la photo
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
   );
 }
