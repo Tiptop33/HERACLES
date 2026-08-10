@@ -51,18 +51,26 @@ select id as r_ciro  from public.referent where bubble_id = 'ref-0052-ciro'  \gs
 select id as r_dan   from public.referent where bubble_id = 'ref-0052-dan'   \gset
 select id as r_elias from public.referent where bubble_id = 'ref-0052-elias' \gset
 
--- Qui est là : Alma (elle tient l'appel), Bahia et Ciro. Elias a laissé un
--- onglet ouvert il y a treize heures — le garde-fou l'écarte. Dan n'est jamais
--- venu.
-update public.profil set connecte_depuis = now() where id in (:'alma', :'bahia', :'ciro');
-update public.profil set connecte_depuis = now() - interval '13 hours' where id = :'elias';
-
--- La réunion, ouverte par Alma.
+-- La réunion, ouverte par Alma — **avant** que personne ne soit en ligne.
+--
+-- L'ordre compte depuis 0053 : ouvrir l'appel pointe désormais les connectés.
+-- Ouvrir d'abord laisse la feuille vide, et ce qui suit éprouve bien le bouton
+-- de 0052, seul. Que l'ouverture pointe, c'est 0053 qui le vérifie.
 begin;
   set local role authenticated;
   set local request.jwt.claims = '{"sub":"aaaaaaaa-5200-0000-0000-000000000191"}';
   select public.ouvrir_une_reunion(current_date, 'Temple') as seance \gset
 commit;
+
+select public.verifier(
+  (select count(*) from public.appel where reunion_id = :'seance'::uuid) = 0,
+  'personne en ligne a l ouverture : la feuille part vide');
+
+-- Qui est là : Alma (elle tient l'appel), Bahia et Ciro. Elias a laissé un
+-- onglet ouvert il y a treize heures — le garde-fou l'écarte. Dan n'est jamais
+-- venu.
+update public.profil set connecte_depuis = now() where id in (:'alma', :'bahia', :'ciro');
+update public.profil set connecte_depuis = now() - interval '13 hours' where id = :'elias';
 
 -- Ciro suit la réunion de loin : il est en ligne, mais noté excusé à la main.
 begin;

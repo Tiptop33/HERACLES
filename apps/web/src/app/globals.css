@@ -3055,6 +3055,21 @@ a.poste-document .poste-document-type {
   font-size: .82rem; font-weight: 700; color: var(--encre-douce);
 }
 
+/* Le portrait porte la pastille : elle se pose dessus, il lui faut donc un
+   repère. */
+.appel-visage { position: relative; flex: 0 0 auto; display: flex; }
+
+/* « En ligne, en ce moment. » Le même vert que le liseré des visages de la
+   colonne de gauche : c'est la même information, elle se dit de la même
+   couleur. Le cerne, de la couleur du fond, la détache du portrait sans
+   l'assombrir. */
+.appel-pastille {
+  position: absolute; right: 0; bottom: 0;
+  width: .62rem; height: .62rem; border-radius: 50%;
+  background: var(--referent);
+  box-shadow: 0 0 0 2px var(--surface);
+}
+
 .appel-nom { flex: 1 1 auto; min-width: 0; font-size: .95rem; }
 .appel-nom small { display: block; font-size: .75rem; color: var(--encre-tres-douce); }
 
