@@ -16,7 +16,7 @@ import {
   lireUneReunion,
   phraseDeRefusReunion,
   puisJeEffacerDesReunions,
-  rangerParPresences,
+  rangerParDate,
   type LigneDAppel,
   type LigneDeRegistre,
 } from '@/lib/reunion';
@@ -365,14 +365,13 @@ function LigneDeFeuille({
 type Adresse = (ajout?: Record<string, string | null>) => string;
 
 /**
- * Le registre de l'exercice, **rangé par nombre de présences**, de la mieux
- * suivie à la moins suivie.
+ * Le registre de l'exercice, **rangé par date**, de la plus ancienne à la plus
+ * récente.
  *
- * C'est un classement, pas une chronologie : la question qu'on pose à ce
- * tableau est « quelles réunions ont réuni du monde », et la date reste lisible
- * sur chaque ligne. À égalité de présences, la plus récente passe devant — sans
- * quoi l'ordre dépendrait de celui que la base a rendu, et deux affichages
- * successifs ne se ressembleraient pas.
+ * C'est une chronologie, comme dans les deux autres cadres de l'écran : on
+ * suit l'exercice dans son ordre, et une réunion se retrouve là où on l'attend.
+ * Les présences restent lisibles colonne par colonne, mais elles ne commandent
+ * plus l'ordre des lignes.
  */
 function Registre({
   lignes,
@@ -397,12 +396,12 @@ function Registre({
     <section className="bloc" style={{ marginTop: '1rem' }}>
       <h2>Le registre de l’exercice</h2>
       <p className="maigre">
-        De la réunion la plus suivie à la moins suivie. Les dates d’exercice viennent des
+        De la réunion la plus ancienne à la plus récente. Les dates d’exercice viennent des
         paramètres de l’application ; une réunion hors de ces bornes ne compte pas.
       </p>
 
       <TableauDuRegistre
-        lignes={rangerParPresences(lignes)}
+        lignes={rangerParDate(lignes)}
         ouverte={ouverte}
         adresse={adresse}
         peutEffacer={peutEffacer}
@@ -422,6 +421,10 @@ function Registre({
  *
  * Toutes dates confondues, contrairement aux deux registres : une réunion
  * retirée l'an dernier, ou depuis la clôture, tombait dans le même trou.
+ *
+ * Rangées par date de réunion, comme les deux registres, et non par date de
+ * retrait : on vient y chercher une réunion qu'on situe par le jour où elle
+ * s'est tenue, pas par celui où quelqu'un l'a sortie du registre.
  *
  * Le cadre reste affiché même vide. Il est toujours à la même place, donc
  * l'écran ne change pas de forme d'une visite à l'autre.
@@ -465,7 +468,7 @@ function Retirees({ lignes, adresse }: { lignes: LigneDeRegistre[]; adresse: Adr
               </tr>
             </thead>
             <tbody>
-              {lignes.map((r) => (
+              {rangerParDate(lignes).map((r) => (
                 <tr key={r.id}>
                   <td>
                     <time dateTime={r.tenue_le}>{dateEnLettres(r.tenue_le)}</time>
@@ -519,8 +522,8 @@ function Retirees({ lignes, adresse }: { lignes: LigneDeRegistre[]; adresse: Adr
  * été remises à jour, et que ces réunions n'apparaissaient jusqu'ici nulle
  * part. Ici, elles portent la mention « après la clôture ».
  *
- * Ordre chronologique, la plus récente d'abord : sur un registre d'archives on
- * cherche une date, pas un classement.
+ * Ordre chronologique, la plus ancienne d'abord, comme les deux autres cadres :
+ * sur un registre d'archives on cherche une date, pas un classement.
  */
 function RegistrePasse({
   lignes,
@@ -554,7 +557,12 @@ function RegistrePasse({
         </p>
       )}
 
-      <TableauDuRegistre lignes={lignes} ouverte={ouverte} adresse={adresse} periode />
+      <TableauDuRegistre
+        lignes={rangerParDate(lignes)}
+        ouverte={ouverte}
+        adresse={adresse}
+        periode
+      />
     </section>
   );
 }

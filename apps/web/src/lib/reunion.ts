@@ -150,20 +150,23 @@ export async function lireRegistreDesRetirees(): Promise<LigneDeRegistre[]> {
 }
 
 /**
- * Le registre rangé par nombre de présences, de la mieux suivie à la moins
- * suivie.
+ * Les réunions rangées par date, de la plus ancienne à la plus récente.
  *
- * C'est un classement, pas une chronologie : la question posée au tableau est
- * « quelles réunions ont réuni du monde ». À égalité de présences, la plus
- * récente passe devant — sans ce départage, l'ordre dépendrait de celui que
- * la base a rendu, et deux affichages successifs ne se ressembleraient pas.
+ * Le même ordre dans les trois cadres de l'écran — le registre de l'exercice,
+ * les réunions retirées, le registre de l'exercice passé. Un registre se lit
+ * en descendant les dates ; trois cadres rangés chacun à sa façon obligeaient
+ * à réapprendre l'ordre à chaque fois qu'on baissait les yeux.
+ *
+ * Deux réunions peuvent tomber le même jour (migration 0046) : leur
+ * identifiant les départage, sans quoi leur ordre serait celui que la base a
+ * rendu, et deux affichages successifs ne se ressembleraient pas.
  *
  * La liste reçue n'est pas modifiée : `sort` trie sur place, et un tableau
  * rendu par une lecture n'a pas à changer sous les pieds de son appelant.
  */
-export function rangerParPresences(lignes: LigneDeRegistre[]): LigneDeRegistre[] {
+export function rangerParDate(lignes: LigneDeRegistre[]): LigneDeRegistre[] {
   return [...lignes].sort(
-    (a, b) => b.presents - a.presents || b.tenue_le.localeCompare(a.tenue_le),
+    (a, b) => a.tenue_le.localeCompare(b.tenue_le) || a.id.localeCompare(b.id),
   );
 }
 

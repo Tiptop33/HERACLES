@@ -6,7 +6,7 @@ import {
   compter,
   estUnEtat,
   phraseDeRefusReunion,
-  rangerParPresences,
+  rangerParDate,
   type LigneDAppel,
   type LigneDeRegistre,
 } from '../src/lib/reunion';
@@ -63,9 +63,9 @@ describe('estUnEtat', () => {
 });
 
 /** Une ligne de registre, réduite à ce que le classement regarde. */
-function seance(tenue_le: string, presents: number): LigneDeRegistre {
+function seance(tenue_le: string, presents: number, id = crypto.randomUUID()): LigneDeRegistre {
   return {
-    id: crypto.randomUUID(),
+    id,
     tenue_le,
     lieu: null,
     presents,
@@ -77,31 +77,39 @@ function seance(tenue_le: string, presents: number): LigneDeRegistre {
   };
 }
 
-describe('rangerParPresences', () => {
-  it('met la réunion la plus suivie en tête', () => {
-    const registre = [seance('2026-01-10', 3), seance('2026-02-10', 9), seance('2026-03-10', 6)];
-    expect(rangerParPresences(registre).map((r) => r.presents)).toEqual([9, 6, 3]);
-  });
-
-  // Sans départage, l'ordre serait celui que la base a rendu : deux affichages
-  // successifs ne se ressembleraient pas, et la liste paraîtrait bouger seule.
-  it('départage deux réunions à égalité par la plus récente', () => {
-    const registre = [seance('2026-01-10', 5), seance('2026-05-04', 5), seance('2026-03-10', 5)];
-    expect(rangerParPresences(registre).map((r) => r.tenue_le)).toEqual([
-      '2026-05-04',
-      '2026-03-10',
+describe('rangerParDate', () => {
+  it('met la réunion la plus ancienne en tête', () => {
+    const registre = [seance('2026-03-10', 3), seance('2026-01-10', 9), seance('2026-02-10', 6)];
+    expect(rangerParDate(registre).map((r) => r.tenue_le)).toEqual([
       '2026-01-10',
+      '2026-02-10',
+      '2026-03-10',
     ]);
   });
 
+  // C'est une chronologie, pas un classement : la réunion la mieux suivie n'a
+  // plus à remonter en tête du tableau.
+  it('ne se laisse pas commander par les présences', () => {
+    const registre = [seance('2026-05-04', 1), seance('2026-01-10', 12)];
+    expect(rangerParDate(registre).map((r) => r.presents)).toEqual([12, 1]);
+  });
+
+  // Deux réunions le même jour existent (migration 0046). Sans départage, leur
+  // ordre serait celui que la base a rendu : deux affichages successifs ne se
+  // ressembleraient pas, et la liste paraîtrait bouger seule.
+  it('départage deux réunions du même jour par leur identifiant', () => {
+    const registre = [seance('2026-02-10', 4, 'b'), seance('2026-02-10', 7, 'a')];
+    expect(rangerParDate(registre).map((r) => r.id)).toEqual(['a', 'b']);
+  });
+
   it('ne touche pas à la liste reçue', () => {
-    const registre = [seance('2026-01-10', 1), seance('2026-02-10', 8)];
-    rangerParPresences(registre);
-    expect(registre.map((r) => r.presents)).toEqual([1, 8]);
+    const registre = [seance('2026-02-10', 1), seance('2026-01-10', 8)];
+    rangerParDate(registre);
+    expect(registre.map((r) => r.tenue_le)).toEqual(['2026-02-10', '2026-01-10']);
   });
 
   it('ne bronche pas sur un registre vide', () => {
-    expect(rangerParPresences([])).toEqual([]);
+    expect(rangerParDate([])).toEqual([]);
   });
 });
 
