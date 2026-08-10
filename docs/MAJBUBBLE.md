@@ -166,6 +166,62 @@ l'assiduité perdues en silence, sans message d'erreur, le jour de la bascule.
 C'est corrigé, et le récapitulatif de fin de script compte désormais `reunion`
 et `appel` : un zéro s'y verrait.
 
+#### `reunion` n'existe que sur la base de l'éditeur
+
+Relevé du 10 août 2026, en interrogeant les deux bases à découvert :
+
+| Base | `/obj/reunion` | Types exposés |
+| --- | --- | ---: |
+| en service | `404 — Type not found reunion` | 7 |
+| éditeur (`version-test`) | **24 réunions** | 45 |
+
+Les sept types exposés en service sont exactement ceux du PLAN. **Tout le
+reste — `reunion`, `tache`, et trente-six autres — n'existe que côté
+éditeur.**
+
+*Ce qu'il faut faire avant la bascule*, et c'est le même geste que pour
+`tache` : exposer `reunion` sur la base **en service** (Data → Data types,
+« expose via API », puis **déployer** — le réglage est versionné). L'éditeur
+tient ces données à jour aujourd'hui, mais rien ne le garantit d'ici décembre,
+et c'est la base en service qui fait foi le jour de la fermeture.
+
+#### Une reprise peut s'arrêter en route sans le dire
+
+Le 8 août, la reprise n'a stocké que **7 réunions sur 24**. Aucune n'avait été
+créée depuis — elles vont de septembre 2025 à juillet 2026 —, donc elles
+étaient toutes là au moment du passage. La reprise s'est interrompue au milieu
+de ce type.
+
+Personne ne l'a vu, et c'est le vrai enseignement : `import-bubble.mjs` attrape
+les erreurs **type par type** et poursuit avec le suivant. Un type à moitié
+repris ne fait donc échouer ni la passe, ni le script, qui se termine en vert.
+
+D'où le contrôle à faire après chaque reprise, avant de conclure quoi que ce
+soit :
+
+```sql
+select type_bubble, count(*), max(recupere_le)::date
+  from public.bubble_brut group by 1 order by 2 desc;
+```
+
+Et à comparer avec ce que Bubble annonce, base par base :
+
+```bash
+curl -s "https://heracles-42268.bubbleapps.io/version-test/api/1.1/obj/<type>?limit=1" \
+  | python3 -c "import sys,json; r=json.load(sys.stdin)['response']; print(r['count']+r['remaining'])"
+```
+
+#### Le jeton n'est pas nécessaire, et nuit quand il est faux
+
+L'API des deux bases répond **sans aucune authentification** — c'est le défaut
+de sécurité connu, et il joue ici en notre faveur. Un `401` lors d'une reprise
+ne signifie donc jamais « accès manquant » : il signifie qu'un `BUBBLE_TOKEN`
+a été fourni et refusé. Dans ce cas, **retirer la variable** suffit :
+
+```bash
+sudo /opt/heracles-essai-depot/infra/essai/reprendre-bubble.sh   # sans BUBBLE_TOKEN
+```
+
 *Ce qui resterait propre à faire avant la bascule* : exposer `tache` sur la
 base **en service** (Data → Data types, « expose via API », puis **déployer** —
 le réglage est versionné). L'éditeur tient ce type à jour, mais rien ne le
