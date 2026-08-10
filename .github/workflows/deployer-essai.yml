@@ -59,17 +59,39 @@
 
 name: Déployer l'instance d'essai
 
+# Deux déclencheurs, deux usages :
+#
+#   · `push` sur `main` — on vérifie, puis on déploie. C'est la mise en ligne.
+#   · `pull_request` vers `main` — on vérifie, et on s'arrête là.
+#
+# La vérification avant la fusion est ce qui manquait : jusqu'ici, lint, tests,
+# construction et toute la suite SQL ne tournaient qu'*après*. Une pull request
+# s'ouvrait sans la moindre coche, et l'on ne découvrait une migration cassée
+# qu'une fois `main` touchée — c'est-à-dire trop tard pour que la revue serve à
+# quelque chose.
+#
+# Les travaux de déploiement portent donc tous la même garde :
+# `github.event_name != 'pull_request'`. Une pull request ne met rien en ligne,
+# n'ouvre aucune connexion au serveur, et ne touche aucun secret.
 on:
   workflow_dispatch:
   push:
     branches: [main]
     paths-ignore: ['docs/**', '**/*.md']
+  pull_request:
+    branches: [main]
+    paths-ignore: ['docs/**', '**/*.md']
 
 # Deux déploiements en même temps se marcheraient dessus : le second attend, et
 # un troisième remplace le second en attente.
+#
+# Les vérifications de pull request ont leur propre file, une par branche : elles
+# ne déploient rien, et n'ont aucune raison de faire patienter une mise en ligne.
+# Elles s'annulent entre elles, celles-là — pousser une correction rend inutile
+# la vérification du commit précédent.
 concurrency:
-  group: essai
-  cancel-in-progress: false
+  group: "${{ github.event_name == 'pull_request' && format('essai-pr-{0}', github.ref) || 'essai' }}"
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   verifier:
@@ -137,6 +159,8 @@ jobs:
   deployer:
     name: Déployer
     needs: verifier
+    # Une pull request vérifie, elle ne met pas en ligne.
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     environment: essai
     continue-on-error: true
@@ -164,6 +188,7 @@ jobs:
     # S'il a répondu — migration en échec, clé refusée —, rien à retenter.
     if: >-
       always()
+      && github.event_name != 'pull_request'
       && needs.deployer.outputs.reussi != 'true'
       && needs.deployer.outputs.injoignable == 'true'
     runs-on: ubuntu-latest
@@ -188,6 +213,7 @@ jobs:
     needs: [verifier, deployer, deployer-2]
     if: >-
       always()
+      && github.event_name != 'pull_request'
       && needs.deployer-2.outputs.reussi != 'true'
       && needs.deployer-2.outputs.injoignable == 'true'
     runs-on: ubuntu-latest
@@ -215,8 +241,11 @@ jobs:
     # `always()` est nécessaire : les tentatives peuvent être en échec ou
     # sautées, et sans lui ce travail ne partirait pas — donc personne ne
     # dirait rien. En revanche si la vérification a échoué, il n'y a pas eu de
-    # déploiement à juger.
-    if: always() && needs.verifier.result == 'success'
+    # déploiement à juger. Ni sur une pull request, où il n'y en a jamais.
+    if: >-
+      always()
+      && github.event_name != 'pull_request'
+      && needs.verifier.result == 'success'
     runs-on: ubuntu-latest
     steps:
       - name: Une machine a-t-elle déployé ?
