@@ -7,8 +7,10 @@ import { nomsDuCollege } from '@/lib/college-serveur';
 import { initiales, nomComplet } from '@/lib/format';
 import { exigerProfil } from '@/lib/profil';
 import { accueilDuRole } from '@/lib/roles';
+import DepotDePhoto from '@/components/DepotDePhoto';
+import PortraitDeposable from '@/components/PortraitDeposable';
+import FenetreDeRetraitDePhoto from '@/components/FenetreDeRetraitDePhoto';
 import FormulaireReferent from './FormulaireReferent';
-import PhotoDuReferent from './PhotoDuReferent';
 
 export const metadata = { title: 'Modifier un référent — HERACLES' };
 
@@ -73,24 +75,17 @@ export default async function ModifierReferent({
       <div className="entete-liste">
         {/* Le même visage, à la même taille que sur la carte : on doit
             reconnaître au premier coup d'œil la fiche sur laquelle on est en
-            train d'écrire. */}
+            train d'écrire. Et c'est ici qu'on change la photo — on y glisse
+            une image, ou l'on double-clique dedans. `maj` ne dit rien au
+            serveur : la route ne lit que l'identifiant, il ne parle qu'au
+            navigateur, qui garde la photo cinq minutes. */}
         <div className="entete-portrait">
-          {fiche.a_une_photo ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              className="portrait"
-              /* `maj` ne dit rien au serveur : la route ne lit que
-                 l'identifiant. Il ne parle qu'au navigateur. */
-              src={`/espace/referents/${fiche.id}/photo${grain}`}
-              alt=""
-              width={67}
-              height={67}
-            />
-          ) : (
-            <span className="initiales" aria-hidden="true">
-              {initiales(fiche.prenom, fiche.nom)}
-            </span>
-          )}
+          <PortraitDeposable
+            action={`/api/referents/${fiche.id}/photo`}
+            retour={`/espace/referents/${fiche.id}/modifier`}
+            src={fiche.a_une_photo ? `/espace/referents/${fiche.id}/photo${grain}` : null}
+            initiales={initiales(fiche.prenom, fiche.nom)}
+          />
 
           <div>
             <h1>{nom}</h1>
@@ -114,7 +109,11 @@ export default async function ModifierReferent({
         erreurInitiale={message ? { champ: null, message } : null}
       />
 
-      <PhotoDuReferent id={fiche.id} aUnePhoto={fiche.a_une_photo} />
+      <DepotDePhoto
+        action={`/api/referents/${fiche.id}/photo`}
+        retour={`/espace/referents/${fiche.id}/modifier`}
+        aUnePhoto={fiche.a_une_photo}
+      />
 
       {!fiche.compte_rattache && (
         <section className="bloc">
@@ -135,53 +134,12 @@ export default async function ModifierReferent({
           navigateur la referme. Elle ne s'ouvre pas sur une fiche sans photo —
           il n'y aurait rien à retirer. */}
       {photo === 'retirer' && fiche.a_une_photo && (
-        <FenetreDeRetraitDePhoto id={fiche.id} nom={nom} />
+        <FenetreDeRetraitDePhoto
+          action={`/api/referents/${fiche.id}/photo`}
+          retour={`/espace/referents/${fiche.id}/modifier`}
+          titre={`Retirer la photo de ${nom} ?`}
+        />
       )}
     </main>
-  );
-}
-
-/**
- * La fenêtre de confirmation avant de retirer une photo.
- *
- * Elle dit **ce qu'on perd**, plutôt que « êtes-vous sûr ? » — une question à
- * laquelle on répond oui sans lire. Et ce qu'on perd est réel : le fichier
- * quitte le stockage, et l'adresse d'origine chez Bubble part avec lui, sans
- * quoi la prochaine reprise remettrait le visage en place (migration 0049).
- */
-function FenetreDeRetraitDePhoto({ id, nom }: { id: string; nom: string }) {
-  const fermer = `/espace/referents/${id}/modifier`;
-
-  return (
-    <div className="fenetre-fond">
-      <Link href={fermer} className="fenetre-voile" aria-label="Fermer sans rien retirer" />
-
-      <div className="fenetre" role="dialog" aria-modal="true" aria-labelledby="retrait-photo">
-        <h2 id="retrait-photo">Retirer la photo de {nom}&nbsp;?</h2>
-
-        <p>
-          Le fichier <strong>quittera le stockage</strong>, et la fiche n’aura plus de
-          visage — dans l’annuaire, sur la feuille d’appel et dans la colonne de gauche.
-        </p>
-
-        <p className="aide">
-          Rien ne défait ce geste. Si la photo venait de Bubble, son adresse d’origine est
-          effacée elle aussi : sans cela, la prochaine reprise la remettrait en place. Pour
-          changer de portrait sans le perdre, fermez cette fenêtre et déposez-en un autre.
-        </p>
-
-        <div className="fenetre-gestes">
-          <Link href={fermer} className="bouton">
-            Annuler
-          </Link>
-          <form method="post" action={`/api/referents/${id}/photo`} encType="multipart/form-data">
-            <input type="hidden" name="geste" value="retirer" />
-            <button className="bouton bouton--danger" type="submit">
-              Retirer la photo
-            </button>
-          </form>
-        </div>
-      </div>
-    </div>
   );
 }

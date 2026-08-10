@@ -1038,7 +1038,77 @@ tbody tr:focus-within {
 }
 
 .photo-depot .champ {
-  flex: 1 1 16rem;
+  margin: 0;
+}
+
+/* Le portrait qu'on change en y glissant une photo, ou en double-cliquant
+   dedans. Le pointillé dit « posez quelque chose ici » sans avoir à l'écrire :
+   c'est le trait des maquettes, celui qui marque un emplacement à remplir. */
+.portrait-depot {
+  flex: none;
+}
+
+.portrait-cible {
+  position: relative;
+  display: inline-flex;
+  padding: 3px;
+  border: 1px dashed var(--bordure);
+  border-radius: 9px;
+  cursor: copy;
+}
+
+/* Le survol pendant le glisser : le cadre se ferme le temps du geste, et rien
+   d'autre ne bouge — un écran qui se réorganise sous le curseur fait lâcher la
+   souris au mauvais endroit. */
+.portrait-cible[data-survol] {
+  border-color: var(--referent);
+  border-style: solid;
+  background: var(--surface-creuse);
+}
+
+.portrait-cible[data-envoi] {
+  cursor: progress;
+  opacity: 0.6;
+}
+
+/* Par-dessus le visage pendant le dépôt : on voit que quelque chose se passe
+   sans que la place du portrait change. */
+.portrait-envoi {
+  position: absolute;
+  inset: 3px;
+  display: grid;
+  place-items: center;
+  border-radius: 6px;
+  background: rgb(0 0 0 / 0.45);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+/* Les initiales prennent la taille du portrait, et non celle des vignettes :
+   la cible du glisser doit être la même, qu'il y ait un visage ou non. */
+.initiales-portrait {
+  display: grid;
+  place-items: center;
+}
+
+.portrait-erreur {
+  margin: 0.35rem 0 0;
+  max-width: 12rem;
+  font-size: 0.72rem;
+  color: var(--alerte);
+}
+
+/* Son propre visage dans « Mon compte » : le portrait, et à côté ce qu'il
+   devient. On ne dépose pas sa photo sans savoir où elle sera vue. */
+.mon-portrait {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  margin-bottom: 0.6rem;
+}
+
+.mon-portrait .aide {
   margin: 0;
 }
 

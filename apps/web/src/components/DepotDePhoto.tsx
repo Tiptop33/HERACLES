@@ -5,10 +5,16 @@ import { useRouter } from 'next/navigation';
 import { useRef, useState } from 'react';
 
 /**
- * Déposer la photo d'un référent.
+ * Déposer une photo, ou la retirer.
  *
- * Un formulaire à part, et non un champ de plus dans le formulaire de la
- * fiche : celui-ci part en JSON, ce qu'un fichier ne sait pas faire. Les mêler
+ * Le même bloc sur deux écrans : la fiche d'un référent, où un administrateur
+ * s'occupe de la photo de quelqu'un d'autre, et « Mon compte », où chacun
+ * s'occupe de la sienne. Seules changent l'adresse qui reçoit et la page où
+ * l'on revient — le geste, lui, est le même, et il n'y a aucune raison qu'il
+ * se comporte différemment d'un écran à l'autre.
+ *
+ * Un formulaire à part, et non un champ de plus dans celui de la fiche : ce
+ * dernier part en JSON, ce qu'un fichier ne sait pas faire. Les mêler
  * obligerait à convertir l'image en texte pour la faire tenir dans le même
  * envoi — plus lourd, plus fragile, et sans rien y gagner.
  *
@@ -17,16 +23,23 @@ import { useRef, useState } from 'react';
  * formes. Ce qui compte pendant que JavaScript charge compte aussi quand il ne
  * charge pas.
  */
-export default function PhotoDuReferent({
-  id,
+export default function DepotDePhoto({
+  action,
+  retour,
   aUnePhoto,
+  titre = 'La photo',
 }: {
-  id: string;
-  /** Ce qui change le libellé du bouton : déposer, ou remplacer. */
+  /** La route qui reçoit le fichier. */
+  action: string;
+  /** La page où l'on revient, et sur laquelle s'ouvre la confirmation. */
+  retour: string;
+  /** Ce qui change le libellé du bouton, et fait apparaître « Retirer ». */
   aUnePhoto: boolean;
+  titre?: string;
 }) {
   const router = useRouter();
   const formulaire = useRef<HTMLFormElement>(null);
+  const champ = useRef<HTMLInputElement>(null);
   const [erreur, setErreur] = useState<string | null>(null);
   const [envoi, setEnvoi] = useState(false);
   const [choisi, setChoisi] = useState<string | null>(null);
@@ -37,7 +50,7 @@ export default function PhotoDuReferent({
     setEnvoi(true);
 
     try {
-      const reponse = await fetch(`/api/referents/${id}/photo`, {
+      const reponse = await fetch(action, {
         method: 'POST',
         body: new FormData(evenement.currentTarget),
       });
@@ -54,9 +67,9 @@ export default function PhotoDuReferent({
       setChoisi(null);
 
       // `maj` vient de la route. Il ne sert qu'à faire redemander la photo au
-      // navigateur, qui la garde cinq minutes — sans quoi le portrait du haut
+      // navigateur, qui la garde cinq minutes — sans quoi le portrait
       // resterait l'ancien, et le dépôt aurait l'air d'avoir échoué.
-      router.replace(`/espace/referents/${id}/modifier?maj=${resultat.maj ?? ''}`);
+      router.replace(`${retour}?maj=${resultat.maj ?? ''}`);
       router.refresh();
     } catch {
       setErreur('La connexion au serveur a échoué. Réessayez.');
@@ -67,21 +80,26 @@ export default function PhotoDuReferent({
 
   return (
     <section className="bloc">
-      <h2>La photo</h2>
+      <h2>{titre}</h2>
 
       {erreur && <p className="erreur">{erreur}</p>}
 
       <form
         ref={formulaire}
         onSubmit={soumettre}
-        action={`/api/referents/${id}/photo`}
+        action={action}
         method="post"
         encType="multipart/form-data"
         className="photo-depot"
       >
+        {/* Le chemin ordinaire, qui marche partout : au clavier, sans souris,
+            et sans JavaScript. Le glisser-déposer se fait sur le portrait
+            lui-même (voir `PortraitDeposable`) — c'est un raccourci à la
+            souris, pas le seul moyen de déposer une photo. */}
         <label className="champ">
           <span>{aUnePhoto ? 'Remplacer la photo' : 'Déposer une photo'}</span>
           <input
+            ref={champ}
             type="file"
             name="photo"
             accept="image/jpeg,image/png,image/webp,image/gif,image/avif"
@@ -97,18 +115,17 @@ export default function PhotoDuReferent({
             il ouvre la fenêtre de confirmation — laquelle n'est qu'une adresse,
             donc le bouton « retour » du navigateur la referme. */}
         {aUnePhoto && (
-          <Link
-            href={`/espace/referents/${id}/modifier?photo=retirer`}
-            className="bouton bouton--danger"
-          >
+          <Link href={`${retour}?photo=retirer`} className="bouton bouton--danger">
             Retirer
           </Link>
         )}
       </form>
 
       <p className="aide">
-        JPEG, PNG, WebP, GIF ou AVIF, 5 Mo au plus. La photo n’est jamais servie par une
-        adresse publique : elle passe par l’application, qui vérifie d’abord qui la demande.
+        La photo est facultative : une fiche sans visage fonctionne comme les autres, et
+        rien n’oblige à en déposer une. JPEG, PNG, WebP, GIF ou AVIF, 5 Mo au plus. Elle
+        n’est jamais servie par une adresse publique : elle passe par l’application, qui
+        vérifie d’abord qui la demande.
       </p>
     </section>
   );
