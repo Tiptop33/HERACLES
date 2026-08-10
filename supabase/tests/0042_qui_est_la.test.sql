@@ -100,10 +100,12 @@ select public.verifier(
   'un second onglet ne remet pas le compteur à zéro');
 
 -- ---------------------------------------------------------------------------
-\echo '— une session de plus de douze heures est reputee close'
+\echo '— l onglet oublie ne compte plus'
 -- ---------------------------------------------------------------------------
--- L'onglet oublié : sans ce garde-fou, la liste finirait par afficher tous
--- ceux qui se sont connectés un jour.
+-- Sans garde-fou, la liste finirait par afficher tous ceux qui se sont
+-- connectés un jour. C'étaient les douze heures de 0042 ; depuis 0057 c'est le
+-- silence qui fait sortir — deux minutes sans donner signe de vie. Un onglet
+-- oublié depuis treize heures n'en donne aucun.
 update public.profil set connecte_depuis = now() - interval '13 hours'
  where id = 'aaaaaaaa-3333-0000-0000-000000000132';
 
@@ -115,7 +117,10 @@ begin;
     'l''onglet oublié depuis treize heures ne compte plus');
 commit;
 
-update public.profil set connecte_depuis = now() - interval '11 hours'
+-- Onze heures, en revanche, c'est encore une journée de travail — à condition
+-- d'être devant son écran, ce que dit le signe de vie posé ici et que l'âge de
+-- la session ne pouvait pas dire (0057).
+update public.profil set connecte_depuis = now() - interval '11 hours', vu_le = now()
  where id = 'aaaaaaaa-3333-0000-0000-000000000132';
 
 begin;
@@ -123,7 +128,7 @@ begin;
   set local request.jwt.claims = '{"sub":"aaaaaaaa-3333-0000-0000-000000000131"}';
   select public.verifier(
     (select count(*) from public.les_connectes()) = 1,
-    'onze heures, en revanche, c''est encore une journée de travail');
+    'onze heures devant son écran, c''est encore une journée de travail');
 commit;
 
 -- ---------------------------------------------------------------------------
