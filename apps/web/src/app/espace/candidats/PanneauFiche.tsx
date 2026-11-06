@@ -12,7 +12,19 @@ import {
   type LigneDeJournal,
   type LigneRetiree,
 } from '@/lib/journal';
+import { libelleDeRecherche } from '@/lib/parrainage';
 import { nomDeFamilleDabord, type FicheOuverte, type LigneCandidat } from '@/lib/poste';
+
+/** Un référent de la loge, à qui confier une nouvelle demande. */
+export type Collegue = { id: string; nom: string; c_est_moi: boolean };
+
+/** Ce que la route de prise en charge a répondu, quand elle a refusé. */
+const REFUS_DE_PRISE: Record<string, string> = {
+  'sans-loge': 'Votre compte n’est rattaché à aucune loge.',
+  referent: 'Ce référent n’est pas de votre loge.',
+  introuvable: 'Ce candidat est déjà accompagné, ou n’est pas de votre loge.',
+  session: 'Votre session a expiré. Reconnectez-vous.',
+};
 
 /**
  * Le volet de droite du poste de travail : l'en-tête de la personne, les
@@ -58,6 +70,8 @@ export default function PanneauFiche({
   retirees,
   jePeuxNoter,
   adresse,
+  collegues,
+  prise,
 }: {
   fiche: FicheOuverte;
   /** La ligne correspondante de la liste, quand la vue courante la contient. */
@@ -74,6 +88,13 @@ export default function PanneauFiche({
   /** Le compte a-t-il une fiche de référent ? C'est tout ce qu'écrire demande. */
   jePeuxNoter: boolean;
   adresse: (ajout: Record<string, string | null>) => string;
+  /**
+   * Les référents de la loge, quand la personne connectée peut prendre en
+   * charge ce candidat — sinon `null`, et le geste n'apparaît pas.
+   */
+  collegues: Collegue[] | null;
+  /** Ce que la route de prise en charge a répondu, quand elle a refusé. */
+  prise: string | null;
 }) {
   const nom = nomDeFamilleDabord(fiche.nom, fiche.prenom);
   const metier = fiche.metier_libelle ?? fiche.emploi_recherche ?? rang?.metier ?? null;
@@ -192,7 +213,7 @@ export default function PanneauFiche({
             retour={adresse({ onglet: 'suivi' })}
           />
         ) : (
-          <Profil fiche={fiche} />
+          <Profil fiche={fiche} collegues={collegues} prise={prise} />
         )}
       </div>
     </>
@@ -375,7 +396,15 @@ function NotesRetirees({ retirees, retour }: { retirees: LigneRetiree[]; retour:
   );
 }
 
-function Profil({ fiche }: { fiche: FicheOuverte }) {
+function Profil({
+  fiche,
+  collegues,
+  prise,
+}: {
+  fiche: FicheOuverte;
+  collegues: Collegue[] | null;
+  prise: string | null;
+}) {
   const lieu = fiche.ville ?? fiche.adresse;
   const lieuComplet = [lieu, fiche.code_postal ? `(${fiche.code_postal})` : null]
     .filter(Boolean)
@@ -394,7 +423,25 @@ function Profil({ fiche }: { fiche: FicheOuverte }) {
     ...enEtiquettes(fiche.informatique),
   ];
 
-  const permis = [fiche.permis_vl, fiche.vehicule].filter(Boolean).join(' · ');
+  // Chaque réponse avec son nom : « Oui · Non » ne dirait pas à quoi.
+  const permis = [
+    fiche.permis_vl ? `B : ${fiche.permis_vl}` : null,
+    fiche.permis_moto ? `moto : ${fiche.permis_moto}` : null,
+    fiche.permis_pl ? `poids lourd : ${fiche.permis_pl}` : null,
+    fiche.vehicule ? `véhicule : ${fiche.vehicule}` : null,
+  ]
+    .filter(Boolean)
+    .join(' · ');
+
+  // Le bloc « Présentation » n'apparaît que s'il a quelque chose à dire : les
+  // fiches reprises de Bubble n'ont pas encore ces champs.
+  const presentation =
+    fiche.parrain_presentateur ||
+    fiche.lien_parente ||
+    fiche.connait_appartenance ||
+    fiche.peut_se_devoiler ||
+    fiche.urgence !== null ||
+    fiche.urgence_motif;
 
   return (
     <div className="blocs">
@@ -425,13 +472,21 @@ function Profil({ fiche }: { fiche: FicheOuverte }) {
         <h2>Sa recherche</h2>
         <dl className="champs">
           <dt>Type</dt>
-          <Valeur>{fiche.type_emploi}</Valeur>
+          <Valeur>{libelleDeRecherche(fiche.type_emploi)}</Valeur>
           <dt>Métier</dt>
           <Valeur>{fiche.emploi_recherche ?? fiche.metier_libelle}</Valeur>
           <dt>Mobilité</dt>
           <Valeur>{fiche.mobilite_geographique}</Valeur>
+          <dt>Précisions</dt>
+          <Valeur>{fiche.definition_emploi}</Valeur>
           <dt>Disponible</dt>
           <Valeur>{dateEnLettres(fiche.debut_stage)}</Valeur>
+          {fiche.fin_stage && (
+            <>
+              <dt>Jusqu’au</dt>
+              <Valeur>{dateEnLettres(fiche.fin_stage)}</Valeur>
+            </>
+          )}
           <dt>Secteur</dt>
           <Valeur>{fiche.secteur_activite_libelle}</Valeur>
           <dt>Permis</dt>
@@ -445,7 +500,7 @@ function Profil({ fiche }: { fiche: FicheOuverte }) {
           <dt>Référent</dt>
           <Valeur absent="personne">{fiche.referent_nom}</Valeur>
           <dt>Parrain</dt>
-          <Valeur absent="personne">{fiche.parrain_nom}</Valeur>
+          <Valeur absent="personne">{fiche.parrain_nom ?? fiche.parrain_presentateur}</Valeur>
           <dt>Loge</dt>
           <Valeur>{fiche.loge_nom}</Valeur>
           <dt>Appréciation</dt>
@@ -458,7 +513,73 @@ function Profil({ fiche }: { fiche: FicheOuverte }) {
           <dt>Archive</dt>
           <Valeur absent="non archivé">{fiche.archive}</Valeur>
         </dl>
+
+        {prise && (
+          <p className="erreur" role="alert">
+            {REFUS_DE_PRISE[prise] ?? 'La prise en charge a échoué.'}
+          </p>
+        )}
+
+        {/* Une nouvelle demande : personne ne l'accompagne encore. Un référent
+            de la loge la prend, ou la confie à un collègue. Un vrai formulaire,
+            sans script : la base décide (0057), et la route revient ici. */}
+        {!fiche.a_un_referent && collegues && collegues.length > 0 && (
+          <form
+            className="prise-en-charge"
+            method="post"
+            action={`/api/candidats/${fiche.id}/referent`}
+          >
+            <label htmlFor="prise-referent">Référent</label>
+            <select id="prise-referent" name="referent_id" defaultValue="">
+              <option value="">Moi</option>
+              {collegues
+                .filter((c) => !c.c_est_moi)
+                .map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.nom}
+                  </option>
+                ))}
+            </select>
+            <button type="submit" className="bouton bouton--fort">
+              Prendre en charge
+            </button>
+          </form>
+        )}
       </section>
+
+      {presentation && (
+        <section className="bloc">
+          <h2>Présentation</h2>
+          <dl className="champs">
+            <dt>Par</dt>
+            <Valeur>
+              {[fiche.parrain_presentateur, fiche.parrain_loge ? `(${fiche.parrain_loge})` : null]
+                .filter(Boolean)
+                .join(' ') || null}
+            </Valeur>
+            <dt>Contact</dt>
+            <Valeur>
+              {[fiche.parrain_telephone, fiche.parrain_email].filter(Boolean).join(' · ') || null}
+            </Valeur>
+            <dt>Lien</dt>
+            <Valeur>{fiche.lien_parente}</Valeur>
+            <dt>Connaît l’appartenance</dt>
+            <Valeur>{fiche.connait_appartenance}</Valeur>
+            <dt>Peut-on se dévoiler</dt>
+            <Valeur>{fiche.peut_se_devoiler}</Valeur>
+            <dt>Urgence</dt>
+            <Valeur>{fiche.urgence !== null ? `${fiche.urgence} / 5` : null}</Valeur>
+            <dt>Pourquoi</dt>
+            <Valeur>{fiche.urgence_motif}</Valeur>
+            <dt>Fiche du candidat</dt>
+            <Valeur absent="en attente de sa réponse">
+              {fiche.candidature_completee_le
+                ? `complétée le ${dateEnLettres(fiche.candidature_completee_le)}`
+                : null}
+            </Valeur>
+          </dl>
+        </section>
+      )}
 
       <section className="bloc bloc--large">
         <h2>Parcours</h2>
@@ -467,6 +588,12 @@ function Profil({ fiche }: { fiche: FicheOuverte }) {
         ) : (
           <p className="prose maigre">
             <em>Ni formation ni expérience renseignée pour l’instant.</em>
+          </p>
+        )}
+
+        {fiche.centres_interet && (
+          <p className="prose" style={{ marginTop: '0.8rem' }}>
+            <strong>Centres d’intérêt&nbsp;:</strong> {fiche.centres_interet}
           </p>
         )}
 

@@ -3179,3 +3179,162 @@ a.poste-document .poste-document-type {
     display: none;
   }
 }
+
+/* ————————————————————————————————————————————————————————————————————————
+   Nouveau candidat (migration 0057) : l'invitation du parrain, les deux
+   formulaires publics, et la prise en charge sur la fiche.
+   ———————————————————————————————————————————————————————————————————————— */
+
+/* La tête du volet porte maintenant un bouton à droite du titre. */
+.poste-volet-entete {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.poste-volet-entete .poste-volet-titre {
+  margin: 0;
+}
+
+.bouton--petit {
+  font-size: 0.78rem;
+  padding: 0.35rem 0.7rem;
+  white-space: nowrap;
+}
+
+/* Les formulaires du parrain et du candidat sont plus longs qu'une connexion :
+   la carte s'élargit, et les champs retrouvent leur taille ordinaire. */
+.entree-carte--large {
+  max-width: 46rem;
+}
+
+.formulaire-public fieldset {
+  border: 0;
+  margin: 0 0 1.4rem;
+  padding: 0;
+  min-width: 0;
+}
+
+.formulaire-public > fieldset > legend {
+  font-weight: 700;
+  font-size: 1.02rem;
+  color: var(--encre);
+  margin-bottom: 0.7rem;
+  padding: 0;
+}
+
+.formulaire-public .ligne-edition {
+  margin-bottom: 1rem;
+}
+
+.formulaire-public .champ select,
+.formulaire-public .champ textarea,
+.formulaire-public .champ input {
+  width: 100%;
+}
+
+.formulaire-public [aria-invalid='true'] {
+  border-color: var(--alerte);
+}
+
+/* Oui / Non, ou 0 à 5 : des boutons radio sur une ligne, faciles à toucher. */
+.choix-en-ligne {
+  margin: 0 0 1rem;
+}
+
+.choix-en-ligne > legend {
+  font-size: 0.95rem;
+  color: var(--encre-douce);
+  margin-bottom: 0.35rem;
+  padding: 0;
+}
+
+.choix-en-ligne-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1.1rem;
+}
+
+.choix-en-ligne-options label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 2.2rem;
+  cursor: pointer;
+}
+
+.choix-en-ligne[aria-invalid='true'] > legend {
+  color: var(--alerte);
+}
+
+.consentement {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  margin: 0 0 1.2rem;
+  font-size: 0.9rem;
+  color: var(--encre-douce);
+}
+
+.consentement input {
+  margin-top: 0.2rem;
+  flex: 0 0 auto;
+}
+
+.consentement[aria-invalid='true'] {
+  color: var(--alerte);
+}
+
+/* Un lien à transmettre à la main, quand le courriel n'est pas parti. */
+.lien-a-copier p {
+  margin: 0 0 0.5rem;
+}
+
+.lien-a-copier-ligne {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.lien-a-copier-ligne input {
+  flex: 1 1 auto;
+  min-width: 0;
+  font: inherit;
+  font-size: 0.85rem;
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--bordure-nette);
+  border-radius: 7px;
+  background: var(--surface);
+}
+
+/* Sur la fiche : prendre en charge une nouvelle demande, ou la confier. */
+.prise-en-charge {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.9rem;
+  padding-top: 0.8rem;
+  border-top: 1px solid var(--bordure);
+}
+
+.prise-en-charge label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--encre-tres-douce);
+}
+
+.prise-en-charge select {
+  font: inherit;
+  font-size: 0.88rem;
+  padding: 0.4rem 0.5rem;
+  border: 1px solid var(--bordure-nette);
+  border-radius: 7px;
+  background: var(--surface);
+}
+
+@media print {
+  .prise-en-charge {
+    display: none;
+  }
+}

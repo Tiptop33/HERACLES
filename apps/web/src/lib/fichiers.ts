@@ -76,6 +76,44 @@ export function formatDImage(octets: Uint8Array): FormatDImage | null {
   return null;
 }
 
+/**
+ * Le format d'un document déposé par un candidat — CV ou lettre —, lu **dans
+ * ses octets**, ou `null`.
+ *
+ * Même règle que pour les images : le nom du fichier vient du navigateur et ne
+ * prouve rien. Le format reconnu devient l'extension du fichier rangé, et la
+ * base (migration 0057) n'accepte que ces extensions-là.
+ *
+ *   · PDF   — `%PDF-` ;
+ *   · DOC   — le conteneur OLE de Word 97-2003 ;
+ *   · DOCX  — une archive ZIP. On ne l'ouvre pas : tout ZIP qui n'est pas un
+ *             ODT est rangé en `.docx`, et le téléchargement l'annoncera ainsi ;
+ *   · ODT   — une archive ZIP dont le premier membre, `mimetype`, le dit en
+ *             clair à l'octet 30 — c'est la norme OpenDocument qui l'impose ;
+ *   · RTF   — `{\rtf` ;
+ *   · et les images qu'un téléphone produit en photographiant un CV.
+ */
+export type FormatDeDocument = 'pdf' | 'doc' | 'docx' | 'odt' | 'rtf' | 'jpg' | 'png' | 'webp';
+
+export function formatDeDocument(octets: Uint8Array): FormatDeDocument | null {
+  const a = (position: number, ...attendus: number[]) =>
+    attendus.every((valeur, decalage) => octets[position + decalage] === valeur);
+  const texte = (position: number, longueur: number) =>
+    String.fromCharCode(...octets.subarray(position, position + longueur));
+
+  if (texte(0, 5) === '%PDF-') return 'pdf';
+  if (a(0, 0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1)) return 'doc';
+  if (texte(0, 5) === '{\\rtf') return 'rtf';
+  if (a(0, 0x50, 0x4b, 0x03, 0x04)) {
+    return texte(30, 47) === 'mimetypeapplication/vnd.oasis.opendocument.text' ? 'odt' : 'docx';
+  }
+
+  const image = formatDImage(octets);
+  if (image === 'jpg' || image === 'png' || image === 'webp') return image;
+
+  return null;
+}
+
 /** L'extension d'un chemin, point compris — « .pdf » —, ou rien. */
 export function extensionDe(chemin: string): string {
   const morceaux = chemin.split('/').pop()?.split('.') ?? [];

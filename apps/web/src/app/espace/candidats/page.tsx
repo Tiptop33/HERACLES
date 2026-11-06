@@ -20,9 +20,10 @@ import { initiales } from '@/lib/format';
 // l'écrire.
 import { FAMILLES } from '@/components/VueAccueil';
 import { jeSuisReferent, lireJournal, lireRetirees } from '@/lib/journal';
+import { listerAnnuaire } from '@/lib/annuaire';
 import { exigerProfil } from '@/lib/profil';
 import { accueilDuRole } from '@/lib/roles';
-import PanneauFiche, { estOnglet, type Onglet } from './PanneauFiche';
+import PanneauFiche, { estOnglet, type Collegue, type Onglet } from './PanneauFiche';
 
 export const metadata = { title: 'Candidats — HERACLES' };
 
@@ -35,6 +36,8 @@ type Parametres = {
   note?: string | string[];
   /** Ce que la route d'écriture du journal a répondu, quand elle a refusé. */
   erreur?: string | string[];
+  /** Ce que la route de prise en charge a répondu, quand elle a refusé. */
+  prise?: string | string[];
 };
 
 /** Le premier des paramètres d'adresse, quand il y en a plusieurs. */
@@ -100,6 +103,25 @@ export default async function PosteDeTravail({
   // garde son sens : corriger la fiche elle-même reste au référent.
   const jePeuxNoter = fiche && onglet === 'suivi' ? await jeSuisReferent() : false;
 
+  // Une nouvelle demande — personne ne l'accompagne : les référents de sa loge
+  // peuvent la prendre en charge (0057). On ne charge l'annuaire que dans ce
+  // cas, et l'on ne propose le geste qu'à qui siège dans la loge du candidat :
+  // la base refuserait les autres de toute façon.
+  let collegues: Collegue[] | null = null;
+  if (fiche && !fiche.a_un_referent && fiche.loge_id && profil.role === 'referent') {
+    const annuaire = await listerAnnuaire();
+    const moi = annuaire.find((r) => r.c_est_moi);
+    if (moi?.loge_id === fiche.loge_id) {
+      collegues = annuaire
+        .filter((r) => r.loge_id === fiche.loge_id)
+        .map((r) => ({
+          id: r.id,
+          nom: [r.prenom, r.nom].filter(Boolean).join(' ') || 'Sans nom',
+          c_est_moi: r.c_est_moi,
+        }));
+    }
+  }
+
   /** L'adresse de ce même écran, avec un paramètre en plus ou en moins. */
   const adresse = (ajout: Record<string, string | null>) => {
     const p = new URLSearchParams();
@@ -124,10 +146,20 @@ export default async function PosteDeTravail({
     <main className="poste">
       <aside className="poste-volet" aria-label="Liste des candidats">
         <div className="poste-volet-tete">
-          <p className="poste-volet-titre">
-            Candidats <span aria-hidden="true">·</span>{' '}
-            <span className="maigre">{resumeDeLaVue(deLaVue, vue)}</span>
-          </p>
+          <div className="poste-volet-entete">
+            <p className="poste-volet-titre">
+              Candidats <span aria-hidden="true">·</span>{' '}
+              <span className="maigre">{resumeDeLaVue(deLaVue, vue)}</span>
+            </p>
+            {/* Ouvrir un dossier, comme chez Bubble : on invite le parrain,
+                qui présente le candidat. Réservé aux référents — c'est leur
+                loge qui recevra le dossier. */}
+            {profil.role === 'referent' && (
+              <Link href="/espace/candidats/nouveau" className="bouton bouton--fort bouton--petit">
+                Nouveau candidat
+              </Link>
+            )}
+          </div>
 
           {/* Un formulaire en `get` : la recherche part avec la vue et la fiche
               ouverte, et l'adresse obtenue reste partageable. */}
@@ -204,6 +236,8 @@ export default async function PosteDeTravail({
             retirees={retirees}
             jePeuxNoter={jePeuxNoter}
             adresse={adresse}
+            collegues={collegues}
+            prise={premier(parametres.prise) || null}
           />
         ) : demande ? (
           // Ni « introuvable », ni « interdit ». La base n'a rien rendu, et
