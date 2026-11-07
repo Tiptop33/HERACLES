@@ -3,7 +3,7 @@
 - **Date :** 2026-11-07
 - **Statut :** à valider
 - **S'appuie sur :** la migration 0057 (un nouveau candidat présenté par son parrain, #72),
-  les invitations de la migration 0009, l'envoi de courriels par Brevo (`lib/courriel.ts`).
+  les invitations des migrations 0009 et 0010, envoyées par Supabase (`inviteUserByEmail`).
 
 ## 1. Ce qu'on veut
 
@@ -72,8 +72,10 @@ Sur `/espace/admin`, un bouton **« Nouveau candidat »** ouvre une petite fenê
 - **Loge du dossier** : liste des loges *(obligatoire)*
 - Boutons « Annuler » et « Envoyer l'invitation »
 
-Après l'envoi, la fenêtre se ferme et un message confirme que l'invitation est partie. Si
-Brevo n'est pas configuré, le lien s'affiche pour être copié, comme en 0057.
+Après l'envoi, la fenêtre se ferme et un message confirme que le dossier n° N est ouvert. Le
+courriel part par Supabase, comme toute invitation de l'écran d'administration : le lien n'est
+jamais montré à l'administrateur. Si l'envoi échoue, l'invitation est révoquée et le dossier
+reste ouvert ; réinviter la même adresse le reprend.
 
 **Fenêtre rendue par le serveur à partir de l'adresse** (`?nouveau=1`), comme la fenêtre de
 retrait des réunions : elle s'ouvre sans script, et le bouton « retour » la referme.
@@ -183,7 +185,7 @@ Un commit par étape, chacun passant `executer.sh`, puis `lint`, `test` et `buil
 
 1. **Vocabulaire** : `chercheur` → `candidat` (migration 0059, routes, code).
 2. **Base** : migration 0060 et ses tests.
-3. **Admin** : le bouton, la fenêtre, la route `POST /api/candidats/inviter`, l'e-mail Brevo.
+3. **Admin** : le bouton, la fenêtre, la route `POST /api/candidats/inviter`, l'e-mail d'invitation de Supabase.
 4. **Activation** : l'écran d'invitation pour le rôle `candidat`, avec le consentement.
 5. **Espace candidat** : le dépôt du CV, la fiche, `ma_fiche()` et `modifier_ma_fiche()`.
 6. **Lecture du CV** : la route, l'appel à Claude, la validation, le pré-remplissage.
