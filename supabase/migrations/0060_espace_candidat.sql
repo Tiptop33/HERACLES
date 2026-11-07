@@ -315,10 +315,14 @@ begin
   end if;
 
   -- Un candidat retrouve son dossier. Seulement s'il n'a pas déjà de compte :
-  -- un dossier ne change pas de titulaire.
+  -- un dossier ne change pas de titulaire. Le prénom et le nom qu'il vient de
+  -- donner commencent sa fiche — sans rien écraser de ce qu'elle porterait.
   if invit.role = 'candidat' and invit.candidat_id is not null then
     update public.candidat
-       set profil_id = compte, maj_le = now()
+       set profil_id = compte,
+           prenom    = coalesce(prenom, nullif(trim(prenom_donne), '')),
+           nom       = coalesce(nom, upper(nullif(trim(nom_donne), ''))),
+           maj_le    = now()
      where id = invit.candidat_id and profil_id is null;
   end if;
 

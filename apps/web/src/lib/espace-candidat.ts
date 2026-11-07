@@ -66,3 +66,72 @@ export function refusDInvitation(souci: { code?: string; message?: string } | nu
   }
   return { message: 'Le dossier n’a pas pu être ouvert.', statut: 400 };
 }
+
+// ————————————————————————————————————————————————————————————————————————————
+// L'espace du candidat
+// ————————————————————————————————————————————————————————————————————————————
+
+/** Ce que `ma_fiche()` (migration 0060) rend : la fiche, sans rien de la commission. */
+export type MaFiche = {
+  id: string;
+  numero: number | null;
+  nom: string | null;
+  prenom: string | null;
+  email: string | null;
+  telephone: string | null;
+  age: number | null;
+  situation_familiale: string | null;
+  adresse: string | null;
+  code_postal: string | null;
+  ville: string | null;
+  type_emploi: string | null;
+  emploi_recherche: string | null;
+  definition_emploi: string | null;
+  mobilite_geographique: string | null;
+  debut_stage: string | null;
+  fin_stage: string | null;
+  formations: string | null;
+  experiences: string | null;
+  competences: string | null;
+  informatique: string | null;
+  savoir_etre: string | null;
+  centres_interet: string | null;
+  permis_vl: string | null;
+  permis_moto: string | null;
+  permis_pl: string | null;
+  vehicule: string | null;
+  a_un_cv: boolean;
+  a_une_lettre: boolean;
+  candidature_completee_le: string | null;
+  maj_le: string | null;
+};
+
+/**
+ * Ce que l'espace montre d'abord.
+ *
+ *   · `cv`    — rien encore : on demande le CV, c'est la première chose ;
+ *   · `fiche` — le CV est là, la fiche a déjà été enregistrée, ou le
+ *               candidat a choisi de la remplir sans CV.
+ */
+export function premierEcran(fiche: Pick<MaFiche, 'a_un_cv' | 'candidature_completee_le'>, sansCv: boolean): 'cv' | 'fiche' {
+  if (fiche.a_un_cv || fiche.candidature_completee_le || sansCv) return 'fiche';
+  return 'cv';
+}
+
+/**
+ * Le format qu'accepte chaque document. Le CV est un PDF : c'est ce que
+ * HERACLES saura lire pour pré-remplir la fiche, et ce que la base exige
+ * (`ranger_mon_document`). La lettre garde les formats de 0057.
+ */
+export function formatAccepte(genre: 'cv' | 'lettre', format: string | null): boolean {
+  if (!format) return false;
+  if (genre === 'cv') return format === 'pdf';
+  return ['pdf', 'doc', 'docx', 'odt', 'rtf', 'jpg', 'png', 'webp'].includes(format);
+}
+
+/** Les autres chemins qu'une lettre a pu prendre, à effacer quand elle change de format. */
+export function anciennesLettres(candidat: string, format: string): string[] {
+  return ['pdf', 'doc', 'docx', 'odt', 'rtf', 'jpg', 'png', 'webp']
+    .filter((f) => f !== format)
+    .map((f) => `candidat/lettre/${candidat}.${f}`);
+}

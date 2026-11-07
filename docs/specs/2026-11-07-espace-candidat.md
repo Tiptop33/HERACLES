@@ -85,9 +85,15 @@ du titre).
 
 ### 4.2 Activer son compte — `/invitation/[jeton]`
 
-On reprend l'écran d'invitation existant (0009) : le candidat voit son e-mail, choisit son mot
-de passe (deux fois) et coche le consentement. Le prénom et le nom ne sont pas demandés ici :
-ils viendront du CV.
+On reprend l'écran d'invitation existant (0009) : le candidat choisit son mot de passe et coche
+les CGU. Pour lui, l'écran ne nomme **ni la loge ni le rôle** : le parrain dit s'il connaît son
+appartenance (0057), et cet écran n'a pas à la lui apprendre. Le prénom et le nom qu'il y donne
+commencent sa fiche.
+
+Le lien du courriel Supabase expire au bout d'une heure, mais l'écran ne dépend que de notre
+jeton, valable trente jours : un candidat qui clique plus tard active quand même son compte.
+
+Le consentement à la lecture du CV par Anthropic viendra avec l'étape 6.
 
 ### 4.3 L'espace candidat — `/espace/candidat`
 

@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { InvitationCandidat, refusDInvitation } from '../src/lib/espace-candidat';
-import { premiereErreur } from '../src/lib/parrainage';
+import {
+  InvitationCandidat,
+  anciennesLettres,
+  formatAccepte,
+  premierEcran,
+  refusDInvitation,
+} from '../src/lib/espace-candidat';
+import { FicheAuPremierEnvoi, FicheDuCandidat, premiereErreur } from '../src/lib/parrainage';
 
 const complet = {
   email: ' Lucie@Example.org ',
@@ -74,5 +80,86 @@ describe('refusDInvitation', () => {
       statut: 400,
     });
     expect(refusDInvitation(null).statut).toBe(400);
+  });
+});
+
+describe('premierEcran', () => {
+  it('demande d’abord le CV', () => {
+    expect(premierEcran({ a_un_cv: false, candidature_completee_le: null }, false)).toBe('cv');
+  });
+
+  it('montre la fiche dès que le CV est là, ou qu’elle a été enregistrée, ou sans CV', () => {
+    expect(premierEcran({ a_un_cv: true, candidature_completee_le: null }, false)).toBe('fiche');
+    expect(premierEcran({ a_un_cv: false, candidature_completee_le: '2026-11-07' }, false)).toBe('fiche');
+    expect(premierEcran({ a_un_cv: false, candidature_completee_le: null }, true)).toBe('fiche');
+  });
+});
+
+describe('formatAccepte', () => {
+  it('ne prend qu’un PDF pour le CV', () => {
+    expect(formatAccepte('cv', 'pdf')).toBe(true);
+    expect(formatAccepte('cv', 'docx')).toBe(false);
+    expect(formatAccepte('cv', null)).toBe(false);
+  });
+
+  it('garde les formats de 0057 pour la lettre', () => {
+    expect(formatAccepte('lettre', 'docx')).toBe(true);
+    expect(formatAccepte('lettre', 'jpg')).toBe(true);
+    expect(formatAccepte('lettre', 'exe')).toBe(false);
+  });
+});
+
+describe('anciennesLettres', () => {
+  it('nomme les autres formats, jamais celui qu’on vient de déposer', () => {
+    const chemins = anciennesLettres('abc', 'pdf');
+    expect(chemins).toContain('candidat/lettre/abc.docx');
+    expect(chemins).not.toContain('candidat/lettre/abc.pdf');
+    expect(chemins).toHaveLength(7);
+  });
+});
+
+describe('la fiche de l’espace candidat', () => {
+  const fiche = {
+    prenom: 'Lucie',
+    nom: 'Martin',
+    telephone: '0600000000',
+    age: '27',
+    situation_familiale: 'Marié',
+    adresse: '1 rue des Lilas',
+    code_postal: '33000',
+    ville: 'Bordeaux',
+    type_emploi: 'emploi',
+    emploi_recherche: 'Aide-soignante',
+    definition_emploi: 'AIDE-SOIGNANTE EN EHPAD',
+    mobilite_geographique: 'Départementale',
+    permis_vl: 'Oui',
+    permis_moto: 'Non',
+    permis_pl: 'Non',
+    vehicule: 'Oui',
+    formations: 'DEAS',
+    experiences: 'Trois ans en EHPAD',
+    competences: 'Soins',
+  };
+
+  it('n’exige ni e-mail ni consentement une fois la fiche enregistrée', () => {
+    expect(FicheDuCandidat.safeParse(fiche).success).toBe(true);
+  });
+
+  it('exige le consentement au premier envoi', () => {
+    const lu = FicheAuPremierEnvoi.safeParse(fiche);
+    expect(lu.success).toBe(false);
+    if (!lu.success) expect(premiereErreur(lu.error).champ).toBe('consentement');
+    expect(FicheAuPremierEnvoi.safeParse({ ...fiche, consentement: 'oui' }).success).toBe(true);
+  });
+
+  it('garde les règles de 0057 : un stage ne finit pas avant de commencer', () => {
+    const lu = FicheDuCandidat.safeParse({
+      ...fiche,
+      type_emploi: 'stage',
+      debut_stage: '2027-03-01',
+      fin_stage: '2027-01-01',
+    });
+    expect(lu.success).toBe(false);
+    if (!lu.success) expect(premiereErreur(lu.error).champ).toBe('fin_stage');
   });
 });

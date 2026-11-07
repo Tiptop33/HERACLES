@@ -3360,3 +3360,32 @@ a.poste-document .poste-document-type {
     display: none;
   }
 }
+
+/* L'espace du candidat : le dépôt du CV d'abord, puis ses documents au-dessus
+   de la fiche. */
+.espace-candidat-cv,
+.espace-candidat-documents {
+  margin: 1.5rem 0;
+}
+
+.depot-document {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.9rem;
+}
+
+.depot-document .champ {
+  flex: 1 1 16rem;
+  margin: 0;
+}
+
+.depot-document .erreur {
+  flex-basis: 100%;
+}
+
+.depot-present {
+  color: var(--marque);
+  font-weight: 700;
+}

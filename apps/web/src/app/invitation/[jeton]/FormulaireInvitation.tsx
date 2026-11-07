@@ -16,12 +16,19 @@ export default function FormulaireInvitation({
   loge,
   role,
   inviteur,
+  candidat = false,
 }: {
   jeton: string;
   email: string;
   loge: string | null;
   role: string;
   inviteur: string | null;
+  /**
+   * Un candidat ne « rejoint » pas une loge, il ouvre son espace. On ne lui
+   * nomme ni la loge ni le rôle : le parrain a dit s'il connaissait son
+   * appartenance (0057), et cet écran n'a pas à la lui apprendre.
+   */
+  candidat?: boolean;
 }) {
   const router = useRouter();
   const [etape, setEtape] = useState<'invitation' | 'profil'>('invitation');
@@ -60,18 +67,27 @@ export default function FormulaireInvitation({
       <>
         <h1 className="entree-titre">Vous êtes invité·e</h1>
 
-        <div className="invitation-qui">
-          <span className="invitation-pastille" aria-hidden="true" />
-          <div>
-            <strong>{inviteur ?? 'Un administrateur'}</strong>
-            <span className="maigre">{email}</span>
+        {!candidat && (
+          <div className="invitation-qui">
+            <span className="invitation-pastille" aria-hidden="true" />
+            <div>
+              <strong>{inviteur ?? 'Un administrateur'}</strong>
+              <span className="maigre">{email}</span>
+            </div>
           </div>
-        </div>
+        )}
 
-        <p className="entree-chapo">
-          <strong>{inviteur ?? 'Un administrateur'}</strong> vous invite à rejoindre{' '}
-          <strong>{loge ?? 'HERACLES'}</strong> avec le rôle <strong>{role}</strong>.
-        </p>
+        {candidat ? (
+          <p className="entree-chapo">
+            Un espace HERACLES vous attend pour vous accompagner dans votre recherche. Créez votre
+            compte : vous y déposerez votre CV et remplirez votre fiche.
+          </p>
+        ) : (
+          <p className="entree-chapo">
+            <strong>{inviteur ?? 'Un administrateur'}</strong> vous invite à rejoindre{' '}
+            <strong>{loge ?? 'HERACLES'}</strong> avec le rôle <strong>{role}</strong>.
+          </p>
+        )}
 
         {erreur && <p className="erreur">{erreur.message}</p>}
 
@@ -133,7 +149,13 @@ export default function FormulaireInvitation({
 
       <h1 className="entree-titre">Votre profil</h1>
       <p className="entree-chapo">
-        Vous rejoignez <strong>{loge ?? 'HERACLES'}</strong> comme <strong>{role}</strong>.
+        {candidat ? (
+          <>Choisissez votre mot de passe : c&apos;est avec lui et votre adresse que vous reviendrez.</>
+        ) : (
+          <>
+            Vous rejoignez <strong>{loge ?? 'HERACLES'}</strong> comme <strong>{role}</strong>.
+          </>
+        )}
       </p>
 
       {erreur && erreur.champ === null && <p className="erreur">{erreur.message}</p>}

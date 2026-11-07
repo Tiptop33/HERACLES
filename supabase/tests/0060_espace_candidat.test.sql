@@ -181,7 +181,7 @@ begin
 end
 $$;
 
-select public.accepter_invitation(:'e_l2', :'lucie', null, null);
+select public.accepter_invitation(:'e_l2', :'lucie', 'Lucie', 'martin');
 select public.accepter_invitation(:'e_h', :'hugo', null, null);
 
 select public.verifier(
@@ -193,6 +193,9 @@ select public.verifier(
 select public.verifier(
   not exists (select 1 from public.referent where profil_id = :'lucie'),
   'un candidat ne reçoit pas de fiche de référent');
+select public.verifier(
+  (select prenom = 'Lucie' and nom = 'MARTIN' from public.candidat where id = :'dossier_lucie'::uuid),
+  'le prénom et le nom donnés à l''activation commencent sa fiche');
 
 -- ---------------------------------------------------------------------------
 \echo '— Lucie lit sa fiche, et rien d autre'
