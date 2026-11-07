@@ -146,12 +146,13 @@ Migration **0060_espace_candidat.sql** et son test **0060_espace_candidat.test.s
 
 | Ce qui change | Pourquoi |
 | --- | --- |
-| `candidat` : `parrain_nom`, `parrain_prenom`, `parrain_loge_numero` (`parrain_email` existe déjà) | Le parrain saisi par l'admin n'a pas forcément de fiche `referent` : on garde son identité sur le dossier. |
+| `candidat` : `parrain_nom`, `parrain_prenom`, `parrain_loge` — mêmes noms que dans `parrainage` (`parrain_email` existe déjà) | Le parrain saisi par l'admin n'a pas forcément de fiche `referent` : on garde son identité sur le dossier. |
 | `invitation` : `candidat_id` (nullable) | L'invitation d'un candidat sait quel dossier elle ouvre. |
-| `inviter_un_candidat(adresse, loge, parrain jsonb, empreinte)` | Réservée aux `admin`. Ouvre le dossier (numéro suivant, loge choisie, sans référent, nouvelle demande) et crée l'invitation au rôle `candidat`, d'un seul geste. |
+| `inviter_un_candidat(emetteur, adresse, loge_choisie, parrain jsonb, empreinte)` | Réservée aux `admin`. Ouvre le dossier (numéro suivant, loge choisie, sans référent, nouvelle demande) et crée l'invitation au rôle `candidat`, valable 30 jours, d'un seul geste. Réinviter une adresse qui n'a pas encore accepté reprend le même dossier ; une adresse qui a déjà un dossier sans invitation est refusée. |
 | `accepter_invitation` : lier `candidat.profil_id` au compte créé | Le compte retrouve son dossier. |
 | `ma_fiche()` | Rend la fiche **du compte connecté**, et elle seule : `where profil_id = auth.uid()`. |
 | `modifier_ma_fiche(jsonb)` | `security definer`, avec une **liste blanche** de colonnes. Le candidat ne touche ni à `referent_id`, ni à `loge_id`, ni à `appreciation`, `urgence`, `etat`, `cloture`, `archive`, ni aux champs du parrain. |
+| `ranger_mon_document(genre, chemin)` | Rattache le CV (PDF seulement) ou la lettre déposés par la route, sous le chemin du dossier du candidat et aucun autre. |
 
 Pas de policy `update` directe sur `candidat` pour ce rôle : la liste blanche tient dans la
 fonction, comme `completer_sa_candidature` en 0057.
