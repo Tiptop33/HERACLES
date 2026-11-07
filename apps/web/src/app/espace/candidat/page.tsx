@@ -5,9 +5,9 @@ import { accueilDuRole } from '@/lib/roles';
 
 export const metadata = { title: 'Mon espace — HERACLES' };
 
-export default async function EspaceChercheur() {
+export default async function EspaceCandidat() {
   const profil = await exigerProfil();
-  if (profil.role !== 'chercheur') redirect(accueilDuRole(profil.role));
+  if (profil.role !== 'candidat') redirect(accueilDuRole(profil.role));
 
   return (
     <div className="enveloppe">

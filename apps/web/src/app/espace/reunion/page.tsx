@@ -49,7 +49,7 @@ export default async function Reunion({
   }>;
 }) {
   const profil = await exigerProfil();
-  if (profil.role === 'chercheur') redirect(accueilDuRole(profil.role));
+  if (profil.role === 'candidat') redirect(accueilDuRole(profil.role));
 
   const parametres = await searchParams;
   const premier = (v: string | string[] | undefined) => (Array.isArray(v) ? (v[0] ?? '') : (v ?? ''));

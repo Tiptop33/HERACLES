@@ -29,7 +29,7 @@ $$;
 -- Quatre inscriptions. Mallory demande « admin » ; le quatrième n'envoie aucune
 -- métadonnée, comme le ferait une inscription par lien magique.
 insert into auth.users (id, email, raw_user_meta_data) values
-  (:'alice',   'alice@example.org',   '{"role":"chercheur","nom":"Martin","prenom":"Alice"}'),
+  (:'alice',   'alice@example.org',   '{"role":"candidat","nom":"Martin","prenom":"Alice"}'),
   (:'bob',     'bob@example.org',     '{"role":"referent","nom":"Durand","prenom":"Bob"}'),
   (:'mallory', 'mallory@example.org', '{"role":"admin","nom":"Roux","prenom":"Mallory"}'),
   (:'muet',    'muet@example.org',    '{}');
@@ -37,18 +37,18 @@ insert into auth.users (id, email, raw_user_meta_data) values
 \echo '— création automatique du profil'
 select public.verifier((select count(*) from public.profil) = 4,
   'un profil naît avec chaque compte');
-select public.verifier((select role from public.profil where id = :'alice') = 'chercheur',
-  'le rôle chercheur demandé est respecté');
+select public.verifier((select role from public.profil where id = :'alice') = 'candidat',
+  'le rôle candidat demandé est respecté');
 select public.verifier((select role from public.profil where id = :'bob') = 'referent',
   'le rôle référent demandé est respecté');
 select public.verifier((select prenom from public.profil where id = :'alice') = 'Alice',
   'le prénom donné à l''inscription est repris');
 
 \echo '— personne ne se proclame administrateur'
-select public.verifier((select role from public.profil where id = :'mallory') = 'chercheur',
-  'demander « admin » dans le formulaire ne donne que « chercheur »');
-select public.verifier((select role from public.profil where id = :'muet') = 'chercheur',
-  'sans métadonnées, le rôle retombe sur chercheur');
+select public.verifier((select role from public.profil where id = :'mallory') = 'candidat',
+  'demander « admin » dans le formulaire ne donne que « candidat »');
+select public.verifier((select role from public.profil where id = :'muet') = 'candidat',
+  'sans métadonnées, le rôle retombe sur candidat');
 
 \echo '— lecture : chacun chez soi'
 begin;
@@ -86,7 +86,7 @@ begin;
   set local request.jwt.claims = '{"sub":"33333333-3333-3333-3333-333333333333"}';
   update public.profil set role = 'admin' where id = :'mallory';
 commit;
-select public.verifier((select role from public.profil where id = :'mallory') = 'chercheur',
+select public.verifier((select role from public.profil where id = :'mallory') = 'candidat',
   'une requête directe « set role = admin » reste sans effet');
 
 \echo '— mais l administration, elle, peut ajuster un rôle'

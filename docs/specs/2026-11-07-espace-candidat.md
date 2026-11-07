@@ -142,7 +142,7 @@ lu.
 
 ## 6. La base
 
-Migration **0059_espace_candidat.sql** et son test **0059_espace_candidat.test.sql**.
+Migration **0060_espace_candidat.sql** et son test **0060_espace_candidat.test.sql**.
 
 | Ce qui change | Pourquoi |
 | --- | --- |
@@ -180,8 +180,8 @@ sont reprises dans la même étape.
 
 Un commit par étape, chacun passant `executer.sh`, puis `lint`, `test` et `build`.
 
-1. **Vocabulaire** : `chercheur` → `candidat` (énumération, routes, code).
-2. **Base** : migration 0059 et ses tests.
+1. **Vocabulaire** : `chercheur` → `candidat` (migration 0059, routes, code).
+2. **Base** : migration 0060 et ses tests.
 3. **Admin** : le bouton, la fenêtre, la route `POST /api/candidats/inviter`, l'e-mail Brevo.
 4. **Activation** : l'écran d'invitation pour le rôle `candidat`, avec le consentement.
 5. **Espace candidat** : le dépôt du CV, la fiche, `ma_fiche()` et `modifier_ma_fiche()`.

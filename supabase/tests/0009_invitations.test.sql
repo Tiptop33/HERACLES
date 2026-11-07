@@ -114,7 +114,7 @@ $$;
 insert into auth.users (id, email, raw_user_meta_data) values
   (:'invitee', 'invitee@example.org', '{}');
 select public.verifier(
-  (select role from public.profil where id = :'invitee') = 'chercheur',
+  (select role from public.profil where id = :'invitee') = 'candidat',
   'avant acceptation, le compte n''est qu''un compte ordinaire');
 
 select public.accepter_invitation('empreinte-2', :'invitee', 'Claire', 'Vasseur');

@@ -3,7 +3,7 @@ import { accueilDuRole, estRoleInscription, libelleDuRole } from '../src/lib/rol
 
 describe('estRoleInscription', () => {
   it('accepte les deux rôles choisissables', () => {
-    expect(estRoleInscription('chercheur')).toBe(true);
+    expect(estRoleInscription('candidat')).toBe(true);
     expect(estRoleInscription('referent')).toBe(true);
   });
 
@@ -15,23 +15,23 @@ describe('estRoleInscription', () => {
     expect(estRoleInscription('')).toBe(false);
     expect(estRoleInscription(undefined)).toBe(false);
     expect(estRoleInscription(42)).toBe(false);
-    expect(estRoleInscription({ role: 'chercheur' })).toBe(false);
+    expect(estRoleInscription({ role: 'candidat' })).toBe(false);
   });
 });
 
 describe('accueilDuRole', () => {
   it('envoie chacun dans son espace', () => {
-    expect(accueilDuRole('chercheur')).toBe('/espace/chercheur');
+    expect(accueilDuRole('candidat')).toBe('/espace/candidat');
     // Référents et administrateurs partagent l'accueil : c'est la colonne de
     // gauche qui les sépare ensuite, selon leurs droits.
     expect(accueilDuRole('referent')).toBe('/espace/accueil');
     expect(accueilDuRole('admin')).toBe('/espace/accueil');
   });
 
-  it("retombe sur l'espace chercheur quand le rôle manque ou est inconnu", () => {
-    expect(accueilDuRole(null)).toBe('/espace/chercheur');
-    expect(accueilDuRole(undefined)).toBe('/espace/chercheur');
-    expect(accueilDuRole('inconnu')).toBe('/espace/chercheur');
+  it("retombe sur l'espace candidat quand le rôle manque ou est inconnu", () => {
+    expect(accueilDuRole(null)).toBe('/espace/candidat');
+    expect(accueilDuRole(undefined)).toBe('/espace/candidat');
+    expect(accueilDuRole('inconnu')).toBe('/espace/candidat');
   });
 });
 
@@ -39,7 +39,7 @@ describe('libelleDuRole', () => {
   it('affiche un libellé lisible', () => {
     expect(libelleDuRole('referent')).toBe('Référent');
     expect(libelleDuRole('admin')).toBe('Administrateur');
-    expect(libelleDuRole('chercheur')).toBe('Chercheur');
-    expect(libelleDuRole(null)).toBe('Chercheur');
+    expect(libelleDuRole('candidat')).toBe('Candidat');
+    expect(libelleDuRole(null)).toBe('Candidat');
   });
 });

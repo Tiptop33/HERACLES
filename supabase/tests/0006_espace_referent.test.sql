@@ -61,10 +61,10 @@ insert into public.candidat
 -- ---------------------------------------------------------------------------
 \echo '— le compte rejoint la fiche reprise de Bubble'
 -- ---------------------------------------------------------------------------
--- Bernard s'inscrit en demandant « chercheur » : c'est la base qui sait qu'il
+-- Bernard s'inscrit en demandant « candidat » : c'est la base qui sait qu'il
 -- accompagne des candidats, pas le formulaire.
 insert into auth.users (id, email, raw_user_meta_data) values
-  (:'bernard', 'BERNARD@Example.ORG', '{"role":"chercheur","nom":"Delorme","prenom":"Bernard"}'),
+  (:'bernard', 'BERNARD@Example.ORG', '{"role":"candidat","nom":"Delorme","prenom":"Bernard"}'),
   (:'michel',  'michel@example.org',  '{"role":"referent","nom":"Aubert","prenom":"Michel"}'),
   (:'claire',  'claire@example.org',  '{"role":"referent","nom":"Vasseur","prenom":"Claire"}');
 
