@@ -1,0 +1,65 @@
+<!doctype html>
+<!--
+  Le courriel d'invitation de HERACLES, envoyé par GoTrue (Supabase).
+
+  Un seul fichier pour les deux piles :
+    · en local, supabase/config.toml le lit directement (content_path) ;
+    · en production, GoTrue le télécharge à l'adresse publique de
+      l'application (GOTRUE_MAILER_TEMPLATES_INVITE, posée par
+      infra/supabase/composer-surcharge.mjs).
+
+  Il sert à TOUTES les invitations — candidats, référents, administrateurs :
+  le texte ne présume donc pas du rôle. GoTrue y remplace la variable
+  ConfirmationURL par le lien qui crée la session et mène à l'écran
+  d'invitation.
+
+  Pas de feuille de style : les messageries l'ignorent. Tout est en ligne.
+-->
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Votre invitation à HERACLES</title>
+  </head>
+  <body style="margin:0;padding:0;background:#f2f4f7;font-family:Arial,Helvetica,sans-serif;color:#16202e;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f2f4f7;padding:24px 12px;">
+      <tr>
+        <td align="center">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background:#ffffff;border:1px solid #dbe1e9;border-radius:12px;">
+            <tr>
+              <td style="padding:28px 28px 8px;">
+                <p style="margin:0 0 18px;font-size:13px;font-weight:bold;letter-spacing:2px;color:#3f9fc2;">HERACLES</p>
+                <h1 style="margin:0 0 16px;font-size:20px;line-height:1.3;color:#16202e;">Vous êtes invité(e) à rejoindre HERACLES</h1>
+                <p style="margin:0 0 14px;font-size:15px;line-height:1.55;">Bonjour,</p>
+                <p style="margin:0 0 14px;font-size:15px;line-height:1.55;">
+                  Un compte HERACLES vous attend. Cliquez sur le bouton ci-dessous pour l'activer :
+                  vous choisirez votre mot de passe, puis vous accéderez à votre espace.
+                </p>
+              </td>
+            </tr>
+            <tr>
+              <td align="center" style="padding:10px 28px 22px;">
+                <a href="{{ .ConfirmationURL }}" style="display:inline-block;background:#3f9fc2;color:#ffffff;text-decoration:none;font-size:15px;font-weight:bold;padding:12px 26px;border-radius:8px;">Activer mon compte</a>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:0 28px 26px;">
+                <p style="margin:0 0 10px;font-size:13px;line-height:1.5;color:#5a6b7f;">
+                  Ce lien est personnel : il ne vaut que pour l'adresse {{ .Email }}, et ne sert qu'une fois.
+                  Ne le transférez pas.
+                </p>
+                <p style="margin:0 0 10px;font-size:13px;line-height:1.5;color:#5a6b7f;">
+                  Si le bouton ne fonctionne pas, copiez cette adresse dans votre navigateur :<br />
+                  <a href="{{ .ConfirmationURL }}" style="color:#3f9fc2;word-break:break-all;">{{ .ConfirmationURL }}</a>
+                </p>
+                <p style="margin:0;font-size:13px;line-height:1.5;color:#5a6b7f;">
+                  Vous ne vous attendiez pas à ce message ? Ignorez-le : aucun compte ne sera activé.
+                </p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

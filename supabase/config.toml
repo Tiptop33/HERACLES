@@ -55,3 +55,9 @@ enable_signup = true
 enable_signup = true
 enable_confirmations = true
 double_confirm_changes = true
+
+# Le courriel d'invitation, en français. Le même fichier sert la production,
+# où GoTrue le télécharge depuis l'application (infra/supabase/composer-surcharge.mjs).
+[auth.email.template.invite]
+subject = "Votre invitation à rejoindre HERACLES"
+content_path = "./apps/web/public/courriels/invitation.html"
