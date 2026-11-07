@@ -3,6 +3,7 @@ import {
   enTeteDeTelechargement,
   extensionDe,
   formatDImage,
+  formatDeDocument,
   typeDeFichier,
 } from '../src/lib/fichiers';
 
@@ -105,5 +106,41 @@ describe('formatDImage', () => {
 
   it('ne bronche pas sur un fichier vide', () => {
     expect(formatDImage(new Uint8Array())).toBeNull();
+  });
+});
+
+describe('formatDeDocument', () => {
+  it('reconnaît un PDF à sa signature', () => {
+    expect(formatDeDocument(debut('%PDF-1.7'))).toBe('pdf');
+  });
+
+  it('reconnaît un document Word 97-2003', () => {
+    expect(formatDeDocument(debut(0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1))).toBe('doc');
+  });
+
+  it('distingue un ODT d’un DOCX, deux archives ZIP', () => {
+    const zip = [0x50, 0x4b, 0x03, 0x04];
+    // Vingt-six octets d'en-tête de membre, puis le nom `mimetype` et son
+    // contenu, comme la norme OpenDocument l'impose.
+    const odt = debut(...zip, ...Array(26).fill(0), 'mimetypeapplication/vnd.oasis.opendocument.text');
+    expect(formatDeDocument(odt)).toBe('odt');
+    expect(formatDeDocument(debut(...zip, ...Array(26).fill(0), '[Content_Types].xml'))).toBe('docx');
+  });
+
+  it('reconnaît un RTF', () => {
+    expect(formatDeDocument(debut('{\\rtf1\\ansi'))).toBe('rtf');
+  });
+
+  it('accepte la photo d’un CV, en JPEG, PNG ou WebP', () => {
+    expect(formatDeDocument(debut(0xff, 0xd8, 0xff, 0xe0))).toBe('jpg');
+    expect(formatDeDocument(debut(0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a))).toBe('png');
+    expect(formatDeDocument(debut('RIFF', 0, 0, 0, 0, 'WEBP'))).toBe('webp');
+  });
+
+  it('refuse le reste, quel que soit le nom du fichier', () => {
+    expect(formatDeDocument(debut('GIF89a'))).toBeNull();
+    expect(formatDeDocument(debut('<svg xmlns="http://www.w3.org/2000/svg">'))).toBeNull();
+    expect(formatDeDocument(debut('MZ'))).toBeNull();
+    expect(formatDeDocument(new Uint8Array())).toBeNull();
   });
 });

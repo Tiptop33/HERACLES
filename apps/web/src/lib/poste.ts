@@ -110,6 +110,30 @@ export type Fiche = {
 
   /** Le droit d'y écrire : référent ou parrain, et personne d'autre. */
   modifiable: boolean;
+
+  /**
+   * Migration 0057 : le reste de la fiche Bubble, et ce que le parrain a dit
+   * en présentant le candidat. Vide pour les fiches reprises — les 102 fiches
+   * PARRAIN de Bubble attendent encore d'être déversées.
+   */
+  a_un_referent: boolean;
+  definition_emploi: string | null;
+  fin_stage: string | null;
+  permis_moto: string | null;
+  permis_pl: string | null;
+  centres_interet: string | null;
+  parrain_email: string | null;
+  parrain_presentateur: string | null;
+  parrain_telephone: string | null;
+  parrain_loge: string | null;
+  lien_parente: string | null;
+  connait_appartenance: string | null;
+  peut_se_devoiler: string | null;
+  urgence: number | null;
+  urgence_motif: string | null;
+  presente_le: string | null;
+  candidature_completee_le: string | null;
+  loge_id: string | null;
 };
 
 /** La fiche, augmentée des deux indicateurs calculés du lot 3. */

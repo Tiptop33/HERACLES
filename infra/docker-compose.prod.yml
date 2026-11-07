@@ -36,6 +36,15 @@ services:
       # l'image, et une variable non préfixée `NEXT_PUBLIC_` n'a rien à y
       # faire. Au démarrage, elle ne quitte jamais le serveur.
       SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY}
+      # Les courriels du parcours « nouveau candidat » (migration 0057) : lien
+      # au parrain, lien au candidat, relance. Envoyés par l'API de Brevo.
+      # Vides : rien ne part, et le lien s'affiche au référent.
+      BREVO_API_KEY: ${BREVO_API_KEY:-}
+      COURRIEL_EXPEDITEUR: ${COURRIEL_EXPEDITEUR:-}
+      COURRIEL_NOM_EXPEDITEUR: ${COURRIEL_NOM_EXPEDITEUR:-HERACLES}
+      # Le secret de la tâche planifiée qui appelle /api/relances. Vide : la
+      # route est fermée.
+      RELANCE_SECRET: ${RELANCE_SECRET:-}
     ports:
       # Jamais exposé directement sur Internet : la façade — Nginx ou Traefik —
       # fait le reverse-proxy HTTPS vers ce port. Publié sur la boucle locale
