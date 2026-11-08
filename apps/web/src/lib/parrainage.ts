@@ -119,10 +119,42 @@ const jourFacultatif = z
     message: 'Cette date ne se lit pas.',
   });
 
-/** L'adresse du parrain, saisie par le référent. */
-export const InvitationParrain = z.object({
-  email: courriel('Indiquez l’adresse e-mail du parrain.'),
-});
+/** Une case laissée vide vaut une case absente. */
+const courrielFacultatif = (message: string) =>
+  z.preprocess(
+    (valeur) => (typeof valeur === 'string' && valeur.trim() === '' ? undefined : valeur),
+    courriel(message).optional(),
+  );
+
+/**
+ * Ce que reçoit la route d'invitation : l'adresse du parrain, celle du
+ * candidat, ou les deux — jamais aucune (migrations 0059 et 0060).
+ *
+ *   · les deux : le parrain est invité, l'adresse du candidat l'attend
+ *     pré-remplie dans son formulaire ;
+ *   · le parrain seul : comme avant ;
+ *   · le candidat seul : le dossier s'ouvre sans parrain, et le candidat
+ *     reçoit directement le lien vers sa fiche.
+ *
+ * La même adresse dans les deux cases est une erreur de saisie, pas un
+ * candidat qui se parraine lui-même.
+ */
+export const InvitationParrain = z
+  .object({
+    candidat_email: courrielFacultatif('Indiquez l’adresse e-mail du candidat.'),
+    email: courrielFacultatif('Indiquez l’adresse e-mail du parrain.'),
+  })
+  .refine((v) => v.email !== undefined || v.candidat_email !== undefined, {
+    path: ['candidat_email'],
+    message: 'Indiquez au moins une adresse : celle du candidat ou celle du parrain.',
+  })
+  .refine(
+    (v) => !v.email || !v.candidat_email || v.email.toLowerCase() !== v.candidat_email.toLowerCase(),
+    { path: ['email'], message: 'Le parrain et le candidat ne peuvent pas avoir la même adresse.' },
+  );
+
+/** La fenêtre « Nouveau candidat » valide exactement ce que la route validera. */
+export const FenetreNouveauCandidat = InvitationParrain;
 
 /**
  * La page du parrain : ce qu'il dit de lui, puis du candidat. Champs
@@ -327,6 +359,31 @@ export function courrielAuCandidat(
   };
 }
 
+/**
+ * Le courriel au candidat dont le dossier s'ouvre sans parrain (0060). Pas de
+ * modèle Bubble ici : celui de la commission parle du parrain, qui n'existe
+ * pas. L'objet, lui, reste le même.
+ */
+export function courrielAuCandidatSansParrain(
+  modeles: Modeles,
+  lien: string,
+  loge: string | null,
+  referent: string | null,
+): Message {
+  const signature = [referent, loge ? `Commission HERACLES — ${loge}` : 'Commission HERACLES']
+    .filter(Boolean)
+    .join('\n');
+  return {
+    sujet: modeles.objet_candidat?.trim() || 'DEMANDE DE RENSEIGNEMENTS',
+    texte: composer(
+      null,
+      'Bonjour,\n\nVous êtes à la recherche d’un emploi, d’une alternance ou d’un stage, et la commission HERACLES souhaite vous accompagner. Pour cela, merci de compléter votre fiche et d’y joindre votre CV.',
+      lien,
+      signature,
+    ),
+  };
+}
+
 // ————————————————————————————————————————————————————————————————————————————
 // L'état d'un parrainage, tel que la base le calcule
 // ————————————————————————————————————————————————————————————————————————————
@@ -348,7 +405,8 @@ export const ETATS: Record<EtatDuParrainage, string> = {
 
 export type LigneDeParrainage = {
   id: string;
-  parrain_email: string;
+  /** `null` pour un dossier ouvert sans parrain (0060). */
+  parrain_email: string | null;
   parrain_nom: string | null;
   envoye_par_nom: string | null;
   cree_le: string;

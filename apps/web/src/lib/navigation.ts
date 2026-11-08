@@ -72,6 +72,9 @@ export const FAMILLES: readonly Famille[] = [
     rolesAutorises: ['admin'],
     entrees: [
       { libelle: 'Invitations', vers: '/espace/admin' },
+      // Ouvrir un dossier depuis l'administration : le même écran que le
+      // bouton du volet des candidats (invitation du parrain).
+      { libelle: 'Nouveau candidat', vers: '/espace/candidats/nouveau' },
       { libelle: 'Loges', vers: null, lot: 'lot 5' },
       { libelle: "Secteur d'activité", vers: null, lot: 'lot 5' },
     ],
@@ -101,8 +104,24 @@ export function famillesDuRole(role: Role): Famille[] {
 /**
  * Vrai si l'adresse courante correspond à cette entrée. On compare le début du
  * chemin : la fiche d'un candidat garde « Candidats » en surbrillance.
+ *
+ * `voisines` : les autres entrées affichées. Quand l'une d'elles correspond
+ * plus précisément (« Nouveau candidat » sous « Candidats »), c'est elle seule
+ * qui s'allume — deux entrées en surbrillance ne disent plus où l'on est.
  */
-export function estCourante(entree: Entree, chemin: string): boolean {
-  if (!entree.vers) return false;
-  return chemin === entree.vers || chemin.startsWith(`${entree.vers}/`);
+export function estCourante(
+  entree: Entree,
+  chemin: string,
+  voisines: readonly Entree[] = [],
+): boolean {
+  if (!correspond(entree.vers, chemin)) return false;
+  const longueur = entree.vers!.length;
+  return !voisines.some(
+    (v) => v !== entree && v.vers && v.vers.length > longueur && correspond(v.vers, chemin),
+  );
+}
+
+function correspond(vers: string | null, chemin: string): boolean {
+  if (!vers) return false;
+  return chemin === vers || chemin.startsWith(`${vers}/`);
 }

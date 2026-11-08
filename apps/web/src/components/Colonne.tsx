@@ -7,6 +7,7 @@ import { nomAffichable } from '@/lib/format';
 import type { Connecte } from '@/lib/presence';
 import type { MaPhoto, Profil } from '@/lib/profil';
 import Connectes from './Connectes';
+import OuvrirNouveauCandidat, { ADRESSE_NOUVEAU_CANDIDAT } from './OuvrirNouveauCandidat';
 import { Roue } from './Icones';
 
 /**
@@ -38,6 +39,8 @@ export default function Colonne({
 }) {
   const chemin = usePathname() ?? '';
   const familles = famillesDuRole(profil.role);
+  // Toutes les entrées visibles : la plus précise l'emporte pour la surbrillance.
+  const visibles = familles.flatMap((f) => f.entrees);
   const nom = nomAffichable(profil.prenom, profil.nom, profil.email);
 
   return (
@@ -86,12 +89,22 @@ export default function Colonne({
           <p className="colonne-famille-nom">{famille.nom}</p>
 
           {famille.entrees.map((entree) =>
-            entree.vers ? (
+            // « Nouveau candidat » ouvre la fenêtre flottante au lieu de
+            // quitter l'écran — un lien quand même, vers la page, sans script.
+            entree.vers === ADRESSE_NOUVEAU_CANDIDAT ? (
+              <OuvrirNouveauCandidat
+                key={entree.libelle}
+                aria-current={estCourante(entree, chemin, visibles) ? 'page' : undefined}
+                className={`colonne-entree${estCourante(entree, chemin, visibles) ? ' colonne-entree--courante' : ''}`}
+              >
+                {entree.libelle}
+              </OuvrirNouveauCandidat>
+            ) : entree.vers ? (
               <Link
                 key={entree.libelle}
                 href={entree.vers}
-                aria-current={estCourante(entree, chemin) ? 'page' : undefined}
-                className={`colonne-entree${estCourante(entree, chemin) ? ' colonne-entree--courante' : ''}`}
+                aria-current={estCourante(entree, chemin, visibles) ? 'page' : undefined}
+                className={`colonne-entree${estCourante(entree, chemin, visibles) ? ' colonne-entree--courante' : ''}`}
               >
                 {entree.libelle}
               </Link>

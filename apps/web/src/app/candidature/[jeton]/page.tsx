@@ -64,7 +64,7 @@ export default async function PageDuCandidat({
 
         <h1 className="entree-titre">Votre fiche</h1>
         <p className="entree-chapo">
-          Bonjour {candidature.prenom ?? ''}. Pour que la commission
+          Bonjour{candidature.prenom ? ` ${candidature.prenom}` : ''}. Pour que la commission
           {candidature.loge_nom ? (
             <>
               {' '}

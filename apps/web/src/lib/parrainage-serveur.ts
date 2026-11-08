@@ -26,6 +26,8 @@ export type ParrainageOuvert = {
   loge_nom: string | null;
   envoye_par_nom: string | null;
   parrain_email: string;
+  /** L'adresse du candidat proposée à l'invitation (0059), ou `null`. */
+  candidat_email: string | null;
   valable: boolean;
   motif: 'deja_presente' | 'revoque' | 'expire' | null;
 };
