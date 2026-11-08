@@ -47,6 +47,15 @@ Dans le `.env` de la pile (voir `.env.example`) :
 **Sans Brevo**, rien ne part : l'invitation est enregistrée quand même, et le lien
 s'affiche au référent pour qu'il le transmette. C'est le mode d'essai.
 
+**Sur l'instance d'essai**, ces variables vont dans `/opt/heracles-essai-depot/.env.essai`,
+ajoutées à la main, puis `sudo /opt/heracles-essai-depot/infra/essai/mettre-a-jour.sh`.
+`deployer.sh` réécrit ce fichier mais conserve `BREVO_API_KEY`, `COURRIEL_EXPEDITEUR`,
+`COURRIEL_NOM_EXPEDITEUR` et `RELANCE_SECRET` ; `mettre-a-jour.sh` ne fait que le lire.
+
+Si rien n'arrive, `docker logs heracles-essai-web-web-1 2>&1 | grep courriel` dit pourquoi :
+réglage absent, refus de Brevo (clé, ou adresse IP du serveur non autorisée), ou rien —
+Brevo a accepté, et c'est dans ses journaux d'envoi qu'il faut regarder.
+
 Les textes des courriels sont ceux de la commission, repris de Bubble dans `parametre` :
 `objet_parrain` / `mot_parrain`, `objet_relance_parrain` / `mot_relance_parrain`,
 `objet_candidat` / `mot_candidat`. Le lien est ajouté à la fin. Un modèle vide laisse la
