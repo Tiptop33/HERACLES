@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { etatInvitation, listerInvitations, listerLoges } from '@/lib/administration';
 import { dateEnLettres, depuis } from '@/lib/format';
@@ -5,12 +6,26 @@ import { libelleRoleInvitation } from '@/lib/invitation';
 import { exigerProfil } from '@/lib/profil';
 import { accueilDuRole } from '@/lib/roles';
 import FormulaireInvitation from './FormulaireInvitation';
+import FormulaireNouveauCandidat from './FormulaireNouveauCandidat';
 
 export const metadata = { title: 'Administration — HERACLES' };
 
-export default async function EspaceAdmin() {
+export default async function EspaceAdmin({
+  searchParams,
+}: {
+  searchParams: Promise<{ nouveau?: string | string[]; ouvert?: string | string[] }>;
+}) {
   const profil = await exigerProfil();
   if (profil.role !== 'admin') redirect(accueilDuRole(profil.role));
+
+  const parametres = await searchParams;
+  const premier = (v: string | string[] | undefined) => (Array.isArray(v) ? (v[0] ?? '') : (v ?? ''));
+  // La fenêtre « Nouveau candidat » tient dans l'adresse, comme celle des
+  // réunions : elle s'ouvre sans script, et le bouton « retour » la referme.
+  const fenetreOuverte = premier(parametres.nouveau) === '1';
+  // Le numéro du dossier qui vient d'être ouvert, pour le dire. Rien d'autre
+  // ne passe par l'adresse.
+  const ouvert = /^\d{1,9}$/.test(premier(parametres.ouvert)) ? premier(parametres.ouvert) : null;
 
   // Ces deux lectures ne filtrent rien à la main : la RLS (migration 0010) ne
   // les ouvre qu'aux administrateurs. Sans elle, la page serait vide.
@@ -32,7 +47,16 @@ export default async function EspaceAdmin() {
                 : `${enAttente} en attente · ${acceptees} acceptée${acceptees > 1 ? 's' : ''}`}
             </span>
           </div>
+          <Link href="/espace/admin?nouveau=1" className="bouton bouton--fort bouton--petit">
+            Nouveau candidat
+          </Link>
         </div>
+
+        {ouvert && (
+          <p className="encart" role="status">
+            Le dossier n° {ouvert} est ouvert. Le candidat a reçu son invitation par e-mail.
+          </p>
+        )}
 
         <section className="bloc">
           <h2>Inviter quelqu&apos;un</h2>
@@ -85,6 +109,25 @@ export default async function EspaceAdmin() {
           </div>
         )}
       </main>
+
+      {fenetreOuverte && (
+        <div className="fenetre-fond">
+          <Link href="/espace/admin" className="fenetre-voile" aria-label="Fermer sans rien envoyer" />
+          <div
+            className="fenetre fenetre--large"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="nouveau-candidat"
+          >
+            <h2 id="nouveau-candidat">Nouveau candidat</h2>
+            <p>
+              Le candidat reçoit un lien pour créer son compte. Son dossier s’ouvre dans la loge
+              choisie, sans référent.
+            </p>
+            <FormulaireNouveauCandidat loges={loges} fermer="/espace/admin" />
+          </div>
+        </div>
+      )}
     </>
   );
 }

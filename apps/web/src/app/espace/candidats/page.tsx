@@ -92,7 +92,7 @@ export default async function PosteDeTravail({
   searchParams: Promise<Parametres>;
 }) {
   const profil = await exigerProfil();
-  if (profil.role === 'chercheur') redirect(accueilDuRole(profil.role));
+  if (profil.role === 'candidat') redirect(accueilDuRole(profil.role));
 
   const parametres = await searchParams;
   const recherche = premier(parametres.q);

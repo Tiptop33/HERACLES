@@ -48,6 +48,7 @@ export default async function Invitation({ params }: { params: Promise<{ jeton: 
           loge={invitation.loge_nom}
           role={libelleRoleInvitation(invitation.role)}
           inviteur={invitation.invite_par_nom}
+          candidat={invitation.role === 'candidat'}
         />
       </div>
     </main>

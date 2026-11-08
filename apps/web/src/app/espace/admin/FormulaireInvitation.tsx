@@ -6,7 +6,7 @@ import type { LogeBreve } from '@/lib/administration';
 
 const ROLES = [
   { valeur: 'referent', libelle: 'Référent — accompagne des candidats' },
-  { valeur: 'chercheur', libelle: 'Candidat — tient sa propre fiche' },
+  { valeur: 'candidat', libelle: 'Candidat — tient sa propre fiche' },
   { valeur: 'admin', libelle: 'Administrateur — peut inviter à son tour' },
 ];
 

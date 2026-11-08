@@ -24,7 +24,7 @@ export default async function RetirerUneReunion({
   params: Promise<{ id: string }>;
 }) {
   const profil = await exigerProfil();
-  if (profil.role === 'chercheur') redirect(accueilDuRole(profil.role));
+  if (profil.role === 'candidat') redirect(accueilDuRole(profil.role));
 
   const { id } = await params;
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();

@@ -180,6 +180,61 @@ export const FormulaireParrain = z.object({
 
 export type Parrain = z.infer<typeof FormulaireParrain>;
 
+const identiteDuCandidat = {
+  prenom: obligatoire(120, 'Indiquez votre prénom.'),
+  nom: obligatoire(120, 'Indiquez votre nom.'),
+};
+
+/**
+ * Les champs de la fiche que le candidat remplit lui-même, hors adresse
+ * e-mail et consentement. Partagés par le lien de 0057 et par l'espace
+ * candidat (0060) : une même fiche obéit aux mêmes règles, d'où qu'on la
+ * remplisse.
+ */
+const reponsesDuCandidat = {
+  telephone: obligatoire(40, 'Indiquez votre téléphone.'),
+  age: entier(14, 99, 'Indiquez votre âge.', 'Votre âge doit être compris entre 14 et 99 ans.'),
+  situation_familiale: parmi(SITUATIONS_FAMILIALES, 'Choisissez votre situation familiale.'),
+  adresse: obligatoire(300, 'Indiquez votre adresse.'),
+  code_postal: obligatoire(10, 'Indiquez votre code postal.').regex(
+    /^[0-9A-Za-z -]{3,10}$/,
+    'Ce code postal ne se lit pas.',
+  ),
+  ville: obligatoire(120, 'Indiquez votre ville.'),
+
+  type_emploi: parmi(VALEURS_DE_RECHERCHE, 'Choisissez le type de recherche.'),
+  emploi_recherche: obligatoire(200, 'Indiquez le métier que vous visez.'),
+  definition_emploi: obligatoire(2000, 'Décrivez précisément l’emploi recherché.'),
+  mobilite_geographique: parmi(MOBILITES, 'Choisissez votre mobilité géographique.'),
+  debut_stage: jourFacultatif,
+  fin_stage: jourFacultatif,
+
+  permis_vl: parmi(OUI_NON, 'Dites si vous avez le permis B.'),
+  permis_moto: parmi(OUI_NON, 'Dites si vous avez le permis moto.'),
+  permis_pl: parmi(OUI_NON, 'Dites si vous avez le permis poids lourd.'),
+  vehicule: parmi(OUI_NON, 'Dites si vous avez un véhicule.'),
+
+  formations: obligatoire(5000, 'Décrivez votre formation.'),
+  experiences: obligatoire(5000, 'Décrivez vos expériences.'),
+  competences: obligatoire(3000, 'Indiquez vos compétences.'),
+  informatique: facultatif(2000),
+  savoir_etre: facultatif(2000),
+  centres_interet: facultatif(2000),
+};
+
+const stageDansLOrdre = {
+  check: (f: { debut_stage?: string; fin_stage?: string }) =>
+    !f.debut_stage || !f.fin_stage || f.debut_stage <= f.fin_stage,
+  erreur: { message: 'La fin du stage précède son début.', path: ['fin_stage'] },
+};
+
+// Le cadrage (§ 9) le demande : un consentement explicite, et une information
+// claire sur qui voit quoi. La case n'est pas conservée en tant que telle — la
+// date d'envoi de la fiche en tient lieu.
+const consentement = z.literal('oui', {
+  error: 'Cochez la case de consentement pour envoyer votre fiche.',
+});
+
 /**
  * La page du candidat. Champs obligatoires : ceux que `renseignement_candidat`
  * exigeait — le secteur et le métier ROME exceptés, dont les référentiels ne
@@ -187,49 +242,25 @@ export type Parrain = z.infer<typeof FormulaireParrain>;
  */
 export const FormulaireCandidature = z
   .object({
-    prenom: obligatoire(120, 'Indiquez votre prénom.'),
-    nom: obligatoire(120, 'Indiquez votre nom.'),
+    ...identiteDuCandidat,
     email: courriel('Indiquez votre adresse e-mail.'),
-    telephone: obligatoire(40, 'Indiquez votre téléphone.'),
-    age: entier(14, 99, 'Indiquez votre âge.', 'Votre âge doit être compris entre 14 et 99 ans.'),
-    situation_familiale: parmi(SITUATIONS_FAMILIALES, 'Choisissez votre situation familiale.'),
-    adresse: obligatoire(300, 'Indiquez votre adresse.'),
-    code_postal: obligatoire(10, 'Indiquez votre code postal.').regex(
-      /^[0-9A-Za-z -]{3,10}$/,
-      'Ce code postal ne se lit pas.',
-    ),
-    ville: obligatoire(120, 'Indiquez votre ville.'),
-
-    type_emploi: parmi(VALEURS_DE_RECHERCHE, 'Choisissez le type de recherche.'),
-    emploi_recherche: obligatoire(200, 'Indiquez le métier que vous visez.'),
-    definition_emploi: obligatoire(2000, 'Décrivez précisément l’emploi recherché.'),
-    mobilite_geographique: parmi(MOBILITES, 'Choisissez votre mobilité géographique.'),
-    debut_stage: jourFacultatif,
-    fin_stage: jourFacultatif,
-
-    permis_vl: parmi(OUI_NON, 'Dites si vous avez le permis B.'),
-    permis_moto: parmi(OUI_NON, 'Dites si vous avez le permis moto.'),
-    permis_pl: parmi(OUI_NON, 'Dites si vous avez le permis poids lourd.'),
-    vehicule: parmi(OUI_NON, 'Dites si vous avez un véhicule.'),
-
-    formations: obligatoire(5000, 'Décrivez votre formation.'),
-    experiences: obligatoire(5000, 'Décrivez vos expériences.'),
-    competences: obligatoire(3000, 'Indiquez vos compétences.'),
-    informatique: facultatif(2000),
-    savoir_etre: facultatif(2000),
-    centres_interet: facultatif(2000),
-
-    // Le cadrage (§ 9) le demande : un consentement explicite, et une
-    // information claire sur qui voit quoi. La case n'est pas conservée en
-    // tant que telle — la date d'envoi de la fiche en tient lieu.
-    consentement: z.literal('oui', {
-      error: 'Cochez la case de consentement pour envoyer votre fiche.',
-    }),
+    ...reponsesDuCandidat,
+    consentement,
   })
-  .refine((f) => !f.debut_stage || !f.fin_stage || f.debut_stage <= f.fin_stage, {
-    message: 'La fin du stage précède son début.',
-    path: ['fin_stage'],
-  });
+  .refine(stageDansLOrdre.check, stageDansLOrdre.erreur);
+
+/**
+ * La fiche, depuis l'espace candidat. Ni adresse e-mail — c'est celle du
+ * compte —, ni consentement à chaque fois : il n'est demandé qu'au premier
+ * enregistrement (voir `FicheAuPremierEnvoi`).
+ */
+export const FicheDuCandidat = z
+  .object({ ...identiteDuCandidat, ...reponsesDuCandidat })
+  .refine(stageDansLOrdre.check, stageDansLOrdre.erreur);
+
+export const FicheAuPremierEnvoi = z
+  .object({ ...identiteDuCandidat, ...reponsesDuCandidat, consentement })
+  .refine(stageDansLOrdre.check, stageDansLOrdre.erreur);
 
 export type Candidature = z.infer<typeof FormulaireCandidature>;
 

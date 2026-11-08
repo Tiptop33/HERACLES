@@ -1904,6 +1904,28 @@ tbody tr:focus-within {
   margin-top: 1.1rem;
 }
 
+/* La fenêtre qui porte un formulaire : deux champs côte à côte y tiennent,
+   et elle défile d'elle-même sur un petit écran plutôt que de sortir du
+   cadre. */
+.fenetre--large {
+  max-width: 34rem;
+  max-height: calc(100dvh - 2 * var(--pas));
+  overflow-y: auto;
+}
+
+.fenetre-groupe {
+  border: 1px solid var(--bordure);
+  border-radius: 10px;
+  padding: 0.6rem 0.9rem 0.2rem;
+  margin: 0.4rem 0 0.9rem;
+}
+
+.fenetre-groupe legend {
+  padding: 0 0.3rem;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
 .bouton--danger {
   background: var(--alerte);
   border-color: var(--alerte);
@@ -3445,4 +3467,33 @@ a.poste-document .poste-document-type {
   justify-content: flex-end;
   gap: 0.5rem;
   margin-top: 0.2rem;
+}
+
+/* L'espace du candidat : le dépôt du CV d'abord, puis ses documents au-dessus
+   de la fiche. */
+.espace-candidat-cv,
+.espace-candidat-documents {
+  margin: 1.5rem 0;
+}
+
+.depot-document {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.9rem;
+}
+
+.depot-document .champ {
+  flex: 1 1 16rem;
+  margin: 0;
+}
+
+.depot-document .erreur {
+  flex-basis: 100%;
+}
+
+.depot-present {
+  color: var(--marque);
+  font-weight: 700;
 }

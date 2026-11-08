@@ -52,7 +52,7 @@ export function libelleRoleInvitation(role: string): string {
   switch (role) {
     case 'admin':
       return 'Administrateur';
-    case 'chercheur':
+    case 'candidat':
       return 'Candidat';
     default:
       return 'Référent';

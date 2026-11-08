@@ -10,13 +10,13 @@ import { referentCourant } from '@/lib/candidat';
  * La coquille des espaces de travail : la colonne de gauche, la barre du haut,
  * et l'écran demandé.
  *
- * Un chercheur n'y a pas droit : la colonne parle d'accompagnement, de loges
+ * Un candidat n'y a pas droit : la colonne parle d'accompagnement, de loges
  * et d'offres à distribuer. Son espace à lui garde sa propre barre.
  */
 export default async function EspaceLayout({ children }: { children: React.ReactNode }) {
   const profil = await exigerProfil();
 
-  if (profil.role === 'chercheur') return <>{children}</>;
+  if (profil.role === 'candidat') return <>{children}</>;
 
   // `lireMaPhoto()` sans condition de rôle : un administrateur peut avoir sa
   // fiche de référent, et la fonction rend simplement `null` quand il n'y en

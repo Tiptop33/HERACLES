@@ -80,6 +80,20 @@ for (const service of services) {
     // Rien d'autre ne sort. Un service qui ne publiait rien n'en souffre pas.
     lignes.push('    ports: !override []');
   }
+  if (service === 'auth') lignes.push(...courrielsEnFrancais());
+}
+
+// Le courriel d'invitation, en français. GoTrue télécharge le modèle à
+// l'adresse publique de l'application, qui le sert comme un fichier statique
+// (apps/web/public/courriels/invitation.html) ; `${SITE_URL}` est remplacé par
+// Docker Compose à partir du `.env` de la pile. Si le téléchargement échoue,
+// GoTrue retombe sur son modèle anglais — le courriel part quand même.
+function courrielsEnFrancais() {
+  return [
+    '    environment:',
+    '      GOTRUE_MAILER_SUBJECTS_INVITE: "Votre invitation à rejoindre HERACLES"',
+    '      GOTRUE_MAILER_TEMPLATES_INVITE: "${SITE_URL}/courriels/invitation.html"',
+  ];
 }
 
 // Quand un autre serveur tient déjà le port 80 du VPS, c'est lui la façade et

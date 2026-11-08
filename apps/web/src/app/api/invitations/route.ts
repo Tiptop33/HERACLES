@@ -14,7 +14,7 @@ import { empreinte, fabriquerJeton } from '@/lib/invitation';
 
 const Formulaire = z.object({
   email: z.email("L'adresse e-mail n'est pas valide."),
-  role: z.enum(['referent', 'chercheur', 'admin']).default('referent'),
+  role: z.enum(['referent', 'candidat', 'admin']).default('referent'),
   loge_id: z.uuid().nullable().optional(),
 });
 
