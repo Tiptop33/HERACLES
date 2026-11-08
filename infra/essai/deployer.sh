@@ -1,7 +1,12 @@
 #!/usr/bin/env bash
 # Monte l'instance d'ESSAI de HERACLES sur le VPS, de bout en bout.
 #
-#   sudo ./infra/essai/deployer.sh essai.mondomaine.fr api-essai.mondomaine.fr
+#   sudo HERACLES_EXPEDITEUR=no-reply@mondomaine.fr \
+#        ./infra/essai/deployer.sh essai.mondomaine.fr api-essai.mondomaine.fr
+#
+# HERACLES_EXPEDITEUR est l'adresse d'envoi des courriels d'authentification,
+# déclarée chez Brevo (docs/brevo.md). Elle ne sert qu'à la première
+# installation ; ensuite, elle se corrige dans le `.env` de la pile.
 #
 # Une instance d'essai sert à voir l'application vivre en conditions réelles —
 # vrai HTTPS, vrais emails, vrais navigateurs — sans approcher les 107 dossiers
@@ -35,6 +40,7 @@ WEB_PORT=3003
 # Nom du résolveur de certificats de Traefik, quand c'est lui la façade. Celui
 # du VPS s'appelle « letsencrypt » ; à changer si l'installation diffère.
 CERTRESOLVER="${HERACLES_CERTRESOLVER:-letsencrypt}"
+EXPEDITEUR="${HERACLES_EXPEDITEUR:-}"
 DEPOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 
 rouge() { printf '\033[31m%s\033[0m\n' "$*"; }
@@ -219,7 +225,8 @@ etape "Secrets"
 if [[ ! -f "$DOSSIER/.env" ]]; then
   ( umask 077
     bash "$DEPOT/infra/supabase/composer-env.sh" \
-      "$DOSSIER/.env.supabase-origine" "$APP" "$API" "$PROJET" > "$DOSSIER/.env" )
+      "$DOSSIER/.env.supabase-origine" "$APP" "$API" "$PROJET" "$EXPEDITEUR" \
+      > "$DOSSIER/.env" )
   chmod 600 "$DOSSIER/.env"
   vert "secrets fabriqués sur place, .env en 600"
 
@@ -255,11 +262,27 @@ done
 # shellcheck disable=SC1091
 set -a; source "$DOSSIER/.env"; set +a
 
-if [[ -z "${SMTP_HOST:-}" ]]; then
-  rouge "SMTP_HOST est vide dans $DOSSIER/.env"
+MANQUE_SMTP=""
+for cle in SMTP_HOST SMTP_USER SMTP_PASS SMTP_ADMIN_EMAIL; do
+  [[ -n "${!cle:-}" ]] || MANQUE_SMTP="$MANQUE_SMTP $cle"
+done
+if [[ -n "$MANQUE_SMTP" ]]; then
+  rouge "Vide dans $DOSSIER/.env :$MANQUE_SMTP"
   rouge "Sans SMTP, aucune invitation ne part — donc personne ne peut entrer."
-  echo  "Renseignez SMTP_HOST / SMTP_PORT / SMTP_USER / SMTP_PASS, puis relancez."
+  echo  "Renseignez-les (docs/brevo.md, « Brancher »), puis relancez."
   exit 1
+fi
+
+# L'ancienne valeur par défaut — `no-reply@<domaine de l'application>` — reste
+# dans les `.env` fabriqués avant que l'adresse ne devienne un argument. Elle
+# ne marche que si ce sous-domaine est lui-même authentifié chez Brevo, ce qui
+# n'est presque jamais le cas. On prévient sans bloquer : une installation qui
+# envoie déjà ne doit pas tomber à la relance du script.
+if [[ "$SMTP_ADMIN_EMAIL" == *"@$APP" ]]; then
+  rouge "SMTP_ADMIN_EMAIL=$SMTP_ADMIN_EMAIL — l'ancienne valeur par défaut."
+  echo  "  Brevo la refusera si $APP n'est pas un domaine authentifié chez lui."
+  echo  "  Mettez l'adresse déclarée chez Brevo, puis :"
+  echo  "  cd $DOSSIER && docker compose -p $PROJET up -d --force-recreate auth"
 fi
 
 # ————— Démarrage —————

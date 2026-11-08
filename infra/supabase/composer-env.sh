@@ -1,7 +1,12 @@
 #!/usr/bin/env bash
 # Fabrique le `.env` d'une pile Supabase HERACLES, sur la sortie standard.
 #
-#   composer-env.sh <modele> <domaine-app> <domaine-api> <nom-pile> > .env
+#   composer-env.sh <modele> <domaine-app> <domaine-api> <nom-pile> [expediteur] > .env
+#
+# `expediteur` est l'adresse d'où partent les courriels d'authentification —
+# invitations, mots de passe. Elle doit être déclarée chez Brevo, sur un
+# domaine authentifié (docs/brevo.md). Omise, elle reste vide et
+# l'installateur s'arrête pour la réclamer.
 #
 # On part du modèle de Supabase lui-même — `docker/.env.example`, copié au
 # moment du clonage — et non d'un modèle à nous. Raison : la composition
@@ -31,9 +36,17 @@ MODELE="${1:-}"
 APP="${2:-}"
 API="${3:-}"
 PILE="${4:-}"
+EXPEDITEUR="${5:-}"
 
 if [[ -z "$MODELE" || -z "$APP" || -z "$API" || -z "$PILE" ]]; then
-  echo "Usage : composer-env.sh <modele> <domaine-app> <domaine-api> <nom-pile>" >&2
+  echo "Usage : composer-env.sh <modele> <domaine-app> <domaine-api> <nom-pile> [expediteur]" >&2
+  exit 1
+fi
+# Une forme seulement, pas une vérification : c'est Brevo qui dira si
+# l'adresse est déclarée. Mais une faute de frappe ici ne se verrait qu'au
+# premier courriel refusé, dans le journal d'un autre conteneur.
+if [[ -n "$EXPEDITEUR" && ! "$EXPEDITEUR" =~ ^[^[:space:]@]+@[^[:space:]@]+\.[^[:space:]@]+$ ]]; then
+  echo "Adresse d'expédition invalide : $EXPEDITEUR" >&2
   exit 1
 fi
 [[ -f "$MODELE" ]] || { echo "Modèle introuvable : $MODELE" >&2; exit 1; }
@@ -128,12 +141,19 @@ regler COMPOSE_FILE "docker-compose.yml:docker-compose.override.yml"
 # valeurs de démonstration du modèle pointent vers une boîte aux lettres
 # factice : on les vide, pour que l'installateur s'arrête et réclame les
 # vraies plutôt que d'avaler les courriels en silence.
+#
+# L'expéditeur n'est plus déduit du domaine de l'application. On écrivait
+# `no-reply@$APP`, soit `no-reply@essai.mondomaine.fr` : une adresse que
+# personne n'avait déclarée chez Brevo, sur un sous-domaine que personne
+# n'avait authentifié. Brevo refuse, ou les messageries classent en
+# indésirables — et rien ne le signale côté application. L'adresse vient
+# désormais de celui qui installe ; sans elle, on s'arrête.
 regler SMTP_HOST         ""
 regler SMTP_PORT         587
 regler SMTP_USER         ""
 regler SMTP_PASS         ""
 regler SMTP_SENDER_NAME  HERACLES
-regler SMTP_ADMIN_EMAIL  "no-reply@$APP"
+regler SMTP_ADMIN_EMAIL  "$EXPEDITEUR"
 
 # ————— Identité de la pile —————
 regler STUDIO_DEFAULT_ORGANIZATION HERACLES

@@ -44,6 +44,9 @@ Dans le `.env` de la pile (voir `.env.example`) :
 | `RELANCE_SECRET` | le secret de `/api/relances`, 32 caractères au moins (`openssl rand -hex 32`) |
 | `NEXT_PUBLIC_APP_URL` | déjà là : c'est elle qui fait l'adresse des liens |
 
+Le paramétrage de Brevo lui-même — domaine, clés, adresse IP du serveur —
+est dans `docs/brevo.md`.
+
 **Sans Brevo**, rien ne part : l'invitation est enregistrée quand même, et le lien
 s'affiche au référent pour qu'il le transmette. C'est le mode d'essai.
 
