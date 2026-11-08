@@ -38,6 +38,8 @@ export default function Colonne({
 }) {
   const chemin = usePathname() ?? '';
   const familles = famillesDuRole(profil.role);
+  // Toutes les entrées visibles : la plus précise l'emporte pour la surbrillance.
+  const visibles = familles.flatMap((f) => f.entrees);
   const nom = nomAffichable(profil.prenom, profil.nom, profil.email);
 
   return (
@@ -90,8 +92,8 @@ export default function Colonne({
               <Link
                 key={entree.libelle}
                 href={entree.vers}
-                aria-current={estCourante(entree, chemin) ? 'page' : undefined}
-                className={`colonne-entree${estCourante(entree, chemin) ? ' colonne-entree--courante' : ''}`}
+                aria-current={estCourante(entree, chemin, visibles) ? 'page' : undefined}
+                className={`colonne-entree${estCourante(entree, chemin, visibles) ? ' colonne-entree--courante' : ''}`}
               >
                 {entree.libelle}
               </Link>

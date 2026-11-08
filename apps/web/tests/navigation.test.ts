@@ -15,8 +15,9 @@ describe('les cinq familles', () => {
   it('reprennent les entrées de l’application Bubble', () => {
     const total = FAMILLES.reduce((n, f) => n + f.entrees.length, 0);
     // Les 17 de Bubble, moins « Accueil » qui reste seul en tête, moins
-    // « Action / Candidat » retiré du menu le 8 août 2026.
-    expect(total).toBe(15);
+    // « Action / Candidat » retiré du menu le 8 août 2026, plus « Nouveau
+    // candidat » ajouté à Admin le 8 novembre 2026.
+    expect(total).toBe(16);
   });
 
   it('ne propose plus « Action / Candidat »', () => {
@@ -69,6 +70,31 @@ describe('estCourante', () => {
 
   it('n’allume jamais une entrée qui ne mène nulle part', () => {
     expect(estCourante({ libelle: 'Bilan', vers: null }, '/espace/accueil')).toBe(false);
+  });
+});
+
+describe('Nouveau candidat', () => {
+  it('est dans Admin, et mène à l’invitation du parrain', () => {
+    const admin = FAMILLES.find((f) => f.nom === 'Admin')!;
+    expect(admin.entrees).toContainEqual({
+      libelle: 'Nouveau candidat',
+      vers: '/espace/candidats/nouveau',
+    });
+  });
+
+  it('s’allume seul sur son écran, « Candidats » s’éteint', () => {
+    const visibles = famillesDuRole('admin').flatMap((f) => f.entrees);
+    const trouver = (l: string) => visibles.find((e) => e.libelle === l)!;
+    const chemin = '/espace/candidats/nouveau';
+    expect(estCourante(trouver('Nouveau candidat'), chemin, visibles)).toBe(true);
+    expect(estCourante(trouver('Candidats'), chemin, visibles)).toBe(false);
+    expect(estCourante(trouver('Candidats'), '/espace/candidats', visibles)).toBe(true);
+  });
+
+  it('chez un référent, qui ne la voit pas, « Candidats » reste allumé', () => {
+    const visibles = famillesDuRole('referent').flatMap((f) => f.entrees);
+    const candidats = visibles.find((e) => e.libelle === 'Candidats')!;
+    expect(estCourante(candidats, '/espace/candidats/nouveau', visibles)).toBe(true);
   });
 });
 
