@@ -428,13 +428,28 @@ function Profil({
   // les choix : sinon le navigateur présélectionnerait le premier de la
   // liste, et un choix confierait le candidat à quelqu'un qu'on n'a pas
   // choisi.
-  const menuDuReferent =
-    fiche.a_un_referent &&
-    collegues !== null &&
-    referentActuel !== null &&
-    collegues.some((c) => c.id === referentActuel)
-      ? { collegues, referentActuel }
-      : null;
+  //
+  // Une nouvelle demande, sans référent, porte le même menu, ouvert sur
+  // « personne » : un référent de la loge la prend, ou la confie à un
+  // collègue (0057). « Moi » vient en tête de liste ; l'administration, qui
+  // n'a pas toujours de fiche de référent, ne se le voit proposer que si
+  // elle en a une dans cette loge.
+  let menuDuReferent: { choix: Collegue[]; referentActuel: string | null } | null = null;
+  if (collegues && collegues.length > 0) {
+    if (fiche.a_un_referent) {
+      if (referentActuel !== null && collegues.some((c) => c.id === referentActuel)) {
+        menuDuReferent = { choix: collegues, referentActuel };
+      }
+    } else {
+      const moi = collegues.find((c) => c.c_est_moi);
+      menuDuReferent = {
+        choix: moi
+          ? [{ ...moi, nom: 'Moi' }, ...collegues.filter((c) => !c.c_est_moi)]
+          : collegues,
+        referentActuel: null,
+      };
+    }
+  }
 
   const parcours = [fiche.formations, fiche.experiences]
     .map((bloc) => bloc?.trim())
@@ -528,11 +543,11 @@ function Profil({
                   déroulant imprimé ne dit rien de plus qu'un nom. */}
               <MenuDuReferent
                 action={`/api/candidats/${fiche.id}/referent`}
-                collegues={menuDuReferent.collegues}
+                collegues={menuDuReferent.choix}
                 referentActuel={menuDuReferent.referentActuel}
                 intitule="intitule-referent"
               />
-              <span className="referent-imprime">{fiche.referent_nom}</span>
+              <span className="referent-imprime">{fiche.referent_nom ?? 'personne'}</span>
             </dd>
           ) : (
             <Valeur absent="personne">{fiche.referent_nom}</Valeur>
@@ -556,45 +571,6 @@ function Profil({
           <p className="erreur" role="alert">
             {REFUS_DE_PRISE[prise] ?? 'La prise en charge a échoué.'}
           </p>
-        )}
-
-        {/* Une nouvelle demande : personne ne l'accompagne encore. Un référent
-            de la loge la prend, ou la confie à un collègue. Un vrai formulaire,
-            sans script : la base décide (0057), et la route revient ici.
-
-            L'administration n'a pas toujours de fiche de référent : « Moi »
-            ne lui est proposé que si elle en a une dans cette loge. */}
-        {!fiche.a_un_referent && collegues && collegues.length > 0 && (
-          <form
-            className="prise-en-charge"
-            method="post"
-            action={`/api/candidats/${fiche.id}/referent`}
-          >
-            <label htmlFor="prise-referent">Référent</label>
-            {collegues.some((c) => c.c_est_moi) ? (
-              <select id="prise-referent" name="referent_id" defaultValue="">
-                <option value="">Moi</option>
-                {collegues
-                  .filter((c) => !c.c_est_moi)
-                  .map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.nom}
-                    </option>
-                  ))}
-              </select>
-            ) : (
-              <select id="prise-referent" name="referent_id" defaultValue={collegues[0].id}>
-                {collegues.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.nom}
-                  </option>
-                ))}
-              </select>
-            )}
-            <button type="submit" className="bouton bouton--fort">
-              Prendre en charge
-            </button>
-          </form>
         )}
 
       </section>
