@@ -3,6 +3,7 @@ import BoutonImprimer from '@/components/BoutonImprimer';
 import LigneDeSuivi from '@/components/LigneDeSuivi';
 import { Feuille, FeuilleVide, Stylo } from '@/components/Icones';
 import { DrapeauFrance } from '../referents/DrapeauFrance';
+import MenuDuReferent from './MenuDuReferent';
 import { dateEnLettres, enEtiquettes, initiales, telephone } from '@/lib/format';
 import {
   A_FAIRE,
@@ -572,7 +573,7 @@ function Profil({
         {/* Un candidat déjà accompagné : son référent le passe à un collègue,
             ou l'administration, le Vénérable Maître et le Secrétaire reportent
             la décision de la commission (0063). Le menu s'ouvre sur le
-            référent en place, pour qu'un clic distrait ne change rien.
+            référent en place, et un choix s'enregistre aussitôt fait.
 
             Il ne paraît que si ce référent est parmi les choix : sinon le
             navigateur présélectionnerait le premier de la liste, et
@@ -582,23 +583,11 @@ function Profil({
           collegues &&
           referentActuel &&
           collegues.some((c) => c.id === referentActuel) && (
-            <form
-              className="prise-en-charge"
-              method="post"
+            <MenuDuReferent
               action={`/api/candidats/${fiche.id}/referent`}
-            >
-              <label htmlFor="choix-referent">Référent</label>
-              <select id="choix-referent" name="referent_id" defaultValue={referentActuel}>
-                {collegues.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.nom}
-                  </option>
-                ))}
-              </select>
-              <button type="submit" className="bouton">
-                Changer de référent
-              </button>
-            </form>
+              collegues={collegues}
+              referentActuel={referentActuel}
+            />
           )}
       </section>
 
