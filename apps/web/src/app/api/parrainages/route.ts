@@ -4,7 +4,9 @@ import { lireCorps, origine, retourAvecCode, vientDUnFormulaire } from '@/lib/fo
 import { empreinte, fabriquerJeton } from '@/lib/invitation';
 import {
   InvitationParrain,
+  courrielAuCandidatSansParrain,
   courrielAuParrain,
+  lienDuCandidat,
   lienDuParrain,
   premiereErreur,
 } from '@/lib/parrainage';
@@ -56,9 +58,6 @@ async function traiter(requete: Request) {
 
   const lu = InvitationParrain.safeParse(await lireCorps(requete));
   if (!lu.success) return refuser('adresse', premiereErreur(lu.error).message);
-  if (lu.data.candidat_email && lu.data.candidat_email.toLowerCase() === lu.data.email.toLowerCase()) {
-    return refuser('adresse', 'Le parrain et le candidat ne peuvent pas avoir la même adresse.');
-  }
 
   // 1. La session.
   const supabase = await supabaseServer();
@@ -67,10 +66,16 @@ async function traiter(requete: Request) {
   } = await supabase.auth.getUser();
   if (!user) return refuser('session', 'Session expirée.', 401);
 
+  // Sans parrain : le dossier s'ouvre, et le candidat reçoit son lien (0060).
+  if (!lu.data.email) {
+    return ouvrirSansParrain(requete, supabase, user.email ?? null, lu.data.candidat_email!, natif, refuser);
+  }
+  const adresseDuParrain = lu.data.email;
+
   // 2. Le droit, et l'invitation — en un seul geste, côté base.
   const jeton = fabriquerJeton();
   const { error } = await supabase.rpc('inviter_un_parrain', {
-    adresse: lu.data.email,
+    adresse: adresseDuParrain,
     empreinte: empreinte(jeton),
     candidat: lu.data.candidat_email ?? null,
   });
@@ -94,7 +99,7 @@ async function traiter(requete: Request) {
   const message = courrielAuParrain(modeles, lien, moi?.loge ?? null, nomDuReferent);
 
   const issue = await envoyerCourriel({
-    a: lu.data.email,
+    a: adresseDuParrain,
     sujet: message.sujet,
     texte: message.texte,
     nomExpediteur: moi?.loge ?? null,
@@ -106,6 +111,60 @@ async function traiter(requete: Request) {
   }
 
   return issue.envoye
-    ? NextResponse.json({ ok: true, envoye: true })
-    : NextResponse.json({ ok: true, envoye: false, lien });
+    ? NextResponse.json({ ok: true, envoye: true, destinataire: 'parrain' })
+    : NextResponse.json({ ok: true, envoye: false, lien, destinataire: 'parrain' });
+}
+
+/**
+ * Le dossier sans parrain : même ordre — session déjà vérifiée, le droit côté
+ * base (`inviter_un_candidat` exige une fiche de référent et une loge), puis
+ * le courriel au candidat.
+ */
+async function ouvrirSansParrain(
+  requete: Request,
+  supabase: Awaited<ReturnType<typeof supabaseServer>>,
+  emailDeLExpediteur: string | null,
+  adresse: string,
+  natif: boolean,
+  refuser: (code: string, message: string, statut?: number) => Response,
+) {
+  const jeton = fabriquerJeton();
+  const { data, error } = await supabase.rpc('inviter_un_candidat', {
+    adresse,
+    empreinte: empreinte(jeton),
+  });
+
+  if (error) {
+    if (error.code === '42501') {
+      return refuser('sans-loge', 'Votre compte n’est rattaché à aucune loge.', 403);
+    }
+    if (error.code === '22023') {
+      return refuser('adresse', 'Cette adresse e-mail n’est pas valide.');
+    }
+    console.error('[parrainages] dossier sans parrain refusé', error.code);
+    return refuser('echec', 'Le dossier n’a pas pu être ouvert.');
+  }
+
+  const dossier = data as { loge_nom: string | null } | null;
+  const [moi, modeles] = await Promise.all([referentCourant(), lireModeles()]);
+  const nomDuReferent = [moi?.prenom, moi?.nom].filter(Boolean).join(' ') || null;
+  const loge = dossier?.loge_nom ?? moi?.loge ?? null;
+  const lien = lienDuCandidat(origine(requete), jeton);
+  const message = courrielAuCandidatSansParrain(modeles, lien, loge, nomDuReferent);
+
+  const issue = await envoyerCourriel({
+    a: adresse,
+    sujet: message.sujet,
+    texte: message.texte,
+    nomExpediteur: loge,
+    repondreA: emailDeLExpediteur,
+  });
+
+  if (natif) {
+    return retourAvecCode(requete, RETOUR, issue.envoye ? { renvoye: '1' } : { erreur: 'non-envoye' });
+  }
+
+  return issue.envoye
+    ? NextResponse.json({ ok: true, envoye: true, destinataire: 'candidat' })
+    : NextResponse.json({ ok: true, envoye: false, lien, destinataire: 'candidat' });
 }

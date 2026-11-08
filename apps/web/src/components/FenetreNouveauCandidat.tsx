@@ -15,12 +15,17 @@ import { EVENEMENT_NOUVEAU_CANDIDAT } from './OuvrirNouveauCandidat';
  * l'iPad. Elle est montée une fois, dans la coquille des espaces ; les boutons
  * qui l'ouvrent ne font qu'émettre un événement (`OuvrirNouveauCandidat`).
  *
+ * Les deux adresses sont facultatives, mais il en faut au moins une. Une case
+ * vide le dit aussitôt, avec ce qu'elle implique : sans candidat, le parrain
+ * le saisira ; sans parrain, le candidat reçoit directement son lien (0060).
+ *
  * Valider appelle la même route que la page `/espace/candidats/nouveau`, qui
  * vérifie la session puis le droit côté base. Si le courriel ne part pas, le
  * lien s'affiche ici pour être transmis à la main.
  */
 
 type Position = { x: number; y: number };
+type Destinataire = 'candidat' | 'parrain';
 
 /** Largeur de la fenêtre : celle du CSS, pour la centrer à l'ouverture. */
 const LARGEUR = 420;
@@ -46,8 +51,11 @@ export default function FenetreNouveauCandidat() {
   const [position, setPosition] = useState<Position>({ x: MARGE, y: 80 });
   const [erreur, setErreur] = useState<{ champ: string | null; message: string } | null>(null);
   const [envoi, setEnvoi] = useState(false);
-  const [envoye, setEnvoye] = useState<string | null>(null);
-  const [lien, setLien] = useState<string | null>(null);
+  const [envoye, setEnvoye] = useState<{ a: string; qui: Destinataire } | null>(null);
+  const [lien, setLien] = useState<{ lien: string; qui: Destinataire } | null>(null);
+  // Les deux cases, suivies pour dire tout de suite ce qu'une case vide implique.
+  const [candidat, setCandidat] = useState('');
+  const [parrain, setParrain] = useState('');
 
   const fenetre = useRef<HTMLDivElement>(null);
   const formulaire = useRef<HTMLFormElement>(null);
@@ -91,6 +99,8 @@ export default function FenetreNouveauCandidat() {
     setErreur(null);
     setEnvoye(null);
     setLien(null);
+    setCandidat('');
+    setParrain('');
     formulaire.current?.reset();
     origine.current?.focus?.();
   }, [envoi]);
@@ -170,9 +180,14 @@ export default function FenetreNouveauCandidat() {
         return;
       }
 
-      if (resultat.envoye) setEnvoye(lu.data.email);
-      else setLien(resultat.lien ?? null);
+      // Avec un parrain, c'est lui qui reçoit le lien ; sans, le candidat.
+      const qui: Destinataire = lu.data.email ? 'parrain' : 'candidat';
+      const a = (lu.data.email ?? lu.data.candidat_email)!;
+      if (resultat.envoye) setEnvoye({ a, qui });
+      else if (resultat.lien) setLien({ lien: resultat.lien, qui });
 
+      setCandidat('');
+      setParrain('');
       formulaire.current?.reset();
       premierChamp.current?.focus();
       // Le tableau des invitations, s'il est à l'écran, se met à jour.
@@ -215,14 +230,19 @@ export default function FenetreNouveauCandidat() {
 
         {envoye && (
           <p className="encart" role="status">
-            Le lien est parti chez <strong>{envoye}</strong>.
+            {envoye.qui === 'parrain' ? 'Le lien est parti chez le parrain, ' : 'Le lien de sa fiche est parti chez le candidat, '}
+            <strong>{envoye.a}</strong>.
           </p>
         )}
 
         {lien && (
           <LienACopier
-            lien={lien}
-            consigne="Le courriel n’est pas parti. L’invitation est enregistrée : transmettez ce lien au parrain."
+            lien={lien.lien}
+            consigne={
+              lien.qui === 'parrain'
+                ? 'Le courriel n’est pas parti. L’invitation est enregistrée : transmettez ce lien au parrain.'
+                : 'Le courriel n’est pas parti. Le dossier est ouvert : transmettez ce lien au candidat.'
+            }
           />
         )}
 
@@ -234,9 +254,21 @@ export default function FenetreNouveauCandidat() {
             name="candidat_email"
             type="email"
             autoComplete="off"
-            required
+            value={candidat}
+            onChange={(e) => {
+              setCandidat(e.target.value);
+              setErreur(null);
+            }}
             aria-invalid={invalide('candidat_email')}
+            aria-describedby="fenetre-candidat-vide"
           />
+          {candidat.trim() === '' && (
+            <p id="fenetre-candidat-vide" className="aide">
+              {parrain.trim() === ''
+                ? 'Vide — remplissez au moins l’une des deux adresses.'
+                : 'Vide — le parrain saisira l’adresse du candidat.'}
+            </p>
+          )}
         </div>
 
         <div className="champ">
@@ -246,9 +278,21 @@ export default function FenetreNouveauCandidat() {
             name="email"
             type="email"
             autoComplete="off"
-            required
+            value={parrain}
+            onChange={(e) => {
+              setParrain(e.target.value);
+              setErreur(null);
+            }}
             aria-invalid={invalide('email')}
+            aria-describedby="fenetre-parrain-vide"
           />
+          {parrain.trim() === '' && (
+            <p id="fenetre-parrain-vide" className="aide">
+              {candidat.trim() === ''
+                ? 'Vide — remplissez au moins l’une des deux adresses.'
+                : 'Vide — sans parrain, le candidat recevra directement le lien de sa fiche.'}
+            </p>
+          )}
         </div>
 
         <div className="flottante-actions">

@@ -7,6 +7,7 @@ import {
   TYPES_DE_RECHERCHE,
   cheminDuDocument,
   courrielAuCandidat,
+  courrielAuCandidatSansParrain,
   courrielAuParrain,
   courrielDeRelance,
   estUnStage,
@@ -90,7 +91,6 @@ describe('les listes de choix de Bubble', () => {
 describe('l’invitation du parrain', () => {
   it('exige une adresse valable', () => {
     expect(InvitationParrain.safeParse({ email: 'parrain@example.org' }).success).toBe(true);
-    expect(InvitationParrain.safeParse({ email: '' }).success).toBe(false);
     expect(InvitationParrain.safeParse({ email: 'pas-une-adresse' }).success).toBe(false);
   });
 });
@@ -225,34 +225,41 @@ describe('les courriels', () => {
   });
 });
 
-describe('InvitationParrain — l’adresse du candidat (0059)', () => {
-  it('reste facultative : la page n’en demande qu’une', () => {
+describe('InvitationParrain — l’une ou l’autre adresse (0059, 0060)', () => {
+  it('accepte le parrain seul : la page n’en demande qu’une', () => {
     const lu = InvitationParrain.safeParse({ email: 'parrain@example.org' });
     expect(lu.success).toBe(true);
     expect(lu.success && lu.data.candidat_email).toBeUndefined();
   });
 
-  it('lit une case vide comme absente', () => {
-    const lu = InvitationParrain.safeParse({ email: 'parrain@example.org', candidat_email: '  ' });
-    expect(lu.success && lu.data.candidat_email).toBeUndefined();
+  it('accepte le candidat seul, la case du parrain vide', () => {
+    const lu = InvitationParrain.safeParse({ email: '  ', candidat_email: 'candidat@example.org' });
+    expect(lu.success).toBe(true);
+    expect(lu.success && lu.data.email).toBeUndefined();
   });
 
-  it('refuse une adresse de candidat mal formée', () => {
-    const lu = InvitationParrain.safeParse({ email: 'parrain@example.org', candidat_email: 'non' });
-    expect(lu.success).toBe(false);
+  it('accepte les deux, distinctes', () => {
+    const lu = FenetreNouveauCandidat.safeParse({
+      email: 'parrain@example.org',
+      candidat_email: 'candidat@example.org',
+    });
+    expect(lu.success).toBe(true);
   });
-});
 
-describe('FenetreNouveauCandidat', () => {
-  it('exige les deux adresses, en français', () => {
-    const lu = FenetreNouveauCandidat.safeParse({ email: 'parrain@example.org', candidat_email: '' });
+  it('refuse deux cases vides, en le disant en français', () => {
+    const lu = FenetreNouveauCandidat.safeParse({ email: '', candidat_email: ' ' });
     expect(lu.success).toBe(false);
     if (!lu.success) {
       expect(premiereErreur(lu.error)).toEqual({
         champ: 'candidat_email',
-        message: 'Indiquez l’adresse e-mail du candidat.',
+        message: 'Indiquez au moins une adresse : celle du candidat ou celle du parrain.',
       });
     }
+  });
+
+  it('refuse une adresse mal formée, d’un côté comme de l’autre', () => {
+    expect(InvitationParrain.safeParse({ email: 'parrain@example.org', candidat_email: 'non' }).success).toBe(false);
+    expect(InvitationParrain.safeParse({ email: 'non', candidat_email: 'c@example.org' }).success).toBe(false);
   });
 
   it('refuse la même adresse pour le candidat et le parrain', () => {
@@ -263,12 +270,13 @@ describe('FenetreNouveauCandidat', () => {
     expect(lu.success).toBe(false);
     if (!lu.success) expect(premiereErreur(lu.error).champ).toBe('email');
   });
+});
 
-  it('accepte deux adresses distinctes', () => {
-    const lu = FenetreNouveauCandidat.safeParse({
-      email: 'parrain@example.org',
-      candidat_email: 'candidat@example.org',
-    });
-    expect(lu.success).toBe(true);
+describe('courrielAuCandidatSansParrain', () => {
+  it('ne parle pas de parrain, et finit par le lien et la signature', () => {
+    const m = courrielAuCandidatSansParrain({}, 'https://x.test/candidature/abc', 'Loge A', 'Jeanne R');
+    expect(m.texte).not.toMatch(/parrain/i);
+    expect(m.texte).toContain('https://x.test/candidature/abc');
+    expect(m.texte).toMatch(/Jeanne R\nCommission HERACLES — Loge A$/);
   });
 });

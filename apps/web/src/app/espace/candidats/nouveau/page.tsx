@@ -142,7 +142,7 @@ async function Parrainages() {
           {lignes.map((ligne) => (
             <tr key={ligne.id}>
               <td>
-                <strong>{ligne.parrain_nom ?? ligne.parrain_email}</strong>
+                <strong>{ligne.parrain_nom ?? ligne.parrain_email ?? 'Sans parrain'}</strong>
                 {ligne.parrain_nom && <span className="maigre"> · {ligne.parrain_email}</span>}
               </td>
               <td className="maigre">{ligne.envoye_par_nom ?? '—'}</td>
