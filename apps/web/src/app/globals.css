@@ -2511,6 +2511,30 @@ tbody tr:focus-within {
   visibility: hidden;
 }
 
+/* La corbeille du rang (migration 0062). Un lien voisin du rang, posé par-
+   dessus sa marge de droite : un lien dans un lien n'est pas du HTML, et le
+   rang garde ainsi toute sa surface cliquable.
+
+   La marge se réserve sur **tous** les rangs dès qu'un seul porte une
+   corbeille, pour la même raison que le point des « urgents » : sans elle, la
+   colonne des numéros ondulerait d'un rang à l'autre. */
+.poste-rangs > li {
+  position: relative;
+}
+
+.poste-rangs--corbeille .poste-rang {
+  padding-right: 2.3rem;
+}
+
+.poste-rang-corbeille {
+  position: absolute;
+  top: 50%;
+  right: 0.25rem;
+  transform: translateY(-50%);
+  width: 1.8rem;
+  height: 1.8rem;
+}
+
 .poste-volet-vide {
   padding: 1rem 0.8rem;
   font-size: 0.8rem;

@@ -14,7 +14,8 @@ import {
   type LigneCandidat,
   type Vue,
 } from '@/lib/poste';
-import { initiales } from '@/lib/format';
+import { initiales, nomComplet } from '@/lib/format';
+import { Corbeille } from '@/components/Icones';
 // Les libellés des quatre familles vivent avec les pastilles de l'accueil : un
 // seul endroit où lire « Changement d'emploi », et donc une seule façon de
 // l'écrire.
@@ -39,6 +40,24 @@ type Parametres = {
   erreur?: string | string[];
   /** Ce que la route de prise en charge a répondu, quand elle a refusé. */
   prise?: string | string[];
+  /** Le dossier dont on demande la suppression : la fenêtre s'ouvre dessus. */
+  supprimer?: string | string[];
+  /** Ce que la route de suppression a répondu, quand elle a refusé. */
+  suppression?: string | string[];
+};
+
+/**
+ * Ce que la route de suppression renvoie, dit à qui a cliqué. Un code dans
+ * l'adresse, jamais un message : un lien fabriqué ne peut faire afficher que
+ * l'une de ces phrases-ci.
+ */
+const REFUS_DE_SUPPRESSION: Record<string, string> = {
+  droit: 'Seuls l’administration, le Vénérable Maître et le Secrétaire suppriment un dossier.',
+  introuvable: 'Ce dossier n’existe plus.',
+  bubble: 'Ce dossier vient de Bubble : il ne se supprime pas, la reprise finale le ferait revenir.',
+  compte: 'Ce candidat a un compte de connexion : son dossier ne peut pas être supprimé ici.',
+  session: 'Votre session a expiré. Reconnectez-vous.',
+  echec: 'Le dossier n’a pas pu être supprimé.',
 };
 
 /** Le premier des paramètres d'adresse, quand il y en a plusieurs. */
@@ -76,6 +95,18 @@ export default async function PosteDeTravail({
   const corrige = premier(parametres.note) || null;
 
   const tous = await listerCandidatsDeLaLoge();
+
+  // La fenêtre de suppression ne s'ouvre que sur un dossier que la base dit
+  // supprimable : une adresse fabriquée ne fait pas paraître de bouton rouge
+  // sur le dossier d'un autre, ou sur un dossier repris de Bubble.
+  const aSupprimer =
+    tous.find((l) => l.id === premier(parametres.supprimer) && l.supprimable) ?? null;
+  const refusDeSuppression = REFUS_DE_SUPPRESSION[premier(parametres.suppression)] ?? null;
+  // La place de la corbeille se réserve sur tous les rangs dès qu'un seul en
+  // porte une — comme le point des « urgents » : sinon les numéros de droite
+  // se décaleraient d'un rang à l'autre. Calculée sur toute la liste, et non
+  // sur la vue : changer de vue ne doit pas faire bouger la colonne.
+  const avecCorbeille = tous.some((l) => l.supprimable);
 
   // L'adresse nue ouvre sur « Mes candidats » — ou sur la loge quand on n'en
   // accompagne aucun. C'est la seule chose de cet écran qui dépende des
@@ -162,6 +193,12 @@ export default async function PosteDeTravail({
             )}
           </div>
 
+          {refusDeSuppression && (
+            <p className="erreur" role="alert">
+              {refusDeSuppression}
+            </p>
+          )}
+
           {/* Un formulaire en `get` : la recherche part avec la vue et la fiche
               ouverte, et l'adresse obtenue reste partageable. */}
           <form className="poste-chercher" method="get" action="/espace/candidats">
@@ -211,7 +248,7 @@ export default async function PosteDeTravail({
                 : 'Aucun dossier dans cette vue.'}
           </p>
         ) : (
-          <ul className="poste-rangs">
+          <ul className={`poste-rangs${avecCorbeille ? ' poste-rangs--corbeille' : ''}`}>
             {lignes.map((ligne) => (
               <li key={ligne.id}>
                 <Rang
@@ -219,6 +256,20 @@ export default async function PosteDeTravail({
                   vers={adresse({ fiche: ligne.id })}
                   ouverte={ligne.id === demande}
                 />
+                {/* La corbeille est un lien voisin du rang, et non un bouton
+                    dedans : un lien dans un lien n'est pas du HTML, et un
+                    clic dessus ouvrirait la fiche en même temps. Elle ouvre
+                    la fenêtre de confirmation — rien ne part sans elle. */}
+                {ligne.supprimable && (
+                  <Link
+                    href={adresse({ supprimer: ligne.id })}
+                    className="geste geste--retirer poste-rang-corbeille"
+                    aria-label={`Supprimer le dossier de ${nomDeFamilleDabord(ligne.nom, ligne.prenom)}`}
+                    title="Supprimer ce dossier"
+                  >
+                    <Corbeille />
+                  </Link>
+                )}
               </li>
             ))}
           </ul>
@@ -253,7 +304,74 @@ export default async function PosteDeTravail({
           </p>
         )}
       </section>
+
+      {aSupprimer && (
+        <FenetreDeSuppression
+          ligne={aSupprimer}
+          fermer={adresse({})}
+          // Après la suppression, la liste revient telle qu'on l'avait
+          // laissée — sauf la fiche, si c'était celle qu'on vient d'effacer.
+          retour={
+            aSupprimer.id === demande
+              ? adresse({ fiche: null, onglet: null, note: null })
+              : adresse({})
+          }
+        />
+      )}
     </main>
+  );
+}
+
+/**
+ * La fenêtre de confirmation avant de supprimer un dossier.
+ *
+ * Elle dit **ce qu'on perd**, plutôt que « êtes-vous sûr ? » — une question à
+ * laquelle on répond oui sans lire. Rendue par le serveur, sur la seule foi de
+ * l'adresse : elle s'ouvre sans une ligne de script, et le bouton « retour »
+ * du navigateur la referme, comme un clic à côté ou « Annuler ».
+ */
+function FenetreDeSuppression({
+  ligne,
+  fermer,
+  retour,
+}: {
+  ligne: LigneCandidat;
+  /** L'adresse de la liste, fenêtre fermée. */
+  fermer: string;
+  /** Où revenir une fois le dossier supprimé. */
+  retour: string;
+}) {
+  const nom = nomComplet(ligne.prenom, ligne.nom);
+
+  return (
+    <div className="fenetre-fond">
+      <Link href={fermer} className="fenetre-voile" aria-label="Fermer sans rien supprimer" />
+
+      <div className="fenetre" role="dialog" aria-modal="true" aria-labelledby="suppression-titre">
+        <h2 id="suppression-titre">Supprimer le dossier de {nom}&nbsp;?</h2>
+
+        <p>
+          Le dossier{ligne.numero !== null ? ` n° ${ligne.numero}` : ''} disparaîtra de
+          HERACLES, avec <strong>son journal de suivi</strong>,{' '}
+          <strong>son CV, sa lettre et sa photo</strong>, et l’invitation envoyée à son
+          parrain.
+        </p>
+
+        <p className="aide">Cela ne se défait pas.</p>
+
+        <div className="fenetre-gestes">
+          <Link href={fermer} className="bouton">
+            Annuler
+          </Link>
+          <form method="post" action={`/api/candidats/${ligne.id}/supprimer`}>
+            <input type="hidden" name="retour" value={retour} />
+            <button className="bouton bouton--danger" type="submit">
+              Supprimer le dossier
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
   );
 }
 
