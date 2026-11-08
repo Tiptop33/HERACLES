@@ -3,7 +3,8 @@ import { z } from 'zod';
 import { envoyerCourriel } from '@/lib/courriel';
 import { origine, retourAvecCode, vientDUnFormulaire } from '@/lib/formulaire';
 import { empreinte, fabriquerJeton } from '@/lib/invitation';
-import { courrielAuCandidat, lienDuCandidat } from '@/lib/parrainage';
+import { courrielAuCandidat, courrielAuCandidatSansParrain, lienDuCandidat } from '@/lib/parrainage';
+import { referentCourant } from '@/lib/candidat';
 import { lireModeles } from '@/lib/parrainage-serveur';
 import { supabaseServer } from '@/lib/supabase-server';
 
@@ -47,11 +48,25 @@ export async function POST(requete: Request, { params }: { params: Promise<{ id:
     return refuser('echec', 'Le lien n’a pas pu être renouvelé.');
   }
 
-  const dossier = data as { email: string; prenom: string | null; loge_nom: string | null } | null;
+  const dossier = data as {
+    email: string;
+    prenom: string | null;
+    loge_nom: string | null;
+    /** Ouvert sans parrain (0060) : le courriel ne doit pas en parler (0061). */
+    sans_parrain?: boolean;
+  } | null;
   if (!dossier) return refuser('introuvable', 'Ce dossier n’attend plus de réponse.', 404);
 
   const lien = lienDuCandidat(origine(requete), jeton);
-  const message = courrielAuCandidat(await lireModeles(), lien, dossier.loge_nom, dossier.prenom ?? '');
+  const modeles = await lireModeles();
+  let message;
+  if (dossier.sans_parrain) {
+    const moi = await referentCourant();
+    const nomDuReferent = [moi?.prenom, moi?.nom].filter(Boolean).join(' ') || null;
+    message = courrielAuCandidatSansParrain(modeles, lien, dossier.loge_nom, nomDuReferent);
+  } else {
+    message = courrielAuCandidat(modeles, lien, dossier.loge_nom, dossier.prenom ?? '');
+  }
   const issue = await envoyerCourriel({
     a: dossier.email,
     sujet: message.sujet,
