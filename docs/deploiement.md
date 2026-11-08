@@ -44,8 +44,12 @@ cd /root/HERACLES
 Une seule commande monte ensuite l'instance :
 
 ```bash
-sudo ./infra/essai/deployer.sh essai.mondomaine.fr api-essai.mondomaine.fr
+sudo HERACLES_EXPEDITEUR=no-reply@mondomaine.fr \
+     ./infra/essai/deployer.sh essai.mondomaine.fr api-essai.mondomaine.fr
 ```
+
+`HERACLES_EXPEDITEUR` est l'adresse d'où partent les invitations. Elle doit
+être déclarée chez Brevo, sur un domaine authentifié — `docs/brevo.md`.
 
 Elle clone la pile officielle, **fabrique les secrets sur place** — y compris
 les deux JWT `anon` et `service_role`, signés localement plutôt que par un
@@ -56,12 +60,16 @@ certificat et le premier administrateur.
 Elle est rejouable : relancée, elle complète ce qui manque sans rien casser, et
 ne régénère jamais des secrets déjà posés.
 
-**Elle s'arrête si `SMTP_HOST` est vide.** C'est délibéré : sans email, aucune
+**Elle s'arrête si `SMTP_HOST`, `SMTP_USER`, `SMTP_PASS` ou
+`SMTP_ADMIN_EMAIL` est vide.** C'est délibéré : sans email, aucune
 invitation ne part, donc personne ne peut entrer — l'instance serait inutile.
 
-### Le courrier, et le piège Gmail
+### Le courrier
 
-`SMTP_PASS` n'est **pas** le mot de passe du compte Google. Il faut un *mot de
+Le service retenu est **Brevo**, pour les deux canaux — authentification et
+application. Le paramétrage complet, DNS compris, est dans `docs/brevo.md`.
+
+Si l'on dépanne un essai avec une adresse Gmail, un piège : `SMTP_PASS` n'est **pas** le mot de passe du compte Google. Il faut un *mot de
 passe d'application* — seize caractères, créés sur
 [myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords),
 et qui n'existent que si la validation en deux étapes est activée. Le mot de
@@ -283,6 +291,7 @@ umask 077
 infra/supabase/composer-env.sh \
   /opt/supabase-heracles/.env.supabase-origine \
   heracles.example.fr api.heracles.example.fr heracles \
+  no-reply@example.fr \
   > /opt/supabase-heracles/.env
 
 node infra/supabase/composer-surcharge.mjs \
@@ -311,7 +320,10 @@ défaut du modèle ne survit — il est publié sur GitHub, ses mots de passe et
 ses clés S3 le sont donc aussi.
 
 Reste une chose à renseigner à la main dans `/opt/supabase-heracles/.env` :
-`SMTP_HOST`, `SMTP_USER` et `SMTP_PASS`. Ils sont laissés vides exprès. Sans
+`SMTP_HOST`, `SMTP_USER` et `SMTP_PASS` — les valeurs Brevo, `docs/brevo.md`.
+Le dernier argument de `composer-env.sh` est l'adresse d'expédition
+(`SMTP_ADMIN_EMAIL`) : celle déclarée chez Brevo, jamais une adresse sur le
+domaine de l'application, qui n'y est pas authentifié. Ils sont laissés vides exprès. Sans
 SMTP aucune invitation ne part, et depuis que l'inscription libre est fermée,
 personne ne peut plus entrer.
 
@@ -376,6 +388,11 @@ passe : l'écran annonce alors une panne de réseau, parce qu'une route qui lèv
 renvoie du HTML là où le navigateur attend du JSON. Elle reste une variable
 d'exécution, jamais un argument de construction : un argument finirait dans
 l'image.
+
+S'y ajoutent les courriels de l'application — `BREVO_API_KEY`,
+`COURRIEL_EXPEDITEUR`, `COURRIEL_NOM_EXPEDITEUR` — et `RELANCE_SECRET` :
+voir `docs/brevo.md`. Sans eux l'application tourne, mais le parcours
+« nouveau candidat » n'envoie rien.
 
 **`NEXT_PUBLIC_*` est figée à la construction.** Changer le domaine plus tard
 oblige à reconstruire l'image — pas seulement à redémarrer le conteneur.
