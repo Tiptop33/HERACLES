@@ -110,9 +110,11 @@ async function traiter(requete: Request) {
     return retourAvecCode(requete, RETOUR, issue.envoye ? { envoye: '1' } : { erreur: 'non-envoye' });
   }
 
-  return issue.envoye
-    ? NextResponse.json({ ok: true, envoye: true, destinataire: 'parrain' })
-    : NextResponse.json({ ok: true, envoye: false, lien, destinataire: 'parrain' });
+  // Le lien revient toujours, envoyé ou non : Brevo peut accepter un courriel
+  // qui n'arrivera jamais (adresse qui rejette, indésirables). La personne qui
+  // invite doit pouvoir le transmettre elle-même. Réponse à `fetch` seulement,
+  // jamais dans une adresse de redirection.
+  return NextResponse.json({ ok: true, envoye: issue.envoye, lien, destinataire: 'parrain' });
 }
 
 /**
@@ -164,7 +166,9 @@ async function ouvrirSansParrain(
     return retourAvecCode(requete, RETOUR, issue.envoye ? { renvoye: '1' } : { erreur: 'non-envoye' });
   }
 
-  return issue.envoye
-    ? NextResponse.json({ ok: true, envoye: true, destinataire: 'candidat' })
-    : NextResponse.json({ ok: true, envoye: false, lien, destinataire: 'candidat' });
+  // Le lien revient toujours, envoyé ou non : Brevo peut accepter un courriel
+  // qui n'arrivera jamais (adresse qui rejette, indésirables). La personne qui
+  // invite doit pouvoir le transmettre elle-même. Réponse à `fetch` seulement,
+  // jamais dans une adresse de redirection.
+  return NextResponse.json({ ok: true, envoye: issue.envoye, lien, destinataire: 'candidat' });
 }

@@ -51,8 +51,13 @@ export default function FenetreNouveauCandidat() {
   const [position, setPosition] = useState<Position>({ x: MARGE, y: 80 });
   const [erreur, setErreur] = useState<{ champ: string | null; message: string } | null>(null);
   const [envoi, setEnvoi] = useState(false);
-  const [envoye, setEnvoye] = useState<{ a: string; qui: Destinataire } | null>(null);
-  const [lien, setLien] = useState<{ lien: string; qui: Destinataire } | null>(null);
+  /** Le résultat d'une invitation : le lien, et si le courriel est parti. */
+  const [issue, setIssue] = useState<{
+    lien: string | null;
+    envoye: boolean;
+    a: string;
+    qui: Destinataire;
+  } | null>(null);
   // Les deux cases, suivies pour dire tout de suite ce qu'une case vide implique.
   const [candidat, setCandidat] = useState('');
   const [parrain, setParrain] = useState('');
@@ -97,8 +102,7 @@ export default function FenetreNouveauCandidat() {
     estOuverte.current = false;
     setOuverte(false);
     setErreur(null);
-    setEnvoye(null);
-    setLien(null);
+    setIssue(null);
     setCandidat('');
     setParrain('');
     formulaire.current?.reset();
@@ -156,8 +160,7 @@ export default function FenetreNouveauCandidat() {
   async function valider(evenement: React.FormEvent<HTMLFormElement>) {
     evenement.preventDefault();
     setErreur(null);
-    setEnvoye(null);
-    setLien(null);
+    setIssue(null);
 
     const donnees = Object.fromEntries(new FormData(evenement.currentTarget));
     const lu = Schema.safeParse(donnees);
@@ -183,8 +186,7 @@ export default function FenetreNouveauCandidat() {
       // Avec un parrain, c'est lui qui reçoit le lien ; sans, le candidat.
       const qui: Destinataire = lu.data.email ? 'parrain' : 'candidat';
       const a = (lu.data.email ?? lu.data.candidat_email)!;
-      if (resultat.envoye) setEnvoye({ a, qui });
-      else if (resultat.lien) setLien({ lien: resultat.lien, qui });
+      setIssue({ lien: resultat.lien ?? null, envoye: Boolean(resultat.envoye), a, qui });
 
       setCandidat('');
       setParrain('');
@@ -228,23 +230,29 @@ export default function FenetreNouveauCandidat() {
           </p>
         )}
 
-        {envoye && (
-          <p className="encart" role="status">
-            {envoye.qui === 'parrain' ? 'Le lien est parti chez le parrain, ' : 'Le lien de sa fiche est parti chez le candidat, '}
-            <strong>{envoye.a}</strong>.
-          </p>
-        )}
-
-        {lien && (
-          <LienACopier
-            lien={lien.lien}
-            consigne={
-              lien.qui === 'parrain'
-                ? 'Le courriel n’est pas parti. L’invitation est enregistrée : transmettez ce lien au parrain.'
-                : 'Le courriel n’est pas parti. Le dossier est ouvert : transmettez ce lien au candidat.'
-            }
-          />
-        )}
+        {/* Le lien s'affiche toujours : un courriel accepté par Brevo peut ne
+            jamais arriver, et la personne qui invite doit pouvoir le
+            transmettre elle-même. */}
+        {issue &&
+          (issue.lien ? (
+            <LienACopier
+              lien={issue.lien}
+              consigne={
+                issue.envoye
+                  ? issue.qui === 'parrain'
+                    ? `Le lien est parti chez le parrain, ${issue.a}. S’il ne le reçoit pas, transmettez-lui ce lien.`
+                    : `Le lien de sa fiche est parti chez le candidat, ${issue.a}. S’il ne le reçoit pas, transmettez-lui ce lien.`
+                  : issue.qui === 'parrain'
+                    ? 'Le courriel n’est pas parti. L’invitation est enregistrée : transmettez ce lien au parrain.'
+                    : 'Le courriel n’est pas parti. Le dossier est ouvert : transmettez ce lien au candidat.'
+              }
+            />
+          ) : (
+            <p className="encart" role="status">
+              {issue.qui === 'parrain' ? 'Le lien est parti chez le parrain, ' : 'Le lien de sa fiche est parti chez le candidat, '}
+              <strong>{issue.a}</strong>.
+            </p>
+          ))}
 
         <div className="champ">
           <label htmlFor="fenetre-candidat-email">Adresse e-mail du candidat</label>
