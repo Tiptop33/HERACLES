@@ -79,7 +79,7 @@ export async function POST(requete: Request, { params }: { params: Promise<{ id:
     return retourAvecCode(requete, RETOUR, issue.envoye ? { renvoye: '1' } : { erreur: 'non-envoye' });
   }
 
-  return issue.envoye
-    ? NextResponse.json({ ok: true, envoye: true })
-    : NextResponse.json({ ok: true, envoye: false, lien });
+  // Le lien revient toujours, envoyé ou non : Brevo peut accepter un courriel
+  // qui n'arrivera jamais. Réponse à `fetch` seulement, jamais dans une adresse.
+  return NextResponse.json({ ok: true, envoye: issue.envoye, lien });
 }
