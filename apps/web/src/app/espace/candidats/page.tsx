@@ -61,6 +61,15 @@ const REFUS_DE_SUPPRESSION: Record<string, string> = {
   echec: 'Le dossier n’a pas pu être supprimé.',
 };
 
+/**
+ * Un nom qui ne se coupe pas : espaces et tirets insécables. Un menu
+ * déroulant natif ne se règle pas en CSS, mais il ne coupe pas une ligne là
+ * où rien ne l'autorise à le faire.
+ */
+function surUneLigne(texte: string): string {
+  return texte.trim().replace(/\s+/g, '\u00a0').replace(/-/g, '\u2011');
+}
+
 /** Le premier des paramètres d'adresse, quand il y en a plusieurs. */
 function premier(valeur: string | string[] | undefined): string {
   if (Array.isArray(valeur)) return valeur[0] ?? '';
@@ -149,13 +158,24 @@ export default async function PosteDeTravail({
     if (designation?.je_peux_choisir) {
       referentActuel = designation.referent_id;
       const annuaire = await listerAnnuaire();
+      // « NOM Prénom », dans l'ordre alphabétique de ce qui s'affiche — comme
+      // la liste des candidats. Le tri se refait ici, en français, plutôt que
+      // de se fier à l'ordre de la base : la base trie selon sa collation, et
+      // la liste doit se lire dans l'ordre où l'œil la parcourt.
+      const ordre = new Intl.Collator('fr', { sensitivity: 'base', numeric: true });
       collegues = annuaire
         .filter((r) => r.loge_id === fiche.loge_id)
         .map((r) => ({
           id: r.id,
-          nom: [r.prenom, r.nom].filter(Boolean).join(' ') || 'Sans nom',
+          nom: nomDeFamilleDabord(r.nom, r.prenom),
           c_est_moi: r.c_est_moi,
-        }));
+        }))
+        .sort((a, b) => ordre.compare(a.nom, b.nom))
+        // Un nom = une ligne dans la liste ouverte. Le menu natif de l'iPad
+        // coupe un nom long à ses espaces et à ses tirets : des espaces et un
+        // tiret insécables l'en empêchent. Les espaces doublés et les retours
+        // à la ligne venus de la reprise Bubble disparaissent au passage.
+        .map((c) => ({ ...c, nom: surUneLigne(c.nom) }));
     }
   }
 
