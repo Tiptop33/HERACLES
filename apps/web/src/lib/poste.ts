@@ -54,6 +54,12 @@ export type LigneCandidat = {
    * pastille de l'accueil.
    */
   famille: Famille | null;
+  /**
+   * La session peut supprimer ce dossier (migration 0062) : le titre, la
+   * loge, et un dossier ouvert dans HERACLES — ceux de Bubble reviendraient à
+   * la reprise. C'est lui qui fait paraître la corbeille du rang.
+   */
+  supprimable: boolean;
 };
 
 /** Les quatre familles de recherche, telles que la base les nomme. */

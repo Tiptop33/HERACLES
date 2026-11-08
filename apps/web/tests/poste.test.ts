@@ -27,6 +27,7 @@ const ligne = (p: Partial<LigneCandidat>): LigneCandidat => ({
   a_une_photo: p.a_une_photo ?? false,
   c_est_mon_suivi: p.c_est_mon_suivi ?? false,
   sans_referent: p.sans_referent ?? false,
+  supprimable: p.supprimable ?? false,
 });
 
 const loge = [
