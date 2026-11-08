@@ -423,6 +423,19 @@ function Profil({
 
   const tel = telephone(fiche.telephone);
 
+  // Le menu du référent remplace le nom sur sa propre ligne quand on peut
+  // en changer (0063). Il ne paraît que si le référent en place est parmi
+  // les choix : sinon le navigateur présélectionnerait le premier de la
+  // liste, et un choix confierait le candidat à quelqu'un qu'on n'a pas
+  // choisi.
+  const menuDuReferent =
+    fiche.a_un_referent &&
+    collegues !== null &&
+    referentActuel !== null &&
+    collegues.some((c) => c.id === referentActuel)
+      ? { collegues, referentActuel }
+      : null;
+
   const parcours = [fiche.formations, fiche.experiences]
     .map((bloc) => bloc?.trim())
     .filter(Boolean)
@@ -508,8 +521,22 @@ function Profil({
       <section className="bloc">
         <h2>Accompagnement</h2>
         <dl className="champs">
-          <dt>Référent</dt>
-          <Valeur absent="personne">{fiche.referent_nom}</Valeur>
+          <dt id="intitule-referent">Référent</dt>
+          {menuDuReferent ? (
+            <dd>
+              {/* Le menu à l'écran, le nom sur le papier : un menu
+                  déroulant imprimé ne dit rien de plus qu'un nom. */}
+              <MenuDuReferent
+                action={`/api/candidats/${fiche.id}/referent`}
+                collegues={menuDuReferent.collegues}
+                referentActuel={menuDuReferent.referentActuel}
+                intitule="intitule-referent"
+              />
+              <span className="referent-imprime">{fiche.referent_nom}</span>
+            </dd>
+          ) : (
+            <Valeur absent="personne">{fiche.referent_nom}</Valeur>
+          )}
           <dt>Parrain</dt>
           <Valeur absent="personne">{fiche.parrain_nom ?? fiche.parrain_presentateur}</Valeur>
           <dt>Loge</dt>
@@ -570,25 +597,6 @@ function Profil({
           </form>
         )}
 
-        {/* Un candidat déjà accompagné : son référent le passe à un collègue,
-            ou l'administration, le Vénérable Maître et le Secrétaire reportent
-            la décision de la commission (0063). Le menu s'ouvre sur le
-            référent en place, et un choix s'enregistre aussitôt fait.
-
-            Il ne paraît que si ce référent est parmi les choix : sinon le
-            navigateur présélectionnerait le premier de la liste, et
-            « Changer » confierait le candidat à quelqu'un qu'on n'a pas
-            choisi. */}
-        {fiche.a_un_referent &&
-          collegues &&
-          referentActuel &&
-          collegues.some((c) => c.id === referentActuel) && (
-            <MenuDuReferent
-              action={`/api/candidats/${fiche.id}/referent`}
-              collegues={collegues}
-              referentActuel={referentActuel}
-            />
-          )}
       </section>
 
       {presentation && (

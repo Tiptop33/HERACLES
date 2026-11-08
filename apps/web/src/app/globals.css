@@ -3357,9 +3357,43 @@ a.poste-document .poste-document-type {
   background: var(--surface);
 }
 
+/* Le menu du référent, à la place du nom sur sa ligne du bloc
+   Accompagnement (0063). Il garde la taille du texte voisin : sur cette
+   ligne, c'est une valeur parmi d'autres, pas un formulaire à part. */
+.referent-en-ligne {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0;
+}
+
+.referent-en-ligne select {
+  font: inherit;
+  max-width: 100%;
+  /* La marge négative compense le rembourrage : le nom reste sur la ligne
+     de l'intitulé « Référent », et la ligne garde la hauteur des autres. */
+  margin: -0.3rem 0;
+  padding: 0.25rem 0.45rem;
+  border: 1px solid var(--bordure-nette);
+  border-radius: 7px;
+  background: var(--surface);
+  color: inherit;
+}
+
+/* Le nom, pour le papier seulement. */
+.referent-imprime {
+  display: none;
+}
+
 @media print {
-  .prise-en-charge {
+  .prise-en-charge,
+  .referent-en-ligne {
     display: none;
+  }
+
+  .referent-imprime {
+    display: inline;
   }
 }
 
