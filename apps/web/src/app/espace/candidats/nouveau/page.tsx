@@ -94,8 +94,7 @@ export default async function NouveauCandidat({
             <p className="aide" style={{ margin: '0 0 0.9rem' }}>
               Le parrain reçoit un lien, valable trente jours, pour présenter le candidat. Le dossier
               s’ouvrira à la loge {moi.loge}, avec le numéro suivant, sans référent : il apparaîtra
-              dans les nouvelles demandes. Sans réponse sous vingt-quatre heures, le parrain est
-              relancé une fois.
+              dans les nouvelles demandes.
             </p>
             {!courrielConfigure() && (
               <p className="aide" style={{ margin: '0 0 0.9rem' }}>
