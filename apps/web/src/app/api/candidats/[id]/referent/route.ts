@@ -4,12 +4,15 @@ import { lireCorps, retourAvecCode, vientDUnFormulaire } from '@/lib/formulaire'
 import { supabaseServer } from '@/lib/supabase-server';
 
 /**
- * Prendre en charge une nouvelle demande, ou la confier à un collègue.
+ * Choisir le référent d'un candidat : prendre en charge une nouvelle demande,
+ * la confier à un collègue, ou changer le référent en place.
  *
- * Tout se décide en base, dans `designer_le_referent()` (migration 0057) :
- * un référent de la loge du candidat, tant que personne ne l'accompagne — ou
- * son référent actuel, qui le passe à un collègue. On ne retire pas un
- * candidat à quelqu'un d'autre : cela se décide en commission.
+ * Tout se décide en base, dans `designer_le_referent()` (migrations 0057 et
+ * 0063) : un référent de la loge du candidat, tant que personne ne
+ * l'accompagne — ou son référent actuel, qui le passe à un collègue. On ne
+ * retire pas un candidat à quelqu'un d'autre : cela se décide en commission,
+ * et ce sont l'administration, le Vénérable Maître et le Secrétaire qui
+ * reportent sa décision.
  *
  * Un formulaire natif suffit : aucun script n'est nécessaire pour ce geste,
  * qui revient sur la fiche du candidat.
@@ -61,7 +64,7 @@ export async function POST(requete: Request, { params }: { params: Promise<{ id:
 
   if (error) {
     if (error.code === '42501') return repondre('sans-loge', 'Votre compte n’est rattaché à aucune loge.', 403);
-    if (error.code === '23503') return repondre('referent', 'Ce référent n’est pas de votre loge.');
+    if (error.code === '23503') return repondre('referent', 'Ce référent n’est pas de la loge du candidat.');
     console.error('[candidats/referent] désignation refusée', error.code);
     return repondre('echec', 'La prise en charge a échoué.');
   }

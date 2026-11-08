@@ -282,11 +282,16 @@ const PLAN = [
 ];
 
 // Les rattachements, résolus en passe 2 par l'identifiant Bubble conservé.
+//
+// Le cinquième élément, quand il est là, dit quelles lignes la reprise ne
+// touche pas. Un référent choisi dans HERACLES (`referent_choisi_le`, migration
+// 0063) l'emporte sur celui de Bubble : sans cette garde, la reprise finale
+// défaisait en silence les décisions de la commission reportées ici.
 const LIENS = [
   ['referent', 'loge_bubble_id', 'loge', 'loge_id'],
   ['candidat', 'loge_bubble_id', 'loge', 'loge_id'],
   ['candidat', 'parrain_bubble_id', 'referent', 'parrain_id'],
-  ['candidat', 'referent_bubble_id', 'referent', 'referent_id'],
+  ['candidat', 'referent_bubble_id', 'referent', 'referent_id', 't.referent_choisi_le is null'],
   ['document', 'loge_bubble_id', 'loge', 'loge_id'],
 ];
 
@@ -446,13 +451,13 @@ for (const etape of SEULEMENT_BRUT ? [] : PLAN) {
 
 // Passe 2 — les rattachements
 if (!SEULEMENT_BRUT) console.log('\nRattachements :');
-for (const [table, colonneBubble, cible, colonneId] of SEULEMENT_BRUT ? [] : LIENS) {
+for (const [table, colonneBubble, cible, colonneId, garde] of SEULEMENT_BRUT ? [] : LIENS) {
   const { rowCount } = await client.query(
     `update public.${table} t
         set ${colonneId} = c.id
        from public.${cible} c
       where c.bubble_id = t.${colonneBubble}
-        and t.${colonneId} is distinct from c.id`,
+        and t.${colonneId} is distinct from c.id` + (garde ? `\n        and ${garde}` : ''),
   );
 
   const { rows } = await client.query(
