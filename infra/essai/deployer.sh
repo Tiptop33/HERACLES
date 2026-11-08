@@ -333,7 +333,21 @@ TRAEFIK_ENABLE=false
 
 [[ -n "${SERVICE_ROLE_KEY:-}" ]] || { rouge "SERVICE_ROLE_KEY manque dans $DOSSIER/.env"; exit 1; }
 
-cat > "$DEPOT/.env.essai" <<FIN
+# Les réglages de courriel — Brevo, et le secret de la relance — ne se
+# refabriquent pas : ils viennent du compte Brevo et de la tâche planifiée, et
+# on les ajoute à la main dans `.env.essai`. Ce fichier étant réécrit plus bas,
+# on les met de côté pour les remettre ensuite. Sans cela, relancer ce script
+# coupait l'envoi des courriels sans prévenir. Seul le nombre de lignes est
+# affiché : jamais les valeurs.
+GARDE_COURRIEL=""
+if [[ -f "$DEPOT/.env.essai" ]]; then
+  GARDE_COURRIEL="$(grep -E '^(BREVO_API_KEY|COURRIEL_EXPEDITEUR|COURRIEL_NOM_EXPEDITEUR|RELANCE_SECRET)=.' \
+    "$DEPOT/.env.essai" || true)"
+fi
+
+# `umask 077` : le fichier naît en 600. Le `chmod` qui suit ne rattrapait
+# qu'après coup un fichier neuf, lisible un instant par tous.
+( umask 077; cat > "$DEPOT/.env.essai" ) <<FIN
 NEXT_PUBLIC_SUPABASE_URL=https://$API
 NEXT_PUBLIC_SUPABASE_ANON_KEY=$ANON_KEY
 NEXT_PUBLIC_APP_URL=https://$APP
@@ -345,6 +359,14 @@ TRAEFIK_CERTRESOLVER=$CERTRESOLVER
 APP_DOMAIN=$APP
 FIN
 chmod 600 "$DEPOT/.env.essai"
+
+if [[ -n "$GARDE_COURRIEL" ]]; then
+  printf '%s\n' "$GARDE_COURRIEL" >> "$DEPOT/.env.essai"
+  vert "réglages de courriel conservés ($(printf '%s\n' "$GARDE_COURRIEL" | wc -l | tr -d ' ') lignes)"
+else
+  echo "  Aucun réglage Brevo dans .env.essai : les courriels ne partiront pas, et le"
+  echo "  lien s'affichera au référent. Voir docs/parrainage.md, « Configuration »."
+fi
 
 ( cd "$DEPOT" && docker compose --env-file .env.essai \
     -f infra/docker-compose.prod.yml -p "$PROJET-web" up -d --build )
