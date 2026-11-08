@@ -9,8 +9,10 @@ Repris de l'application Bubble, en trois temps. Migration `0057_nouveau_candidat
 | 3 | le candidat, sans compte | `/candidature/<jeton>` | il complète sa fiche et joint son CV (obligatoire) et sa lettre (facultative) |
 | 4 | un référent de la loge | la fiche, onglet *Profil* | **Prendre en charge**, pour soi ou pour un collègue de la loge |
 
-Sans réponse du parrain sous 24 heures, une relance part, une seule fois — le workflow
-`EnvoyerEmailRappel` de Bubble.
+**Pas de relance automatique.** Bubble relançait le parrain sans réponse après
+24 heures (workflow `EnvoyerEmailRappel`), et HERACLES sait le faire — mais la décision
+du 8 novembre 2026 est de ne pas la mettre en service : les référents relancent
+eux-mêmes. Voir « La relance — désactivée », plus bas.
 
 ## Les règles qui comptent
 
@@ -41,7 +43,7 @@ Dans le `.env` de la pile (voir `.env.example`) :
 | `BREVO_API_KEY` | la clé de l'API transactionnelle de Brevo |
 | `COURRIEL_EXPEDITEUR` | l'adresse d'envoi, **déclarée chez Brevo** |
 | `COURRIEL_NOM_EXPEDITEUR` | le nom par défaut ; chaque courriel porte celui de la loge |
-| `RELANCE_SECRET` | le secret de `/api/relances`, 32 caractères au moins (`openssl rand -hex 32`) |
+| `RELANCE_SECRET` | **à laisser vide** : la relance est désactivée, et la route `/api/relances` répond alors `401` à tout le monde |
 | `NEXT_PUBLIC_APP_URL` | déjà là : c'est elle qui fait l'adresse des liens |
 
 Le paramétrage de Brevo lui-même — domaine, clés, adresse IP du serveur —
@@ -64,14 +66,15 @@ Les textes des courriels sont ceux de la commission, repris de Bubble dans `para
 `objet_candidat` / `mot_candidat`. Le lien est ajouté à la fin. Un modèle vide laisse la
 place à un texte par défaut.
 
-## La relance, toutes les heures
+## La relance — désactivée
 
-Une tâche planifiée appelle la route. Au choix :
+Décision du 8 novembre 2026 : pas de relance automatique, ni par n8n ni par une tâche
+du VPS. Le code reste en place, inactif : sans tâche planifiée, rien ne l'appelle, et
+sans `RELANCE_SECRET` la route refuse tout.
 
-**n8n** — un *Schedule Trigger* toutes les heures, puis un *HTTP Request* :
-`POST https://<domaine>/api/relances`, en-tête `Authorization: Bearer <RELANCE_SECRET>`.
-
-**cron, sur le VPS** :
+Pour la remettre en service un jour : un secret de 32 caractères au moins
+(`openssl rand -hex 32`) dans `RELANCE_SECRET`, puis une tâche planifiée qui appelle
+la route toutes les heures — par exemple, en cron sur le VPS :
 
 ```cron
 7 * * * * curl -fsS -X POST -H "Authorization: Bearer $RELANCE_SECRET" https://<domaine>/api/relances >/dev/null

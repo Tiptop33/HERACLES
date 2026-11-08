@@ -392,9 +392,10 @@ d'exécution, jamais un argument de construction : un argument finirait dans
 l'image.
 
 S'y ajoutent les courriels de l'application — `BREVO_API_KEY`,
-`COURRIEL_EXPEDITEUR`, `COURRIEL_NOM_EXPEDITEUR` — et `RELANCE_SECRET` :
-voir `docs/brevo.md`. Sans eux l'application tourne, mais le parcours
-« nouveau candidat » n'envoie rien.
+`COURRIEL_EXPEDITEUR`, `COURRIEL_NOM_EXPEDITEUR` : voir `docs/brevo.md`. Sans
+eux l'application tourne, mais le parcours « nouveau candidat » n'envoie rien.
+`RELANCE_SECRET`, lui, reste vide : la relance automatique est désactivée
+(`docs/parrainage.md`).
 
 **`NEXT_PUBLIC_*` est figée à la construction.** Changer le domaine plus tard
 oblige à reconstruire l'image — pas seulement à redémarrer le conteneur.

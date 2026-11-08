@@ -31,7 +31,7 @@ l'erreur la plus fréquente.
 | Canal | Ce qu'il envoie | Qui envoie | Par où | Ce qu'il lit |
 | --- | --- | --- | --- | --- |
 | **Authentification** | invitations, réinitialisation de mot de passe | GoTrue, dans la pile Supabase | SMTP | `SMTP_*` dans `/opt/supabase-heracles[-essai]/.env` |
-| **Application** | lien au parrain, lien au candidat, relance à 24 h | Next.js — `apps/web/src/lib/courriel.ts` | API HTTPS | `BREVO_API_KEY`, `COURRIEL_EXPEDITEUR`, `COURRIEL_NOM_EXPEDITEUR` |
+| **Application** | lien au parrain, lien au candidat | Next.js — `apps/web/src/lib/courriel.ts` | API HTTPS | `BREVO_API_KEY`, `COURRIEL_EXPEDITEUR`, `COURRIEL_NOM_EXPEDITEUR` |
 
 Sans le premier, **personne n'entre** : on n'entre qu'invité. Sans le second,
 le parcours « nouveau candidat » fonctionne encore — le lien s'affiche au
@@ -255,7 +255,6 @@ sed -i -e 's|^SMTP_HOST=.*|SMTP_HOST=smtp-relay.brevo.com|' -e 's|^SMTP_PORT=.*|
 poser() { grep -q "^$1=" "$F" && sed -i "s|^$1=.*|$1=$2|" "$F" || echo "$1=$2" >> "$F"; }
 poser COURRIEL_EXPEDITEUR "$EXP"
 poser COURRIEL_NOM_EXPEDITEUR HERACLES
-grep -qE '^RELANCE_SECRET=.' "$F" || poser RELANCE_SECRET "$(openssl rand -hex 32)"
 grep -q '^BREVO_API_KEY=' "$F" || echo 'BREVO_API_KEY=' >> "$F"
 chmod 600 "$F"
 ```
@@ -283,14 +282,13 @@ Trois à cinq minutes sans rien afficher : la pile Supabase recrée le service
 d'authentification, l'application se reconstruit. La fin attendue :
 `l'application répond (HTTP 200 sur /connexion)`.
 
-### La relance horaire
+### Pas de relance
 
-**Pas encore en place sur l'essai.** Sans tâche planifiée, la relance à 24 h
-ne part jamais. Avec n8n : un *Schedule Trigger* toutes les heures, un
-*HTTP Request* `POST https://essai.mondomaine.fr/api/relances`, et le secret
-dans un *credential* de type *Header Auth* (`Authorization` /
-`Bearer <RELANCE_SECRET>`) — pas en clair dans le nœud. Détail dans
-`docs/parrainage.md`.
+Décision du 8 novembre 2026 : **pas de relance automatique** du parrain
+silencieux, ni par n8n ni autrement. Les référents relancent eux-mêmes. Le
+code de la relance reste en place, inactif ; `RELANCE_SECRET` se laisse vide,
+et la route `/api/relances` répond alors `401` à tout le monde
+(`docs/parrainage.md`).
 
 ## 8. Vérifier, dans cet ordre
 
@@ -340,8 +338,7 @@ Les mêmes étapes, avec :
   (`docs/deploiement.md`, § 3), puis
   `docker compose --env-file .env -f infra/docker-compose.prod.yml -p heracles-prod up -d`
   — sans reconstruire : aucune de ces variables n'est figée dans l'image ;
-- conteneurs à vérifier : `heracles-auth` et `heracles-prod-web-1` ;
-- une seconde tâche n8n pour la relance, vers le domaine de production.
+- conteneurs à vérifier : `heracles-auth` et `heracles-prod-web-1`.
 
 ## RGPD
 
