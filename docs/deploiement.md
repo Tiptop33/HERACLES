@@ -321,11 +321,13 @@ ses clés S3 le sont donc aussi.
 
 Reste une chose à renseigner à la main dans `/opt/supabase-heracles/.env` :
 `SMTP_HOST`, `SMTP_USER` et `SMTP_PASS` — les valeurs Brevo, `docs/brevo.md`.
+Ces trois réglages sont laissés vides exprès : sans SMTP aucune invitation ne
+part, et depuis que l'inscription libre est fermée, personne ne peut plus
+entrer.
+
 Le dernier argument de `composer-env.sh` est l'adresse d'expédition
 (`SMTP_ADMIN_EMAIL`) : celle déclarée chez Brevo, jamais une adresse sur le
-domaine de l'application, qui n'y est pas authentifié. Ils sont laissés vides exprès. Sans
-SMTP aucune invitation ne part, et depuis que l'inscription libre est fermée,
-personne ne peut plus entrer.
+domaine de l'application, qui n'y est pas authentifié.
 
 ```bash
 cd /opt/supabase-heracles
