@@ -155,6 +155,22 @@ export async function listerCandidatsDeLaLoge(): Promise<LigneCandidat[]> {
 }
 
 /**
+ * Le référent en place et le droit d'en choisir un autre (migration 0063), ou
+ * `null` hors de ses loges. Le droit est calculé par la base, exactement comme
+ * `designer_le_referent()` le vérifiera : le menu ne paraît que là où le geste
+ * réussira.
+ */
+export async function lireDesignation(
+  id: string,
+): Promise<{ referent_id: string | null; je_peux_choisir: boolean } | null> {
+  if (!/^[0-9a-f-]{36}$/i.test(id)) return null;
+
+  const supabase = await supabaseServer();
+  const { data } = await supabase.rpc('designation_du_candidat', { le_candidat: id });
+  return (data as { referent_id: string | null; je_peux_choisir: boolean }[] | null)?.[0] ?? null;
+}
+
+/**
  * Une fiche, ou `null`. Un identifiant hors de ses loges donne `null` — non
  * parce qu'on l'a filtré, mais parce que la base ne renvoie rien. Changer
  * l'adresse dans le navigateur ne change rien à cela.

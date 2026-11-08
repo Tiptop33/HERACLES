@@ -96,6 +96,13 @@ attente, ni documents. À corriger avant la bascule, pas après. L'annuaire les
 regroupe : *Référents*, puis la loge « Sans loge » — et chaque fiche se corrige
 sur place.
 
+**Les référents choisis dans HERACLES.** Un candidat dont le référent a été
+choisi ou changé dans HERACLES (`referent_choisi_le`, migration 0063) garde ce
+référent : la reprise ne le remplace plus par celui de Bubble. Tous les autres
+suivent Bubble, comme avant. Si une décision de la commission n'a été reportée
+que dans Bubble après qu'un choix a été fait ici, il faut la reporter aussi
+dans HERACLES.
+
 **Les sept types vides.** `appels`, `tag`, `tenue`, `ft_auth`,
 `offre_cliquee`, `emailrelance`, `candidat_offre_cliquee` : zéro enregistrement
 au 4 août. À revérifier le jour venu, ils ont pu se remplir depuis.

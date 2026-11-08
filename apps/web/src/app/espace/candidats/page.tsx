@@ -5,6 +5,7 @@ import {
   chercher,
   estVue,
   filtrerParVue,
+  lireDesignation,
   lireFiche,
   listerCandidatsDeLaLoge,
   nomDeFamilleDabord,
@@ -135,15 +136,19 @@ export default async function PosteDeTravail({
   // garde son sens : corriger la fiche elle-même reste au référent.
   const jePeuxNoter = fiche && onglet === 'suivi' ? await jeSuisReferent() : false;
 
-  // Une nouvelle demande — personne ne l'accompagne : les référents de sa loge
-  // peuvent la prendre en charge (0057). On ne charge l'annuaire que dans ce
-  // cas, et l'on ne propose le geste qu'à qui siège dans la loge du candidat :
-  // la base refuserait les autres de toute façon.
+  // Le menu « Référent » (0057, élargi en 0063). La base dit si la session
+  // peut choisir un référent pour ce candidat — un dossier sans référent pour
+  // tout référent de la loge, le sien pour son référent, tous ceux de la loge
+  // pour l'administration, le Vénérable Maître et le Secrétaire. On ne charge
+  // l'annuaire que dans ce cas, et seulement les référents de la loge du
+  // candidat : c'est parmi eux que la base acceptera de choisir.
   let collegues: Collegue[] | null = null;
-  if (fiche && !fiche.a_un_referent && fiche.loge_id && profil.role === 'referent') {
-    const annuaire = await listerAnnuaire();
-    const moi = annuaire.find((r) => r.c_est_moi);
-    if (moi?.loge_id === fiche.loge_id) {
+  let referentActuel: string | null = null;
+  if (fiche && fiche.loge_id) {
+    const designation = await lireDesignation(fiche.id);
+    if (designation?.je_peux_choisir) {
+      referentActuel = designation.referent_id;
+      const annuaire = await listerAnnuaire();
       collegues = annuaire
         .filter((r) => r.loge_id === fiche.loge_id)
         .map((r) => ({
@@ -289,6 +294,7 @@ export default async function PosteDeTravail({
             jePeuxNoter={jePeuxNoter}
             adresse={adresse}
             collegues={collegues}
+            referentActuel={referentActuel}
             prise={premier(parametres.prise) || null}
           />
         ) : demande ? (

@@ -21,8 +21,8 @@ export type Collegue = { id: string; nom: string; c_est_moi: boolean };
 /** Ce que la route de prise en charge a répondu, quand elle a refusé. */
 const REFUS_DE_PRISE: Record<string, string> = {
   'sans-loge': 'Votre compte n’est rattaché à aucune loge.',
-  referent: 'Ce référent n’est pas de votre loge.',
-  introuvable: 'Ce candidat est déjà accompagné, ou n’est pas de votre loge.',
+  referent: 'Ce référent n’est pas de la loge du candidat.',
+  introuvable: 'Ce candidat est accompagné par quelqu’un d’autre, ou n’est pas de votre loge.',
   session: 'Votre session a expiré. Reconnectez-vous.',
 };
 
@@ -71,6 +71,7 @@ export default function PanneauFiche({
   jePeuxNoter,
   adresse,
   collegues,
+  referentActuel,
   prise,
 }: {
   fiche: FicheOuverte;
@@ -89,10 +90,12 @@ export default function PanneauFiche({
   jePeuxNoter: boolean;
   adresse: (ajout: Record<string, string | null>) => string;
   /**
-   * Les référents de la loge, quand la personne connectée peut prendre en
-   * charge ce candidat — sinon `null`, et le geste n'apparaît pas.
+   * Les référents de la loge, quand la personne connectée peut choisir le
+   * référent de ce candidat — sinon `null`, et le menu n'apparaît pas.
    */
   collegues: Collegue[] | null;
+  /** Le référent en place, sur lequel le menu s'ouvre. */
+  referentActuel: string | null;
   /** Ce que la route de prise en charge a répondu, quand elle a refusé. */
   prise: string | null;
 }) {
@@ -213,7 +216,12 @@ export default function PanneauFiche({
             retour={adresse({ onglet: 'suivi' })}
           />
         ) : (
-          <Profil fiche={fiche} collegues={collegues} prise={prise} />
+          <Profil
+            fiche={fiche}
+            collegues={collegues}
+            referentActuel={referentActuel}
+            prise={prise}
+          />
         )}
       </div>
     </>
@@ -399,10 +407,12 @@ function NotesRetirees({ retirees, retour }: { retirees: LigneRetiree[]; retour:
 function Profil({
   fiche,
   collegues,
+  referentActuel,
   prise,
 }: {
   fiche: FicheOuverte;
   collegues: Collegue[] | null;
+  referentActuel: string | null;
   prise: string | null;
 }) {
   const lieu = fiche.ville ?? fiche.adresse;
@@ -522,7 +532,10 @@ function Profil({
 
         {/* Une nouvelle demande : personne ne l'accompagne encore. Un référent
             de la loge la prend, ou la confie à un collègue. Un vrai formulaire,
-            sans script : la base décide (0057), et la route revient ici. */}
+            sans script : la base décide (0057), et la route revient ici.
+
+            L'administration n'a pas toujours de fiche de référent : « Moi »
+            ne lui est proposé que si elle en a une dans cette loge. */}
         {!fiche.a_un_referent && collegues && collegues.length > 0 && (
           <form
             className="prise-en-charge"
@@ -530,21 +543,63 @@ function Profil({
             action={`/api/candidats/${fiche.id}/referent`}
           >
             <label htmlFor="prise-referent">Référent</label>
-            <select id="prise-referent" name="referent_id" defaultValue="">
-              <option value="">Moi</option>
-              {collegues
-                .filter((c) => !c.c_est_moi)
-                .map((c) => (
+            {collegues.some((c) => c.c_est_moi) ? (
+              <select id="prise-referent" name="referent_id" defaultValue="">
+                <option value="">Moi</option>
+                {collegues
+                  .filter((c) => !c.c_est_moi)
+                  .map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.nom}
+                    </option>
+                  ))}
+              </select>
+            ) : (
+              <select id="prise-referent" name="referent_id" defaultValue={collegues[0].id}>
+                {collegues.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.nom}
                   </option>
                 ))}
-            </select>
+              </select>
+            )}
             <button type="submit" className="bouton bouton--fort">
               Prendre en charge
             </button>
           </form>
         )}
+
+        {/* Un candidat déjà accompagné : son référent le passe à un collègue,
+            ou l'administration, le Vénérable Maître et le Secrétaire reportent
+            la décision de la commission (0063). Le menu s'ouvre sur le
+            référent en place, pour qu'un clic distrait ne change rien.
+
+            Il ne paraît que si ce référent est parmi les choix : sinon le
+            navigateur présélectionnerait le premier de la liste, et
+            « Changer » confierait le candidat à quelqu'un qu'on n'a pas
+            choisi. */}
+        {fiche.a_un_referent &&
+          collegues &&
+          referentActuel &&
+          collegues.some((c) => c.id === referentActuel) && (
+            <form
+              className="prise-en-charge"
+              method="post"
+              action={`/api/candidats/${fiche.id}/referent`}
+            >
+              <label htmlFor="choix-referent">Référent</label>
+              <select id="choix-referent" name="referent_id" defaultValue={referentActuel}>
+                {collegues.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.nom}
+                  </option>
+                ))}
+              </select>
+              <button type="submit" className="bouton">
+                Changer de référent
+              </button>
+            </form>
+          )}
       </section>
 
       {presentation && (
