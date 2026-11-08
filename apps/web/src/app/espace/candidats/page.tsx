@@ -23,6 +23,7 @@ import { jeSuisReferent, lireJournal, lireRetirees } from '@/lib/journal';
 import { listerAnnuaire } from '@/lib/annuaire';
 import { exigerProfil } from '@/lib/profil';
 import { accueilDuRole } from '@/lib/roles';
+import OuvrirNouveauCandidat from '@/components/OuvrirNouveauCandidat';
 import PanneauFiche, { estOnglet, type Collegue, type Onglet } from './PanneauFiche';
 
 export const metadata = { title: 'Candidats — HERACLES' };
@@ -155,9 +156,9 @@ export default async function PosteDeTravail({
                 qui présente le candidat. Réservé aux référents — c'est leur
                 loge qui recevra le dossier. */}
             {profil.role === 'referent' && (
-              <Link href="/espace/candidats/nouveau" className="bouton bouton--fort bouton--petit">
+              <OuvrirNouveauCandidat className="bouton bouton--fort bouton--petit">
                 Nouveau candidat
-              </Link>
+              </OuvrirNouveauCandidat>
             )}
           </div>
 

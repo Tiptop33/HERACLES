@@ -3338,3 +3338,53 @@ a.poste-document .poste-document-type {
     display: none;
   }
 }
+
+/* ————— La fenêtre flottante « Nouveau candidat » —————
+   Non modale : pas de voile, l'écran dessous reste lisible et cliquable. Elle
+   se déplace par sa barre de titre ; `touch-action: none` laisse le doigt la
+   faire glisser sur l'iPad au lieu de faire défiler la page. */
+
+.flottante {
+  position: fixed;
+  z-index: 70;
+  width: min(420px, calc(100vw - 32px));
+  max-height: calc(100dvh - 32px);
+  overflow: auto;
+  background: var(--surface);
+  border: 1px solid var(--bordure-nette);
+  border-radius: 12px;
+  box-shadow: 0 12px 32px rgb(0 0 0 / 0.18), 0 2px 6px rgb(0 0 0 / 0.08);
+}
+
+.flottante-barre {
+  padding: 0.7rem 1rem;
+  border-bottom: 1px solid var(--bordure);
+  background: var(--surface-creuse);
+  border-radius: 12px 12px 0 0;
+  cursor: move;
+  touch-action: none;
+  user-select: none;
+}
+
+.flottante-barre h2 {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.flottante-corps {
+  padding: 1rem;
+  display: grid;
+  gap: 0.8rem;
+}
+
+.flottante-corps .erreur,
+.flottante-corps .encart {
+  margin: 0;
+}
+
+.flottante-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 0.2rem;
+}

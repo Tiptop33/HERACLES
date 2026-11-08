@@ -1,5 +1,6 @@
 import Barre from '@/components/Barre';
 import Colonne from '@/components/Colonne';
+import FenetreNouveauCandidat from '@/components/FenetreNouveauCandidat';
 import { cheminLogo } from '@/lib/logo';
 import { lireLesConnectes } from '@/lib/presence';
 import { exigerProfil, lireMaPhoto } from '@/lib/profil';
@@ -40,6 +41,11 @@ export default async function EspaceLayout({ children }: { children: React.React
         />
         {children}
       </div>
+
+      {/* La fenêtre « Nouveau candidat », montée une fois : les boutons du
+          menu Admin et du volet des candidats l'ouvrent. Pour qui peut
+          inviter un parrain, et seulement eux. */}
+      {(profil.role === 'referent' || profil.role === 'admin') && <FenetreNouveauCandidat />}
     </div>
   );
 }

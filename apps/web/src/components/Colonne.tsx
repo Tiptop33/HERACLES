@@ -7,6 +7,7 @@ import { nomAffichable } from '@/lib/format';
 import type { Connecte } from '@/lib/presence';
 import type { MaPhoto, Profil } from '@/lib/profil';
 import Connectes from './Connectes';
+import OuvrirNouveauCandidat, { ADRESSE_NOUVEAU_CANDIDAT } from './OuvrirNouveauCandidat';
 import { Roue } from './Icones';
 
 /**
@@ -88,7 +89,17 @@ export default function Colonne({
           <p className="colonne-famille-nom">{famille.nom}</p>
 
           {famille.entrees.map((entree) =>
-            entree.vers ? (
+            // « Nouveau candidat » ouvre la fenêtre flottante au lieu de
+            // quitter l'écran — un lien quand même, vers la page, sans script.
+            entree.vers === ADRESSE_NOUVEAU_CANDIDAT ? (
+              <OuvrirNouveauCandidat
+                key={entree.libelle}
+                aria-current={estCourante(entree, chemin, visibles) ? 'page' : undefined}
+                className={`colonne-entree${estCourante(entree, chemin, visibles) ? ' colonne-entree--courante' : ''}`}
+              >
+                {entree.libelle}
+              </OuvrirNouveauCandidat>
+            ) : entree.vers ? (
               <Link
                 key={entree.libelle}
                 href={entree.vers}

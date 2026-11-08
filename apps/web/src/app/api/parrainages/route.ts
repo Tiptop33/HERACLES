@@ -56,6 +56,9 @@ async function traiter(requete: Request) {
 
   const lu = InvitationParrain.safeParse(await lireCorps(requete));
   if (!lu.success) return refuser('adresse', premiereErreur(lu.error).message);
+  if (lu.data.candidat_email && lu.data.candidat_email.toLowerCase() === lu.data.email.toLowerCase()) {
+    return refuser('adresse', 'Le parrain et le candidat ne peuvent pas avoir la même adresse.');
+  }
 
   // 1. La session.
   const supabase = await supabaseServer();
@@ -69,6 +72,7 @@ async function traiter(requete: Request) {
   const { error } = await supabase.rpc('inviter_un_parrain', {
     adresse: lu.data.email,
     empreinte: empreinte(jeton),
+    candidat: lu.data.candidat_email ?? null,
   });
 
   if (error) {

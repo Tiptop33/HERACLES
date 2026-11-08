@@ -78,7 +78,11 @@ export default async function PageDuParrain({
           </p>
         )}
 
-        <FormulaireParrain jeton={jeton} email={parrainage.parrain_email} />
+        <FormulaireParrain
+          jeton={jeton}
+          email={parrainage.parrain_email}
+          candidatEmail={parrainage.candidat_email}
+        />
       </div>
     </main>
   );

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  FenetreNouveauCandidat,
   FormulaireCandidature,
   FormulaireParrain,
   InvitationParrain,
@@ -221,5 +222,53 @@ describe('les courriels', () => {
 
   it('annoncent la relance comme un rappel', () => {
     expect(courrielDeRelance({}, lien, 'Pau', null).sujet).toMatch(/^Rappel/);
+  });
+});
+
+describe('InvitationParrain — l’adresse du candidat (0059)', () => {
+  it('reste facultative : la page n’en demande qu’une', () => {
+    const lu = InvitationParrain.safeParse({ email: 'parrain@example.org' });
+    expect(lu.success).toBe(true);
+    expect(lu.success && lu.data.candidat_email).toBeUndefined();
+  });
+
+  it('lit une case vide comme absente', () => {
+    const lu = InvitationParrain.safeParse({ email: 'parrain@example.org', candidat_email: '  ' });
+    expect(lu.success && lu.data.candidat_email).toBeUndefined();
+  });
+
+  it('refuse une adresse de candidat mal formée', () => {
+    const lu = InvitationParrain.safeParse({ email: 'parrain@example.org', candidat_email: 'non' });
+    expect(lu.success).toBe(false);
+  });
+});
+
+describe('FenetreNouveauCandidat', () => {
+  it('exige les deux adresses, en français', () => {
+    const lu = FenetreNouveauCandidat.safeParse({ email: 'parrain@example.org', candidat_email: '' });
+    expect(lu.success).toBe(false);
+    if (!lu.success) {
+      expect(premiereErreur(lu.error)).toEqual({
+        champ: 'candidat_email',
+        message: 'Indiquez l’adresse e-mail du candidat.',
+      });
+    }
+  });
+
+  it('refuse la même adresse pour le candidat et le parrain', () => {
+    const lu = FenetreNouveauCandidat.safeParse({
+      email: 'Meme@Example.org',
+      candidat_email: 'meme@example.org',
+    });
+    expect(lu.success).toBe(false);
+    if (!lu.success) expect(premiereErreur(lu.error).champ).toBe('email');
+  });
+
+  it('accepte deux adresses distinctes', () => {
+    const lu = FenetreNouveauCandidat.safeParse({
+      email: 'parrain@example.org',
+      candidat_email: 'candidat@example.org',
+    });
+    expect(lu.success).toBe(true);
   });
 });

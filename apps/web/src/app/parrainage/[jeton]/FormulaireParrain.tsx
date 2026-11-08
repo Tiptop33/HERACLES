@@ -14,7 +14,16 @@ import { OUI_NON, TYPES_DE_RECHERCHE } from '@/lib/parrainage';
 
 type Erreur = { champ: string | null; message: string };
 
-export default function FormulaireParrain({ jeton, email }: { jeton: string; email: string }) {
+export default function FormulaireParrain({
+  jeton,
+  email,
+  candidatEmail = null,
+}: {
+  jeton: string;
+  email: string;
+  /** L'adresse proposée par le référent à l'invitation (0059) : pré-remplie, modifiable. */
+  candidatEmail?: string | null;
+}) {
   const router = useRouter();
   const [erreur, setErreur] = useState<Erreur | null>(null);
   const [envoi, setEnvoi] = useState(false);
@@ -106,7 +115,12 @@ export default function FormulaireParrain({ jeton, email }: { jeton: string; ema
           </div>
           <div className="champ">
             <label htmlFor="p-candidat_email">E-mail *</label>
-            <input {...champ('candidat_email')} type="email" required />
+            <input
+              {...champ('candidat_email')}
+              type="email"
+              defaultValue={candidatEmail ?? undefined}
+              required
+            />
           </div>
           <div className="champ">
             <label htmlFor="p-type_emploi">Type de recherche *</label>

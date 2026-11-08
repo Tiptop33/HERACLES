@@ -119,10 +119,33 @@ const jourFacultatif = z
     message: 'Cette date ne se lit pas.',
   });
 
-/** L'adresse du parrain, saisie par le référent. */
+/**
+ * L'adresse du parrain, saisie par le référent — et, depuis la fenêtre
+ * « Nouveau candidat » (migration 0059), celle du candidat. Facultative ici :
+ * la page `/espace/candidats/nouveau` n'en demande qu'une.
+ */
 export const InvitationParrain = z.object({
   email: courriel('Indiquez l’adresse e-mail du parrain.'),
+  candidat_email: z.preprocess(
+    (valeur) => (typeof valeur === 'string' && valeur.trim() === '' ? undefined : valeur),
+    courriel('Indiquez l’adresse e-mail du candidat.').optional(),
+  ),
 });
+
+/**
+ * La fenêtre « Nouveau candidat » : les deux adresses, obligatoires toutes
+ * les deux, et distinctes — la même dans les deux cases est une erreur de
+ * saisie, pas un candidat qui se parraine lui-même.
+ */
+export const FenetreNouveauCandidat = z
+  .object({
+    candidat_email: courriel('Indiquez l’adresse e-mail du candidat.'),
+    email: courriel('Indiquez l’adresse e-mail du parrain.'),
+  })
+  .refine((v) => v.candidat_email.toLowerCase() !== v.email.toLowerCase(), {
+    path: ['email'],
+    message: 'Le parrain et le candidat ne peuvent pas avoir la même adresse.',
+  });
 
 /**
  * La page du parrain : ce qu'il dit de lui, puis du candidat. Champs
