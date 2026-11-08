@@ -4,9 +4,14 @@ import { useState } from 'react';
 import type { Collegue } from './PanneauFiche';
 
 /**
- * Le menu « Référent » d'un candidat déjà accompagné, à la place du nom sur
- * la ligne « Référent » du bloc Accompagnement : choisir un nom suffit, il
- * s'enregistre aussitôt — pas de bouton à presser en plus.
+ * Le menu « Référent », à la place du nom sur la ligne « Référent » du bloc
+ * Accompagnement : choisir un nom suffit, il s'enregistre aussitôt — pas de
+ * bouton à presser en plus.
+ *
+ * Sur un candidat sans référent, il s'ouvre sur « personne », qui n'est pas
+ * un choix : le premier nom choisi, « Moi » compris, prend le candidat en
+ * charge. S'il s'ouvrait sur « Moi », se prendre soi-même un candidat ne
+ * changerait rien au menu, et rien ne partirait.
  *
  * Le formulaire reste un vrai formulaire, envoyé à la même route que sans
  * script (`/api/candidats/[id]/referent`). Le script ne fait que l'envoyer au
@@ -27,8 +32,8 @@ export default function MenuDuReferent({
   action: string;
   /** Les référents de la loge du candidat, déjà triés et mis sur une ligne. */
   collegues: Collegue[];
-  /** Le référent en place, sur lequel le menu s'ouvre. */
-  referentActuel: string;
+  /** Le référent en place, sur lequel le menu s'ouvre — `null` : personne. */
+  referentActuel: string | null;
   /** L'identifiant de l'intitulé qui nomme le menu. */
   intitule: string;
 }) {
@@ -39,7 +44,7 @@ export default function MenuDuReferent({
       <select
         name="referent_id"
         aria-labelledby={intitule}
-        defaultValue={referentActuel}
+        defaultValue={referentActuel ?? ''}
         // Le menu se fige pendant l'envoi : un second choix fait avant le
         // retour de la page partirait derrière le premier.
         disabled={envoi}
@@ -52,6 +57,11 @@ export default function MenuDuReferent({
           setEnvoi(true);
         }}
       >
+        {referentActuel === null && (
+          <option value="" disabled>
+            personne
+          </option>
+        )}
         {collegues.map((c) => (
           <option key={c.id} value={c.id}>
             {c.nom}
@@ -60,7 +70,7 @@ export default function MenuDuReferent({
       </select>
       <noscript>
         <button type="submit" className="bouton bouton--petit">
-          Changer
+          {referentActuel === null ? 'Prendre en charge' : 'Changer'}
         </button>
       </noscript>
     </form>
