@@ -21,7 +21,6 @@ const MOTIFS: Record<string, string> = {
 
 const ERREURS: Record<string, string> = {
   saisie: 'Un champ est incomplet. Vérifiez le formulaire.',
-  cv: 'Joignez votre CV.',
   taille: 'Un fichier dépasse 10 Mo.',
   format: 'Un fichier n’est pas reconnu : PDF, Word, OpenDocument, RTF, JPEG, PNG ou WebP.',
   echec: 'L’envoi a échoué. Réessayez dans un instant.',

@@ -321,18 +321,11 @@ commit;
 do $$
 begin
   set local role service_role;
-  begin
-    perform public.completer_sa_candidature(current_setting('essai.e_c1'),
-      '{"nom":"Martin","prenom":"Lucie","type_emploi":"stage en alternance"}'::jsonb,
-      null);
-    raise exception 'ÉCHEC — une candidature sans CV a été acceptée';
-  exception when check_violation then
-    raise notice '  ok — le CV est obligatoire';
-  end;
+  -- Le CV n'est plus obligatoire depuis 0065 : c'est son test qui le vérifie.
 
   begin
     perform public.completer_sa_candidature(current_setting('essai.e_c1'),
-      '{"nom":"Martin","prenom":"Lucie","type_emploi":"stage en alternance"}'::jsonb,
+      '{"nom":"Martin","prenom":"Lucie","telephone":"0700000057","type_emploi":"stage en alternance"}'::jsonb,
       'candidat/cv/' || gen_random_uuid() || '.pdf');
     raise exception 'ÉCHEC — le CV d''un autre dossier a été accepté';
   exception when check_violation then
@@ -341,7 +334,7 @@ begin
 
   begin
     perform public.completer_sa_candidature(current_setting('essai.e_c1'),
-      '{"nom":"Martin","prenom":"Lucie","type_emploi":"stage en alternance","age":"7"}'::jsonb,
+      '{"nom":"Martin","prenom":"Lucie","telephone":"0700000057","type_emploi":"stage en alternance","age":"7"}'::jsonb,
       'candidat/cv/' || current_setting('essai.lucie') || '.pdf');
     raise exception 'ÉCHEC — un âge de 7 ans a été accepté';
   exception when check_violation then

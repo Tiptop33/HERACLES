@@ -164,8 +164,8 @@ export default function FormulaireCandidature({
       <fieldset>
         <legend>Votre CV</legend>
         <div className="champ">
-          <label htmlFor="c-cv">CV *</label>
-          <input {...champ('cv')} type="file" accept={ACCEPTES} onChange={choisirLeCv} required />
+          <label htmlFor="c-cv">CV</label>
+          <input {...champ('cv')} type="file" accept={ACCEPTES} onChange={choisirLeCv} />
         </div>
         <p className="aide">
           PDF, Word, OpenDocument, RTF ou photo (JPEG, PNG, WebP), 10 Mo au plus.
@@ -218,12 +218,12 @@ export default function FormulaireCandidature({
             <input {...champ('telephone')} type="tel" autoComplete="tel" required />
           </div>
           <div className="champ">
-            <label htmlFor="c-age">Âge *</label>
-            <input {...champ('age')} type="number" inputMode="numeric" min={14} max={99} required />
+            <label htmlFor="c-age">Âge</label>
+            <input {...champ('age')} type="number" inputMode="numeric" min={14} max={99} />
           </div>
           <div className="champ">
-            <label htmlFor="c-situation_familiale">Situation familiale *</label>
-            <select {...champ('situation_familiale')} defaultValue="" required>
+            <label htmlFor="c-situation_familiale">Situation familiale</label>
+            <select {...champ('situation_familiale')} defaultValue="">
               <option value="" disabled>
                 Choisir…
               </option>
@@ -236,17 +236,17 @@ export default function FormulaireCandidature({
           </div>
         </div>
         <div className="champ">
-          <label htmlFor="c-adresse">Adresse *</label>
-          <input {...champ('adresse')} autoComplete="street-address" required />
+          <label htmlFor="c-adresse">Adresse</label>
+          <input {...champ('adresse')} autoComplete="street-address" />
         </div>
         <div className="ligne-edition">
           <div className="champ">
-            <label htmlFor="c-code_postal">Code postal *</label>
-            <input {...champ('code_postal')} inputMode="numeric" autoComplete="postal-code" required />
+            <label htmlFor="c-code_postal">Code postal</label>
+            <input {...champ('code_postal')} inputMode="numeric" autoComplete="postal-code" />
           </div>
           <div className="champ">
-            <label htmlFor="c-ville">Ville *</label>
-            <input {...champ('ville')} autoComplete="address-level2" required />
+            <label htmlFor="c-ville">Ville</label>
+            <input {...champ('ville')} autoComplete="address-level2" />
           </div>
         </div>
       </fieldset>
@@ -255,12 +255,11 @@ export default function FormulaireCandidature({
         <legend>Votre recherche</legend>
         <div className="ligne-edition">
           <div className="champ">
-            <label htmlFor="c-type_emploi">Type de recherche *</label>
+            <label htmlFor="c-type_emploi">Type de recherche</label>
             <select
               {...champ('type_emploi')}
               value={type}
               onChange={(e) => setType(e.target.value)}
-              required
             >
               <option value="" disabled>
                 Choisir…
@@ -273,12 +272,12 @@ export default function FormulaireCandidature({
             </select>
           </div>
           <div className="champ">
-            <label htmlFor="c-emploi_recherche">Métier visé *</label>
-            <input {...champ('emploi_recherche')} required />
+            <label htmlFor="c-emploi_recherche">Métier visé</label>
+            <input {...champ('emploi_recherche')} />
           </div>
           <div className="champ">
-            <label htmlFor="c-mobilite_geographique">Mobilité géographique *</label>
-            <select {...champ('mobilite_geographique')} defaultValue="" required>
+            <label htmlFor="c-mobilite_geographique">Mobilité géographique</label>
+            <select {...champ('mobilite_geographique')} defaultValue="">
               <option value="" disabled>
                 Choisir…
               </option>
@@ -308,12 +307,11 @@ export default function FormulaireCandidature({
         )}
 
         <div className="champ">
-          <label htmlFor="c-definition_emploi">Définition très précise de l’emploi recherché *</label>
+          <label htmlFor="c-definition_emploi">Définition très précise de l’emploi recherché</label>
           <textarea
             {...champ('definition_emploi')}
             rows={3}
             placeholder="RESPONSABLE D’AGENCE ; CADRE ; …"
-            required
           />
         </div>
       </fieldset>
@@ -323,15 +321,15 @@ export default function FormulaireCandidature({
         <div className="ligne-edition">
           {(
             [
-              ['permis_vl', 'Permis B (voiture) *'],
-              ['permis_moto', 'Permis moto *'],
-              ['permis_pl', 'Permis poids lourd *'],
-              ['vehicule', 'Véhicule *'],
+              ['permis_vl', 'Permis B (voiture)'],
+              ['permis_moto', 'Permis moto'],
+              ['permis_pl', 'Permis poids lourd'],
+              ['vehicule', 'Véhicule'],
             ] as const
           ).map(([nom, libelle]) => (
             <div className="champ" key={nom}>
               <label htmlFor={`c-${nom}`}>{libelle}</label>
-              <select {...champ(nom)} defaultValue="" required>
+              <select {...champ(nom)} defaultValue="">
                 <option value="" disabled>
                   Choisir…
                 </option>
@@ -350,17 +348,17 @@ export default function FormulaireCandidature({
         <legend>Votre parcours</legend>
         {(
           [
-            ['formations', 'Formation *', true],
-            ['experiences', 'Expériences *', true],
-            ['competences', 'Compétences *', true],
-            ['informatique', 'Informatique', false],
-            ['savoir_etre', 'Savoir-être', false],
-            ['centres_interet', 'Centres d’intérêt', false],
+            ['formations', 'Formation'],
+            ['experiences', 'Expériences'],
+            ['competences', 'Compétences'],
+            ['informatique', 'Informatique'],
+            ['savoir_etre', 'Savoir-être'],
+            ['centres_interet', 'Centres d’intérêt'],
           ] as const
-        ).map(([nom, libelle, requis]) => (
+        ).map(([nom, libelle]) => (
           <div className="champ" key={nom}>
             <label htmlFor={`c-${nom}`}>{libelle}</label>
-            <textarea {...champ(nom)} rows={nom === 'experiences' ? 5 : 3} required={requis} />
+            <textarea {...champ(nom)} rows={nom === 'experiences' ? 5 : 3} />
           </div>
         ))}
       </fieldset>

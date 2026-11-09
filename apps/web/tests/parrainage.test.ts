@@ -173,7 +173,43 @@ describe('le formulaire du candidat', () => {
 
   it('borne l’âge, et ne lit pas une case vide comme zéro', () => {
     expect(FormulaireCandidature.safeParse({ ...candidature, age: '7' }).success).toBe(false);
-    expect(FormulaireCandidature.safeParse({ ...candidature, age: '' }).success).toBe(false);
+    const vide = FormulaireCandidature.safeParse({ ...candidature, age: '' });
+    expect(vide.success).toBe(true);
+    if (vide.success) expect(vide.data.age).toBeUndefined();
+  });
+
+  it('se contente de quatre champs : prénom, nom, e-mail, téléphone', () => {
+    const lu = FormulaireCandidature.safeParse({
+      prenom: 'Lucie',
+      nom: 'Martin',
+      email: 'lucie@example.org',
+      telephone: '0700000000',
+      // Les listes laissées sur « Choisir… » arrivent vides.
+      situation_familiale: '',
+      type_emploi: '',
+      permis_vl: '',
+      consentement: 'oui',
+    });
+    expect(lu.success).toBe(true);
+    if (lu.success) {
+      expect(lu.data.formations).toBeUndefined();
+      expect(lu.data.type_emploi).toBeUndefined();
+      expect(lu.data.permis_vl).toBeUndefined();
+    }
+  });
+
+  it('exige toujours le téléphone, et dit que c’est lui', () => {
+    const lu = FormulaireCandidature.safeParse({ ...candidature, telephone: '  ' });
+    expect(lu.success).toBe(false);
+    if (!lu.success) expect(premiereErreur(lu.error).champ).toBe('telephone');
+  });
+
+  it('vérifie ce qui est donné, même facultatif', () => {
+    expect(FormulaireCandidature.safeParse({ ...candidature, code_postal: '??' }).success).toBe(false);
+    expect(FormulaireCandidature.safeParse({ ...candidature, type_emploi: 'CDI' }).success).toBe(false);
+    expect(FormulaireCandidature.safeParse({ ...candidature, permis_vl: 'Peut-être' }).success).toBe(
+      false,
+    );
   });
 
   it('refuse un stage qui finit avant de commencer', () => {

@@ -17,8 +17,8 @@ import { supabaseAdmin } from '@/lib/supabase-admin';
  * Comme pour le parrain, **le lien est le droit** :
  *
  *   1. le jeton — désigne-t-il un dossier, et vaut-il encore ? ;
- *   2. la saisie, puis les fichiers : le CV est obligatoire, la lettre non.
- *      Leur format se lit dans leurs octets, jamais dans leur nom ;
+ *   2. la saisie, puis les fichiers : le CV et la lettre sont facultatifs
+ *      (0065). Leur format se lit dans leurs octets, jamais dans leur nom ;
  *   3. les fichiers vont au seau privé, sous un nom que la route fixe ;
  *   4. la base enregistre la fiche — et refuse tout chemin qui ne serait pas
  *      celui de CE dossier. Si elle refuse, les fichiers déposés repartent.
@@ -75,10 +75,8 @@ async function traiter(requete: Request, jeton: string) {
     const fichier = champs.get(genre);
     const present = fichier instanceof File && fichier.size > 0;
 
-    if (!present) {
-      if (genre === 'cv') return refuser('cv', 'Joignez votre CV.', 'cv');
-      continue;
-    }
+    // Le CV et la lettre sont facultatifs (0065) : sans fichier, rien à vérifier.
+    if (!present) continue;
 
     if (fichier.size > TAILLE_MAXIMALE_DOCUMENT) {
       return refuser('taille', 'Un fichier dépasse 10 Mo.', genre, 413);
@@ -121,7 +119,8 @@ async function traiter(requete: Request, jeton: string) {
   // 4. La base tranche.
   const { error } = await admin.rpc('completer_sa_candidature', {
     empreinte: empreinte(jeton),
-    fiche: { ...lu.data, age: String(lu.data.age) },
+    // L'âge est facultatif : absent, il part vide, et non en « undefined ».
+    fiche: { ...lu.data, age: lu.data.age === undefined ? '' : String(lu.data.age) },
     cv: chemins.cv ?? null,
     lettre: chemins.lettre ?? null,
   });
