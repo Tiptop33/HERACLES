@@ -2326,14 +2326,40 @@ tbody tr:focus-within {
   color: var(--candidat);
 }
 
-/* Une page A4 : 210 × 297. */
+/* Le volet de l'aperçu : les pages l'une sous l'autre, et l'on fait défiler
+   le volet, pas l'écran. Tant que rien n'est dessiné, il garde la place d'une
+   page A4 (210 × 297). */
 .mise-en-page-cadre {
   width: 100%;
-  aspect-ratio: 210 / 297;
   max-height: calc(100dvh - var(--barre-h) - 5rem);
+  overflow-y: auto;
   border: 1px solid var(--bordure);
   border-radius: 8px;
-  background: var(--surface);
+  background: var(--surface-creuse);
+  padding: 0.5rem;
+}
+
+.mise-en-page-pages:empty {
+  aspect-ratio: 210 / 297;
+}
+
+.mise-en-page-cadre[aria-busy='true'] .mise-en-page-pages {
+  opacity: 0.6;
+  transition: opacity 0.2s;
+}
+
+.mise-en-page-pages {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.mise-en-page-pages canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.15);
 }
 
 /* ————— La liste des titres —————
