@@ -1,3 +1,11 @@
+import {
+  aujourdhuiAParis,
+  periodeDesDocuments,
+  rangerParSorte,
+  type DocumentArchive,
+  type Sorte,
+} from './documents/archives';
+import { lireLExercice } from './exercice';
 import { supabaseServer } from './supabase-server';
 
 /**
@@ -69,24 +77,23 @@ export async function listerDemandesEnAttente(limite = 4): Promise<Demande[]> {
   return (data as Demande[]) ?? [];
 }
 
-export type Document = {
-  id: string;
-  nom: string | null;
-  type_document: string | null;
-  lien_url: string | null;
-  cree_le: string | null;
-};
+/**
+ * Les comptes rendus, affiches et affichettes de la période, rangés dans leurs
+ * trois colonnes (migration 0069).
+ *
+ * La période est l'exercice en cours — du 1er septembre au 31 juillet. La
+ * base fait le reste : la policy de `document` ne rend que ses loges, et la
+ * fonction dit, ligne par ligne, si la corbeille a lieu d'être.
+ */
+export async function listerLesArchives(maintenant: Date = new Date()): Promise<Record<Sorte, DocumentArchive[]>> {
+  const exercice = await lireLExercice();
+  const { du, au } = periodeDesDocuments(exercice, aujourdhuiAParis(maintenant));
 
-/** Les comptes-rendus et affiches de sa loge. La RLS fait le tri (0011). */
-export async function listerDocuments(limite = 5): Promise<Document[]> {
   const supabase = await supabaseServer();
-  const { data } = await supabase
-    .from('document')
-    .select('id, nom, type_document, lien_url, cree_le')
-    .is('archive', null)
-    .order('cree_le', { ascending: false, nullsFirst: false })
-    .limit(limite);
-  return (data as Document[]) ?? [];
+  const { data, error } = await supabase.rpc('documents_de_l_accueil', { du, au });
+  if (error) console.error('[accueil] archives illisibles', error.code);
+
+  return rangerParSorte((data as DocumentArchive[] | null) ?? []);
 }
 
 export type Offre = {

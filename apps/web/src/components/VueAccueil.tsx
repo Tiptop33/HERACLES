@@ -1,5 +1,7 @@
 import Link from 'next/link';
-import type { Chiffres, Demande, Document, Offre } from '@/lib/accueil';
+import { Corbeille } from '@/components/Icones';
+import type { Chiffres, Demande, Offre } from '@/lib/accueil';
+import { COLONNES, SORTES, type DocumentArchive, type Sorte } from '@/lib/documents/archives';
 import { depuis, initiales, nomComplet } from '@/lib/format';
 
 /**
@@ -28,14 +30,21 @@ export default function VueAccueil({
   saison,
   chiffres,
   demandes,
-  documents,
+  archives,
+  aEffacer,
+  refusDArchive,
   offres,
   estReferent,
 }: {
   saison: string;
   chiffres: Chiffres;
   demandes: Demande[];
-  documents: Document[];
+  /** Les PDF archivés de la période, rangés dans leurs trois colonnes (0069). */
+  archives: Record<Sorte, DocumentArchive[]>;
+  /** La ligne dont la corbeille a été touchée : la fenêtre de confirmation s'ouvre. */
+  aEffacer: DocumentArchive | null;
+  /** Ce que la route d'effacement a refusé, dit en clair. */
+  refusDArchive: string | null;
   offres: Offre[];
   estReferent: boolean;
 }) {
@@ -107,55 +116,127 @@ export default function VueAccueil({
         )}
       </section>
 
-      <div className="deux-colonnes">
-        <section className="bloc">
-          <h2>Comptes-rendus &amp; affiches</h2>
-          {documents.length === 0 ? (
-            <p className="vide-liste">Aucun document dans votre loge.</p>
-          ) : (
-            <ul className="liste-nue">
-              {documents.map((d) => (
-                <li key={d.id}>
-                  {d.lien_url ? (
-                    <a href={d.lien_url} target="_blank" rel="noreferrer noopener">
-                      {d.nom ?? 'Document sans nom'}
-                    </a>
-                  ) : (
-                    <span>{d.nom ?? 'Document sans nom'}</span>
-                  )}
-                  {d.type_document && <span className="maigre">{d.type_document}</span>}
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
+      {/* Les trois colonnes en pleine largeur, à la place de l'ancien cadre
+          « Comptes-rendus & affiches » : chaque PDF que la feuille d'appel
+          produit y est archivé (migration 0069). La période est l'exercice
+          en cours, du 1er septembre au 31 juillet. */}
+      <section className="bloc">
+        <h2>Comptes-rendus, affiches et affichettes</h2>
+        {refusDArchive && (
+          <p className="erreur" role="alert">
+            {refusDArchive}
+          </p>
+        )}
+        <div className="archives">
+          {SORTES.map((sorte) => (
+            <div key={sorte} className="archives-colonne">
+              <h3>{COLONNES[sorte].titre}</h3>
+              {archives[sorte].length === 0 ? (
+                <p className="archives-vide">{COLONNES[sorte].vide}</p>
+              ) : (
+                <ul className="liste-nue">
+                  {archives[sorte].map((d) => (
+                    <li key={d.id} className="archives-ligne">
+                      <a href={`/api/documents/${d.id}`} target="_blank" rel="noopener">
+                        {d.nom ?? 'Document sans nom'}
+                      </a>
+                      {/* Rouge, sur la ligne même du PDF, et seulement là où
+                          la base accepterait d'effacer : administrateur,
+                          Vénérable Maître, Secrétaire. La corbeille n'efface
+                          pas : elle ouvre la confirmation. */}
+                      {d.effacable && (
+                        <Link
+                          href={`/espace/accueil?effacer=${d.id}`}
+                          scroll={false}
+                          className="geste geste--retirer"
+                          aria-label={`Effacer ${d.nom ?? 'ce PDF'}`}
+                          title="Effacer ce PDF"
+                        >
+                          <Corbeille />
+                        </Link>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          ))}
+        </div>
+      </section>
 
-        <section className="bloc">
-          <h2>Offres d&apos;emploi en cours</h2>
-          {offres.length === 0 ? (
-            <p className="vide-liste">Aucune offre en cours.</p>
-          ) : (
-            <ul className="liste-nue">
-              {offres.map((o) => (
-                <li key={o.id}>
-                  <span>{o.intitule ?? 'Offre sans intitulé'}</span>
-                  <span className="maigre">
-                    {[o.entreprise_nom, o.lieu_libelle, o.type_contrat_libelle]
-                      .filter(Boolean)
-                      .join(' · ')}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
-      </div>
+      <section className="bloc">
+        <h2>Offres d&apos;emploi en cours</h2>
+        {offres.length === 0 ? (
+          <p className="vide-liste">Aucune offre en cours.</p>
+        ) : (
+          <ul className="liste-nue">
+            {offres.map((o) => (
+              <li key={o.id}>
+                <span>{o.intitule ?? 'Offre sans intitulé'}</span>
+                <span className="maigre">
+                  {[o.entreprise_nom, o.lieu_libelle, o.type_contrat_libelle]
+                    .filter(Boolean)
+                    .join(' · ')}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
 
       {estReferent && (
         <p className="maigre">
           <Link href="/espace/candidats">Voir les candidats de la loge →</Link>
         </p>
       )}
+
+      {aEffacer && <FenetreDEffacement archive={aEffacer} />}
     </main>
+  );
+}
+
+/**
+ * La fenêtre de confirmation avant d'effacer un PDF archivé — la même que pour
+ * supprimer un dossier.
+ *
+ * Elle dit ce qu'on perd, plutôt que « êtes-vous sûr ? ». Rendue par le
+ * serveur sur la seule foi de l'adresse : elle s'ouvre sans une ligne de
+ * script, et le bouton « retour » du navigateur la referme, comme un clic à
+ * côté ou « Annuler ».
+ */
+function FenetreDEffacement({ archive }: { archive: DocumentArchive }) {
+  const nom = archive.nom ?? 'ce PDF';
+
+  return (
+    <div className="fenetre-fond">
+      <Link
+        href="/espace/accueil"
+        scroll={false}
+        className="fenetre-voile"
+        aria-label="Fermer sans rien effacer"
+      />
+
+      <div className="fenetre" role="dialog" aria-modal="true" aria-labelledby="effacement-titre">
+        <h2 id="effacement-titre">Effacer « {nom} »&nbsp;?</h2>
+
+        <p>
+          Le PDF disparaîtra de HERACLES pour <strong>toute la loge</strong> : il ne s’ouvrira
+          plus depuis l’accueil.
+        </p>
+
+        <p className="aide">Cela ne se défait pas.</p>
+
+        <div className="fenetre-gestes">
+          <Link href="/espace/accueil" scroll={false} className="bouton">
+            Annuler
+          </Link>
+          <form method="post" action={`/api/documents/${archive.id}/effacer`}>
+            <button className="bouton bouton--danger" type="submit">
+              Effacer le PDF
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
   );
 }
