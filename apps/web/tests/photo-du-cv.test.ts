@@ -2,11 +2,12 @@ import JSZip from 'jszip';
 import { PDFDocument } from 'pdf-lib';
 import { describe, expect, it } from 'vitest';
 import {
-  choisirLaPhoto,
+  MAXIMUM_D_IMAGES_MONTREES,
   dimensionsDImage,
+  imagesDuCv,
   imagesDuDocx,
   imagesDuPdf,
-  photoDuCv,
+  imagesPossibles,
   type ImageDuCv,
 } from '../src/lib/photo-du-cv';
 
@@ -86,18 +87,27 @@ describe('les dimensions d’une image, lues dans ses octets', () => {
   });
 });
 
-describe('le choix de la photo parmi les images du CV', () => {
-  it('prend la plus grande qui a la forme d’un portrait', () => {
+describe('les images qui pourraient être une photo', () => {
+  it('les garde des plus grandes aux plus petites — Claude choisira', () => {
+    const qrCode = image(500, 500);
     const portrait = image(300, 400);
-    expect(choisirLaPhoto([image(150, 200), portrait, image(120, 120)])).toBe(portrait);
+    expect(imagesPossibles([image(150, 200), portrait, qrCode])).toEqual([
+      qrCode,
+      portrait,
+      image(150, 200),
+    ]);
   });
 
   it('écarte les icônes, les bandeaux, les pages numérisées et les fichiers trop lourds', () => {
-    expect(choisirLaPhoto([image(32, 32)])).toBeNull(); // une icône
-    expect(choisirLaPhoto([image(600, 150)])).toBeNull(); // un logo en bandeau
-    expect(choisirLaPhoto([image(2480, 3508)])).toBeNull(); // une page A4 à 300 dpi
-    expect(choisirLaPhoto([image(300, 400, 3 * 1024 * 1024)])).toBeNull(); // 3 Mo
-    expect(choisirLaPhoto([])).toBeNull();
+    expect(imagesPossibles([image(32, 32)])).toEqual([]); // une icône
+    expect(imagesPossibles([image(600, 150)])).toEqual([]); // un logo en bandeau
+    expect(imagesPossibles([image(2480, 3508)])).toEqual([]); // une page A4 à 300 dpi
+    expect(imagesPossibles([image(300, 400, 3 * 1024 * 1024)])).toEqual([]); // 3 Mo
+  });
+
+  it('n’en montre pas plus de six', () => {
+    const nombreuses = Array.from({ length: 9 }, (_, i) => image(200 + i, 200 + i));
+    expect(imagesPossibles(nombreuses)).toHaveLength(MAXIMUM_D_IMAGES_MONTREES);
   });
 });
 
@@ -110,15 +120,16 @@ describe('les images d’un PDF', () => {
     expect(Array.from(images[0].octets)).toEqual(Array.from(jpeg));
   });
 
-  it('trouve le portrait entre un logo et la photo', async () => {
-    const photo = await photoDuCv(await pdfAvec(fauxJpeg(500, 100), fauxJpeg(300, 400)), 'pdf');
-    expect(photo).toMatchObject({ largeur: 300, hauteur: 400 });
+  it('écarte le logo en bandeau et garde le portrait', async () => {
+    const images = await imagesDuCv(await pdfAvec(fauxJpeg(500, 100), fauxJpeg(300, 400)), 'pdf');
+    expect(images).toHaveLength(1);
+    expect(images[0]).toMatchObject({ largeur: 300, hauteur: 400 });
   });
 
-  it('rend « pas de photo » pour un PDF sans image', async () => {
+  it('ne rend rien pour un PDF sans image', async () => {
     const document = await PDFDocument.create();
     document.addPage();
-    expect(await photoDuCv(await document.save(), 'pdf')).toBeNull();
+    expect(await imagesDuCv(await document.save(), 'pdf')).toEqual([]);
   });
 });
 
@@ -134,12 +145,12 @@ describe('les images d’un document Word', () => {
 });
 
 describe('ce qui ne se lit pas', () => {
-  it('ne lève jamais : un fichier abîmé rend « pas de photo »', async () => {
-    expect(await photoDuCv(new TextEncoder().encode('%PDF-abîmé'), 'pdf')).toBeNull();
-    expect(await photoDuCv(new Uint8Array([0x50, 0x4b, 3, 4, 0, 0]), 'docx')).toBeNull();
+  it('ne lève jamais : un fichier abîmé ne rend aucune image', async () => {
+    expect(await imagesDuCv(new TextEncoder().encode('%PDF-abîmé'), 'pdf')).toEqual([]);
+    expect(await imagesDuCv(new Uint8Array([0x50, 0x4b, 3, 4, 0, 0]), 'docx')).toEqual([]);
   });
 
   it('ne découpe rien dans un CV photographié', async () => {
-    expect(await photoDuCv(fauxJpeg(300, 400), 'jpg')).toBeNull();
+    expect(await imagesDuCv(fauxJpeg(300, 400), 'jpg')).toEqual([]);
   });
 });

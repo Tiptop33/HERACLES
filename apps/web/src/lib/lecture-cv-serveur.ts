@@ -6,12 +6,12 @@ import {
   LectureDuCv,
   MODELE_DE_LECTURE,
   demandeDeLecture,
-  montreUnePhoto,
   nettoyerLecture,
+  numeroDeLaPhoto,
   type Extrait,
   type FormatLisible,
 } from './lecture-cv';
-import { photoDuCv } from './photo-du-cv';
+import { imagesDuCv, type ImageDuCv } from './photo-du-cv';
 
 /**
  * Faire lire un CV par Claude — serveur seulement.
@@ -65,6 +65,21 @@ export async function blocDuCv(
   };
 }
 
+/** Les images tirées du fichier, numérotées, à la suite du CV. */
+function blocsDesImages(images: readonly ImageDuCv[]): Anthropic.Beta.BetaContentBlockParam[] {
+  return images.flatMap((image, rang): Anthropic.Beta.BetaContentBlockParam[] => [
+    { type: 'text', text: `Image ${rang + 1} :` },
+    {
+      type: 'image',
+      source: {
+        type: 'base64',
+        media_type: image.format === 'png' ? 'image/png' : 'image/jpeg',
+        data: Buffer.from(image.octets).toString('base64'),
+      },
+    },
+  ]);
+}
+
 export async function lireLeCv(
   octets: Uint8Array,
   format: FormatLisible,
@@ -81,19 +96,27 @@ export async function lireLeCv(
   }
   if (!bloc) return { ok: false, raison: 'illisible' };
 
+  // Les images du fichier qui pourraient être sa photo : c'est Claude qui
+  // désignera la bonne, ou aucune (`photo-du-cv.ts`).
+  const images = await imagesDuCv(octets, format);
+
   // Une lecture tient en une minute ; au-delà, le candidat aura déjà commencé
   // à remplir lui-même. Un seul nouvel essai sur une panne passagère.
   const client = new Anthropic({ timeout: 90_000, maxRetries: 1 });
 
-  try {
-    const reponse = await client.beta.messages.parse({
+  const demander = (montrees: readonly ImageDuCv[]) =>
+    client.beta.messages.parse({
       model: MODELE_DE_LECTURE,
       max_tokens: 16000,
       system: CONSIGNE_DE_LECTURE,
       messages: [
         {
           role: 'user',
-          content: [bloc, { type: 'text', text: demandeDeLecture(aujourdhui) }],
+          content: [
+            bloc,
+            ...blocsDesImages(montrees),
+            { type: 'text', text: demandeDeLecture(aujourdhui, montrees.length) },
+          ],
         },
       ],
       // Recopier un CV dans des cases demande peu de réflexion : `low` rend la
@@ -104,6 +127,20 @@ export async function lireLeCv(
       betas: ['server-side-fallback-2026-07-01'],
       fallbacks: 'default',
     });
+
+  try {
+    let montrees: readonly ImageDuCv[] = images;
+    let reponse: Awaited<ReturnType<typeof demander>>;
+    try {
+      reponse = await demander(montrees);
+    } catch (erreur) {
+      // Une image que l'API refuse ne doit pas coûter la lecture : elle se
+      // refait sans images — le formulaire se remplit, sans photo.
+      if (montrees.length === 0 || !(erreur instanceof Anthropic.BadRequestError)) throw erreur;
+      console.warn('[lecture-cv] images refusées par l’API, lecture refaite sans elles :', erreur.message);
+      montrees = [];
+      reponse = await demander(montrees);
+    }
 
     if (reponse.stop_reason === 'refusal') {
       console.warn('[lecture-cv] lecture refusée', reponse.stop_details?.category ?? 'sans catégorie');
@@ -116,9 +153,9 @@ export async function lireLeCv(
 
     const lecture = reponse.parsed_output;
 
-    // La photo : seulement si le modèle a vu un portrait, et c'est ici, sur
-    // le serveur, qu'on la sort du fichier.
-    const image = montreUnePhoto(lecture) ? await photoDuCv(octets, format) : null;
+    // La photo : celle que le modèle a désignée parmi les images montrées.
+    const rang = numeroDeLaPhoto(lecture, montrees.length);
+    const image = rang === null ? null : montrees[rang];
     const photo: PhotoLue | null = image
       ? {
           type: image.format === 'png' ? 'image/png' : 'image/jpeg',

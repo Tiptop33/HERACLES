@@ -106,12 +106,15 @@ export const LectureDuCv = z.object({
   informatique: texte(),
   savoir_etre: texte(),
   centres_interet: texte(),
-  // Pas un champ du formulaire : le signal qui dit au serveur d'aller
-  // chercher la photo dans le fichier (`photo-du-cv.ts`). Le modèle ne rend
-  // jamais l'image elle-même.
+  // Pas un champ du formulaire : le numéro de l'image, parmi celles que le
+  // serveur a sorties du fichier et montrées à la suite du CV, qui est la
+  // photo de la personne (`photo-du-cv.ts`). Le modèle ne rend jamais
+  // l'image elle-même : il la désigne.
   photo: z
     .string()
-    .describe('« oui » si le CV montre une photo de la personne (un portrait), « non » sinon.'),
+    .describe(
+      'Le numéro de l’image montrée après le CV qui est une photo de la personne elle-même (« 1 », « 2 »…) ; vide si aucune ne l’est.',
+    ),
 });
 
 export type LectureDuCv = z.infer<typeof LectureDuCv>;
@@ -119,9 +122,16 @@ export type LectureDuCv = z.infer<typeof LectureDuCv>;
 /** Un champ du formulaire que la lecture peut remplir. */
 export type ChampLu = Exclude<keyof LectureDuCv, 'photo'>;
 
-/** Vrai si le modèle a vu un portrait de la personne dans son CV. */
-export function montreUnePhoto(lecture: Pick<LectureDuCv, 'photo'>): boolean {
-  return lecture.photo.trim().toLowerCase() === 'oui';
+/**
+ * Le rang (à partir de 0) de l'image que le modèle désigne comme la photo de
+ * la personne, ou `null` : pas de réponse, pas un nombre, ou un numéro qui ne
+ * correspond à aucune des images montrées.
+ */
+export function numeroDeLaPhoto(lecture: Pick<LectureDuCv, 'photo'>, montrees: number): number | null {
+  const reponse = lecture.photo.trim();
+  if (!/^\d{1,2}$/.test(reponse)) return null;
+  const numero = Number(reponse);
+  return numero >= 1 && numero <= montrees ? numero - 1 : null;
 }
 
 /** Ce que la route renvoie au formulaire : seulement les champs trouvés, en texte. */
@@ -241,10 +251,14 @@ Champ par champ :
 - informatique : logiciels et outils numériques.
 - savoir_etre : les qualités personnelles que le CV met en avant.
 - centres_interet : les loisirs et engagements.
-- photo : « oui » si le CV montre une photo de la personne elle-même (un portrait), « non » sinon — un logo, une icône ou une illustration ne comptent pas.`;
+- photo : après le CV viennent parfois des images tirées du fichier, numérotées « Image 1 », « Image 2 »… Donne le numéro de celle qui est une photo de la personne elle-même (un portrait). Laisse vide si aucune ne l'est : un QR code, un logo, une icône, une illustration ou un dessin ne comptent pas. Ne te fie pas à ce que dit le texte du CV : regarde les images.`;
 
 /** Le message qui accompagne le CV. */
-export function demandeDeLecture(aujourdhui: Date): string {
+export function demandeDeLecture(aujourdhui: Date, images = 0): string {
   const jour = aujourdhui.toISOString().slice(0, 10);
-  return `Date du jour : ${jour}. Voici le CV à lire.`;
+  const suite =
+    images > 0
+      ? `Après le CV viennent ${images === 1 ? 'l’image tirée' : `les ${images} images tirées`} du fichier, numérotées.`
+      : 'Aucune image n’a été tirée du fichier : laisse « photo » vide.';
+  return `Date du jour : ${jour}. Voici le CV à lire. ${suite}`;
 }

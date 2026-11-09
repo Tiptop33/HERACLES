@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { betaZodOutputFormat } from '@anthropic-ai/sdk/helpers/beta/zod';
 import { PDFDocument } from 'pdf-lib';
+import Anthropic from '@anthropic-ai/sdk';
 import {
   LectureDuCv,
   casesARemplir,
@@ -196,27 +197,75 @@ describe('la lecture par Claude', () => {
     expect(demande.messages[0].content[1].text).toContain('2026-11-09');
   });
 
-  it('sort la photo du CV quand le modèle y voit un portrait — et seulement alors', async () => {
+  /** Un JPEG réduit à ses dimensions — de quoi être reconnu, rien de plus. */
+  const fauxJpeg = (largeur: number, hauteur: number) =>
+    new Uint8Array([
+      0xff, 0xd8, 0xff, 0xc0, 0x00, 0x11, 0x08, hauteur >> 8, hauteur & 0xff,
+      largeur >> 8, largeur & 0xff, 0x03, 0x01, 0x11, 0x00, 0x02, 0x11, 0x00,
+      0x03, 0x11, 0x00, 0xff, 0xd9,
+    ]);
+
+  /** Un CV en PDF qui porte un QR code (500 × 500) et une photo (300 × 400). */
+  const cvAvecQrCodeEtPhoto = async () => {
     const document = await PDFDocument.create();
     const page = document.addPage([595, 842]);
-    const jpeg = new Uint8Array([
-      0xff, 0xd8, 0xff, 0xc0, 0x00, 0x11, 0x08, 0x01, 0x90, 0x01, 0x2c,
-      0x03, 0x01, 0x11, 0x00, 0x02, 0x11, 0x00, 0x03, 0x11, 0x00, 0xff, 0xd9,
-    ]); // 300 × 400
-    page.drawImage(await document.embedJpg(jpeg), { x: 40, y: 600, width: 100, height: 130 });
-    const cvAvecPhoto = await document.save();
+    for (const jpeg of [fauxJpeg(500, 500), fauxJpeg(300, 400)]) {
+      page.drawImage(await document.embedJpg(jpeg), { x: 40, y: 600, width: 100, height: 120 });
+    }
+    return document.save();
+  };
 
-    parse.mockResolvedValue({ stop_reason: 'end_turn', parsed_output: { ...vide, photo: 'oui' } });
-    const avec = await lireLeCv(cvAvecPhoto, 'pdf');
-    expect(avec.ok && avec.photo).toEqual({
+  it('montre les images du fichier, numérotées, et rend celle que le modèle désigne', async () => {
+    parse.mockResolvedValue({ stop_reason: 'end_turn', parsed_output: { ...vide, photo: '2' } });
+    const issue = await lireLeCv(await cvAvecQrCodeEtPhoto(), 'pdf');
+
+    // La plus grande d'abord : le QR code est l'image 1, la photo l'image 2.
+    expect(issue.ok && issue.photo).toEqual({
       type: 'image/jpeg',
-      base64: Buffer.from(jpeg).toString('base64'),
+      base64: Buffer.from(fauxJpeg(300, 400)).toString('base64'),
     });
 
-    // Le modèle n'y voit pas de portrait : l'image reste dans le CV.
-    parse.mockResolvedValue({ stop_reason: 'end_turn', parsed_output: { ...vide, photo: 'non' } });
-    const sans = await lireLeCv(cvAvecPhoto, 'pdf');
-    expect(sans.ok && sans.photo).toBeNull();
+    const contenu = parse.mock.calls[0][0].messages[0].content;
+    expect(contenu.map((bloc: { type: string }) => bloc.type)).toEqual([
+      'document', 'text', 'image', 'text', 'image', 'text',
+    ]);
+    expect(contenu[1].text).toBe('Image 1 :');
+    expect(contenu[3].text).toBe('Image 2 :');
+    expect(contenu[5].text).toContain('les 2 images tirées du fichier');
+  });
+
+  it('ne rend aucune photo quand le modèle n’en désigne pas, ou en désigne une qui n’existe pas', async () => {
+    const cv = await cvAvecQrCodeEtPhoto();
+
+    parse.mockResolvedValue({ stop_reason: 'end_turn', parsed_output: { ...vide, photo: '' } });
+    const aucune = await lireLeCv(cv, 'pdf');
+    expect(aucune.ok && aucune.photo).toBeNull();
+
+    parse.mockResolvedValue({ stop_reason: 'end_turn', parsed_output: { ...vide, photo: '7' } });
+    const horsDesImages = await lireLeCv(cv, 'pdf');
+    expect(horsDesImages.ok && horsDesImages.photo).toBeNull();
+
+    parse.mockResolvedValue({ stop_reason: 'end_turn', parsed_output: { ...vide, photo: 'oui' } });
+    const pasUnNumero = await lireLeCv(cv, 'pdf');
+    expect(pasUnNumero.ok && pasUnNumero.photo).toBeNull();
+  });
+
+  it('refait la lecture sans les images si l’API les refuse : le formulaire se remplit quand même', async () => {
+    parse
+      .mockRejectedValueOnce(
+        new Anthropic.BadRequestError(400, { type: 'error' }, 'Could not process image', new Headers()),
+      )
+      .mockResolvedValueOnce({
+        stop_reason: 'end_turn',
+        parsed_output: { ...vide, ville: 'Lyon', photo: '1' },
+      });
+
+    const issue = await lireLeCv(await cvAvecQrCodeEtPhoto(), 'pdf');
+    expect(issue).toEqual({ ok: true, extrait: { ville: 'Lyon' }, photo: null });
+
+    // Le second essai ne porte plus d'image.
+    const second = parse.mock.calls[1][0].messages[0].content;
+    expect(second.map((bloc: { type: string }) => bloc.type)).toEqual(['document', 'text']);
   });
 
   it('rend un échec, sans lever, quand la lecture est refusée', async () => {

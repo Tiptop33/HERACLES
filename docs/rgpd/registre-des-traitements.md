@@ -93,7 +93,7 @@ traitements.
 | **Finalité** | Éviter au candidat de recopier son CV dans le formulaire. |
 | **Base légale** | Consentement : la lecture ne part que si le candidat clique sur « Remplir le formulaire à partir de mon CV », après en avoir été informé sous le bouton. La case de consentement le rappelle. |
 | **Personnes concernées** | Les candidats qui demandent la lecture. |
-| **Données** | Le contenu du CV : identité, coordonnées, âge, formation, expériences, compétences. Et sa photo, quand il en a une : Anthropic dit seulement s'il voit un portrait, c'est le serveur de HERACLES qui sort l'image du fichier. |
+| **Données** | Le contenu du CV : identité, coordonnées, âge, formation, expériences, compétences. Et sa photo, quand il en a une : le serveur de HERACLES sort du fichier les images qui pourraient l'être, et Claude désigne celle qui est un portrait. Ces images font partie du CV déjà transmis. |
 | **Destinataires** | Le candidat lui-même : ce qui est lu remplit son formulaire, qu'il relit avant d'envoyer. La photo lui est montrée : il la garde ou la refuse. Gardée, elle rejoint son dossier (§ 1), et ses référents la voient. |
 | **Sous-traitant** | Anthropic. Cocontractant : Anthropic Ireland, Limited (client dans l'EEE). Accord de traitement des données (DPA) du 24 février 2025, intégré aux conditions commerciales : <https://www.anthropic.com/legal/data-processing-addendum>. Espace de travail « HERACLES » dédié, clé dédiée, limite de 10 $ par mois. |
 | **Transferts hors UE** | États-Unis. Le traitement est restreint aux États-Unis dans la console d'Anthropic (zone d'inférence « US », réglée le 9 novembre 2026). Garantie : clauses contractuelles types de la Commission européenne (DPA, module 2, responsable vers sous-traitant). |

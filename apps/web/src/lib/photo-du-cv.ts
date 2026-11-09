@@ -3,15 +3,23 @@ import { PDFArray, PDFDocument, PDFName, PDFNumber, PDFRawStream } from 'pdf-lib
 import { formatDImage } from './fichiers';
 
 /**
- * Trouver, dans le CV du candidat, sa photo — sur le serveur de HERACLES.
+ * Trouver, dans le CV du candidat, sa photo.
  *
- * Rien ne part ailleurs : Claude, qui lit déjà le CV, dit seulement s'il y
- * voit un portrait (`photo` dans `LectureDuCv`). C'est ici qu'on sort
- * l'image du fichier, et qu'on choisit, parmi les images du CV, celle qui a
- * la forme d'une photo d'identité.
+ * Le partage des rôles :
  *
- * Le candidat la voit avant d'envoyer sa fiche, et peut la refuser : une
- * erreur coûte un clic, jamais une photo rangée à son insu.
+ *   · **le serveur de HERACLES** sort du fichier les images qui pourraient
+ *     être une photo (`imagesDuCv`) ;
+ *   · **Claude**, qui lit déjà le CV, les voit numérotées à la suite et
+ *     désigne celle qui est la photo de la personne — ou aucune
+ *     (`numeroDeLaPhoto`, dans `lecture-cv.ts`).
+ *
+ * Choisir sur la seule forme ne suffit pas : un QR code est carré, et il
+ * était plus grand que la photo du premier CV essayé. Claude, lui, voit ce
+ * qu'il y a sur l'image. Ces images font partie du CV qu'il lit déjà : rien
+ * de plus ne part.
+ *
+ * Le candidat voit la photo avant d'envoyer sa fiche, et peut la refuser :
+ * une erreur coûte un clic, jamais une photo rangée à son insu.
  *
  * Ce que l'on sait lire :
  *
@@ -72,34 +80,32 @@ export function dimensionsDImage(octets: Uint8Array): { largeur: number; hauteur
   return null;
 }
 
-/**
- * Parmi les images d'un CV, celle qui a la forme d'une photo d'identité, ou
- * `null`. Sont écartés : les icônes et les puces (moins de 80 pixels de
- * côté), les bandeaux et les logos allongés, les pages entières numérisées
- * (plus de 2 000 pixels), et les fichiers trop lourds. Parmi ce qui reste,
- * la plus grande — un CV montre rarement deux portraits.
- */
-export function choisirLaPhoto(images: readonly ImageDuCv[]): ImageDuCv | null {
-  const portraits = images.filter((image) => {
-    const { largeur, hauteur } = image;
-    if (!largeur || !hauteur) return false;
-    const rapport = largeur / hauteur;
-    return (
-      image.octets.length <= TAILLE_MAXIMALE_PHOTO_DU_CV &&
-      Math.min(largeur, hauteur) >= 80 &&
-      Math.max(largeur, hauteur) <= 2000 &&
-      rapport >= 0.55 &&
-      rapport <= 1.35
-    );
-  });
+/** Au plus six images montrées à Claude : un CV en porte rarement davantage. */
+export const MAXIMUM_D_IMAGES_MONTREES = 6;
 
-  let meilleure: ImageDuCv | null = null;
-  for (const image of portraits) {
-    if (!meilleure || image.largeur * image.hauteur > meilleure.largeur * meilleure.hauteur) {
-      meilleure = image;
-    }
-  }
-  return meilleure;
+/**
+ * Parmi les images d'un CV, celles qui pourraient être une photo, des plus
+ * grandes aux plus petites, six au plus. Sont écartés d'emblée : les icônes
+ * et les puces (moins de 80 pixels de côté), les bandeaux et les logos très
+ * allongés, les pages entières numérisées (plus de 2 000 pixels), et les
+ * fichiers de plus de 2 Mo. C'est Claude qui désigne la photo parmi elles.
+ */
+export function imagesPossibles(images: readonly ImageDuCv[]): ImageDuCv[] {
+  return images
+    .filter((image) => {
+      const { largeur, hauteur } = image;
+      if (!largeur || !hauteur) return false;
+      const rapport = largeur / hauteur;
+      return (
+        image.octets.length <= TAILLE_MAXIMALE_PHOTO_DU_CV &&
+        Math.min(largeur, hauteur) >= 80 &&
+        Math.max(largeur, hauteur) <= 2000 &&
+        rapport >= 0.5 &&
+        rapport <= 1.6
+      );
+    })
+    .sort((a, b) => b.largeur * b.hauteur - a.largeur * a.hauteur)
+    .slice(0, MAXIMUM_D_IMAGES_MONTREES);
 }
 
 /** Les images JPEG d'un PDF, telles qu'il les porte — sans les décoder. */
@@ -160,15 +166,16 @@ export async function imagesDuDocx(octets: Uint8Array): Promise<ImageDuCv[]> {
 }
 
 /**
- * La photo du candidat dans son CV, ou `null`. Ne lève jamais : un CV dont
- * on ne sait pas sortir d'image se lit quand même, sans photo.
+ * Les images du CV qui pourraient être sa photo — à montrer à Claude. Ne
+ * lève jamais : un CV dont on ne sait pas sortir d'image se lit quand même,
+ * sans photo.
  */
-export async function photoDuCv(octets: Uint8Array, format: string): Promise<ImageDuCv | null> {
+export async function imagesDuCv(octets: Uint8Array, format: string): Promise<ImageDuCv[]> {
   try {
-    if (format === 'pdf') return choisirLaPhoto(await imagesDuPdf(octets));
-    if (format === 'docx') return choisirLaPhoto(await imagesDuDocx(octets));
-    return null;
+    if (format === 'pdf') return imagesPossibles(await imagesDuPdf(octets));
+    if (format === 'docx') return imagesPossibles(await imagesDuDocx(octets));
+    return [];
   } catch {
-    return null;
+    return [];
   }
 }

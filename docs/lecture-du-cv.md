@@ -53,10 +53,15 @@ part avec la fiche et devient la photo du dossier
 (`candidat/photo/<identifiant>.<format>`) : la fiche du référent l'affiche, par
 la route qui sert déjà les photos de candidats.
 
-**La photo n'est pas tirée par Anthropic.** Claude, qui lit déjà le CV, répond
-seulement « oui » ou « non » à la question « y a-t-il un portrait ? »
-(`photo`, dans `LectureDuCv`). Si c'est « oui », c'est le serveur de HERACLES
-qui sort l'image du fichier (`apps/web/src/lib/photo-du-cv.ts`) :
+**Le partage des rôles.** Le serveur de HERACLES sort du fichier les images
+qui pourraient être une photo (`apps/web/src/lib/photo-du-cv.ts`). Claude les
+voit numérotées à la suite du CV, et **désigne** celle qui est la photo de la
+personne — ou aucune. Choisir sur la seule forme ne suffit pas : le 9 novembre,
+un QR code carré, plus grand que tout le reste, a été pris pour une photo dans
+un CV qui n'en avait pas. Ces images font partie du CV que Claude lit déjà :
+rien de plus ne part.
+
+Ce que le serveur sait sortir :
 
 - dans un PDF, ses images enregistrées en JPEG — la façon dont Word,
   LibreOffice, Canva ou un navigateur rangent une photo. Une image compressée
@@ -64,10 +69,10 @@ qui sort l'image du fichier (`apps/web/src/lib/photo-du-cv.ts`) :
 - dans un Word `.docx`, ses images JPEG et PNG ;
 - dans un CV photographié, rien : c'est une image entière.
 
-Parmi les images du CV, la photo est la plus grande qui a la forme d'un
-portrait. Sont écartés : les icônes, les logos en bandeau, les pages
-numérisées et les fichiers de plus de 2 Mo. Une erreur reste possible, un
-logo carré par exemple : le candidat la voit, et la refuse d'un clic.
+Sont écartés avant d'être montrés : les icônes, les logos très allongés, les
+pages numérisées et les fichiers de plus de 2 Mo ; six images au plus, des
+plus grandes aux plus petites. Si l'API refuse une image, la lecture se refait
+sans elles : le formulaire se remplit, sans photo.
 
 Sans photo envoyée, celle que le dossier avait déjà (reprise de Bubble)
 reste en place (migration 0066).
