@@ -1,7 +1,8 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
+import { casesARemplir, type ChampLu, type Extrait } from '@/lib/lecture-cv';
 import {
   MOBILITES,
   OUI_NON,
@@ -22,20 +23,91 @@ import {
 
 type Erreur = { champ: string | null; message: string };
 
+/** Où en est la lecture du CV. */
+type Lecture =
+  | { etat: 'attente' }
+  | { etat: 'en_cours' }
+  | { etat: 'faite'; remplis: number }
+  | { etat: 'echec'; message: string };
+
 const ACCEPTES =
   '.pdf,.doc,.docx,.odt,.rtf,.jpg,.jpeg,.png,.webp,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.oasis.opendocument.text,image/jpeg,image/png,image/webp';
 
 export default function FormulaireCandidature({
   jeton,
   initial,
+  lectureDisponible = false,
 }: {
   jeton: string;
   initial: { prenom: string; nom: string; email: string; type_emploi: string };
+  /**
+   * Vrai quand le serveur sait faire lire un CV (`ANTHROPIC_API_KEY` posée).
+   * Sinon, ni le bouton « Remplir » ni la mention d'Anthropic ne s'affichent :
+   * un bouton qui échoue à tous les coups n'a rien à faire à l'écran.
+   */
+  lectureDisponible?: boolean;
 }) {
   const router = useRouter();
   const [erreur, setErreur] = useState<Erreur | null>(null);
   const [envoi, setEnvoi] = useState(false);
   const [type, setType] = useState(initial.type_emploi);
+  const [cv, setCv] = useState<File | null>(null);
+  const [lecture, setLecture] = useState<Lecture>({ etat: 'attente' });
+  const formulaire = useRef<HTMLFormElement>(null);
+  // Le numéro de la dernière lecture demandée : si le candidat change de
+  // fichier pendant qu'on lit le premier, la réponse du premier est ignorée.
+  const derniereLecture = useRef(0);
+
+  /** Un autre fichier : la lecture du précédent, finie ou non, ne compte plus. */
+  function choisirLeCv(evenement: React.ChangeEvent<HTMLInputElement>) {
+    derniereLecture.current++;
+    setCv(evenement.currentTarget.files?.[0] ?? null);
+    setLecture({ etat: 'attente' });
+  }
+
+  /**
+   * Le candidat a cliqué « Remplir » : son CV part à la lecture, et l'on
+   * remplit ce qui est vide. Sans ce clic, le CV n'est que joint à la fiche —
+   * c'est ce geste qui vaut accord pour le transmettre à Anthropic.
+   */
+  async function lireLeCv() {
+    const fichier = cv;
+    const numero = ++derniereLecture.current;
+    if (!fichier) return;
+
+    setLecture({ etat: 'en_cours' });
+    const corps = new FormData();
+    corps.append('cv', fichier);
+
+    try {
+      const reponse = await fetch(`/api/candidature/${jeton}/lecture-cv`, {
+        method: 'POST',
+        body: corps,
+      });
+      const resultat = await reponse.json();
+      if (numero !== derniereLecture.current) return;
+
+      if (!reponse.ok || !resultat.extrait) {
+        setLecture({
+          etat: 'echec',
+          message: resultat.erreur ?? 'La lecture de votre CV n’a pas abouti.',
+        });
+        return;
+      }
+
+      const remplis = formulaire.current
+        ? remplirLesCasesVides(formulaire.current, resultat.extrait as Extrait, type, setType)
+        : 0;
+      setLecture({ etat: 'faite', remplis });
+    } catch {
+      if (numero !== derniereLecture.current) return;
+      setLecture({
+        etat: 'echec',
+        message:
+          'La connexion au serveur a échoué. Remplissez le formulaire vous-même : votre CV sera bien joint à votre fiche.',
+      });
+    }
+  }
 
   async function soumettre(evenement: React.FormEvent<HTMLFormElement>) {
     evenement.preventDefault();
@@ -75,6 +147,7 @@ export default function FormulaireCandidature({
 
   return (
     <form
+      ref={formulaire}
       className="formulaire-public"
       onSubmit={soumettre}
       method="post"
@@ -87,6 +160,43 @@ export default function FormulaireCandidature({
           {erreur.message}
         </p>
       )}
+
+      <fieldset>
+        <legend>Votre CV</legend>
+        <div className="champ">
+          <label htmlFor="c-cv">CV *</label>
+          <input {...champ('cv')} type="file" accept={ACCEPTES} onChange={choisirLeCv} required />
+        </div>
+        <p className="aide">
+          PDF, Word, OpenDocument, RTF ou photo (JPEG, PNG, WebP), 10 Mo au plus.
+        </p>
+        {lectureDisponible && (
+          <>
+            <button
+              type="button"
+              className="bouton"
+              onClick={lireLeCv}
+              disabled={!cv || lecture.etat === 'en_cours'}
+            >
+              Remplir le formulaire à partir de mon CV
+            </button>
+            <p className="aide">
+              Si vous cliquez sur ce bouton, votre CV est transmis à Claude, le service
+              d’intelligence artificielle de la société Anthropic (États-Unis), qui le lit pour
+              remplir le formulaire à votre place : vous n’avez plus qu’à relire et compléter. Sinon,
+              votre CV est seulement joint à votre fiche.
+            </p>
+            <p className="aide" role="status" aria-live="polite">
+              {lecture.etat === 'en_cours' && 'Lecture de votre CV…'}
+              {lecture.etat === 'faite' &&
+                (lecture.remplis > 0
+                  ? `${lecture.remplis} ${lecture.remplis > 1 ? 'champs remplis' : 'champ rempli'} à partir de votre CV. Relisez-les, complétez ce qui manque, puis envoyez.`
+                  : 'Votre CV n’a rien apporté de plus : remplissez les champs restés vides.')}
+              {lecture.etat === 'echec' && lecture.message}
+            </p>
+          </>
+        )}
+      </fieldset>
 
       <fieldset>
         <legend>Vous</legend>
@@ -258,10 +368,6 @@ export default function FormulaireCandidature({
       <fieldset>
         <legend>Vos documents</legend>
         <div className="champ">
-          <label htmlFor="c-cv">CV *</label>
-          <input {...champ('cv')} type="file" accept={ACCEPTES} required />
-        </div>
-        <div className="champ">
           <label htmlFor="c-lettre">Lettre de motivation</label>
           <input {...champ('lettre')} type="file" accept={ACCEPTES} />
         </div>
@@ -274,6 +380,8 @@ export default function FormulaireCandidature({
           J’accepte que la commission conserve ces informations et mes documents pour m’accompagner
           dans ma recherche. Ils ne sont lus que par les membres de la commission de la loge, ne
           sont jamais publiés, et je peux demander leur suppression.
+          {lectureDisponible &&
+            ' Si j’ai demandé à remplir ce formulaire à partir de mon CV, celui-ci a aussi été transmis à Anthropic pour être lu par Claude.'}
         </span>
       </label>
 
@@ -282,4 +390,44 @@ export default function FormulaireCandidature({
       </button>
     </form>
   );
+}
+
+/**
+ * Remplit, dans le formulaire, les cases que la lecture du CV a trouvées et
+ * que le candidat a laissées vides. Rend le nombre de cases remplies.
+ *
+ * Les cases sont libres (`defaultValue`) : on écrit leur valeur directement.
+ * Seul le type de recherche est tenu par React, puisqu'il décide d'afficher
+ * les dates de stage : il passe par son état.
+ */
+function remplirLesCasesVides(
+  formulaire: HTMLFormElement,
+  extrait: Extrait,
+  type: string,
+  setType: (valeur: string) => void,
+): number {
+  const caseDe = (nom: string) => {
+    const element = formulaire.elements.namedItem(nom);
+    return element instanceof HTMLInputElement ||
+      element instanceof HTMLTextAreaElement ||
+      element instanceof HTMLSelectElement
+      ? element
+      : null;
+  };
+
+  const actuelles: Partial<Record<ChampLu, string>> = {};
+  for (const nom of Object.keys(extrait) as ChampLu[]) {
+    actuelles[nom] = nom === 'type_emploi' ? type : caseDe(nom)?.value;
+  }
+
+  const aRemplir = casesARemplir(actuelles, extrait);
+  for (const [nom, valeur] of Object.entries(aRemplir)) {
+    if (nom === 'type_emploi') {
+      setType(valeur);
+      continue;
+    }
+    const element = caseDe(nom);
+    if (element) element.value = valeur;
+  }
+  return Object.keys(aRemplir).length;
 }

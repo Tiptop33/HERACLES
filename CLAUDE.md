@@ -165,6 +165,9 @@ sert**, pas la liste des fichiers touchés.
   ne se rattrape pas — passé la fermeture, ni l'API ni le CDN de Bubble ne répondent.
 - **Courriels** — `docs/brevo.md` : les deux canaux d'envoi (authentification
   en SMTP, application par l'API) et le paramétrage de Brevo.
+- **Lecture du CV** — `docs/lecture-du-cv.md` : le CV du candidat lu par Claude
+  pour pré-remplir sa fiche, la clé `ANTHROPIC_API_KEY`, et ce qui reste à
+  régler côté données personnelles.
 - **Sauvegarde** — `docs/sauvegarde.md`. Le serveur porte des données réelles :
   base, fichiers, et la copie qui doit en sortir. À lire avant toute opération
   qui touche à la base.
