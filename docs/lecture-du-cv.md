@@ -63,9 +63,13 @@ rien de plus ne part.
 
 Ce que le serveur sait sortir :
 
-- dans un PDF, ses images enregistrées en JPEG — la façon dont Word,
-  LibreOffice, Canva ou un navigateur rangent une photo. Une image compressée
-  autrement n'est pas reconstruite : pas de photo, plutôt qu'une image fausse ;
+- dans un PDF, ses images en JPEG, recopiées telles quelles, et ses images en
+  couleur ou en gris compressées autrement (Flate, RunLength, LZW…),
+  reconstruites en PNG. Le 9 novembre, la photo d'un vrai CV était en
+  RunLength, et seul son QR code était un JPEG. Les masques de transparence
+  sont écartés. Ce qu'on ne sait pas reconstruire fidèlement — CMJN,
+  palettes, JPEG 2000 — est laissé de côté : pas de photo, plutôt qu'une
+  image fausse ;
 - dans un Word `.docx`, ses images JPEG et PNG ;
 - dans un CV photographié, rien : c'est une image entière.
 
