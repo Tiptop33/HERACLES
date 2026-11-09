@@ -35,7 +35,7 @@ describe('les noms des PDF archivés', () => {
 });
 
 describe('la période de l’accueil', () => {
-  it('suit l’exercice réglé, tant qu’on est dedans', () => {
+  it('suit l’exercice réglé dans Paramètres › Exercice', () => {
     expect(
       periodeDesDocuments({ debut: '2026-09-01', fin: '2027-07-31' }, '2026-11-09'),
     ).toEqual({ du: '2026-09-01', au: '2027-07-31' });
@@ -44,21 +44,23 @@ describe('la période de l’accueil', () => {
     ).toEqual({ du: '2026-09-15', au: '2027-06-30' });
   });
 
-  it('prend la saison, du 1er septembre au 31 juillet, quand l’exercice est dépassé', () => {
-    // Le cas réel : l'exercice enregistré s'est terminé le 31 juillet 2026.
+  it('même dépassé : c’est l’onglet qui dit quel est l’exercice', () => {
     expect(
       periodeDesDocuments({ debut: '2025-09-01', fin: '2026-07-31' }, '2026-11-09'),
-    ).toEqual({ du: '2026-09-01', au: '2027-07-31' });
+    ).toEqual({ du: '2025-09-01', au: '2026-07-31' });
   });
 
-  it('ou jamais réglé', () => {
+  it('prend la saison, du 1er septembre au 31 juillet, tant qu’aucune date n’est réglée', () => {
     expect(periodeDesDocuments({ debut: null, fin: null }, '2027-03-02')).toEqual({
       du: '2026-09-01',
       au: '2027-07-31',
     });
+    expect(periodeDesDocuments({ debut: '2026-09-01', fin: null }, '2026-11-09').du).toBe(
+      '2026-09-01',
+    );
   });
 
-  it('bascule en septembre, pas en janvier', () => {
+  it('bascule de saison en septembre, pas en janvier', () => {
     expect(periodeDesDocuments({ debut: null, fin: null }, '2027-08-31').du).toBe('2026-09-01');
     expect(periodeDesDocuments({ debut: null, fin: null }, '2027-09-01').du).toBe('2027-09-01');
   });

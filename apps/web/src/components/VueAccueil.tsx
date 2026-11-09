@@ -119,7 +119,7 @@ export default function VueAccueil({
       {/* Les trois colonnes en pleine largeur, à la place de l'ancien cadre
           « Comptes-rendus & affiches » : chaque PDF que la feuille d'appel
           produit y est archivé (migration 0069). La période est l'exercice
-          en cours, du 1er septembre au 31 juillet. */}
+          réglé dans Paramètres › Exercice. */}
       <section className="bloc">
         <h2>Comptes-rendus, affiches et affichettes</h2>
         {refusDArchive && (

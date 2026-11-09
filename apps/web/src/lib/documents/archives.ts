@@ -75,22 +75,21 @@ export function enPdf(titre: string): string {
 }
 
 /**
- * La période dont l'accueil montre les PDF : l'exercice en cours, du
- * 1er septembre au 31 juillet.
+ * La période dont l'accueil montre les PDF : l'exercice réglé dans
+ * Paramètres › Exercice — du 1er septembre au 31 juillet, en principe.
  *
- * Les bornes réglées dans Paramètres font foi tant qu'aujourd'hui tombe
- * dedans. Sinon — jamais réglées, ou dépassées comme après le 31 juillet
- * 2026 — on prend la saison que l'accueil affiche déjà en titre : sans cela,
- * un exercice oublié viderait les trois colonnes sans rien dire.
+ * Les bornes de l'onglet font foi dès qu'elles sont réglées, qu'aujourd'hui
+ * tombe dedans ou non : c'est l'administration qui dit quel est l'exercice.
+ * Tant qu'elles ne le sont pas, on prend la saison que l'accueil affiche déjà
+ * en titre, plutôt que de ne rien montrer.
  */
 export function periodeDesDocuments(
   exercice: Exercice,
   aujourdhui: string,
 ): { du: string; au: string } {
   const { debut, fin } = exercice;
-  if (debut && fin && debut <= aujourdhui && aujourdhui <= fin) {
-    return { du: debut, au: fin };
-  }
+  if (debut && fin) return { du: debut, au: fin };
+
   const annee = Number(aujourdhui.slice(0, 4));
   const mois = Number(aujourdhui.slice(5, 7));
   const depart = mois >= 9 ? annee : annee - 1;

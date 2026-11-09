@@ -81,7 +81,7 @@ export async function listerDemandesEnAttente(limite = 4): Promise<Demande[]> {
  * Les comptes rendus, affiches et affichettes de la période, rangés dans leurs
  * trois colonnes (migration 0069).
  *
- * La période est l'exercice en cours — du 1er septembre au 31 juillet. La
+ * La période est l'exercice réglé dans Paramètres › Exercice. La
  * base fait le reste : la policy de `document` ne rend que ses loges, et la
  * fonction dit, ligne par ligne, si la corbeille a lieu d'être.
  */
