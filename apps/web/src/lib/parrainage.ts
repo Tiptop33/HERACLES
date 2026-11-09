@@ -199,10 +199,32 @@ export const FormulaireParrain = z.object({
 
 export type Parrain = z.infer<typeof FormulaireParrain>;
 
+/** Une case laissée vide — ou sur « Choisir… » — vaut une case absente. */
+const videEnAbsent = (valeur: unknown) =>
+  typeof valeur === 'string' && valeur.trim() === '' ? undefined : valeur;
+
+/** Un choix facultatif dans une liste : absent, ou l'une des valeurs. */
+const parmiFacultatif = <T extends readonly [string, ...string[]]>(valeurs: T, message: string) =>
+  z.preprocess(videEnAbsent, z.enum(valeurs, { error: message }).optional());
+
+/** Un nombre entier facultatif, borné quand il est donné. */
+const entierFacultatif = (min: number, max: number, horsBornes: string) =>
+  z.preprocess(
+    videEnAbsent,
+    z.coerce
+      .number({ error: horsBornes })
+      .int(horsBornes)
+      .min(min, horsBornes)
+      .max(max, horsBornes)
+      .optional(),
+  );
+
 /**
- * La page du candidat. Champs obligatoires : ceux que `renseignement_candidat`
- * exigeait — le secteur et le métier ROME exceptés, dont les référentiels ne
- * sont pas encore repris : le métier visé se dit en clair.
+ * La page du candidat. **Quatre champs obligatoires** : le prénom, le nom,
+ * l'adresse électronique et le téléphone (décision du 9 novembre 2026,
+ * migration 0065). Tout le reste est facultatif ; ce qui est donné est
+ * vérifié — un âge borné, un code postal lisible, une valeur des listes.
+ * Le CV aussi est facultatif : la route le vérifie quand il est joint.
  */
 export const FormulaireCandidature = z
   .object({
@@ -210,30 +232,30 @@ export const FormulaireCandidature = z
     nom: obligatoire(120, 'Indiquez votre nom.'),
     email: courriel('Indiquez votre adresse e-mail.'),
     telephone: obligatoire(40, 'Indiquez votre téléphone.'),
-    age: entier(14, 99, 'Indiquez votre âge.', 'Votre âge doit être compris entre 14 et 99 ans.'),
-    situation_familiale: parmi(SITUATIONS_FAMILIALES, 'Choisissez votre situation familiale.'),
-    adresse: obligatoire(300, 'Indiquez votre adresse.'),
-    code_postal: obligatoire(10, 'Indiquez votre code postal.').regex(
-      /^[0-9A-Za-z -]{3,10}$/,
-      'Ce code postal ne se lit pas.',
+    age: entierFacultatif(14, 99, 'Votre âge doit être compris entre 14 et 99 ans.'),
+    situation_familiale: parmiFacultatif(SITUATIONS_FAMILIALES, 'Choisissez votre situation familiale.'),
+    adresse: facultatif(300),
+    code_postal: facultatif(10).refine(
+      (valeur) => valeur === undefined || /^[0-9A-Za-z -]{3,10}$/.test(valeur),
+      { message: 'Ce code postal ne se lit pas.' },
     ),
-    ville: obligatoire(120, 'Indiquez votre ville.'),
+    ville: facultatif(120),
 
-    type_emploi: parmi(VALEURS_DE_RECHERCHE, 'Choisissez le type de recherche.'),
-    emploi_recherche: obligatoire(200, 'Indiquez le métier que vous visez.'),
-    definition_emploi: obligatoire(2000, 'Décrivez précisément l’emploi recherché.'),
-    mobilite_geographique: parmi(MOBILITES, 'Choisissez votre mobilité géographique.'),
+    type_emploi: parmiFacultatif(VALEURS_DE_RECHERCHE, 'Choisissez le type de recherche.'),
+    emploi_recherche: facultatif(200),
+    definition_emploi: facultatif(2000),
+    mobilite_geographique: parmiFacultatif(MOBILITES, 'Choisissez votre mobilité géographique.'),
     debut_stage: jourFacultatif,
     fin_stage: jourFacultatif,
 
-    permis_vl: parmi(OUI_NON, 'Dites si vous avez le permis B.'),
-    permis_moto: parmi(OUI_NON, 'Dites si vous avez le permis moto.'),
-    permis_pl: parmi(OUI_NON, 'Dites si vous avez le permis poids lourd.'),
-    vehicule: parmi(OUI_NON, 'Dites si vous avez un véhicule.'),
+    permis_vl: parmiFacultatif(OUI_NON, 'Dites si vous avez le permis B.'),
+    permis_moto: parmiFacultatif(OUI_NON, 'Dites si vous avez le permis moto.'),
+    permis_pl: parmiFacultatif(OUI_NON, 'Dites si vous avez le permis poids lourd.'),
+    vehicule: parmiFacultatif(OUI_NON, 'Dites si vous avez un véhicule.'),
 
-    formations: obligatoire(5000, 'Décrivez votre formation.'),
-    experiences: obligatoire(5000, 'Décrivez vos expériences.'),
-    competences: obligatoire(3000, 'Indiquez vos compétences.'),
+    formations: facultatif(5000),
+    experiences: facultatif(5000),
+    competences: facultatif(3000),
     informatique: facultatif(2000),
     savoir_etre: facultatif(2000),
     centres_interet: facultatif(2000),
