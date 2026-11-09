@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   ABSENT,
+  libelleDuDossier,
   EXCUSE,
   PRESENT,
   compter,
@@ -127,5 +128,23 @@ describe('phraseDeRefusReunion', () => {
   // phrase inventée.
   it('retombe sur une phrase neutre pour un code inconnu', () => {
     expect(phraseDeRefusReunion('<script>')).toBe('L’appel n’a pas pu être enregistré.');
+  });
+});
+
+describe('le dossier de l’affichette, dans la liste de la réunion', () => {
+  it('se reconnaît à son numéro, son intitulé et son nom', () => {
+    expect(
+      libelleDuDossier({ candidat_id: 'x', numero: 904, nom: 'DUFAUR', prenom: 'Denis', recherche: 'Directeur commercial' }),
+    ).toBe('904 — Directeur commercial · DUFAUR Denis');
+  });
+
+  it('raccourcit un intitulé trop long pour une liste', () => {
+    const libelle = libelleDuDossier({ candidat_id: 'x', numero: 1, nom: null, prenom: null, recherche: 'a '.repeat(80) });
+    expect(libelle.length).toBeLessThan(70);
+    expect(libelle.endsWith('…')).toBe(true);
+  });
+
+  it('tient un dossier sans intitulé ni nom', () => {
+    expect(libelleDuDossier({ candidat_id: 'x', numero: 7, nom: null, prenom: null, recherche: null })).toBe('7');
   });
 });

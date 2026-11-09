@@ -71,6 +71,15 @@ describe('enTeteDeTelechargement', () => {
     expect(entete).not.toContain('/');
   });
 
+  it('sait aussi ouvrir le fichier dans le navigateur, sous le même nom', () => {
+    // Les documents de la commission s'ouvrent dans le lecteur PDF : on les
+    // relit avant de les envoyer.
+    expect(enTeteDeTelechargement('Affiche_du_mercredi_14_octobre_2026.pdf', 'inline')).toBe(
+      'inline; filename="Affiche_du_mercredi_14_octobre_2026.pdf"; ' +
+        "filename*=UTF-8''Affiche_du_mercredi_14_octobre_2026.pdf",
+    );
+  });
+
   it('ne rend jamais un nom vide', () => {
     expect(enTeteDeTelechargement('   ')).toContain('filename="document"');
   });

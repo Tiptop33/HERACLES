@@ -1,25 +1,27 @@
 import { NextResponse } from 'next/server';
-import { construireAffichette, nomDeLAffichette } from '@/lib/affichette';
-import { lireContactsDeLaCommission } from '@/lib/dossiers';
+import { nomDeLAffichette } from '@/lib/documents/affichette';
+import { donneesDeLAffichette } from '@/lib/documents/donnees';
+import { produireLAffichette } from '@/lib/documents/produire';
+import { enTeteDeTelechargement } from '@/lib/fichiers';
+import { origine } from '@/lib/formulaire';
 import { lireFiche } from '@/lib/poste';
 import { supabaseServer } from '@/lib/supabase-server';
 
 /**
- * L'affichette d'un dossier, en PDF.
+ * L'affichette d'un dossier, en PDF — celle de Bubble, à l'identique.
  *
- * Le droit de voir cette fiche est celui de `fiche_candidat()` (0020) : elle ne
- * rend rien pour un candidat hors de mes loges, et changer l'identifiant dans
- * l'adresse n'y change rien. Cette route ne filtre donc pas elle-même — elle
- * n'aurait aucun moyen de mieux faire.
+ * Le droit de la produire est celui de voir la fiche : `fiche_candidat()`
+ * (0057) et `commission_du_candidat()` (0067) ne rendent rien pour un candidat
+ * hors de mes loges, et changer l'identifiant dans l'adresse n'y change rien.
  *
- * Le document, lui, ne reprend qu'une poignée de champs de cette fiche : ce que
- * la personne cherche, et son numéro. Voir `lib/affichette.ts` — c'est le
- * document le plus exposé des trois.
+ * Le document, lui, ne reprend de la fiche que ce qui peut circuler : le
+ * numéro, ce que la personne recherche, son rayon d'action — et le QR code de
+ * son CV anonyme, s'il existe. Jamais son nom.
  */
 
 export const runtime = 'nodejs';
 
-export async function GET(_requete: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(requete: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
 
   if (!/^[0-9a-f-]{36}$/i.test(id)) {
@@ -40,24 +42,12 @@ export async function GET(_requete: Request, { params }: { params: Promise<{ id:
       return NextResponse.json({ erreur: 'Ce dossier n’existe pas.' }, { status: 404 });
     }
 
-    const contacts = await lireContactsDeLaCommission();
-
-    const octets = await construireAffichette({
-      dossier: {
-        numero: fiche.numero,
-        type_emploi: fiche.type_emploi,
-        emploi_recherche: fiche.emploi_recherche,
-        metier_libelle: fiche.metier_libelle,
-        secteur_activite_libelle: fiche.secteur_activite_libelle,
-        mobilite_geographique: fiche.mobilite_geographique,
-      },
-      contacts,
-    });
+    const octets = await produireLAffichette(await donneesDeLAffichette(id, fiche, origine(requete)));
 
     return new NextResponse(octets as unknown as BodyInit, {
       headers: {
         'Content-Type': 'application/pdf',
-        'Content-Disposition': `inline; filename="${nomDeLAffichette(fiche.numero)}"`,
+        'Content-Disposition': enTeteDeTelechargement(nomDeLAffichette(fiche.numero), 'inline'),
         'Cache-Control': 'private, no-store',
         'X-Content-Type-Options': 'nosniff',
       },
