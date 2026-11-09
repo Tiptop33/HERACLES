@@ -122,6 +122,22 @@ describe('le formulaire du parrain', () => {
     expect(FormulaireParrain.safeParse({ ...parrain, type_emploi: 'CDI' }).success).toBe(false);
   });
 
+  it('accepte un téléphone français, quelle que soit sa présentation', () => {
+    for (const numero of ['06 12 34 56 78', '0612345678', '01.23.45.67.89', '+33 6 12 34 56 78']) {
+      expect(FormulaireParrain.safeParse({ ...parrain, parrain_telephone: numero }).success).toBe(
+        true,
+      );
+    }
+  });
+
+  it('refuse un téléphone hors numérotation française', () => {
+    for (const numero of ['123', '00 12 34 56 78', '06 12 34 56']) {
+      const lu = FormulaireParrain.safeParse({ ...parrain, parrain_telephone: numero });
+      expect(lu.success).toBe(false);
+      if (!lu.success) expect(premiereErreur(lu.error).champ).toBe('parrain_telephone');
+    }
+  });
+
   it('exige les réponses Oui / Non, et rien d’autre', () => {
     expect(FormulaireParrain.safeParse({ ...parrain, peut_se_devoiler: '' }).success).toBe(false);
     expect(FormulaireParrain.safeParse({ ...parrain, peut_se_devoiler: 'Peut-être' }).success).toBe(

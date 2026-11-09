@@ -80,6 +80,25 @@ const facultatif = (max: number) =>
     .optional()
     .transform((valeur) => (valeur ? valeur : undefined));
 
+/**
+ * Un numéro de téléphone facultatif, conforme à la numérotation française en
+ * vigueur : dix chiffres commençant par 0, ou +33 suivi du numéro sans son 0.
+ * Les espaces, points et tirets de présentation sont admis. Une case vide
+ * reste vide.
+ */
+const TELEPHONE_FRANCAIS = /^(?:\+33|0)[\s.-]*[1-9](?:[\s.-]*\d{2}){4}$/;
+
+const telephone = (max: number) =>
+  z
+    .string()
+    .trim()
+    .max(max, 'Ce champ est trop long.')
+    .optional()
+    .transform((valeur) => (valeur ? valeur : undefined))
+    .refine((valeur) => valeur === undefined || TELEPHONE_FRANCAIS.test(valeur), {
+      message: 'Ce numéro ne correspond pas à la numérotation française (ex. 06 12 34 56 78).',
+    });
+
 /** Chaîne obligatoire, avec le message qui dit laquelle manque. */
 const obligatoire = (max: number, message: string) =>
   z.string({ error: message }).trim().min(1, message).max(max, 'Ce champ est trop long.');
@@ -163,7 +182,7 @@ export const FenetreNouveauCandidat = InvitationParrain;
 export const FormulaireParrain = z.object({
   parrain_nom: obligatoire(120, 'Indiquez votre nom.'),
   parrain_prenom: facultatif(120),
-  parrain_telephone: facultatif(40),
+  parrain_telephone: telephone(40),
   parrain_loge: facultatif(200),
 
   lien_parente: facultatif(200),

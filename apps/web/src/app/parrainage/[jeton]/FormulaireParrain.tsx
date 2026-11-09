@@ -90,9 +90,19 @@ export default function FormulaireParrain({
             <label htmlFor="p-parrain_prenom">Prénom</label>
             <input {...champ('parrain_prenom')} autoComplete="given-name" />
           </div>
+        </div>
+        <div className="ligne-edition">
           <div className="champ">
             <label htmlFor="p-parrain_telephone">Téléphone</label>
-            <input {...champ('parrain_telephone')} type="tel" autoComplete="tel" />
+            <input
+              {...champ('parrain_telephone')}
+              type="tel"
+              autoComplete="tel"
+              inputMode="tel"
+              pattern="(\+33|0)[\s.-]*[1-9]([\s.-]*\d{2}){4}"
+              placeholder="06 12 34 56 78"
+              title="Numéro français : dix chiffres commençant par 0 (ex. 06 12 34 56 78)."
+            />
           </div>
           <div className="champ">
             <label htmlFor="p-parrain_loge">Votre loge</label>
@@ -113,32 +123,32 @@ export default function FormulaireParrain({
             <label htmlFor="p-candidat_prenom">Prénom *</label>
             <input {...champ('candidat_prenom')} required />
           </div>
-          <div className="champ">
-            <label htmlFor="p-candidat_email">E-mail *</label>
-            <input
-              {...champ('candidat_email')}
-              type="email"
-              defaultValue={candidatEmail ?? undefined}
-              required
-            />
-          </div>
-          <div className="champ">
-            <label htmlFor="p-type_emploi">Type de recherche *</label>
-            <select {...champ('type_emploi')} defaultValue="" required>
-              <option value="" disabled>
-                Choisir…
-              </option>
-              {TYPES_DE_RECHERCHE.map((t) => (
-                <option key={t.valeur} value={t.valeur}>
-                  {t.libelle}
-                </option>
-              ))}
-            </select>
-          </div>
+        </div>
+        <div className="champ">
+          <label htmlFor="p-candidat_email">E-mail *</label>
+          <input
+            {...champ('candidat_email')}
+            type="email"
+            defaultValue={candidatEmail ?? undefined}
+            required
+          />
         </div>
         <div className="champ">
           <label htmlFor="p-lien_parente">Votre lien avec le candidat</label>
           <input {...champ('lien_parente')} placeholder="son fils, une voisine, un ancien collègue…" />
+        </div>
+        <div className="champ">
+          <label htmlFor="p-type_emploi">Type de recherche *</label>
+          <select {...champ('type_emploi')} defaultValue="" required>
+            <option value="" disabled>
+              Choisir…
+            </option>
+            {TYPES_DE_RECHERCHE.map((t) => (
+              <option key={t.valeur} value={t.valeur}>
+                {t.libelle}
+              </option>
+            ))}
+          </select>
         </div>
       </fieldset>
 
