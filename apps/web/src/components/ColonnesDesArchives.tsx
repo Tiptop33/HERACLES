@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Corbeille } from '@/components/Icones';
 import {
   chercherDansLaColonne,
@@ -29,8 +29,13 @@ import {
  * `recherche` ajoute un champ sous chaque en-tête (Paramètres › Archives). Le
  * filtre s'applique à chaque lettre tapée, dans le navigateur : les lignes
  * sont déjà là, quelques dizaines par colonne, et un aller-retour au serveur
- * pour chaque frappe ne servirait à rien. C'est la seule raison pour laquelle
- * ce composant est un composant client.
+ * pour chaque frappe ne servirait à rien.
+ *
+ * `enTeteFixe` (Paramètres › Archives) fige tout ce qui est au-dessus des
+ * premiers liens : chaque liste défile dans sa colonne, sur la hauteur qui
+ * reste à l'écran, et la page ne bouge plus. Les colonnes prennent la largeur
+ * de leur plus long nom — un lien par ligne. Cette hauteur se mesure dans le
+ * navigateur : c'est la seconde raison d'être un composant client.
  */
 export default function ColonnesDesArchives({
   colonnes,
@@ -38,6 +43,7 @@ export default function ColonnesDesArchives({
   avant = false,
   compter = false,
   recherche = false,
+  enTeteFixe = false,
 }: {
   colonnes: Record<Sorte, DocumentArchive[]>;
   adresse: Adresse;
@@ -47,15 +53,51 @@ export default function ColonnesDesArchives({
   compter?: boolean;
   /** Un champ de recherche par colonne. */
   recherche?: boolean;
+  /** Les titres restent en place, les listes défilent ; un lien par ligne. */
+  enTeteFixe?: boolean;
 }) {
   const [cherche, setCherche] = useState<Record<Sorte, string>>({
     'compte-rendu': '',
     affiche: '',
     affichette: '',
   });
+  const racine = useRef<HTMLDivElement>(null);
+
+  // La hauteur des listes : ce qui reste entre le haut des premiers liens et
+  // le bas de l'écran, une fois retiré ce qui est sous le tableau (le pied du
+  // cadre et de la page). La page tient alors dans l'écran et ne défile plus ;
+  // seules les listes défilent. Remesurée quand la fenêtre ou la mise en page
+  // change — un titre qui passe sur deux lignes, l'iPad qu'on tourne.
+  useEffect(() => {
+    const tableau = racine.current;
+    if (!enTeteFixe || !tableau) return;
+
+    const ajuster = () => {
+      const liste = tableau.querySelector<HTMLElement>('.archives-defile');
+      if (!liste) return;
+      const defilement = window.scrollY;
+      const hautDesListes = liste.getBoundingClientRect().top + defilement;
+      const basDuTableau = tableau.getBoundingClientRect().bottom + defilement;
+      const dessous = document.documentElement.scrollHeight - basDuTableau;
+      const hauteur = Math.max(240, Math.floor(window.innerHeight - hautDesListes - dessous));
+      const valeur = `${hauteur}px`;
+      if (tableau.style.getPropertyValue('--archives-hauteur') !== valeur) {
+        tableau.style.setProperty('--archives-hauteur', valeur);
+      }
+    };
+
+    ajuster();
+    window.addEventListener('resize', ajuster);
+    const observateur = new ResizeObserver(ajuster);
+    observateur.observe(document.body);
+    return () => {
+      window.removeEventListener('resize', ajuster);
+      observateur.disconnect();
+    };
+  }, [enTeteFixe]);
 
   return (
-    <div className="archives">
+    <div ref={racine} className={`archives${enTeteFixe ? ' archives--en-tete-fixe' : ''}`}>
       {SORTES.map((sorte) => {
         const toutes = colonnes[sorte];
         const lignes = recherche ? chercherDansLaColonne(toutes, cherche[sorte]) : toutes;
@@ -91,7 +133,7 @@ export default function ColonnesDesArchives({
             ) : lignes.length === 0 ? (
               <p className="archives-vide">Aucun PDF ne correspond.</p>
             ) : (
-              <ul className="liste-nue">
+              <ul className="liste-nue archives-defile">
                 {lignes.map((d) => (
                   <li key={d.id} className="archives-ligne">
                     <a href={`/api/documents/${d.id}`} target="_blank" rel="noopener">

@@ -115,7 +115,13 @@ Affichette — ouvrent le PDF **et en rangent un exemplaire** :
   comme « Compte-rendu du Mercredi 14 Octobre 2026 »
   (`chercherDansLaColonne()`). Le titre de chaque colonne porte le **nombre de
   PDF** — « Compte-rendu (50) », et pendant une recherche « (2 sur 50) ».
-  L'accueil n'a ni recherche ni nombre.
+  Tout ce qui est au-dessus des premiers liens **reste en place** : chaque
+  liste défile dans sa colonne, sur la hauteur qui reste à l'écran (mesurée
+  dans le navigateur, remesurée quand on tourne l'iPad). Les colonnes prennent
+  la largeur de leur plus long nom, **un lien par ligne**, et l'onglet occupe
+  toute la largeur de l'écran ; trop étroit pour les trois (iPad en portrait),
+  le tableau défile de côté. Sur téléphone, les colonnes s'empilent et la page
+  défile normalement. L'accueil n'a ni recherche, ni nombre, ni en-tête figé.
 - **Les PDF de Bubble arrivent à chaque mise en ligne**, jusqu'à la bascule :
   `mettre-a-jour.sh` lance `reprendre-bubble.sh --pdf-commission`, qui reprend
   la table des PDF et ne rapatrie que les comptes rendus, affiches et

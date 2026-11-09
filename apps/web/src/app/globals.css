@@ -1661,6 +1661,30 @@ tbody tr:focus-within {
   padding: 0.3rem 0.55rem;
 }
 
+/* Paramètres › Archives : les titres restent en place, chaque liste défile dans
+   sa colonne. Sa hauteur, mesurée dans le navigateur, est celle qui reste à
+   l'écran (`--archives-hauteur`). `overscroll-behavior` : arrivé au bout d'une
+   liste, le geste ne se reporte pas sur la page, qui ne bouge pas.
+
+   Chaque colonne prend au moins la largeur de son plus long nom, et un lien ne
+   passe jamais à la ligne. Sur un écran trop étroit pour trois colonnes de
+   cette largeur, le tableau défile de côté plutôt que de couper les noms. */
+.archives--en-tete-fixe {
+  grid-template-columns: repeat(3, minmax(max-content, 1fr));
+  overflow-x: auto;
+}
+
+.archives--en-tete-fixe .archives-defile {
+  max-height: var(--archives-hauteur, 60vh);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-right: 0.25rem;
+}
+
+.archives--en-tete-fixe .archives-ligne a {
+  white-space: nowrap;
+}
+
 .archives-vide {
   margin: 0.4rem 0 0;
   font-size: 0.8rem;
@@ -1668,9 +1692,17 @@ tbody tr:focus-within {
 }
 
 @media (max-width: 46rem) {
-  .archives {
+  .archives,
+  .archives--en-tete-fixe {
     grid-template-columns: 1fr;
     gap: 1rem;
+  }
+
+  /* Colonnes empilées : chaque liste en entier, la page défile. Figer un
+     titre au-dessus de trois listes l'une sous l'autre n'aurait pas de sens. */
+  .archives--en-tete-fixe .archives-defile {
+    max-height: none;
+    overflow-y: visible;
   }
 }
 
@@ -2157,9 +2189,21 @@ tbody tr:focus-within {
   max-width: none;
 }
 
-/* Les archives aussi : trois colonnes de noms de PDF n'entrent pas dans 42 rem. */
+/* Les archives aussi : trois colonnes de noms de PDF n'entrent pas dans 42 rem.
+   Et la page elle-même prend toute la largeur de l'écran — un lien par ligne. */
 .parametres-contenu:has(.archives) {
   max-width: none;
+}
+
+.corps.parametres:has(.archives--en-tete-fixe) {
+  max-width: none;
+}
+
+/* Sans ceci, le volet de droite s'élargit à la mesure de ses colonnes et c'est
+   toute la page qui déborde de l'écran, menu et titres compris. Il garde la
+   largeur qui lui revient ; c'est le tableau qui défile de côté. */
+.parametres-contenu:has(.archives--en-tete-fixe) {
+  min-width: 0;
 }
 
 .mise-en-page-onglets {
