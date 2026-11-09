@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { betaZodOutputFormat } from '@anthropic-ai/sdk/helpers/beta/zod';
 import {
   LectureDuCv,
   casesARemplir,
@@ -24,34 +25,42 @@ vi.mock('@anthropic-ai/sdk', async (importOriginal) => {
 
 const { blocDuCv, lireLeCv } = await import('../src/lib/lecture-cv-serveur');
 
-/** Une lecture où rien n'a été trouvé, à compléter case par case. */
+/** Une lecture où rien n'a été trouvé — des chaînes vides —, à compléter case par case. */
 const vide: Lecture = {
-  prenom: null,
-  nom: null,
-  email: null,
-  telephone: null,
-  age: null,
-  situation_familiale: null,
-  adresse: null,
-  code_postal: null,
-  ville: null,
-  type_emploi: null,
-  emploi_recherche: null,
-  definition_emploi: null,
-  mobilite_geographique: null,
-  permis_vl: null,
-  permis_moto: null,
-  permis_pl: null,
-  vehicule: null,
-  formations: null,
-  experiences: null,
-  competences: null,
-  informatique: null,
-  savoir_etre: null,
-  centres_interet: null,
+  prenom: '',
+  nom: '',
+  email: '',
+  telephone: '',
+  age: '',
+  situation_familiale: '',
+  adresse: '',
+  code_postal: '',
+  ville: '',
+  type_emploi: '',
+  emploi_recherche: '',
+  definition_emploi: '',
+  mobilite_geographique: '',
+  permis_vl: '',
+  permis_moto: '',
+  permis_pl: '',
+  vehicule: '',
+  formations: '',
+  experiences: '',
+  competences: '',
+  informatique: '',
+  savoir_etre: '',
+  centres_interet: '',
 };
 
 describe('ce que l’on demande au modèle', () => {
+  it('envoie un schéma sans union : l’API en refuse plus de seize', () => {
+    // Le 9 novembre 2026, 23 cases « texte ou null » faisaient échouer toute
+    // lecture : « Schemas contains too many parameters with union types ».
+    const schema = JSON.stringify(betaZodOutputFormat(LectureDuCv));
+    const unions = (schema.match(/"anyOf"|"oneOf"|"type":\[/g) ?? []).length;
+    expect(unions).toBe(0);
+  });
+
   it('accepte une réponse dont une liste fermée sort de ses valeurs : le tri se fait après', () => {
     // Sinon, une seule valeur hors liste ferait perdre toute la lecture.
     expect(LectureDuCv.safeParse({ ...vide, mobilite_geographique: 'Nationale' }).success).toBe(true);
@@ -85,9 +94,11 @@ describe('ce que l’on garde de la lecture', () => {
   });
 
   it('ne garde qu’un âge entier de 14 à 99 ans', () => {
-    expect(nettoyerLecture({ ...vide, age: 31 })).toEqual({ age: '31' });
-    expect(nettoyerLecture({ ...vide, age: 12 })).toEqual({});
-    expect(nettoyerLecture({ ...vide, age: 31.5 })).toEqual({});
+    expect(nettoyerLecture({ ...vide, age: '31' })).toEqual({ age: '31' });
+    expect(nettoyerLecture({ ...vide, age: ' 31 ' })).toEqual({ age: '31' });
+    expect(nettoyerLecture({ ...vide, age: '12' })).toEqual({});
+    expect(nettoyerLecture({ ...vide, age: '31,5' })).toEqual({});
+    expect(nettoyerLecture({ ...vide, age: '31 ans' })).toEqual({});
   });
 
   it('ne garde des listes fermées que les valeurs du formulaire', () => {
@@ -165,7 +176,7 @@ describe('la lecture par Claude', () => {
   it('rend ce qu’il a lu, nettoyé', async () => {
     parse.mockResolvedValue({
       stop_reason: 'end_turn',
-      parsed_output: { ...vide, telephone: '06 12 34 56 78', age: 31, ville: ' Lyon ' },
+      parsed_output: { ...vide, telephone: '06 12 34 56 78', age: '31', ville: ' Lyon ' },
     });
 
     expect(await lireLeCv(pdf, 'pdf', new Date('2026-11-09T10:00:00Z'))).toEqual({

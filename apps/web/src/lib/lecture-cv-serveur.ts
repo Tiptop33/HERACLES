@@ -113,6 +113,11 @@ export async function lireLeCv(
   } catch (erreur) {
     if (erreur instanceof Anthropic.AuthenticationError) {
       console.error('[lecture-cv] clé ANTHROPIC_API_KEY refusée');
+    } else if (erreur instanceof Anthropic.BadRequestError) {
+      // Le message d'un 400 décrit la requête — un schéma trop complexe, un
+      // paramètre refusé —, jamais le contenu du CV : il se note en entier,
+      // c'est lui qui dit quoi corriger.
+      console.error('[lecture-cv] requête refusée par l’API (400) :', erreur.message);
     } else if (erreur instanceof Anthropic.RateLimitError) {
       console.warn('[lecture-cv] limite de débit atteinte');
     } else if (erreur instanceof Anthropic.APIError) {
