@@ -16,9 +16,10 @@ import { supabaseServer } from '@/lib/supabase-server';
  *      PDF de ses loges, jamais un PDF effacé. Hors de là, rien ;
  *   3. alors seulement `supabaseAdmin()`, pour lire les octets du seau privé.
  *
- * Un PDF repris de Bubble pas encore rapatrié n'a que son adresse d'origine,
- * sur le CDN de Bubble : on y renvoie, comme le faisait l'accueil jusqu'ici.
- * Après MAJBUBBLE, tous ont un chemin chez nous et ce détour disparaît.
+ * Seul un PDF dont le fichier est chez nous s'ouvre — c'est aussi le seul que
+ * les colonnes listent (migration 0070). On ne renvoie plus vers le CDN de
+ * Bubble : six de ses fichiers y étaient refusés, et un lien qui ne mène nulle
+ * part n'a pas sa place à l'écran.
  */
 
 export const runtime = 'nodejs';
@@ -41,15 +42,10 @@ export async function GET(_requete: Request, { params }: { params: Promise<{ id:
     // 2. La ligne, sous la RLS.
     const { data: document } = await supabase
       .from('document')
-      .select('nom, chemin, lien_url')
+      .select('nom, chemin')
       .eq('id', id)
       .maybeSingle();
-    if (!document) return introuvable();
-
-    if (!document.chemin) {
-      const adresse = adresseDeBubble(document.lien_url);
-      return adresse ? NextResponse.redirect(adresse, 302) : introuvable();
-    }
+    if (!document?.chemin) return introuvable();
 
     // 3. Le seau.
     const { data: fichier, error } = await supabaseAdmin()
@@ -77,21 +73,5 @@ export async function GET(_requete: Request, { params }: { params: Promise<{ id:
       { erreur: 'Le document n’a pas pu être ouvert. Réessayez dans un instant.' },
       { status: 503 },
     );
-  }
-}
-
-/**
- * L'adresse Bubble d'un PDF pas encore rapatrié, en `https`, ou `null`.
- * Bubble l'écrit souvent sans protocole (« //xxx.cdn.bubble.io/… ») ; tout ce
- * qui ne serait pas une adresse web n'est pas suivi.
- */
-function adresseDeBubble(lien: string | null): string | null {
-  if (!lien) return null;
-  const complete = lien.startsWith('//') ? `https:${lien}` : lien;
-  try {
-    const url = new URL(complete);
-    return url.protocol === 'https:' ? url.toString() : null;
-  } catch {
-    return null;
   }
 }
