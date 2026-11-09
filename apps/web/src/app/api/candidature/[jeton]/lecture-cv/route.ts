@@ -93,7 +93,7 @@ export async function POST(requete: Request, { params }: { params: Promise<{ jet
 
     // 4. La lecture.
     const issue = await lireLeCv(octets, format);
-    if (issue.ok) return NextResponse.json({ extrait: issue.extrait });
+    if (issue.ok) return NextResponse.json({ extrait: issue.extrait, photo: issue.photo });
 
     if (issue.raison === 'indisponible') {
       return refuser(`La lecture automatique n’est pas disponible. ${A_LA_MAIN}`, 503);

@@ -106,12 +106,23 @@ export const LectureDuCv = z.object({
   informatique: texte(),
   savoir_etre: texte(),
   centres_interet: texte(),
+  // Pas un champ du formulaire : le signal qui dit au serveur d'aller
+  // chercher la photo dans le fichier (`photo-du-cv.ts`). Le modèle ne rend
+  // jamais l'image elle-même.
+  photo: z
+    .string()
+    .describe('« oui » si le CV montre une photo de la personne (un portrait), « non » sinon.'),
 });
 
 export type LectureDuCv = z.infer<typeof LectureDuCv>;
 
 /** Un champ du formulaire que la lecture peut remplir. */
-export type ChampLu = keyof LectureDuCv;
+export type ChampLu = Exclude<keyof LectureDuCv, 'photo'>;
+
+/** Vrai si le modèle a vu un portrait de la personne dans son CV. */
+export function montreUnePhoto(lecture: Pick<LectureDuCv, 'photo'>): boolean {
+  return lecture.photo.trim().toLowerCase() === 'oui';
+}
 
 /** Ce que la route renvoie au formulaire : seulement les champs trouvés, en texte. */
 export type Extrait = Partial<Record<ChampLu, string>>;
@@ -148,8 +159,8 @@ const CODE_POSTAL = /^[0-9A-Za-z -]{3,10}$/;
 export function nettoyerLecture(lecture: LectureDuCv): Extrait {
   const extrait: Extrait = {};
 
-  for (const [cle, brut] of Object.entries(lecture) as [ChampLu, unknown][]) {
-    if (brut === null || brut === undefined) continue;
+  for (const [cle, brut] of Object.entries(lecture) as [ChampLu | 'photo', unknown][]) {
+    if (cle === 'photo' || brut === null || brut === undefined) continue;
 
     if (cle === 'age') {
       // Des chiffres, et rien d'autre : « 31 ans » ou « 31,5 » ne passent pas.
@@ -229,7 +240,8 @@ Champ par champ :
 - competences : les compétences professionnelles, séparées par des virgules ou une par ligne.
 - informatique : logiciels et outils numériques.
 - savoir_etre : les qualités personnelles que le CV met en avant.
-- centres_interet : les loisirs et engagements.`;
+- centres_interet : les loisirs et engagements.
+- photo : « oui » si le CV montre une photo de la personne elle-même (un portrait), « non » sinon — un logo, une icône ou une illustration ne comptent pas.`;
 
 /** Le message qui accompagne le CV. */
 export function demandeDeLecture(aujourdhui: Date): string {

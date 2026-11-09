@@ -3262,6 +3262,27 @@ a.poste-document .poste-document-type {
   border-color: var(--alerte);
 }
 
+/* La photo trouvée dans le CV, montrée avant l'envoi, avec de quoi la refuser. */
+.photo-lue {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  margin: 0.4rem 0 0.6rem;
+}
+
+.photo-lue img {
+  width: 88px;
+  height: 88px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid var(--bordure);
+  flex: none;
+}
+
+.photo-lue .aide {
+  margin: 0 0 0.3rem;
+}
+
 /* Oui / Non, ou 0 à 5 : des boutons radio sur une ligne, faciles à toucher. */
 .choix-en-ligne {
   margin: 0 0 1rem;

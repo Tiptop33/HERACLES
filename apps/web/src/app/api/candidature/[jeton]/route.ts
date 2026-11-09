@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server';
-import { formatDeDocument, typeDeFichier } from '@/lib/fichiers';
+import { formatDImage, formatDeDocument, typeDeFichier } from '@/lib/fichiers';
 import { retourAvecCode, vientDUnFormulaire } from '@/lib/formulaire';
 import { empreinte } from '@/lib/invitation';
 import {
   FormulaireCandidature,
   TAILLE_MAXIMALE_DOCUMENT,
+  TAILLE_MAXIMALE_PHOTO_CANDIDAT,
   cheminDuDocument,
   premiereErreur,
 } from '@/lib/parrainage';
@@ -17,14 +18,16 @@ import { supabaseAdmin } from '@/lib/supabase-admin';
  * Comme pour le parrain, **le lien est le droit** :
  *
  *   1. le jeton — désigne-t-il un dossier, et vaut-il encore ? ;
- *   2. la saisie, puis les fichiers : le CV et la lettre sont facultatifs
- *      (0065). Leur format se lit dans leurs octets, jamais dans leur nom ;
+ *   2. la saisie, puis les fichiers : le CV, la lettre et la photo tirée du
+ *      CV sont facultatifs (0065, 0066). Leur format se lit dans leurs
+ *      octets, jamais dans leur nom ;
  *   3. les fichiers vont au seau privé, sous un nom que la route fixe ;
  *   4. la base enregistre la fiche — et refuse tout chemin qui ne serait pas
  *      celui de CE dossier. Si elle refuse, les fichiers déposés repartent.
  */
 
-type Depot = { genre: 'cv' | 'lettre'; octets: Uint8Array; format: string };
+type Genre = 'cv' | 'lettre' | 'photo';
+type Depot = { genre: Genre; octets: Uint8Array; format: string };
 
 export async function POST(requete: Request, { params }: { params: Promise<{ jeton: string }> }) {
   try {
@@ -96,10 +99,25 @@ async function traiter(requete: Request, jeton: string) {
     depots.push({ genre, octets, format });
   }
 
+  // … et la photo tirée du CV, si le candidat l'a gardée : une image, et
+  // rien d'autre — le nom du champ ne prouve rien, les octets si.
+  const photo = champs.get('photo');
+  if (photo instanceof File && photo.size > 0) {
+    if (photo.size > TAILLE_MAXIMALE_PHOTO_CANDIDAT) {
+      return refuser('taille', 'La photo dépasse 2 Mo.', 'photo', 413);
+    }
+    const octets = new Uint8Array(await photo.arrayBuffer());
+    const format = formatDImage(octets);
+    if (format !== 'jpg' && format !== 'png' && format !== 'webp') {
+      return refuser('format', 'Cette photo n’est pas reconnue : JPEG, PNG ou WebP.', 'photo', 415);
+    }
+    depots.push({ genre: 'photo', octets, format });
+  }
+
   // 3. Le seau — après le jeton, après la saisie, et pas avant.
   const admin = supabaseAdmin();
   const stockage = admin.storage.from('documents');
-  const chemins: Partial<Record<'cv' | 'lettre', string>> = {};
+  const chemins: Partial<Record<Genre, string>> = {};
 
   for (const depot of depots) {
     const chemin = cheminDuDocument(depot.genre, candidature.candidat_id, depot.format);
@@ -123,6 +141,7 @@ async function traiter(requete: Request, jeton: string) {
     fiche: { ...lu.data, age: lu.data.age === undefined ? '' : String(lu.data.age) },
     cv: chemins.cv ?? null,
     lettre: chemins.lettre ?? null,
+    photo: chemins.photo ?? null,
   });
 
   if (error) {

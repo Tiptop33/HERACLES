@@ -6,10 +6,12 @@ import {
   LectureDuCv,
   MODELE_DE_LECTURE,
   demandeDeLecture,
+  montreUnePhoto,
   nettoyerLecture,
   type Extrait,
   type FormatLisible,
 } from './lecture-cv';
+import { photoDuCv } from './photo-du-cv';
 
 /**
  * Faire lire un CV par Claude — serveur seulement.
@@ -24,8 +26,11 @@ import {
  * un contenu.
  */
 
+/** La photo trouvée dans le CV, prête à montrer au candidat. */
+export type PhotoLue = { type: 'image/jpeg' | 'image/png'; base64: string };
+
 export type IssueDeLecture =
-  | { ok: true; extrait: Extrait }
+  | { ok: true; extrait: Extrait; photo: PhotoLue | null }
   | { ok: false; raison: 'indisponible' | 'illisible' | 'echec' };
 
 const MEDIAS_DES_PHOTOS = { jpg: 'image/jpeg', png: 'image/png', webp: 'image/webp' } as const;
@@ -109,7 +114,19 @@ export async function lireLeCv(
       return { ok: false, raison: 'illisible' };
     }
 
-    return { ok: true, extrait: nettoyerLecture(reponse.parsed_output) };
+    const lecture = reponse.parsed_output;
+
+    // La photo : seulement si le modèle a vu un portrait, et c'est ici, sur
+    // le serveur, qu'on la sort du fichier.
+    const image = montreUnePhoto(lecture) ? await photoDuCv(octets, format) : null;
+    const photo: PhotoLue | null = image
+      ? {
+          type: image.format === 'png' ? 'image/png' : 'image/jpeg',
+          base64: Buffer.from(image.octets).toString('base64'),
+        }
+      : null;
+
+    return { ok: true, extrait: nettoyerLecture(lecture), photo };
   } catch (erreur) {
     if (erreur instanceof Anthropic.AuthenticationError) {
       console.error('[lecture-cv] clé ANTHROPIC_API_KEY refusée');

@@ -296,8 +296,18 @@ export function premiereErreur(erreur: z.ZodError): { champ: string | null; mess
 /** Dix mégaoctets : large pour un CV, même photographié. */
 export const TAILLE_MAXIMALE_DOCUMENT = 10 * 1024 * 1024;
 
-/** Où ranger le CV ou la lettre d'un candidat. La base n'accepte que ce chemin. */
-export function cheminDuDocument(genre: 'cv' | 'lettre', candidat: string, format: string): string {
+/** Deux mégaoctets : la photo tirée du CV, que le candidat envoie avec sa fiche. */
+export const TAILLE_MAXIMALE_PHOTO_CANDIDAT = 2 * 1024 * 1024;
+
+/**
+ * Où ranger le CV, la lettre ou la photo d'un candidat. La base n'accepte que
+ * ce chemin (0057 pour le CV et la lettre, 0066 pour la photo).
+ */
+export function cheminDuDocument(
+  genre: 'cv' | 'lettre' | 'photo',
+  candidat: string,
+  format: string,
+): string {
   return `candidat/${genre}/${candidat}.${format}`;
 }
 
