@@ -94,8 +94,10 @@ enlever du script.
 **Une clôture ou un archivage faits dans HERACLES survivent à MAJBUBBLE.**
 La reprise recopie CLOTURE et ARCHIVER sur les dossiers venus de Bubble ; un
 déclencheur (migration 0071) l'empêche de rouvrir un dossier qu'HERACLES a
-clôturé ou archivé entre-temps. Le reste de ce qu'HERACLES a changé sur ces
-fiches est, lui, remplacé par les valeurs de Bubble, comme avant.
+clôturé ou archivé entre-temps — et, depuis la migration 0072, de refermer un
+dossier qu'HERACLES a rouvert alors que Bubble le tient encore pour clôturé.
+Le reste de ce qu'HERACLES a changé sur ces fiches est, lui, remplacé par les
+valeurs de Bubble, comme avant.
 
 ## Ce que MAJBUBBLE ne fait pas
 

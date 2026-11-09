@@ -8,6 +8,7 @@ import {
   lireDesignation,
   lireFiche,
   listerCandidatsDeLaLoge,
+  lireLaDateDeCloture,
   nomDeFamilleDabord,
   puisJeCloturerDesDossiers,
   resumeDeLaVue,
@@ -24,7 +25,8 @@ import { Corbeille } from '@/components/Icones';
 import { FAMILLES } from '@/components/VueAccueil';
 import { jeSuisReferent, lireJournal, lireRetirees } from '@/lib/journal';
 import { MOTIFS_DE_CLOTURE } from '@/lib/candidats-refermes';
-import { estFerme } from '@/lib/suivi';
+import { estArchive, estCloture, estFerme, raisonDeFermeture } from '@/lib/suivi';
+import { jourEntier } from '@/lib/documents/formats';
 import { listerAnnuaire } from '@/lib/annuaire';
 import { exigerProfil } from '@/lib/profil';
 import { accueilDuRole } from '@/lib/roles';
@@ -52,6 +54,10 @@ type Parametres = {
   cloturer?: string | string[];
   /** Ce que la route de clôture a répondu, quand elle a refusé. */
   cloture?: string | string[];
+  /** « 1 » : la fenêtre de réouverture s'ouvre sur la fiche (0072). */
+  rouvrir?: string | string[];
+  /** Ce que la route de réouverture a répondu, quand elle a refusé. */
+  reouverture?: string | string[];
 };
 
 /**
@@ -67,6 +73,15 @@ const REFUS_DE_CLOTURE: Record<string, string> = {
   motif: 'Dites qui a refermé le dossier : lui-même, Heraclés ou autre.',
   session: 'Votre session a expiré. Reconnectez-vous.',
   echec: 'Le dossier n’a pas pu être clôturé.',
+};
+
+/** Ce que la route de réouverture renvoie quand elle refuse (0072). */
+const REFUS_DE_REOUVERTURE: Record<string, string> = {
+  droit: 'Seuls l’administration, le Vénérable Maître et le Secrétaire rouvrent un dossier.',
+  introuvable: 'Ce dossier n’existe plus, ou il n’est pas de votre loge.',
+  'pas-cloture': 'Seul un dossier clôturé, et pas archivé, se rouvre.',
+  session: 'Votre session a expiré. Reconnectez-vous.',
+  echec: 'Le dossier n’a pas pu être rouvert.',
 };
 
 const REFUS_DE_SUPPRESSION: Record<string, string> = {
@@ -131,6 +146,7 @@ export default async function PosteDeTravail({
   const refusDeSuppression =
     REFUS_DE_SUPPRESSION[premier(parametres.suppression)] ??
     REFUS_DE_CLOTURE[premier(parametres.cloture)] ??
+    REFUS_DE_REOUVERTURE[premier(parametres.reouverture)] ??
     null;
   // La place de la corbeille se réserve sur tous les rangs dès qu'un seul en
   // porte une — comme le point des « urgents » : sinon les numéros de droite
@@ -167,8 +183,13 @@ export default async function PosteDeTravail({
 
   // Le bouton « Clôturer le dossier » (0071) : un dossier en cours, et le
   // droit de le faire. La base revérifie l'un et l'autre en clôturant.
-  const cloturable = fiche && !estFerme(fiche) ? await puisJeCloturerDesDossiers() : false;
+  // Rouvrir (0072) : le même droit, sur un dossier clôturé et pas archivé.
+  const jePeuxCloturer = fiche ? await puisJeCloturerDesDossiers() : false;
+  const cloturable = Boolean(fiche && jePeuxCloturer && !estFerme(fiche));
+  const rouvrable = Boolean(fiche && jePeuxCloturer && estCloture(fiche) && !estArchive(fiche));
   const aCloturer = cloturable && premier(parametres.cloturer) === '1' ? fiche : null;
+  const aRouvrir = rouvrable && premier(parametres.rouvrir) === '1' ? fiche : null;
+  const clotureARouvrir = aRouvrir ? await lireLaDateDeCloture(aRouvrir.id) : null;
 
   // Le menu « Référent » (0057, élargi en 0063). La base dit si la session
   // peut choisir un référent pour ce candidat — un dossier sans référent pour
@@ -342,6 +363,7 @@ export default async function PosteDeTravail({
             referentActuel={referentActuel}
             prise={premier(parametres.prise) || null}
             cloturable={cloturable}
+            rouvrable={rouvrable}
           />
         ) : demande ? (
           // Ni « introuvable », ni « interdit ». La base n'a rien rendu, et
@@ -362,6 +384,17 @@ export default async function PosteDeTravail({
           id={aCloturer.id}
           nom={nomComplet(aCloturer.prenom, aCloturer.nom)}
           fermer={adresse({ cloturer: null })}
+        />
+      )}
+
+      {aRouvrir && (
+        <FenetreDeReouverture
+          id={aRouvrir.id}
+          nom={nomComplet(aRouvrir.prenom, aRouvrir.nom)}
+          motif={raisonDeFermeture(aRouvrir)}
+          le={clotureARouvrir?.clos_le ?? null}
+          estime={clotureARouvrir?.clos_estime ?? false}
+          fermer={adresse({ rouvrir: null })}
         />
       )}
 
@@ -422,6 +455,56 @@ function FenetreDeCloture({ id, nom, fermer }: { id: string; nom: string; fermer
             </button>
           </div>
         </form>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * La fenêtre de confirmation avant de rouvrir un dossier clôturé (0072). Elle
+ * dit ce que la réouverture efface : qui avait refermé le dossier, et quand.
+ */
+function FenetreDeReouverture({
+  id,
+  nom,
+  motif,
+  le,
+  estime,
+  fermer,
+}: {
+  id: string;
+  nom: string;
+  motif: string | null;
+  le: string | null;
+  estime: boolean;
+  fermer: string;
+}) {
+  const quand = le ? `le ${estime ? '≈ ' : ''}${jourEntier(le)}` : null;
+  const detail = [motif?.replace(/[\s,]+$/, ''), quand].filter(Boolean).join(', ');
+
+  return (
+    <div className="fenetre-fond">
+      <Link href={fermer} scroll={false} className="fenetre-voile" aria-label="Fermer sans rien rouvrir" />
+
+      <div className="fenetre" role="dialog" aria-modal="true" aria-labelledby="reouverture-titre">
+        <h2 id="reouverture-titre">Rouvrir le dossier de {nom}&nbsp;?</h2>
+
+        <p>
+          Il revient dans les dossiers en cours ; la clôture{detail ? ` (${detail})` : ''} est
+          effacée.
+        </p>
+
+        <div className="fenetre-gestes">
+          <Link href={fermer} scroll={false} className="bouton">
+            Annuler
+          </Link>
+          <form method="post" action={`/api/candidats/${id}/rouvrir`}>
+            <input type="hidden" name="retour" value={fermer} />
+            <button className="bouton bouton--fort" type="submit">
+              Rouvrir le dossier
+            </button>
+          </form>
+        </div>
       </div>
     </div>
   );

@@ -75,6 +75,7 @@ export default function PanneauFiche({
   referentActuel,
   prise,
   cloturable,
+  rouvrable,
 }: {
   fiche: FicheOuverte;
   /** La ligne correspondante de la liste, quand la vue courante la contient. */
@@ -105,6 +106,11 @@ export default function PanneauFiche({
    * administration, Vénérable Maître, Secrétaire. Fait paraître le bouton.
    */
   cloturable: boolean;
+  /**
+   * Le dossier est clôturé, pas archivé, et la session peut le rouvrir (0072).
+   * Fait paraître « Rouvrir le dossier » à la place de « Clôturer ».
+   */
+  rouvrable: boolean;
 }) {
   const nom = nomDeFamilleDabord(fiche.nom, fiche.prenom);
   const metier = fiche.metier_libelle ?? fiche.emploi_recherche ?? rang?.metier ?? null;
@@ -178,6 +184,14 @@ export default function PanneauFiche({
           {cloturable && (
             <Link href={adresse({ cloturer: '1' })} scroll={false} className="bouton">
               Clôturer le dossier
+            </Link>
+          )}
+
+          {/* Sur un dossier clôturé, le même emplacement rouvre : la fenêtre
+              dit ce que la réouverture efface avant de le faire (0072). */}
+          {rouvrable && (
+            <Link href={adresse({ rouvrir: '1' })} scroll={false} className="bouton">
+              Rouvrir le dossier
             </Link>
           )}
 
