@@ -99,6 +99,12 @@ Affichette — ouvrent le PDF **et en rangent un exemplaire** :
   plus récent au plus ancien. Les PDF repris de Bubble y sont aussi, à leur
   date de création. Le drapeau `archive` de Bubble (« prêt pour envoi » /
   « archivé ») n'y change rien.
+- **Paramètres › Archives** (administration seulement, comme tout Paramètres)
+  montre le même tableau à trois colonnes pour **tout ce qui précède**
+  l'exercice en cours : un PDF est à l'accueil pendant son exercice, dans les
+  archives ensuite, jamais aux deux endroits. Même corbeille, même fenêtre de
+  confirmation ; l'effacement ramène à la page d'où l'on vient
+  (`ColonnesDesArchives.tsx`, partagé par les deux écrans).
 - **Les PDF de Bubble arrivent à chaque mise en ligne**, jusqu'à la bascule :
   `mettre-a-jour.sh` lance `reprendre-bubble.sh --pdf-commission`, qui reprend
   la table des PDF et ne rapatrie que les comptes rendus, affiches et

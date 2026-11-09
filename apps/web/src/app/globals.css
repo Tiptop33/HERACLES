@@ -2138,6 +2138,11 @@ tbody tr:focus-within {
   max-width: none;
 }
 
+/* Les archives aussi : trois colonnes de noms de PDF n'entrent pas dans 42 rem. */
+.parametres-contenu:has(.archives) {
+  max-width: none;
+}
+
 .mise-en-page-onglets {
   display: flex;
   flex-wrap: wrap;

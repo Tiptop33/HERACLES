@@ -1,7 +1,7 @@
 import Link from 'next/link';
-import { Corbeille } from '@/components/Icones';
+import ColonnesDesArchives, { FenetreDEffacement } from '@/components/ColonnesDesArchives';
 import type { Chiffres, Demande, Offre } from '@/lib/accueil';
-import { COLONNES, SORTES, type DocumentArchive, type Sorte } from '@/lib/documents/archives';
+import type { DocumentArchive, Sorte } from '@/lib/documents/archives';
 import { depuis, initiales, nomComplet } from '@/lib/format';
 
 /**
@@ -127,41 +127,7 @@ export default function VueAccueil({
             {refusDArchive}
           </p>
         )}
-        <div className="archives">
-          {SORTES.map((sorte) => (
-            <div key={sorte} className="archives-colonne">
-              <h3>{COLONNES[sorte].titre}</h3>
-              {archives[sorte].length === 0 ? (
-                <p className="archives-vide">{COLONNES[sorte].vide}</p>
-              ) : (
-                <ul className="liste-nue">
-                  {archives[sorte].map((d) => (
-                    <li key={d.id} className="archives-ligne">
-                      <a href={`/api/documents/${d.id}`} target="_blank" rel="noopener">
-                        {d.nom ?? 'Document sans nom'}
-                      </a>
-                      {/* Rouge, sur la ligne même du PDF, et seulement là où
-                          la base accepterait d'effacer : administrateur,
-                          Vénérable Maître, Secrétaire. La corbeille n'efface
-                          pas : elle ouvre la confirmation. */}
-                      {d.effacable && (
-                        <Link
-                          href={`/espace/accueil?effacer=${d.id}`}
-                          scroll={false}
-                          className="geste geste--retirer"
-                          aria-label={`Effacer ${d.nom ?? 'ce PDF'}`}
-                          title="Effacer ce PDF"
-                        >
-                          <Corbeille />
-                        </Link>
-                      )}
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          ))}
-        </div>
+        <ColonnesDesArchives colonnes={archives} adresse="/espace/accueil" />
       </section>
 
       <section className="bloc">
@@ -190,53 +156,7 @@ export default function VueAccueil({
         </p>
       )}
 
-      {aEffacer && <FenetreDEffacement archive={aEffacer} />}
+      {aEffacer && <FenetreDEffacement archive={aEffacer} adresse="/espace/accueil" />}
     </main>
-  );
-}
-
-/**
- * La fenêtre de confirmation avant d'effacer un PDF archivé — la même que pour
- * supprimer un dossier.
- *
- * Elle dit ce qu'on perd, plutôt que « êtes-vous sûr ? ». Rendue par le
- * serveur sur la seule foi de l'adresse : elle s'ouvre sans une ligne de
- * script, et le bouton « retour » du navigateur la referme, comme un clic à
- * côté ou « Annuler ».
- */
-function FenetreDEffacement({ archive }: { archive: DocumentArchive }) {
-  const nom = archive.nom ?? 'ce PDF';
-
-  return (
-    <div className="fenetre-fond">
-      <Link
-        href="/espace/accueil"
-        scroll={false}
-        className="fenetre-voile"
-        aria-label="Fermer sans rien effacer"
-      />
-
-      <div className="fenetre" role="dialog" aria-modal="true" aria-labelledby="effacement-titre">
-        <h2 id="effacement-titre">Effacer « {nom} »&nbsp;?</h2>
-
-        <p>
-          Le PDF disparaîtra de HERACLES pour <strong>toute la loge</strong> : il ne s’ouvrira
-          plus depuis l’accueil.
-        </p>
-
-        <p className="aide">Cela ne se défait pas.</p>
-
-        <div className="fenetre-gestes">
-          <Link href="/espace/accueil" scroll={false} className="bouton">
-            Annuler
-          </Link>
-          <form method="post" action={`/api/documents/${archive.id}/effacer`}>
-            <button className="bouton bouton--danger" type="submit">
-              Effacer le PDF
-            </button>
-          </form>
-        </div>
-      </div>
-    </div>
   );
 }

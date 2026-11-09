@@ -3,6 +3,7 @@ import {
   periodeDesDocuments,
   rangerParSorte,
   type DocumentArchive,
+  type Periode,
   type Sorte,
 } from './documents/archives';
 import { lireLExercice } from './exercice';
@@ -77,23 +78,34 @@ export async function listerDemandesEnAttente(limite = 4): Promise<Demande[]> {
   return (data as Demande[]) ?? [];
 }
 
-/**
- * Les comptes rendus, affiches et affichettes de la période, rangés dans leurs
- * trois colonnes (migration 0069).
- *
- * La période est l'exercice réglé dans Paramètres › Exercice. La
- * base fait le reste : la policy de `document` ne rend que ses loges, et la
- * fonction dit, ligne par ligne, si la corbeille a lieu d'être.
- */
-export async function listerLesArchives(maintenant: Date = new Date()): Promise<Record<Sorte, DocumentArchive[]>> {
-  const exercice = await lireLExercice();
-  const { du, au } = periodeDesDocuments(exercice, aujourdhuiAParis(maintenant));
+/** La période de l'accueil : l'exercice réglé dans Paramètres › Exercice. */
+export async function periodeEnCours(maintenant: Date = new Date()): Promise<Periode> {
+  return periodeDesDocuments(await lireLExercice(), aujourdhuiAParis(maintenant));
+}
 
+/**
+ * Les comptes rendus, affiches et affichettes datés de la période, rangés dans
+ * leurs trois colonnes (migration 0069).
+ *
+ * La base fait le reste : la policy de `document` ne rend que ses loges, et
+ * `documents_de_l_accueil()` dit, ligne par ligne, si la corbeille a lieu
+ * d'être. La fonction ne connaît que des bornes : elle sert aussi à
+ * Paramètres › Archives, avec celles d'avant l'exercice.
+ */
+export async function listerLesDocuments(periode: Periode): Promise<Record<Sorte, DocumentArchive[]>> {
   const supabase = await supabaseServer();
-  const { data, error } = await supabase.rpc('documents_de_l_accueil', { du, au });
-  if (error) console.error('[accueil] archives illisibles', error.code);
+  const { data, error } = await supabase.rpc('documents_de_l_accueil', {
+    du: periode.du,
+    au: periode.au,
+  });
+  if (error) console.error('[archives] documents illisibles', error.code);
 
   return rangerParSorte((data as DocumentArchive[] | null) ?? []);
+}
+
+/** Ceux de l'exercice en cours — l'accueil. */
+export async function listerLesArchives(maintenant: Date = new Date()) {
+  return listerLesDocuments(await periodeEnCours(maintenant));
 }
 
 export type Offre = {

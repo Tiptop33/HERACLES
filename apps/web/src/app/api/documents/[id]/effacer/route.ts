@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { origine, vientDUnFormulaire } from '@/lib/formulaire';
+import { estUneAdresse } from '@/lib/documents/archives';
+import { lireCorps, origine, vientDUnFormulaire } from '@/lib/formulaire';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { supabaseServer } from '@/lib/supabase-server';
 
@@ -19,11 +20,10 @@ import { supabaseServer } from '@/lib/supabase-server';
  *      dont la base vient de rendre le chemin.
  *
  * Un `POST` d'un formulaire, et non un `DELETE` : la corbeille marche avant
- * qu'une ligne de script soit chargée. On revient toujours à l'accueil — rien
- * de ce qui vient de la requête ne choisit où l'on atterrit.
+ * qu'une ligne de script soit chargée. On revient à la page d'où l'on vient —
+ * l'accueil ou Paramètres › Archives, et aucune autre : une adresse reçue qui
+ * n'est pas l'une des deux ramène à l'accueil.
  */
-
-const ACCUEIL = '/espace/accueil';
 
 export async function POST(requete: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -39,10 +39,13 @@ export async function POST(requete: Request, { params }: { params: Promise<{ id:
 
 async function traiter(requete: Request, id: string) {
   const natif = vientDUnFormulaire(requete);
+  const corps = natif ? await lireCorps(requete) : null;
+  const demande = corps?.retour;
+  const retour = estUneAdresse(demande) ? demande : '/espace/accueil';
 
   const repondre = (code: string | null, message: string | null, statut = 400) => {
     if (natif) {
-      const vers = new URL(ACCUEIL, origine(requete));
+      const vers = new URL(retour, origine(requete));
       if (code) vers.searchParams.set('document', code);
       return NextResponse.redirect(vers, 303);
     }

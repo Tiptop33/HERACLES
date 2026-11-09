@@ -35,6 +35,13 @@ export const RUBRIQUES: readonly Rubrique[] = [
       'colonnes et emblèmes. Chaque changement s’enregistre aussitôt et se voit dans l’aperçu.',
   },
   {
+    libelle: 'Archives',
+    vers: '/espace/parametres/archives',
+    propos:
+      'Les comptes rendus, affiches et affichettes des exercices précédents. Ceux de l’exercice ' +
+      'en cours sont à l’accueil.',
+  },
+  {
     libelle: 'Loges',
     vers: null,
     propos: 'Les loges, leurs noms et leurs emblèmes.',
