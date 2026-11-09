@@ -45,6 +45,33 @@ et remplit à la main. La fiche s'envoie dans tous les cas.
 | Word `.docx` | oui, par son texte (extrait avec `mammoth`) |
 | Word `.doc`, OpenDocument, RTF | non : le CV est joint, la fiche se remplit à la main |
 
+## La photo
+
+Quand le CV contient une photo de la personne, le formulaire la montre sous le
+bouton après la lecture, avec **« Ne pas garder cette photo »**. Gardée, elle
+part avec la fiche et devient la photo du dossier
+(`candidat/photo/<identifiant>.<format>`) : la fiche du référent l'affiche, par
+la route qui sert déjà les photos de candidats.
+
+**La photo n'est pas tirée par Anthropic.** Claude, qui lit déjà le CV, répond
+seulement « oui » ou « non » à la question « y a-t-il un portrait ? »
+(`photo`, dans `LectureDuCv`). Si c'est « oui », c'est le serveur de HERACLES
+qui sort l'image du fichier (`apps/web/src/lib/photo-du-cv.ts`) :
+
+- dans un PDF, ses images enregistrées en JPEG — la façon dont Word,
+  LibreOffice, Canva ou un navigateur rangent une photo. Une image compressée
+  autrement n'est pas reconstruite : pas de photo, plutôt qu'une image fausse ;
+- dans un Word `.docx`, ses images JPEG et PNG ;
+- dans un CV photographié, rien : c'est une image entière.
+
+Parmi les images du CV, la photo est la plus grande qui a la forme d'un
+portrait. Sont écartés : les icônes, les logos en bandeau, les pages
+numérisées et les fichiers de plus de 2 Mo. Une erreur reste possible, un
+logo carré par exemple : le candidat la voit, et la refuse d'un clic.
+
+Sans photo envoyée, celle que le dossier avait déjà (reprise de Bubble)
+reste en place (migration 0066).
+
 ## Données personnelles — à régler avant la mise en service
 
 Quand le candidat clique sur « Remplir », son CV quitte le serveur pour être lu

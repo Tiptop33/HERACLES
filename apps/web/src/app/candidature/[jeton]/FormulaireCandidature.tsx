@@ -30,6 +30,12 @@ type Lecture =
   | { etat: 'faite'; remplis: number }
   | { etat: 'echec'; message: string };
 
+/** La photo trouvée dans le CV, telle que la route de lecture la rend. */
+type PhotoLue = { type: 'image/jpeg' | 'image/png'; base64: string };
+
+/** La photo gardée : le fichier qui partira avec la fiche, et son aperçu. */
+type Photo = { fichier: File; apercu: string };
+
 const ACCEPTES =
   '.pdf,.doc,.docx,.odt,.rtf,.jpg,.jpeg,.png,.webp,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.oasis.opendocument.text,image/jpeg,image/png,image/webp';
 
@@ -53,6 +59,7 @@ export default function FormulaireCandidature({
   const [type, setType] = useState(initial.type_emploi);
   const [cv, setCv] = useState<File | null>(null);
   const [lecture, setLecture] = useState<Lecture>({ etat: 'attente' });
+  const [photo, setPhoto] = useState<Photo | null>(null);
   const formulaire = useRef<HTMLFormElement>(null);
   // Le numéro de la dernière lecture demandée : si le candidat change de
   // fichier pendant qu'on lit le premier, la réponse du premier est ignorée.
@@ -63,6 +70,15 @@ export default function FormulaireCandidature({
     derniereLecture.current++;
     setCv(evenement.currentTarget.files?.[0] ?? null);
     setLecture({ etat: 'attente' });
+    garderLaPhoto(null);
+  }
+
+  /** Garde une photo — ou aucune —, et libère l'aperçu de la précédente. */
+  function garderLaPhoto(nouvelle: Photo | null) {
+    setPhoto((ancienne) => {
+      if (ancienne) URL.revokeObjectURL(ancienne.apercu);
+      return nouvelle;
+    });
   }
 
   /**
@@ -99,6 +115,7 @@ export default function FormulaireCandidature({
         ? remplirLesCasesVides(formulaire.current, resultat.extrait as Extrait, type, setType)
         : 0;
       setLecture({ etat: 'faite', remplis });
+      garderLaPhoto(resultat.photo ? photoDepuis(resultat.photo as PhotoLue) : null);
     } catch {
       if (numero !== derniereLecture.current) return;
       setLecture({
@@ -121,7 +138,7 @@ export default function FormulaireCandidature({
         // multipart et sa frontière. Celui-ci dit seulement à la route de
         // répondre en JSON plutôt que par une redirection.
         headers: { 'x-requested-with': 'fetch' },
-        body: new FormData(evenement.currentTarget),
+        body: corpsDeLaFiche(evenement.currentTarget, photo),
       });
       const resultat = await reponse.json();
 
@@ -194,6 +211,19 @@ export default function FormulaireCandidature({
                   : 'Votre CV n’a rien apporté de plus : remplissez les champs restés vides.')}
               {lecture.etat === 'echec' && lecture.message}
             </p>
+            {photo && (
+              <div className="photo-lue">
+                {/* Un aperçu local (blob:) : next/image n'a rien à optimiser ici. */}
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={photo.apercu} alt="Votre photo, trouvée dans votre CV" />
+                <div>
+                  <p className="aide">Photo trouvée dans votre CV : elle accompagnera votre fiche.</p>
+                  <button type="button" className="lien-nu" onClick={() => garderLaPhoto(null)}>
+                    Ne pas garder cette photo
+                  </button>
+                </div>
+              </div>
+            )}
           </>
         )}
       </fieldset>
@@ -428,4 +458,19 @@ function remplirLesCasesVides(
     if (element) element.value = valeur;
   }
   return Object.keys(aRemplir).length;
+}
+
+/** La photo rendue par la lecture, en fichier prêt à partir et en aperçu. */
+function photoDepuis(lue: PhotoLue): Photo {
+  const octets = Uint8Array.from(atob(lue.base64), (c) => c.charCodeAt(0));
+  const extension = lue.type === 'image/png' ? 'png' : 'jpg';
+  const fichier = new File([octets], `photo.${extension}`, { type: lue.type });
+  return { fichier, apercu: URL.createObjectURL(fichier) };
+}
+
+/** Les champs du formulaire, et la photo gardée s'il y en a une. */
+function corpsDeLaFiche(formulaire: HTMLFormElement, photo: Photo | null): FormData {
+  const corps = new FormData(formulaire);
+  if (photo) corps.append('photo', photo.fichier);
+  return corps;
 }

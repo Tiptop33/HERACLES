@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { betaZodOutputFormat } from '@anthropic-ai/sdk/helpers/beta/zod';
+import { PDFDocument } from 'pdf-lib';
 import {
   LectureDuCv,
   casesARemplir,
@@ -50,6 +51,7 @@ const vide: Lecture = {
   informatique: '',
   savoir_etre: '',
   centres_interet: '',
+  photo: 'non',
 };
 
 describe('ce que l’on demande au modèle', () => {
@@ -182,6 +184,7 @@ describe('la lecture par Claude', () => {
     expect(await lireLeCv(pdf, 'pdf', new Date('2026-11-09T10:00:00Z'))).toEqual({
       ok: true,
       extrait: { telephone: '06 12 34 56 78', age: '31', ville: 'Lyon' },
+      photo: null,
     });
 
     const demande = parse.mock.calls[0][0];
@@ -191,6 +194,29 @@ describe('la lecture par Claude', () => {
     expect(demande.betas).toEqual(['server-side-fallback-2026-07-01']);
     expect(demande.messages[0].content[0].type).toBe('document');
     expect(demande.messages[0].content[1].text).toContain('2026-11-09');
+  });
+
+  it('sort la photo du CV quand le modèle y voit un portrait — et seulement alors', async () => {
+    const document = await PDFDocument.create();
+    const page = document.addPage([595, 842]);
+    const jpeg = new Uint8Array([
+      0xff, 0xd8, 0xff, 0xc0, 0x00, 0x11, 0x08, 0x01, 0x90, 0x01, 0x2c,
+      0x03, 0x01, 0x11, 0x00, 0x02, 0x11, 0x00, 0x03, 0x11, 0x00, 0xff, 0xd9,
+    ]); // 300 × 400
+    page.drawImage(await document.embedJpg(jpeg), { x: 40, y: 600, width: 100, height: 130 });
+    const cvAvecPhoto = await document.save();
+
+    parse.mockResolvedValue({ stop_reason: 'end_turn', parsed_output: { ...vide, photo: 'oui' } });
+    const avec = await lireLeCv(cvAvecPhoto, 'pdf');
+    expect(avec.ok && avec.photo).toEqual({
+      type: 'image/jpeg',
+      base64: Buffer.from(jpeg).toString('base64'),
+    });
+
+    // Le modèle n'y voit pas de portrait : l'image reste dans le CV.
+    parse.mockResolvedValue({ stop_reason: 'end_turn', parsed_output: { ...vide, photo: 'non' } });
+    const sans = await lireLeCv(cvAvecPhoto, 'pdf');
+    expect(sans.ok && sans.photo).toBeNull();
   });
 
   it('rend un échec, sans lever, quand la lecture est refusée', async () => {
