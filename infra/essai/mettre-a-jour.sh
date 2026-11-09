@@ -167,4 +167,23 @@ else
   exit 1
 fi
 
+etape "PDF de la commission — depuis Bubble"
+# Les comptes rendus, affiches et affichettes de Bubble, pour que l'accueil
+# les montre et les ouvre depuis notre stockage (migration 0069). Rejoué à
+# chaque mise en ligne : la première fois rapatrie tout, les suivantes ne
+# prennent que ce que Bubble a produit entre-temps.
+#
+# **Non bloquant**, et borné à cinq minutes : l'application est déjà en ligne
+# à ce stade, et une API Bubble lente ou fermée ne doit ni la faire échouer ni
+# tenir le déploiement. `timeout` arrête tout le groupe, conteneurs compris ;
+# ce qui est passé reste passé, la mise en ligne suivante reprend le reste.
+#
+# À retirer après la bascule du 5 décembre 2026 : Bubble ne répondra plus.
+if timeout 300 "$DEPOT/infra/essai/reprendre-bubble.sh" --pdf-commission; then
+  vert "PDF de la commission à jour"
+else
+  rouge "PDF de la commission : reprise incomplète — sans effet sur l'application,"
+  rouge "la prochaine mise en ligne reprendra où celle-ci s'est arrêtée."
+fi
+
 vert "instance d'essai à jour"

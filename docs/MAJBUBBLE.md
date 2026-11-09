@@ -83,6 +83,12 @@ sans fiche ne voit ni collègues, ni candidats : c'est à faire le jour même.
 **Refermer l'API Bubble** et régénérer ses jetons. Voir
 `docs/reprise-bubble-releve.md`.
 
+**Retirer la reprise des PDF de la mise en ligne.** Jusqu'à la bascule,
+`mettre-a-jour.sh` rapatrie à chaque déploiement les comptes rendus, affiches et
+affichettes de Bubble (`reprendre-bubble.sh --pdf-commission`, voir
+[`mise-en-page.md`](mise-en-page.md)). Une fois Bubble fermé, cette étape ne fait
+plus qu'échouer sans bloquer : l'enlever du script.
+
 ## Ce que MAJBUBBLE ne fait pas
 
 **Les mots de passe.** Bubble ne les expose pas, et c'est heureux. Les 71

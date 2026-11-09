@@ -23,6 +23,16 @@ const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const SEAU = process.env.SEAU ?? 'documents';
 const LIMITE = process.env.LIMITE ? Number(process.env.LIMITE) : Infinity;
 
+// SEULEMENT=pdf-commission : les comptes rendus, affiches et affichettes, et
+// rien d'autre — ni CV, ni photos, ni CV anonymes. C'est ce que la mise en
+// ligne rapatrie à chaque fois jusqu'à la bascule, pour que l'accueil les
+// ouvre depuis notre stockage (migration 0069). Le reste attend MAJBUBBLE.
+const SEULEMENT = process.env.SEULEMENT ?? '';
+if (SEULEMENT && SEULEMENT !== 'pdf-commission') {
+  console.error(`SEULEMENT=${SEULEMENT} : seule la valeur « pdf-commission » est connue.`);
+  process.exit(1);
+}
+
 if (!DATABASE_URL || !SERVICE_KEY) {
   console.error('Il manque une variable. Les trois nécessaires :');
   console.error('  DATABASE_URL="postgresql://postgres:postgres@127.0.0.1:54332/postgres"');
@@ -43,6 +53,16 @@ const CIBLES = [
   ['referent', 'photo_url', 'photo_chemin', 'referent/photo'],
   ['loge', 'logo_url', 'logo_chemin', 'loge/logo'],
   ['document', 'lien_url', 'chemin', 'document', 'efface_le is null'],
+];
+
+const PDF_COMMISSION = [
+  [
+    'document',
+    'lien_url',
+    'chemin',
+    'document',
+    "efface_le is null and lower(btrim(type_document)) in ('compte-rendu', 'affiche', 'affichette')",
+  ],
 ];
 
 /** Bubble écrit ses adresses sans protocole : //xxx.cdn.bubble.io/… */
@@ -76,7 +96,7 @@ let total = 0;
 let echecs = 0;
 let octets = 0;
 
-for (const [table, colonneUrl, colonneChemin, dossier, condition] of CIBLES) {
+for (const [table, colonneUrl, colonneChemin, dossier, condition] of SEULEMENT ? PDF_COMMISSION : CIBLES) {
   const { rows } = await client.query(
     `select id, bubble_id, ${colonneUrl} as url
        from public.${table}
