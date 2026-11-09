@@ -1,6 +1,7 @@
 import type { Column, Content, TDocumentDefinitions } from 'pdfmake/interfaces';
 import type { Variables } from './balisage';
-import { article, nomDeFichierSur, variablesDeLaCommission, type Commission } from './formats';
+import { enPdf, titreDeLAffichette } from './archives';
+import { article, variablesDeLaCommission, type Commission } from './formats';
 import { blocTexte, imageReglee } from './mise-en-forme';
 import { qrCode } from './qr';
 import type { Lecteur } from './reglages';
@@ -134,23 +135,10 @@ export function definitionDeLAffichette(
 }
 
 /**
- * « 856_du_06-11-2026.pdf », comme les affichettes de Bubble. Depuis l'écran
- * « Réunion », la date est celle de la réunion qui l'a choisie ; depuis la
- * fiche, celle du jour.
+ * « 856 du 09-11-2026.pdf » — le numéro du dossier et le jour où l'affichette
+ * est tirée, d'où qu'on la tire. C'est aussi le nom de l'exemplaire archivé
+ * depuis l'écran « Réunion » (migration 0069), sans l'extension.
  */
 export function nomDeLAffichette(numero: number | null, le: Date | string = new Date()): string {
-  if (typeof le === 'string') {
-    const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(le);
-    if (m) return nomDeFichierSur(`${numero ?? 'dossier'}_du_${m[3]}-${m[2]}-${m[1]}.pdf`);
-    le = new Date();
-  }
-  const jour = new Intl.DateTimeFormat('fr-FR', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    timeZone: 'Europe/Paris',
-  })
-    .format(le)
-    .replace(/\//g, '-');
-  return nomDeFichierSur(`${numero ?? 'dossier'}_du_${jour}.pdf`);
+  return enPdf(titreDeLAffichette(numero, le));
 }

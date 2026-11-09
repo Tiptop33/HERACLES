@@ -1,6 +1,7 @@
 import type { Content, ContentText, TDocumentDefinitions } from 'pdfmake/interfaces';
 import type { Variables } from './balisage';
 import { enTete, tableauDesOffres, type Offre } from './affiche';
+import { enPdf, titreDuCompteRendu } from './archives';
 import { prochaineReunion, type Report } from './calendrier';
 import {
   couper,
@@ -8,7 +9,6 @@ import {
   dateLongue,
   jourCourt,
   jourEntier,
-  nomDeFichierSur,
   variablesDeLaCommission,
   type Commission,
 } from './formats';
@@ -298,9 +298,10 @@ export function definitionDuCompteRendu(
   };
 }
 
-/** « Compte-rendu_du_Mercredi_28_Octobre_2026.pdf », comme chez Bubble. */
+/**
+ * « Compte-Rendu du 28-10-2026.pdf » — la date de la réunion. C'est aussi le
+ * nom de l'exemplaire archivé (migration 0069), sans l'extension.
+ */
 export function nomDuCompteRendu(tenueLe: string): string {
-  const longue = dateLongue(tenueLe);
-  const titre = longue.replace(/(^|\s)(\p{L})/gu, (_, espace: string, l: string) => espace + l.toLocaleUpperCase('fr-FR'));
-  return nomDeFichierSur(`Compte-rendu du ${titre || tenueLe.slice(0, 10)}.pdf`);
+  return enPdf(titreDuCompteRendu(tenueLe));
 }

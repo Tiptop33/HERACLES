@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import { nomDeLAffiche } from '@/lib/documents/affiche';
+import { enPdf, titreDeLAffiche } from '@/lib/documents/archives';
+import { archiverLeDocument } from '@/lib/documents/archiver';
 import { donneesDeLAffiche } from '@/lib/documents/donnees';
 import { produireLAffiche } from '@/lib/documents/produire';
 import { enTeteDeTelechargement } from '@/lib/fichiers';
@@ -10,8 +11,9 @@ import { supabaseServer } from '@/lib/supabase-server';
 /**
  * L'affiche de la commission, en PDF — celle de Bubble, à l'identique.
  *
- * Même forme que le compte rendu — une lecture, donc un `GET`, et la base pour
- * seule porte —, mais un document tout autre : celui-ci **circule**. Il ne
+ * Même forme que le compte rendu — un `GET`, la base pour seule porte, et un
+ * exemplaire rangé à chaque demande, « Affiche du 28-10-2026 » (migration
+ * 0069) —, mais un document tout autre : celui-ci **circule**. Il ne
  * porte aucun nom de candidat : le numéro, la date, l'intitulé, et le lien du
  * CV anonyme (migration 0067). Voir `lib/documents/affiche.ts`.
  */
@@ -40,11 +42,15 @@ export async function GET(requete: Request, { params }: { params: Promise<{ id: 
     }
 
     const octets = await produireLAffiche(await donneesDeLAffiche(reunion, origine(requete)));
+    const titre = titreDeLAffiche(reunion.tenue_le);
+
+    // La réunion est vérifiée : l'exemplaire peut se ranger.
+    await archiverLeDocument({ reunion: reunion.id, sorte: 'affiche', titre, octets });
 
     return new NextResponse(octets as unknown as BodyInit, {
       headers: {
         'Content-Type': 'application/pdf',
-        'Content-Disposition': enTeteDeTelechargement(nomDeLAffiche(reunion.tenue_le), 'inline'),
+        'Content-Disposition': enTeteDeTelechargement(enPdf(titre), 'inline'),
         // L'affiche est faite pour circuler, mais elle se produit depuis une
         // session : aucun cache partagé n'a à la garder pour un autre.
         'Cache-Control': 'private, no-store',

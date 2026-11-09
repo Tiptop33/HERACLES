@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import { nomDuCompteRendu } from '@/lib/documents/compte-rendu';
+import { enPdf, titreDuCompteRendu } from '@/lib/documents/archives';
+import { archiverLeDocument } from '@/lib/documents/archiver';
 import { donneesDuCompteRendu } from '@/lib/documents/donnees';
 import { produireLeCompteRendu } from '@/lib/documents/produire';
 import { enTeteDeTelechargement } from '@/lib/fichiers';
@@ -10,13 +11,17 @@ import { supabaseServer } from '@/lib/supabase-server';
  * Le compte rendu d'une réunion, en PDF — celui de Bubble, à l'identique, mis
  * en page selon Paramètres › Mise en page.
  *
- * Une lecture, donc un `GET` : le document est une photographie de ce que la
- * base sait déjà, rien ne s'écrit en le demandant.
+ * Chaque demande en range un exemplaire, « Compte-Rendu du 28-10-2026 »
+ * (migration 0069) : c'est lui que l'accueil présente. Le même nom remplace
+ * l'exemplaire précédent — on corrige la feuille, on redemande, la dernière
+ * version reste. Toujours un `GET` : le bouton est un lien qui ouvre le PDF
+ * dans un onglet, et le redemander ne fait que réécrire le même exemplaire.
  *
  * L'ordre imposé par le projet est tenu par la base : `lireUneReunion()` et les
  * fonctions de 0055 et 0067 ne rendent rien hors de la loge de la personne
- * connectée. Cette route ne filtre rien elle-même, et ne touche pas à
- * `supabaseAdmin()`.
+ * connectée. Cette route ne filtre rien elle-même. La clé de service ne sert
+ * qu'à déposer l'exemplaire dans le seau, une fois la réunion lue
+ * (`archiverLeDocument()`).
  *
  * `runtime = 'nodejs'` : pdfmake lit ses polices sur le disque et travaille sur
  * des tampons — rien qui doive tourner en bordure.
@@ -48,13 +53,17 @@ export async function GET(_requete: Request, { params }: { params: Promise<{ id:
     }
 
     const octets = await produireLeCompteRendu(await donneesDuCompteRendu(reunion));
+    const titre = titreDuCompteRendu(reunion.tenue_le);
+
+    // La réunion est vérifiée : l'exemplaire peut se ranger.
+    await archiverLeDocument({ reunion: reunion.id, sorte: 'compte-rendu', titre, octets });
 
     return new NextResponse(octets as unknown as BodyInit, {
       headers: {
         'Content-Type': 'application/pdf',
         // `inline` : le navigateur l'ouvre dans son lecteur, on le relit avant
         // de l'envoyer. Le nom reste posé, pour l'enregistrement.
-        'Content-Disposition': enTeteDeTelechargement(nomDuCompteRendu(reunion.tenue_le), 'inline'),
+        'Content-Disposition': enTeteDeTelechargement(enPdf(titre), 'inline'),
         // Le document porte des coordonnées et des situations personnelles :
         // aucun cache partagé n'a à le garder.
         'Cache-Control': 'private, no-store',

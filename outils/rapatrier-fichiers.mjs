@@ -31,7 +31,10 @@ if (!DATABASE_URL || !SERVICE_KEY) {
   process.exit(1);
 }
 
-// table, colonne d'origine, colonne d'arrivée, dossier de rangement
+// table, colonne d'origine, colonne d'arrivée, dossier de rangement, et une
+// condition de plus quand il en faut une. Un PDF de Bubble effacé depuis
+// l'accueil (migration 0069) garde sa ligne, sans chemin : sans la condition,
+// on le rapatrierait de nouveau.
 const CIBLES = [
   ['candidat', 'cv_url', 'cv_chemin', 'candidat/cv'],
   ['candidat', 'cv_anonyme_url', 'cv_anonyme_chemin', 'candidat/cv-anonyme'],
@@ -39,7 +42,7 @@ const CIBLES = [
   ['candidat', 'photo_url', 'photo_chemin', 'candidat/photo'],
   ['referent', 'photo_url', 'photo_chemin', 'referent/photo'],
   ['loge', 'logo_url', 'logo_chemin', 'loge/logo'],
-  ['document', 'lien_url', 'chemin', 'document'],
+  ['document', 'lien_url', 'chemin', 'document', 'efface_le is null'],
 ];
 
 /** Bubble écrit ses adresses sans protocole : //xxx.cdn.bubble.io/… */
@@ -73,12 +76,13 @@ let total = 0;
 let echecs = 0;
 let octets = 0;
 
-for (const [table, colonneUrl, colonneChemin, dossier] of CIBLES) {
+for (const [table, colonneUrl, colonneChemin, dossier, condition] of CIBLES) {
   const { rows } = await client.query(
     `select id, bubble_id, ${colonneUrl} as url
        from public.${table}
       where ${colonneUrl} is not null
         and ${colonneChemin} is null
+        ${condition ? `and ${condition}` : ''}
       order by bubble_id`,
   );
 

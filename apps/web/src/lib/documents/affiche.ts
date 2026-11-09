@@ -1,6 +1,7 @@
 import type { Column, Content, TDocumentDefinitions } from 'pdfmake/interfaces';
 import { remplir, retirerLesLignesVides, type Variables } from './balisage';
-import { dateLongue, jourEntier, nomDeFichierSur, variablesDeLaCommission, type Commission } from './formats';
+import { enPdf, titreDeLAffiche } from './archives';
+import { dateLongue, jourEntier, variablesDeLaCommission, type Commission } from './formats';
 import { blocTexte, cellule, enLigne, imageReglee, tableau } from './mise-en-forme';
 import type { Lecteur } from './reglages';
 
@@ -206,7 +207,10 @@ function encadreDesContacts(r: Lecteur, v: Variables): Content | null {
   };
 }
 
-/** « Affiche_du_mercredi_14_octobre_2026.pdf », comme chez Bubble. */
+/**
+ * « Affiche du 28-10-2026.pdf » — la date de la réunion. C'est aussi le nom de
+ * l'exemplaire archivé (migration 0069), sans l'extension.
+ */
 export function nomDeLAffiche(tenueLe: string): string {
-  return nomDeFichierSur(`Affiche du ${dateLongue(tenueLe) || tenueLe.slice(0, 10)}.pdf`);
+  return enPdf(titreDeLAffiche(tenueLe));
 }

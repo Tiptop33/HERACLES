@@ -379,8 +379,8 @@ function FenetreDeSuppression({
         <p>
           Le dossier{ligne.numero !== null ? ` n° ${ligne.numero}` : ''} disparaîtra de
           HERACLES, avec <strong>son journal de suivi</strong>,{' '}
-          <strong>son CV, sa lettre et sa photo</strong>, et l’invitation envoyée à son
-          parrain.
+          <strong>son CV, sa lettre et sa photo</strong>, ses affichettes archivées, et
+          l’invitation envoyée à son parrain.
         </p>
 
         <p className="aide">Cela ne se défait pas.</p>
