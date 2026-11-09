@@ -97,7 +97,11 @@ Affichette — ouvrent le PDF **et en rangent un exemplaire** :
   même dépassées : au changement d'exercice, c'est là qu'on règle le suivant.
   Tant qu'aucune date n'y est réglée, l'accueil prend la saison en cours. Du
   plus récent au plus ancien. Les PDF repris de Bubble y sont aussi, à leur
-  date de création. Le drapeau `archive` de Bubble (« prêt pour envoi » /
+  date de création. **Seuls les PDF dont le fichier est dans notre stockage
+  se montrent** (migration 0070) : un lien qui ne s'ouvrirait pas n'est pas
+  affiché. Un PDF de Bubble apparaît donc à la mise en ligne qui le rapatrie ;
+  ceux dont Bubble refuse le fichier (6 au 9 novembre 2026, HTTP 403) restent
+  en base, invisibles. Le drapeau `archive` de Bubble (« prêt pour envoi » /
   « archivé ») n'y change rien.
 - **Paramètres › Archives** (administration seulement, comme tout Paramètres)
   montre le même tableau à trois colonnes pour **tout ce qui précède**

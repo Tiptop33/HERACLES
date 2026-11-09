@@ -49,13 +49,16 @@ insert into public.candidat (numero, nom, prenom, loge_id) values
 select id as c_lyon from public.candidat where numero = 6901 \gset
 select id as c_caen from public.candidat where numero = 6902 \gset
 
--- Deux PDF repris de Bubble, à Lyon : un compte rendu, et un CV anonyme que
--- l'accueil ne montre pas.
-insert into public.document (bubble_id, nom, type_document, lien_url, loge_id, cree_le) values
+-- Deux PDF repris de Bubble, à Lyon, et déjà rapatriés : un compte rendu, et
+-- un CV anonyme que l'accueil ne montre pas. (Depuis 0070, seul un PDF dont
+-- le fichier est chez nous se montre — d'où le chemin.)
+insert into public.document (bubble_id, nom, type_document, lien_url, chemin, loge_id, cree_le) values
   ('pdf-0069-cr',  'Compte-rendu du Mercredi 14 Octobre 2026', 'compte-rendu',
-   'https://example.org/cr.pdf', :'l_lyon'::uuid, timestamptz '2026-10-14 20:00+02'),
+   'https://example.org/cr.pdf', 'document/pdf-0069-cr/cr.pdf', :'l_lyon'::uuid,
+   timestamptz '2026-10-14 20:00+02'),
   ('pdf-0069-cva', 'CV anonyme 6901', 'cva',
-   'https://example.org/cva.pdf', :'l_lyon'::uuid, timestamptz '2026-10-14 20:00+02');
+   'https://example.org/cva.pdf', 'document/pdf-0069-cva/cva.pdf', :'l_lyon'::uuid,
+   timestamptz '2026-10-14 20:00+02');
 
 -- Rejouer la migration recopie la date de création dans `date_document`.
 update public.document
