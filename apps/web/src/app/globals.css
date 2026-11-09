@@ -1650,6 +1650,25 @@ tbody tr:focus-within {
   font-variant-numeric: tabular-nums;
 }
 
+/* Les deux dates d'un dossier refermé (Paramètres › Archives), à droite du
+   rang, avant le numéro : création, puis clôture ou archivage. */
+.refermes-dates {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  flex: none;
+  margin-left: auto;
+  font-size: 0.68rem;
+  color: var(--encre-douce);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.refermes-dates abbr {
+  text-decoration: none;
+  cursor: help;
+}
+
 /* La recherche d'une colonne (Paramètres › Archives) : toute sa largeur, sous
    son en-tête, à la taille de celle de la liste des candidats. */
 .archives-recherche {
@@ -1996,6 +2015,76 @@ tbody tr:focus-within {
   margin-top: 1.1rem;
 }
 
+/* La fenêtre d'archivage de l'accueil (0071) : une liste de dossiers, chacun
+   avec ses deux boutons. Plus large que les confirmations d'un seul geste. */
+.fenetre--large {
+  max-width: 38rem;
+}
+
+.archivage-liste {
+  list-style: none;
+  margin: 0.4rem 0 0;
+  padding: 0;
+  max-height: 55vh;
+  overflow-y: auto;
+}
+
+.archivage-liste li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px dashed var(--bordure);
+}
+
+.archivage-dossier {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.archivage-dossier strong {
+  font-size: 0.9rem;
+}
+
+.archivage-dossier small {
+  font-size: 0.76rem;
+  color: var(--encre-douce);
+}
+
+.archivage-gestes {
+  display: flex;
+  gap: 0.4rem;
+  flex: none;
+}
+
+.fenetre-gestes .aide {
+  margin: 0;
+}
+
+/* Le choix de qui a refermé un dossier, dans sa fenêtre de clôture (0071). */
+.cloture-motifs {
+  border: 0;
+  margin: 0 0 0.4rem;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1.1rem;
+}
+
+.cloture-motifs legend {
+  padding: 0;
+  margin-bottom: 0.45rem;
+  font-size: 0.9rem;
+  color: var(--encre-douce);
+}
+
+.cloture-motifs label {
+  font-size: 0.92rem;
+  cursor: pointer;
+}
+
 .bouton--danger {
   background: var(--alerte);
   border-color: var(--alerte);
@@ -2195,7 +2284,10 @@ tbody tr:focus-within {
   max-width: none;
 }
 
-.corps.parametres:has(.archives--en-tete-fixe) {
+/* Sur les trois onglets d'Archives, et pas seulement celui des PDF : sans
+   quoi, en passant d'un bouton à l'autre, le menu de gauche sauterait d'une
+   position à l'autre. */
+.corps.parametres:has(.archives-onglets) {
   max-width: none;
 }
 

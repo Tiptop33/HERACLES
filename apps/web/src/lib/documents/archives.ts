@@ -173,12 +173,19 @@ export function chercherDansLaColonne(
   lignes: readonly DocumentArchive[],
   recherche: string,
 ): DocumentArchive[] {
+  return lignes.filter((d) => correspond(texteCherchable(d), recherche));
+}
+
+/**
+ * Vrai si chaque mot de la recherche se trouve dans le texte, dans n'importe
+ * quel ordre, sans accents ni majuscules. Une recherche vide laisse tout
+ * passer. Sert aux colonnes de PDF comme aux listes de candidats refermés.
+ */
+export function correspond(texte: string, recherche: string): boolean {
   const mots = aplatir(recherche).replace(/[/.]/g, '-').split(/\s+/).filter(Boolean);
-  if (mots.length === 0) return [...lignes];
-  return lignes.filter((d) => {
-    const texte = texteCherchable(d);
-    return mots.every((mot) => texte.includes(mot));
-  });
+  if (mots.length === 0) return true;
+  const cible = aplatir(texte).replace(/_/g, ' ');
+  return mots.every((mot) => cible.includes(mot));
 }
 
 /**
@@ -188,6 +195,11 @@ export function chercherDansLaColonne(
  */
 export function compteDeLaColonne(affiches: number, total: number): string {
   return affiches === total ? String(total) : `${affiches} sur ${total}`;
+}
+
+/** Le nombre de PDF des trois colonnes réunies — celui du bouton « Archives ». */
+export function totalDesColonnes(colonnes: Record<Sorte, readonly DocumentArchive[]>): number {
+  return SORTES.reduce((total, sorte) => total + colonnes[sorte].length, 0);
 }
 
 /**

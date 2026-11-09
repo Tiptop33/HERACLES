@@ -1,7 +1,8 @@
 import Link from 'next/link';
 import ColonnesDesArchives from '@/components/ColonnesDesArchives';
+import FenetreDArchivage from '@/components/FenetreDArchivage';
 import FenetreDEffacement from '@/components/FenetreDEffacement';
-import type { Chiffres, Demande, Offre } from '@/lib/accueil';
+import type { Chiffres, Demande, DossierAArchiver, Offre } from '@/lib/accueil';
 import type { DocumentArchive, Sorte } from '@/lib/documents/archives';
 import { depuis, initiales, nomComplet } from '@/lib/format';
 
@@ -35,6 +36,8 @@ export default function VueAccueil({
   aEffacer,
   refusDArchive,
   offres,
+  aArchiver = [],
+  refusDArchivage = null,
   estReferent,
 }: {
   saison: string;
@@ -47,6 +50,10 @@ export default function VueAccueil({
   /** Ce que la route d'effacement a refusé, dit en clair. */
   refusDArchive: string | null;
   offres: Offre[];
+  /** Les dossiers clôturés depuis plus de deux mois, pour le Vénérable et le Secrétaire (0071). */
+  aArchiver?: DossierAArchiver[];
+  /** Ce que la route d'archivage a refusé, dit en clair. */
+  refusDArchivage?: string | null;
   estReferent: boolean;
 }) {
   const compteurs = [
@@ -158,6 +165,11 @@ export default function VueAccueil({
       )}
 
       {aEffacer && <FenetreDEffacement archive={aEffacer} adresse="/espace/accueil" />}
+
+      {/* Une fenêtre à la fois : la confirmation d'un effacement passe avant. */}
+      {!aEffacer && aArchiver.length > 0 && (
+        <FenetreDArchivage dossiers={aArchiver} refus={refusDArchivage} />
+      )}
     </main>
   );
 }

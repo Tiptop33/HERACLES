@@ -74,6 +74,7 @@ export default function PanneauFiche({
   collegues,
   referentActuel,
   prise,
+  cloturable,
 }: {
   fiche: FicheOuverte;
   /** La ligne correspondante de la liste, quand la vue courante la contient. */
@@ -99,6 +100,11 @@ export default function PanneauFiche({
   referentActuel: string | null;
   /** Ce que la route de prise en charge a répondu, quand elle a refusé. */
   prise: string | null;
+  /**
+   * Le dossier est en cours et la session peut le clôturer (0071) :
+   * administration, Vénérable Maître, Secrétaire. Fait paraître le bouton.
+   */
+  cloturable: boolean;
 }) {
   const nom = nomDeFamilleDabord(fiche.nom, fiche.prenom);
   const metier = fiche.metier_libelle ?? fiche.emploi_recherche ?? rang?.metier ?? null;
@@ -166,6 +172,14 @@ export default function PanneauFiche({
           <span className="bouton bouton--eteint" title="À venir au lot 4">
             Proposer une offre
           </span>
+
+          {/* Clôturer n'agit pas tout de suite : le bouton ouvre la fenêtre
+              où l'on dit qui a refermé le dossier (0071). */}
+          {cloturable && (
+            <Link href={adresse({ cloturer: '1' })} scroll={false} className="bouton">
+              Clôturer le dossier
+            </Link>
+          )}
 
           {/* Le stylo n'apparaît que pour qui accompagne — et s'il apparaissait
               à tort, la base refuserait quand même : c'est elle qui décide,

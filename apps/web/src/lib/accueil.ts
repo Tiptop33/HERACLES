@@ -1,5 +1,6 @@
 import {
   aujourdhuiAParis,
+  avantLaPeriode,
   periodeDesDocuments,
   rangerParSorte,
   type DocumentArchive,
@@ -103,9 +104,56 @@ export async function listerLesDocuments(periode: Periode): Promise<Record<Sorte
   return rangerParSorte((data as DocumentArchive[] | null) ?? []);
 }
 
+/**
+ * Ceux des exercices précédents — Paramètres › Archives. Rend aussi la
+ * période en cours, dont le premier jour borne les archives.
+ */
+export async function listerLesPdfAnterieurs(maintenant: Date = new Date()) {
+  const periode = await periodeEnCours(maintenant);
+  return { periode, colonnes: await listerLesDocuments(avantLaPeriode(periode)) };
+}
+
 /** Ceux de l'exercice en cours — l'accueil. */
 export async function listerLesArchives(maintenant: Date = new Date()) {
   return listerLesDocuments(await periodeEnCours(maintenant));
+}
+
+/** Un dossier clôturé depuis plus de deux mois, à archiver ou non (0071). */
+export type DossierAArchiver = {
+  candidat_id: string;
+  numero: number | null;
+  nom: string | null;
+  prenom: string | null;
+  /** Qui l'a refermé : Lui-même, Heraclés, Autre. */
+  cloture: string | null;
+  clos_le: string | null;
+  /** La date vient de la dernière modification Bubble : « ≈ ». */
+  estime: boolean;
+};
+
+/**
+ * Les dossiers que la fenêtre de l'accueil propose d'archiver. La base ne
+ * rend rien à qui n'est ni Vénérable Maître ni Secrétaire, et rien qui ait
+ * été repoussé au-delà d'aujourd'hui (`dossiers_a_archiver()`, 0071).
+ */
+export async function listerLesDossiersAArchiver(): Promise<DossierAArchiver[]> {
+  const supabase = await supabaseServer();
+  const { data, error } = await supabase.rpc('dossiers_a_archiver');
+  if (error) console.error('[accueil] dossiers à archiver illisibles', error.code);
+  return (data as DossierAArchiver[] | null) ?? [];
+}
+
+/** Ce que la route d'archivage répond quand elle refuse — un code, jamais un message. */
+const REFUS_D_ARCHIVAGE: Record<string, string> = {
+  droit: 'Seuls le Vénérable Maître et le Secrétaire tranchent l’archivage.',
+  introuvable: 'Ce dossier n’est plus à trancher : il a été archivé, ou rouvert.',
+  session: 'Votre session a expiré. Reconnectez-vous.',
+  echec: 'La décision n’a pas pu être enregistrée. Réessayez dans un instant.',
+};
+
+export function phraseDeRefusDArchivage(code: string | null | undefined): string | null {
+  if (!code) return null;
+  return REFUS_D_ARCHIVAGE[code] ?? REFUS_D_ARCHIVAGE.echec;
 }
 
 export type Offre = {

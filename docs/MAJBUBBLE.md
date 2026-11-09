@@ -83,11 +83,19 @@ sans fiche ne voit ni collègues, ni candidats : c'est à faire le jour même.
 **Refermer l'API Bubble** et régénérer ses jetons. Voir
 `docs/reprise-bubble-releve.md`.
 
-**Retirer la reprise des PDF de la mise en ligne.** Jusqu'à la bascule,
+**Retirer les reprises de la mise en ligne.** Jusqu'à la bascule,
 `mettre-a-jour.sh` rapatrie à chaque déploiement les comptes rendus, affiches et
 affichettes de Bubble (`reprendre-bubble.sh --pdf-commission`, voir
-[`mise-en-page.md`](mise-en-page.md)). Une fois Bubble fermé, cette étape ne fait
-plus qu'échouer sans bloquer : l'enlever du script.
+[`mise-en-page.md`](mise-en-page.md)), et recopie la date de dernière
+modification de chaque candidat (`--dates-candidats`, migration 0071). Une fois
+Bubble fermé, ces deux étapes ne font plus qu'échouer sans bloquer : les
+enlever du script.
+
+**Une clôture ou un archivage faits dans HERACLES survivent à MAJBUBBLE.**
+La reprise recopie CLOTURE et ARCHIVER sur les dossiers venus de Bubble ; un
+déclencheur (migration 0071) l'empêche de rouvrir un dossier qu'HERACLES a
+clôturé ou archivé entre-temps. Le reste de ce qu'HERACLES a changé sur ces
+fiches est, lui, remplacé par les valeurs de Bubble, comme avant.
 
 ## Ce que MAJBUBBLE ne fait pas
 
