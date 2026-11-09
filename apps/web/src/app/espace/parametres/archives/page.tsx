@@ -53,7 +53,7 @@ export default async function Archives({ searchParams }: { searchParams: Paramet
       )}
 
       <section className="bloc">
-        <ColonnesDesArchives colonnes={colonnes} adresse={ADRESSE} avant recherche />
+        <ColonnesDesArchives colonnes={colonnes} adresse={ADRESSE} avant compter recherche />
       </section>
 
       {aEffacer && <FenetreDEffacement archive={aEffacer} adresse={ADRESSE} />}

@@ -182,6 +182,15 @@ export function chercherDansLaColonne(
 }
 
 /**
+ * Le nombre de PDF d'une colonne, à côté de son titre : « 50 », et pendant une
+ * recherche « 2 sur 50 » — le total seul laisserait croire que la liste
+ * réduite est complète.
+ */
+export function compteDeLaColonne(affiches: number, total: number): string {
+  return affiches === total ? String(total) : `${affiches} sur ${total}`;
+}
+
+/**
  * Les lignes rangées dans leurs trois colonnes, dans l'ordre reçu — la base
  * les rend du plus récent au plus ancien. Une sorte inconnue n'entre nulle
  * part : la colonne ne montre que ce qu'elle annonce.

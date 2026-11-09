@@ -3,6 +3,7 @@ import {
   aujourdhuiAParis,
   avantLaPeriode,
   chercherDansLaColonne,
+  compteDeLaColonne,
   estUneAdresse,
   jourEnChiffres,
   periodeDesDocuments,
@@ -166,6 +167,18 @@ describe('la recherche d’une colonne — Paramètres › Archives', () => {
     expect(ids('mercredi octobre')).toEqual(['h', 'b']);
     expect(ids('2026 octobre 14')).toEqual(['b']);
     expect(ids('octobre juillet')).toEqual([]);
+  });
+});
+
+describe('le nombre de PDF sur le titre d’une colonne', () => {
+  it('dit le total tant que rien ne filtre', () => {
+    expect(compteDeLaColonne(50, 50)).toBe('50');
+    expect(compteDeLaColonne(0, 0)).toBe('0');
+  });
+
+  it('dit ce qui reste sur le total pendant une recherche', () => {
+    expect(compteDeLaColonne(2, 50)).toBe('2 sur 50');
+    expect(compteDeLaColonne(0, 50)).toBe('0 sur 50');
   });
 });
 

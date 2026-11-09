@@ -6,6 +6,7 @@ import { Corbeille } from '@/components/Icones';
 import {
   chercherDansLaColonne,
   COLONNES,
+  compteDeLaColonne,
   SORTES,
   type Adresse,
   type DocumentArchive,
@@ -23,6 +24,8 @@ import {
  * `adresse` est la page qui le montre : la corbeille y ouvre la fenêtre de
  * confirmation, et l'effacement y ramène.
  *
+ * `compter` met le nombre de PDF à côté de chaque titre (Paramètres › Archives).
+ *
  * `recherche` ajoute un champ sous chaque en-tête (Paramètres › Archives). Le
  * filtre s'applique à chaque lettre tapée, dans le navigateur : les lignes
  * sont déjà là, quelques dizaines par colonne, et un aller-retour au serveur
@@ -33,12 +36,15 @@ export default function ColonnesDesArchives({
   colonnes,
   adresse,
   avant = false,
+  compter = false,
   recherche = false,
 }: {
   colonnes: Record<Sorte, DocumentArchive[]>;
   adresse: Adresse;
   /** Les exercices précédents : la colonne vide le dit autrement. */
   avant?: boolean;
+  /** Le nombre de PDF à côté de chaque titre. */
+  compter?: boolean;
   /** Un champ de recherche par colonne. */
   recherche?: boolean;
 }) {
@@ -56,7 +62,14 @@ export default function ColonnesDesArchives({
 
         return (
           <div key={sorte} className="archives-colonne">
-            <h3>{COLONNES[sorte].titre}</h3>
+            <h3>
+              {COLONNES[sorte].titre}
+              {compter && (
+                <span className="archives-compte">
+                  {' '}({compteDeLaColonne(lignes.length, toutes.length)})
+                </span>
+              )}
+            </h3>
 
             {/* Pas de champ sur une colonne vide : il n'y aurait rien à y
                 chercher. */}

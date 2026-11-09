@@ -113,7 +113,9 @@ Affichette — ouvrent le PDF **et en rangent un exemplaire** :
   accents ni majuscules, sur le nom et sur la date en chiffres comme en
   lettres — « octobre » et « 10-2026 » trouvent « Compte-Rendu du 28-10-2026 »
   comme « Compte-rendu du Mercredi 14 Octobre 2026 »
-  (`chercherDansLaColonne()`). L'accueil n'en a pas.
+  (`chercherDansLaColonne()`). Le titre de chaque colonne porte le **nombre de
+  PDF** — « Compte-rendu (50) », et pendant une recherche « (2 sur 50) ».
+  L'accueil n'a ni recherche ni nombre.
 - **Les PDF de Bubble arrivent à chaque mise en ligne**, jusqu'à la bascule :
   `mettre-a-jour.sh` lance `reprendre-bubble.sh --pdf-commission`, qui reprend
   la table des PDF et ne rapatrie que les comptes rendus, affiches et
