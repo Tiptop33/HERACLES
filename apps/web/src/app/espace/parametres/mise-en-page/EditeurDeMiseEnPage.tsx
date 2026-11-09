@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { GABARITS, defauts, type Champ, type DocumentCle, type Ligne, type Reglages, type Valeur } from '@/lib/documents/gabarits';
 import { verifier } from '@/lib/documents/reglages';
+import ApercuPdf from './ApercuPdf';
 
 /**
  * L'éditeur de mise en page : les réglages d'un document à gauche, son aperçu
@@ -269,11 +270,10 @@ export default function EditeurDeMiseEnPage({
             Ouvrir l’aperçu
           </a>
         </div>
-        <iframe
-          key={version}
-          className="mise-en-page-cadre"
-          src={`${adresse}/apercu?v=${version}#view=FitH`}
-          title={`Aperçu — ${gabarit.libelle}, sur des données d’exemple`}
+        <ApercuPdf
+          adresse={`${adresse}/apercu`}
+          version={version}
+          titre={`Aperçu — ${gabarit.libelle}, sur des données d’exemple`}
         />
         <p className="aide">Aperçu sur des données d’exemple, inventées.</p>
       </aside>

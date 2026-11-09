@@ -29,6 +29,14 @@ Polices : Poppins (OFL, `ressources/polices/OFL-Poppins.txt`) et Roboto (celle
 que pdfmake livre). Elles entrent dans l'image par `outputFileTracingIncludes`
 (`next.config.ts`), pas par `public/`.
 
+## L'aperçu
+
+L'écran ne montre pas l'aperçu dans un cadre : nginx envoie
+`X-Frame-Options: DENY` sur toutes les réponses, et un `<iframe>` restait blanc.
+Le PDF est lu par `fetch` puis dessiné page par page par pdf.js
+(`ApercuPdf.tsx`), ce qui marche aussi sur iPad, où Safari n'affiche que la
+première page d'un PDF en cadre. Ne pas assouplir `X-Frame-Options` pour cela.
+
 ## Les réglages
 
 - La base ne garde que les **écarts** à l'origine (`mise_en_page.reglages`,
