@@ -1,24 +1,25 @@
 import { NextResponse } from 'next/server';
-import { construireCompteRendu, lirePresences, nomDuFichier } from '@/lib/compte-rendu';
-import { referentCourant } from '@/lib/candidat';
-import { lireDossiers } from '@/lib/dossiers';
+import { nomDuCompteRendu } from '@/lib/documents/compte-rendu';
+import { donneesDuCompteRendu } from '@/lib/documents/donnees';
+import { produireLeCompteRendu } from '@/lib/documents/produire';
+import { enTeteDeTelechargement } from '@/lib/fichiers';
 import { lireUneReunion } from '@/lib/reunion';
 import { supabaseServer } from '@/lib/supabase-server';
 
 /**
- * Le compte rendu d'une réunion, en PDF.
+ * Le compte rendu d'une réunion, en PDF — celui de Bubble, à l'identique, mis
+ * en page selon Paramètres › Mise en page.
  *
  * Une lecture, donc un `GET` : le document est une photographie de ce que la
- * base sait déjà, rien ne s'écrit en le demandant. On peut le rafraîchir, le
- * mettre en favori, revenir en arrière — sans conséquence.
+ * base sait déjà, rien ne s'écrit en le demandant.
  *
- * L'ordre imposé par le projet est tenu par la base, comme pour la feuille
- * d'appel : `lireUneReunion()` et les deux fonctions de 0055 ne rendent rien
- * hors de la loge de la personne connectée. Cette route ne filtre rien
- * elle-même, et n'a aucune raison de toucher à `supabaseAdmin()`.
+ * L'ordre imposé par le projet est tenu par la base : `lireUneReunion()` et les
+ * fonctions de 0055 et 0067 ne rendent rien hors de la loge de la personne
+ * connectée. Cette route ne filtre rien elle-même, et ne touche pas à
+ * `supabaseAdmin()`.
  *
- * `runtime = 'nodejs'` : `pdf-lib` compresse avec `pako` et travaille sur des
- * tampons — rien qui doive tourner en bordure.
+ * `runtime = 'nodejs'` : pdfmake lit ses polices sur le disque et travaille sur
+ * des tampons — rien qui doive tourner en bordure.
  */
 
 export const runtime = 'nodejs';
@@ -46,28 +47,14 @@ export async function GET(_requete: Request, { params }: { params: Promise<{ id:
       return NextResponse.json({ erreur: 'Cette réunion n’existe pas.' }, { status: 404 });
     }
 
-    // La loge, pour l'en-tête. Celle de la personne connectée est celle de la
-    // réunion : `lireUneReunion()` n'aurait rien rendu autrement.
-    const [presences, candidats, moi] = await Promise.all([
-      lirePresences(id),
-      lireDossiers(id),
-      referentCourant(),
-    ]);
-
-    const octets = await construireCompteRendu({
-      tenueLe: reunion.tenue_le,
-      lieu: reunion.lieu,
-      loge: moi?.loge ?? null,
-      presences,
-      candidats,
-    });
+    const octets = await produireLeCompteRendu(await donneesDuCompteRendu(reunion));
 
     return new NextResponse(octets as unknown as BodyInit, {
       headers: {
         'Content-Type': 'application/pdf',
         // `inline` : le navigateur l'ouvre dans son lecteur, on le relit avant
         // de l'envoyer. Le nom reste posé, pour l'enregistrement.
-        'Content-Disposition': `inline; filename="${nomDuFichier(reunion.tenue_le)}"`,
+        'Content-Disposition': enTeteDeTelechargement(nomDuCompteRendu(reunion.tenue_le), 'inline'),
         // Le document porte des coordonnées et des situations personnelles :
         // aucun cache partagé n'a à le garder.
         'Cache-Control': 'private, no-store',

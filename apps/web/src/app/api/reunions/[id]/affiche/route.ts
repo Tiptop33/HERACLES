@@ -1,22 +1,24 @@
 import { NextResponse } from 'next/server';
-import { construireAffiche, nomDeLAffiche } from '@/lib/affiche';
-import { referentCourant } from '@/lib/candidat';
-import { lireContactsDeLaCommission, lireDossiers } from '@/lib/dossiers';
+import { nomDeLAffiche } from '@/lib/documents/affiche';
+import { donneesDeLAffiche } from '@/lib/documents/donnees';
+import { produireLAffiche } from '@/lib/documents/produire';
+import { enTeteDeTelechargement } from '@/lib/fichiers';
+import { origine } from '@/lib/formulaire';
 import { lireUneReunion } from '@/lib/reunion';
 import { supabaseServer } from '@/lib/supabase-server';
 
 /**
- * L'affiche de la commission, en PDF.
+ * L'affiche de la commission, en PDF — celle de Bubble, à l'identique.
  *
  * Même forme que le compte rendu — une lecture, donc un `GET`, et la base pour
  * seule porte —, mais un document tout autre : celui-ci **circule**. Il ne
- * porte aucun nom de candidat, seulement des numéros de dossier. Voir
- * `lib/affiche.ts`.
+ * porte aucun nom de candidat : le numéro, la date, l'intitulé, et le lien du
+ * CV anonyme (migration 0067). Voir `lib/documents/affiche.ts`.
  */
 
 export const runtime = 'nodejs';
 
-export async function GET(_requete: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(requete: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
 
   if (!/^[0-9a-f-]{36}$/i.test(id)) {
@@ -37,23 +39,12 @@ export async function GET(_requete: Request, { params }: { params: Promise<{ id:
       return NextResponse.json({ erreur: 'Cette réunion n’existe pas.' }, { status: 404 });
     }
 
-    const [dossiers, contacts, moi] = await Promise.all([
-      lireDossiers(id),
-      lireContactsDeLaCommission(),
-      referentCourant(),
-    ]);
-
-    const octets = await construireAffiche({
-      tenueLe: reunion.tenue_le,
-      loge: moi?.loge ?? null,
-      dossiers,
-      contacts,
-    });
+    const octets = await produireLAffiche(await donneesDeLAffiche(reunion, origine(requete)));
 
     return new NextResponse(octets as unknown as BodyInit, {
       headers: {
         'Content-Type': 'application/pdf',
-        'Content-Disposition': `inline; filename="${nomDeLAffiche(reunion.tenue_le)}"`,
+        'Content-Disposition': enTeteDeTelechargement(nomDeLAffiche(reunion.tenue_le), 'inline'),
         // L'affiche est faite pour circuler, mais elle se produit depuis une
         // session : aucun cache partagé n'a à la garder pour un autre.
         'Cache-Control': 'private, no-store',

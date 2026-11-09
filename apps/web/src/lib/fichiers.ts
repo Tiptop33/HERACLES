@@ -128,12 +128,12 @@ export function extensionDe(chemin: string): string {
  * première, un navigateur ancien ne saurait pas quoi faire ; sans la seconde,
  * « CV — Élodie Lefèvre.pdf » arriverait en « CV  lodie Lef vre.pdf ».
  */
-export function enTeteDeTelechargement(nom: string): string {
+export function enTeteDeTelechargement(nom: string, disposition: 'attachment' | 'inline' = 'attachment'): string {
   const propre = nom.replace(/[\\/:*?"<>|\r\n]/g, ' ').replace(/\s+/g, ' ').trim() || 'document';
 
   // Le repli : ASCII imprimable seulement, guillemets compris — ils fermeraient
   // la chaîne au milieu du nom.
   const ascii = propre.replace(/[^\x20-\x7E]/g, '_').replace(/"/g, '');
 
-  return `attachment; filename="${ascii}"; filename*=UTF-8''${encodeURIComponent(propre)}`;
+  return `${disposition}; filename="${ascii}"; filename*=UTF-8''${encodeURIComponent(propre)}`;
 }

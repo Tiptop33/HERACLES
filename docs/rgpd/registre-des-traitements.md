@@ -100,6 +100,21 @@ traitements.
 | **Durée de conservation** | Chez HERACLES : rien n'est conservé de la lecture, sauf la photo que le candidat a gardée, qui suit la durée de son dossier (§ 1). Chez Anthropic : suppression automatique sous 30 jours ; jamais utilisé pour entraîner les modèles (conditions commerciales, § B). La conservation zéro se demande à leur équipe commerciale. |
 | **Sécurité** | Cinq lectures par lien et par quart d'heure ; le journal du serveur ne note jamais un contenu. Voir `docs/lecture-du-cv.md`. |
 
+## 5 bis. Les documents de la commission : compte rendu, affiche, affichette
+
+| | |
+| --- | --- |
+| **Finalité** | Rendre compte de chaque réunion (compte rendu) et faire connaître les dossiers en cours au-delà de la loge (affiche, affichette), comme le faisait l'application Bubble. |
+| **Base légale** | Celle du suivi des candidats (§ 1) et de la vie de la loge (§ 3). ⚖️ *La diffusion de l'affiche et de l'affichette hors de la loge, avec le lien du CV anonyme, est à couvrir par la case de consentement du candidat : à vérifier dans son libellé.* |
+| **Personnes concernées** | Les candidats ; les référents présents ou absents ; le Vénérable Maître et le Secrétaire de la loge, qui signent ; les personnes de la liste de diffusion. |
+| **Données** | **Compte rendu** — référents : nom, prénom, adresse électronique, téléphone, présence du jour, taux de présence ; candidats en cours : numéro, date d'entrée, définition et intitulé de l'emploi recherché, nom, prénom, référent, dernier commentaire du suivi. **Affiche** — par dossier : numéro, date d'entrée, intitulé de l'emploi recherché, lien du CV anonyme ; **aucun nom de candidat**. **Affichette** — un dossier : numéro, type et intitulé de l'emploi recherché, rayon d'action, QR code du CV anonyme ; **aucun nom de candidat**. Les deux portent les nom, téléphone et adresse du Vénérable Maître et du Secrétaire. |
+| **Destinataires** | Compte rendu : les membres de la loge. Affiche et affichette : faites pour circuler — les loges de la province et leurs membres. |
+| **Le lien du CV anonyme** | `/cv-anonyme/<jeton>` s'ouvre **sans compte** (migration 0067) : c'est la seule porte de l'application ouverte à `anon`. Elle ne donne que le CV anonyme, jamais le CV nominatif ni la fiche ; seulement tant que le dossier est en cours ; à qui détient le jeton (122 bits tirés au hasard, propres au candidat). Réponse ni mise en cache, ni indexée (`X-Robots-Tag: noindex`), sans `Referer`. ⚠️ *Un lien qui a circulé ne se reprend pas : pour couper l'accès avant la fin du dossier, il faut aujourd'hui changer le jeton en base. Un geste d'administration est à prévoir.* ⚖️ *Le CV « anonyme » doit l'être réellement : c'est la commission qui le prépare, et c'est sa responsabilité de n'y laisser ni nom ni coordonnée.* |
+| **Sous-traitants** | Hostinger. Aucun autre : les documents se produisent sur le serveur, sans service extérieur. |
+| **Transferts hors UE** | Aucun. |
+| **Durée de conservation** | Les documents ne sont pas conservés par HERACLES : ils se produisent à la demande. Le lien du CV anonyme s'éteint à la clôture ou à l'archivage du dossier. |
+| **Sécurité** | Production sous la session de qui demande, sous la RLS ; réglages de mise en page écrits par l'administration seule ; aucune ressource chargée depuis le réseau à la production d'un PDF. |
+
 ## 6. Les sauvegardes
 
 | | |
@@ -141,6 +156,8 @@ part).
   (RLS) ; une règle d'accès ne s'ajoute qu'avec l'écran qui la justifie.
 - **Liens personnels** pour les parrains et les candidats : seule leur empreinte
   est conservée, ils expirent au bout de 30 jours.
+- **Lien du CV anonyme** (§ 5 bis) : la seule adresse lisible sans compte ; elle
+  ne sert que le CV anonyme d'un dossier en cours.
 - **Chiffrement en transit** (HTTPS) ; base jamais exposée sur Internet.
 - **Aucun secret ni aucune donnée réelle dans le dépôt de code.**
 - **Sauvegardes** quotidiennes, sorties du serveur (§ 6).
