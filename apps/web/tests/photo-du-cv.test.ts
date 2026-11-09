@@ -1,5 +1,6 @@
+import zlib from 'node:zlib';
 import JSZip from 'jszip';
-import { PDFDocument } from 'pdf-lib';
+import { PDFDocument, PDFName, PDFNumber, PDFRawStream } from 'pdf-lib';
 import { describe, expect, it } from 'vitest';
 import {
   MAXIMUM_D_IMAGES_MONTREES,
@@ -8,6 +9,7 @@ import {
   imagesDuDocx,
   imagesDuPdf,
   imagesPossibles,
+  pngDepuisPixels,
   type ImageDuCv,
 } from '../src/lib/photo-du-cv';
 
@@ -152,5 +154,94 @@ describe('ce qui ne se lit pas', () => {
 
   it('ne découpe rien dans un CV photographié', async () => {
     expect(await imagesDuCv(fauxJpeg(300, 400), 'jpg')).toEqual([]);
+  });
+});
+
+/** Une image d'un PDF, enregistrée telle quelle : le dictionnaire et les octets donnés. */
+function imagePdf(
+  document: PDFDocument,
+  champs: Record<string, string | number>,
+  octets: Uint8Array,
+) {
+  const dictionnaire = document.context.obj({ Type: 'XObject', Subtype: 'Image' });
+  for (const [cle, valeur] of Object.entries(champs)) {
+    dictionnaire.set(
+      PDFName.of(cle),
+      typeof valeur === 'number' ? PDFNumber.of(valeur) : PDFName.of(valeur),
+    );
+  }
+  return document.context.register(PDFRawStream.of(dictionnaire, octets));
+}
+
+/** `longueur` octets de la même valeur, codés en RunLength. */
+function runLength(valeur: number, longueur: number): Uint8Array {
+  const octets: number[] = [];
+  for (let reste = longueur; reste > 0; ) {
+    const n = Math.min(128, reste);
+    octets.push(257 - n, valeur);
+    reste -= n;
+  }
+  octets.push(128); // fin
+  return new Uint8Array(octets);
+}
+
+describe('les images d’un PDF qui ne sont pas des JPEG', () => {
+  it('fabrique un PNG valide à partir de pixels bruts', () => {
+    const pixels = new Uint8Array(100 * 120 * 3).fill(200);
+    const png = pngDepuisPixels(100, 120, 3, pixels);
+    expect(dimensionsDImage(png)).toEqual({ largeur: 100, hauteur: 120 });
+  });
+
+  it('reconstruit en PNG une image compressée en Flate', async () => {
+    const document = await PDFDocument.create();
+    document.addPage();
+    const pixels = new Uint8Array(100 * 120 * 3).fill(128);
+    await document.embedPng(pngDepuisPixels(100, 120, 3, pixels));
+
+    const images = await imagesDuPdf(await document.save());
+    expect(images).toHaveLength(1);
+    expect(images[0]).toMatchObject({ format: 'png', largeur: 100, hauteur: 120 });
+    expect(dimensionsDImage(images[0].octets)).toEqual({ largeur: 100, hauteur: 120 });
+  });
+
+  it('reconstruit en PNG une image en RunLength — la photo du CV du 9 novembre', async () => {
+    const document = await PDFDocument.create();
+    document.addPage();
+    imagePdf(
+      document,
+      { Width: 100, Height: 100, ColorSpace: 'DeviceRGB', BitsPerComponent: 8, Filter: 'RunLengthDecode' },
+      runLength(90, 100 * 100 * 3),
+    );
+
+    const images = await imagesDuPdf(await document.save());
+    expect(images).toHaveLength(1);
+    expect(images[0]).toMatchObject({ format: 'png', largeur: 100, hauteur: 100 });
+  });
+
+  it('écarte les masques de transparence, les palettes et le CMJN', async () => {
+    const document = await PDFDocument.create();
+    document.addPage();
+    const gris = zlib.deflateSync(new Uint8Array(100 * 100).fill(255));
+    const masque = imagePdf(
+      document,
+      { Width: 100, Height: 100, ColorSpace: 'DeviceGray', BitsPerComponent: 8, Filter: 'FlateDecode' },
+      gris,
+    );
+    const photo = imagePdf(
+      document,
+      { Width: 100, Height: 100, ColorSpace: 'DeviceRGB', BitsPerComponent: 8, Filter: 'FlateDecode' },
+      zlib.deflateSync(new Uint8Array(100 * 100 * 3).fill(60)),
+    );
+    document.context.lookup(photo, PDFRawStream).dict.set(PDFName.of('SMask'), masque);
+    imagePdf(
+      document,
+      { Width: 100, Height: 100, ColorSpace: 'DeviceCMYK', BitsPerComponent: 8, Filter: 'FlateDecode' },
+      zlib.deflateSync(new Uint8Array(100 * 100 * 4)),
+    );
+
+    const images = await imagesDuPdf(await document.save());
+    // Seule la photo reste : ni son masque, ni l'image en CMJN.
+    expect(images).toHaveLength(1);
+    expect(images[0]).toMatchObject({ format: 'png', largeur: 100, hauteur: 100 });
   });
 });
