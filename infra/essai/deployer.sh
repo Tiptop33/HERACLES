@@ -361,10 +361,11 @@ TRAEFIK_ENABLE=false
 # on les ajoute à la main dans `.env.essai`. Ce fichier étant réécrit plus bas,
 # on les met de côté pour les remettre ensuite. Sans cela, relancer ce script
 # coupait l'envoi des courriels sans prévenir. Seul le nombre de lignes est
-# affiché : jamais les valeurs.
+# affiché : jamais les valeurs. La clé d'Anthropic, qui lit les CV
+# (docs/lecture-du-cv.md), est gardée de la même façon.
 GARDE_COURRIEL=""
 if [[ -f "$DEPOT/.env.essai" ]]; then
-  GARDE_COURRIEL="$(grep -E '^(BREVO_API_KEY|COURRIEL_EXPEDITEUR|COURRIEL_NOM_EXPEDITEUR|RELANCE_SECRET)=.' \
+  GARDE_COURRIEL="$(grep -E '^(BREVO_API_KEY|COURRIEL_EXPEDITEUR|COURRIEL_NOM_EXPEDITEUR|RELANCE_SECRET|ANTHROPIC_API_KEY)=.' \
     "$DEPOT/.env.essai" || true)"
 fi
 

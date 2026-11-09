@@ -45,6 +45,9 @@ services:
       # Le secret de /api/relances. Vide, et c'est voulu : la relance
       # automatique est désactivée (docs/parrainage.md), la route est fermée.
       RELANCE_SECRET: ${RELANCE_SECRET:-}
+      # La lecture du CV par Claude (docs/lecture-du-cv.md), pour pré-remplir
+      # la fiche du candidat. Vide : rien ne part, le candidat remplit à la main.
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
     ports:
       # Jamais exposé directement sur Internet : la façade — Nginx ou Traefik —
       # fait le reverse-proxy HTTPS vers ce port. Publié sur la boucle locale

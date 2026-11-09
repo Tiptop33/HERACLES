@@ -397,6 +397,9 @@ eux l'application tourne, mais le parcours « nouveau candidat » n'envoie rien.
 `RELANCE_SECRET`, lui, reste vide : la relance automatique est désactivée
 (`docs/parrainage.md`).
 
+Et la lecture du CV : `ANTHROPIC_API_KEY`, voir `docs/lecture-du-cv.md`. Sans
+elle, le candidat remplit sa fiche à la main, comme avant.
+
 **`NEXT_PUBLIC_*` est figée à la construction.** Changer le domaine plus tard
 oblige à reconstruire l'image — pas seulement à redémarrer le conteneur.
 
