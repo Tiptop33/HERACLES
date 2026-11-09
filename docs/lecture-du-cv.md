@@ -1,14 +1,22 @@
 # La lecture du CV
 
-Sur sa fiche (`/candidature/<jeton>`), le candidat choisit d'abord son CV. Le
-formulaire se remplit alors à partir de son contenu : coordonnées, recherche,
-permis, formation, expériences, compétences. Le candidat relit, complète, puis
-envoie. C'est Claude, le modèle d'Anthropic, qui lit le CV.
+Sur sa fiche (`/candidature/<jeton>`), le candidat choisit d'abord son CV : le
+champ est en tête du formulaire. S'il clique ensuite sur **« Remplir le
+formulaire à partir de mon CV »**, le formulaire se remplit à partir de son
+contenu : coordonnées, recherche, permis, formation, expériences, compétences.
+Le candidat relit, complète, puis envoie. C'est Claude, le modèle d'Anthropic,
+qui lit le CV.
+
+**Rien ne part sans ce clic.** Choisir son fichier ne fait que le joindre à la
+fiche. C'est le geste du candidat qui vaut accord pour transmettre son CV à
+Anthropic. Il en est prévenu sous le bouton, et la case de consentement le
+rappelle.
 
 ## Ce qui se passe
 
-1. Le candidat choisit son fichier. Le navigateur l'envoie à
-   `POST /api/candidature/<jeton>/lecture-cv`, avant l'envoi de la fiche.
+1. Le candidat choisit son fichier, puis clique sur « Remplir ». Le navigateur
+   l'envoie à `POST /api/candidature/<jeton>/lecture-cv`, avant l'envoi de la
+   fiche.
 2. La route vérifie le jeton, la limite de lectures, la taille et le format du
    fichier (lu dans ses octets), puis transmet le CV à l'API d'Anthropic.
 3. Claude rend un objet JSON. Chaque case vaut `null` quand le CV ne la
@@ -25,8 +33,8 @@ habituelle. **La lecture n'enregistre rien.** Ni le fichier ni ce qui en est
 tiré ne sont conservés par HERACLES, et le journal ne note que la nature d'un
 échec, jamais un contenu.
 
-Si la lecture échoue (clé absente, format non lu, panne), le candidat le voit
-sous le champ et remplit à la main. La fiche s'envoie dans tous les cas.
+Si la lecture échoue (format non lu, panne), le candidat le voit sous le bouton
+et remplit à la main. La fiche s'envoie dans tous les cas.
 
 ## Formats
 
@@ -39,9 +47,11 @@ sous le champ et remplit à la main. La fiche s'envoie dans tous les cas.
 
 ## Données personnelles — à régler avant la mise en service
 
-Le CV quitte le serveur pour être lu par Anthropic, aux États-Unis. Le candidat
-en est prévenu à côté du champ CV. Trois points restent à régler, et ils ne
-relèvent pas du code :
+Quand le candidat clique sur « Remplir », son CV quitte le serveur pour être lu
+par Anthropic, aux États-Unis. Il en est prévenu sous le bouton, et la case de
+consentement ajoute : « Si j'ai demandé à remplir ce formulaire à partir de mon
+CV, celui-ci a aussi été transmis à Anthropic pour être lu par Claude. » Deux
+points restent à régler, et ils ne relèvent pas du code :
 
 1. **Le contrat avec Anthropic.** Accepter les conditions commerciales et
    l'accord de traitement des données (DPA) de l'organisation Anthropic qui
@@ -50,10 +60,6 @@ relèvent pas du code :
    possible.
 2. **Le registre des traitements.** Y inscrire Anthropic comme sous-traitant
    et le transfert hors de l'Union européenne.
-3. **Le texte du consentement**, en bas du formulaire. Il dit que les documents
-   « ne sont lus que par les membres de la commission ». Le CV est désormais
-   aussi lu par Anthropic pour remplir la fiche. À reformuler si l'on veut
-   lever toute ambiguïté : c'est une modification de l'écran, qui se décide.
 
 ## Configuration
 
@@ -73,8 +79,11 @@ au reste.
 réécrit ce fichier mais conserve `ANTHROPIC_API_KEY`, comme les réglages de
 Brevo.
 
-**Sans clé**, rien ne part. Le candidat lit « La lecture automatique n'est pas
-disponible » et remplit sa fiche à la main, comme avant cette fonction.
+**Sans clé**, rien ne part et rien ne s'affiche : ni le bouton « Remplir », ni
+la mention d'Anthropic, ni la phrase ajoutée au consentement. Le CV reste en
+tête du formulaire, et le candidat remplit sa fiche à la main. La page lit la
+clé à chaque affichage : la poser ou la retirer suffit, sans reconstruire
+l'image.
 
 ## Coût
 

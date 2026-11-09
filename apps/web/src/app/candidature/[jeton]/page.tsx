@@ -89,6 +89,8 @@ export default async function PageDuCandidat({
             email: candidature.email ?? '',
             type_emploi: candidature.type_emploi ?? '',
           }}
+          // Lu à chaque affichage : la clé se pose ou se retire sans reconstruire.
+          lectureDisponible={Boolean(process.env.ANTHROPIC_API_KEY)}
         />
       </div>
     </main>
