@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import {
   aujourdhuiAParis,
+  avantLaPeriode,
+  estUneAdresse,
   jourEnChiffres,
   periodeDesDocuments,
   phraseDeRefusDocument,
@@ -8,6 +10,7 @@ import {
   titreDeLAffiche,
   titreDeLAffichette,
   titreDuCompteRendu,
+  veille,
   type DocumentArchive,
 } from '../src/lib/documents/archives';
 
@@ -63,6 +66,31 @@ describe('la période de l’accueil', () => {
   it('bascule de saison en septembre, pas en janvier', () => {
     expect(periodeDesDocuments({ debut: null, fin: null }, '2027-08-31').du).toBe('2026-09-01');
     expect(periodeDesDocuments({ debut: null, fin: null }, '2027-09-01').du).toBe('2027-09-01');
+  });
+});
+
+describe('les exercices précédents — Paramètres › Archives', () => {
+  it('prend la veille, mois et années compris', () => {
+    expect(veille('2026-09-01')).toBe('2026-08-31');
+    expect(veille('2026-01-01')).toBe('2025-12-31');
+    expect(veille('2028-03-01')).toBe('2028-02-29');
+  });
+
+  it('s’arrête la veille de l’exercice en cours, sans le recouvrir', () => {
+    expect(avantLaPeriode({ du: '2026-09-01', au: '2027-07-31' })).toEqual({
+      du: '1900-01-01',
+      au: '2026-08-31',
+    });
+  });
+});
+
+describe('le retour de la corbeille', () => {
+  it('ne ramène qu’aux deux pages qui montrent les colonnes', () => {
+    expect(estUneAdresse('/espace/accueil')).toBe(true);
+    expect(estUneAdresse('/espace/parametres/archives')).toBe(true);
+    expect(estUneAdresse('https://ailleurs.example/')).toBe(false);
+    expect(estUneAdresse('/espace/accueil?x=1')).toBe(false);
+    expect(estUneAdresse(undefined)).toBe(false);
   });
 });
 

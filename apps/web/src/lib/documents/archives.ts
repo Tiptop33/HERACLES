@@ -16,12 +16,35 @@ export function estUneSorte(valeur: unknown): valeur is Sorte {
   return typeof valeur === 'string' && (SORTES as readonly string[]).includes(valeur);
 }
 
-/** L'en-tête de chaque colonne de l'accueil, et ce qu'elle dit quand elle est vide. */
-export const COLONNES: Record<Sorte, { titre: string; vide: string }> = {
-  'compte-rendu': { titre: 'Compte-rendu', vide: 'Aucun compte-rendu sur la période.' },
-  affiche: { titre: 'Affiche', vide: 'Aucune affiche sur la période.' },
-  affichette: { titre: 'Affichette', vide: 'Aucune affichette sur la période.' },
+/**
+ * L'en-tête de chaque colonne, et ce qu'elle dit quand elle est vide — à
+ * l'accueil (l'exercice en cours) et dans Paramètres › Archives (ceux d'avant).
+ */
+export const COLONNES: Record<Sorte, { titre: string; vide: string; videAvant: string }> = {
+  'compte-rendu': {
+    titre: 'Compte-rendu',
+    vide: 'Aucun compte-rendu sur la période.',
+    videAvant: 'Aucun compte-rendu des exercices précédents.',
+  },
+  affiche: {
+    titre: 'Affiche',
+    vide: 'Aucune affiche sur la période.',
+    videAvant: 'Aucune affiche des exercices précédents.',
+  },
+  affichette: {
+    titre: 'Affichette',
+    vide: 'Aucune affichette sur la période.',
+    videAvant: 'Aucune affichette des exercices précédents.',
+  },
 };
+
+/** Où l'on regarde les PDF : l'accueil, ou l'onglet des exercices précédents. */
+export const ADRESSES = ['/espace/accueil', '/espace/parametres/archives'] as const;
+export type Adresse = (typeof ADRESSES)[number];
+
+export function estUneAdresse(valeur: unknown): valeur is Adresse {
+  return typeof valeur === 'string' && (ADRESSES as readonly string[]).includes(valeur);
+}
 
 const PARIS = new Intl.DateTimeFormat('fr-FR', {
   day: '2-digit',
@@ -74,6 +97,9 @@ export function enPdf(titre: string): string {
   return `${titre}.pdf`;
 }
 
+/** Deux bornes « AAAA-MM-JJ », comprises. */
+export type Periode = { du: string; au: string };
+
 /**
  * La période dont l'accueil montre les PDF : l'exercice réglé dans
  * Paramètres › Exercice — du 1er septembre au 31 juillet, en principe.
@@ -83,10 +109,7 @@ export function enPdf(titre: string): string {
  * Tant qu'elles ne le sont pas, on prend la saison que l'accueil affiche déjà
  * en titre, plutôt que de ne rien montrer.
  */
-export function periodeDesDocuments(
-  exercice: Exercice,
-  aujourdhui: string,
-): { du: string; au: string } {
+export function periodeDesDocuments(exercice: Exercice, aujourdhui: string): Periode {
   const { debut, fin } = exercice;
   if (debut && fin) return { du: debut, au: fin };
 
@@ -94,6 +117,22 @@ export function periodeDesDocuments(
   const mois = Number(aujourdhui.slice(5, 7));
   const depart = mois >= 9 ? annee : annee - 1;
   return { du: `${depart}-09-01`, au: `${depart + 1}-07-31` };
+}
+
+/** La veille d'une date « AAAA-MM-JJ », dans la même forme. */
+export function veille(jour: string): string {
+  const d = new Date(`${jour.slice(0, 10)}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() - 1);
+  return d.toISOString().slice(0, 10);
+}
+
+/**
+ * Tout ce qui précède une période : les exercices précédents, aussi loin que
+ * remontent les PDF repris de Bubble. Paramètres › Archives les montre, quand
+ * l'accueil ne montre que l'exercice en cours — les deux ne se recouvrent pas.
+ */
+export function avantLaPeriode(periode: Periode): Periode {
+  return { du: '1900-01-01', au: veille(periode.du) };
 }
 
 /** Une ligne d'une colonne de l'accueil, telle que la rend `documents_de_l_accueil()`. */
