@@ -10,7 +10,10 @@ import {
   EXCUSE,
   PRESENT,
   compter,
+  libelleDuDossier,
   lireFeuilleDAppel,
+  lireLAffichette,
+  lireLesDossiersProposables,
   lireRegistre,
   lireRegistreDesRetirees,
   lireRegistreHorsExercice,
@@ -18,10 +21,12 @@ import {
   phraseDeRefusReunion,
   puisJeEffacerDesReunions,
   rangerParDate,
+  type DossierProposable,
   type LigneDAppel,
   type LigneDeRegistre,
 } from '@/lib/reunion';
 import { accueilDuRole } from '@/lib/roles';
+import ChoixDeLAffichette from './ChoixDeLAffichette';
 
 export const metadata = { title: 'Réunion — HERACLES' };
 
@@ -60,7 +65,7 @@ export default async function Reunion({
   // La réunion ouverte se lit par son identifiant, et non dans le registre :
   // celui-ci ne rend que l'exercice en cours, et une réunion tenue hors bornes
   // ne s'affichait alors nulle part (migration 0037).
-  const [registre, retirees, horsExercice, feuille, laReunion, peutEffacer, connectes, moi] =
+  const [registre, retirees, horsExercice, feuille, laReunion, peutEffacer, connectes, moi, dossiers, affichette] =
     await Promise.all([
       lireRegistre(),
       lireRegistreDesRetirees(),
@@ -73,6 +78,10 @@ export default async function Reunion({
       // ligne serait la seule sans pastille sur une feuille où tout le monde
       // en a une. Lue seulement quand une feuille est ouverte.
       ouverte ? referentCourant() : Promise.resolve(null),
+      // L'affichette se décide en séance (migration 0068) : les dossiers en
+      // cours, et celui déjà choisi.
+      ouverte ? lireLesDossiersProposables(ouverte) : Promise.resolve([]),
+      ouverte ? lireLAffichette(ouverte) : Promise.resolve(null),
     ]);
 
   // Ceux dont la session est ouverte. Depuis 0053, ouvrir l'appel les a déjà
@@ -140,7 +149,13 @@ export default async function Reunion({
       </div>
 
       {ouverte && laReunion ? (
-        <FeuilleDAppel reunion={laReunion} lignes={feuille} connectes={enLigne} />
+        <FeuilleDAppel
+          reunion={laReunion}
+          lignes={feuille}
+          connectes={enLigne}
+          dossiers={dossiers}
+          affichette={affichette?.candidat_id ?? null}
+        />
       ) : (
         <OuvrirUneReunion aujourdhui={aujourdhui} />
       )}
@@ -206,11 +221,17 @@ function FeuilleDAppel({
   reunion,
   lignes,
   connectes,
+  dossiers,
+  affichette,
 }: {
   reunion: LigneDeRegistre;
   lignes: LigneDAppel[];
   /** Ceux dont la session est ouverte : « Présent » leur est proposé. */
   connectes: Set<string>;
+  /** Les dossiers en cours, parmi lesquels se choisit l'affichette. */
+  dossiers: DossierProposable[];
+  /** Le dossier déjà choisi pour l'affichette, s'il y en a un. */
+  affichette: string | null;
 }) {
   const n = compter(lignes);
   const retour = `/espace/reunion?appel=${reunion.id}`;
@@ -289,6 +310,16 @@ function FeuilleDAppel({
         </ol>
       )}
 
+      {/* Le dossier du mois, décidé en séance : il se choisit ici, et
+          l'affichette se tire avec les deux autres documents, plus bas. Un
+          formulaire à part — il ne peut pas vivre dans celui qui ferme la
+          feuille. */}
+      <ChoixDeLAffichette
+        reunion={reunion.id}
+        choisi={affichette}
+        options={dossiers.map((d) => ({ valeur: d.candidat_id, libelle: libelleDuDossier(d) }))}
+      />
+
       {/* Fermer la feuille n'est pas un simple retour : c'est la fin de
           l'appel. Ceux que personne n'a nommés sont marqués absents à cet
           instant (migration 0039) — dans une feuille d'appel, celui qu'on n'a
@@ -328,6 +359,22 @@ function FeuilleDAppel({
           >
             Compte rendu
           </a>
+          {/* Éteinte tant qu'aucun dossier n'est choisi : la place est prise,
+              et l'infobulle dit ce qui manque. */}
+          {affichette ? (
+            <a
+              className="bouton"
+              href={`/api/reunions/${reunion.id}/affichette`}
+              target="_blank"
+              rel="noopener"
+            >
+              Affichette
+            </a>
+          ) : (
+            <span className="bouton bouton--eteint" title="Choisissez d’abord le dossier de l’affichette">
+              Affichette
+            </span>
+          )}
           <button className="bouton" type="submit">
             Fermer la feuille
           </button>

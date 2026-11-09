@@ -52,6 +52,15 @@ que pdfmake livre). Elles entrent dans l'image par `outputFileTracingIncludes`
   4e mercredi suivant, reporté s'il tombe un jour férié (au lendemain par
   défaut, réglable).
 
+## L'affichette se choisit en réunion
+
+Sur la feuille d'appel, « Dossier de l'affichette » propose les dossiers en
+cours de la loge ; le choix s'enregistre aussitôt (`reunion.affichette_candidat_id`,
+migration 0068) et le bouton « Affichette » le tire, à côté de l'affiche et du
+compte rendu, sous le nom `<numéro>_du_<date de la réunion>.pdf`. Toute la loge
+peut choisir, comme pour l'appel. Un dossier refermé depuis ne s'imprime plus.
+Le bouton « Affichette » de la fiche du candidat reste disponible.
+
 ## Le lien du CV anonyme
 
 `/cv-anonyme/<jeton>` — la colonne « CV » de l'affiche et le QR code de

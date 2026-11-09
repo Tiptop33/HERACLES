@@ -199,9 +199,55 @@ const REFUS: Record<string, string> = {
     'Seuls l’administrateur, le Vénérable Maître et le Secrétaire peuvent effacer une réunion.',
   bubble:
     'Cette réunion vient de Bubble : elle reviendrait à la prochaine reprise. Retirez-la du registre plutôt que de l’effacer.',
+  dossier: 'Ce dossier ne peut pas être choisi pour l’affichette : il est refermé, ou d’une autre loge.',
+  affichette: 'Aucun dossier n’est encore choisi pour l’affichette de cette réunion.',
 };
 
 export function phraseDeRefusReunion(code: string | null | undefined): string | null {
   if (!code) return null;
   return REFUS[code] ?? 'L’appel n’a pas pu être enregistré.';
+}
+
+/** Un dossier proposé pour l'affichette : de quoi le reconnaître dans la liste. */
+export type DossierProposable = {
+  candidat_id: string;
+  numero: number | null;
+  nom: string | null;
+  prenom: string | null;
+  recherche: string | null;
+};
+
+/**
+ * Les dossiers en cours de la loge de cette réunion — ceux parmi lesquels la
+ * commission choisit l'affichette (migration 0055, porte de `ma_loge()`).
+ */
+export async function lireLesDossiersProposables(reunion: string): Promise<DossierProposable[]> {
+  if (!/^[0-9a-f-]{36}$/i.test(reunion)) return [];
+  const supabase = await supabaseServer();
+  const { data } = await supabase.rpc('dossiers_en_cours', { reunion_choisie: reunion });
+  return ((data as DossierProposable[] | null) ?? []).map((d) => ({
+    candidat_id: d.candidat_id,
+    numero: d.numero,
+    nom: d.nom,
+    prenom: d.prenom,
+    recherche: d.recherche,
+  }));
+}
+
+/** Le dossier choisi pour l'affichette de cette réunion, s'il est toujours en cours (0068). */
+export async function lireLAffichette(
+  reunion: string,
+): Promise<{ candidat_id: string; numero: number | null } | null> {
+  if (!/^[0-9a-f-]{36}$/i.test(reunion)) return null;
+  const supabase = await supabaseServer();
+  const { data } = await supabase.rpc('affichette_de_la_reunion', { reunion_choisie: reunion });
+  return ((data as Array<{ candidat_id: string; numero: number | null }> | null) ?? [])[0] ?? null;
+}
+
+/** « 856 — DIRECTEUR DES OPÉRATIONS… · LEBON Maxime » : une ligne de la liste. */
+export function libelleDuDossier(d: DossierProposable): string {
+  const intitule = (d.recherche ?? '').replace(/\s+/g, ' ').trim();
+  const court = intitule.length > 60 ? `${intitule.slice(0, 59).trimEnd()}…` : intitule;
+  const personne = [d.nom?.trim(), d.prenom?.trim()].filter(Boolean).join(' ');
+  return [d.numero ?? '—', court].filter(Boolean).join(' — ') + (personne ? ` · ${personne}` : '');
 }

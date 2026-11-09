@@ -133,8 +133,17 @@ export function definitionDeLAffichette(
   };
 }
 
-/** « 856_du_06-11-2026.pdf », comme les affichettes de Bubble. */
-export function nomDeLAffichette(numero: number | null, le: Date = new Date()): string {
+/**
+ * « 856_du_06-11-2026.pdf », comme les affichettes de Bubble. Depuis l'écran
+ * « Réunion », la date est celle de la réunion qui l'a choisie ; depuis la
+ * fiche, celle du jour.
+ */
+export function nomDeLAffichette(numero: number | null, le: Date | string = new Date()): string {
+  if (typeof le === 'string') {
+    const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(le);
+    if (m) return nomDeFichierSur(`${numero ?? 'dossier'}_du_${m[3]}-${m[2]}-${m[1]}.pdf`);
+    le = new Date();
+  }
   const jour = new Intl.DateTimeFormat('fr-FR', {
     day: '2-digit',
     month: '2-digit',

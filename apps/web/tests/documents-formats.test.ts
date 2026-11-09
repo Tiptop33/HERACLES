@@ -43,6 +43,8 @@ describe('les noms des fichiers', () => {
     expect(nomDuCompteRendu('2026-10-28')).toBe('Compte-rendu_du_Mercredi_28_Octobre_2026.pdf');
     expect(nomDeLAffiche('2026-10-14')).toBe('Affiche_du_mercredi_14_octobre_2026.pdf');
     expect(nomDeLAffichette(856, new Date('2026-11-06T17:09:59Z'))).toBe('856_du_06-11-2026.pdf');
+    // Tirée depuis l'écran « Réunion » : la date de la réunion qui l'a choisie.
+    expect(nomDeLAffichette(856, '2026-11-12')).toBe('856_du_12-11-2026.pdf');
   });
 });
 

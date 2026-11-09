@@ -3438,6 +3438,19 @@ a.poste-document .poste-document-type {
 }
 .appel-clore p { margin: 0; flex: 1 1 18rem; }
 
+/* Le dossier de l'affichette, juste au-dessus du pied de feuille : choisi en
+   séance, il se tire avec l'affiche et le compte rendu. */
+.appel-affichette {
+  display: flex; align-items: center; gap: .6rem; flex-wrap: wrap;
+  margin-top: .9rem; padding-top: .8rem; border-top: 1px solid var(--bordure);
+}
+.appel-affichette label { font-size: .82rem; font-weight: 600; color: var(--encre-douce); }
+.appel-affichette select {
+  font: inherit; font-size: .88rem; flex: 1 1 18rem; min-width: 0;
+  padding: .45rem .6rem; border: 1px solid var(--bordure); border-radius: 9px;
+  background: var(--surface-creuse); color: inherit;
+}
+
 /* Les deux gestes du pied de feuille, côte à côte : demander le compte rendu,
    et fermer l'appel. Ils restent groupés quand la phrase passe à la ligne. */
 .appel-gestes { display: flex; align-items: center; gap: .5rem; flex: 0 0 auto; }
@@ -3445,6 +3458,7 @@ a.poste-document .poste-document-type {
 /* L'appel se fait à l'écran, il ne s'imprime pas — le registre, lui, oui. */
 @media print {
   .reunion-ouvrir,
+  .appel-affichette,
   .appel-clore,
   .registre td .gestes,
   .appel-segments {
