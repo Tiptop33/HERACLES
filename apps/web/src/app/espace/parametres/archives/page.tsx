@@ -1,4 +1,5 @@
-import ColonnesDesArchives, { FenetreDEffacement } from '@/components/ColonnesDesArchives';
+import ColonnesDesArchives from '@/components/ColonnesDesArchives';
+import FenetreDEffacement from '@/components/FenetreDEffacement';
 import { listerLesDocuments, periodeEnCours } from '@/lib/accueil';
 import { avantLaPeriode, phraseDeRefusDocument, SORTES } from '@/lib/documents/archives';
 import { dateEnLettres } from '@/lib/format';
@@ -52,7 +53,7 @@ export default async function Archives({ searchParams }: { searchParams: Paramet
       )}
 
       <section className="bloc">
-        <ColonnesDesArchives colonnes={colonnes} adresse={ADRESSE} avant />
+        <ColonnesDesArchives colonnes={colonnes} adresse={ADRESSE} avant recherche />
       </section>
 
       {aEffacer && <FenetreDEffacement archive={aEffacer} adresse={ADRESSE} />}

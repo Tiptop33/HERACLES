@@ -1,6 +1,10 @@
+'use client';
+
 import Link from 'next/link';
+import { useState } from 'react';
 import { Corbeille } from '@/components/Icones';
 import {
+  chercherDansLaColonne,
   COLONNES,
   SORTES,
   type Adresse,
@@ -18,104 +22,90 @@ import {
  *
  * `adresse` est la page qui le montre : la corbeille y ouvre la fenêtre de
  * confirmation, et l'effacement y ramène.
+ *
+ * `recherche` ajoute un champ sous chaque en-tête (Paramètres › Archives). Le
+ * filtre s'applique à chaque lettre tapée, dans le navigateur : les lignes
+ * sont déjà là, quelques dizaines par colonne, et un aller-retour au serveur
+ * pour chaque frappe ne servirait à rien. C'est la seule raison pour laquelle
+ * ce composant est un composant client.
  */
 export default function ColonnesDesArchives({
   colonnes,
   adresse,
   avant = false,
+  recherche = false,
 }: {
   colonnes: Record<Sorte, DocumentArchive[]>;
   adresse: Adresse;
   /** Les exercices précédents : la colonne vide le dit autrement. */
   avant?: boolean;
+  /** Un champ de recherche par colonne. */
+  recherche?: boolean;
 }) {
+  const [cherche, setCherche] = useState<Record<Sorte, string>>({
+    'compte-rendu': '',
+    affiche: '',
+    affichette: '',
+  });
+
   return (
     <div className="archives">
-      {SORTES.map((sorte) => (
-        <div key={sorte} className="archives-colonne">
-          <h3>{COLONNES[sorte].titre}</h3>
-          {colonnes[sorte].length === 0 ? (
-            <p className="archives-vide">
-              {avant ? COLONNES[sorte].videAvant : COLONNES[sorte].vide}
-            </p>
-          ) : (
-            <ul className="liste-nue">
-              {colonnes[sorte].map((d) => (
-                <li key={d.id} className="archives-ligne">
-                  <a href={`/api/documents/${d.id}`} target="_blank" rel="noopener">
-                    {d.nom ?? 'Document sans nom'}
-                  </a>
-                  {/* Rouge, sur la ligne même du PDF, et seulement là où la
-                      base accepterait d'effacer : administrateur, Vénérable
-                      Maître, Secrétaire. La corbeille n'efface pas : elle
-                      ouvre la confirmation. */}
-                  {d.effacable && (
-                    <Link
-                      href={`${adresse}?effacer=${d.id}`}
-                      scroll={false}
-                      className="geste geste--retirer"
-                      aria-label={`Effacer ${d.nom ?? 'ce PDF'}`}
-                      title="Effacer ce PDF"
-                    >
-                      <Corbeille />
-                    </Link>
-                  )}
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      ))}
-    </div>
-  );
-}
+      {SORTES.map((sorte) => {
+        const toutes = colonnes[sorte];
+        const lignes = recherche ? chercherDansLaColonne(toutes, cherche[sorte]) : toutes;
 
-/**
- * La fenêtre de confirmation avant d'effacer un PDF archivé — la même que pour
- * supprimer un dossier.
- *
- * Elle dit ce qu'on perd, plutôt que « êtes-vous sûr ? ». Rendue par le
- * serveur sur la seule foi de l'adresse : elle s'ouvre sans une ligne de
- * script, et le bouton « retour » du navigateur la referme, comme un clic à
- * côté ou « Annuler ». Le formulaire dit d'où l'on vient, pour y revenir ; la
- * route n'accepte que les deux pages qui montrent ces colonnes.
- */
-export function FenetreDEffacement({
-  archive,
-  adresse,
-}: {
-  archive: DocumentArchive;
-  adresse: Adresse;
-}) {
-  const nom = archive.nom ?? 'ce PDF';
-  const ou = adresse === '/espace/accueil' ? 'l’accueil' : 'les archives';
+        return (
+          <div key={sorte} className="archives-colonne">
+            <h3>{COLONNES[sorte].titre}</h3>
 
-  return (
-    <div className="fenetre-fond">
-      <Link href={adresse} scroll={false} className="fenetre-voile" aria-label="Fermer sans rien effacer" />
+            {/* Pas de champ sur une colonne vide : il n'y aurait rien à y
+                chercher. */}
+            {recherche && toutes.length > 0 && (
+              <input
+                className="recherche archives-recherche"
+                type="search"
+                value={cherche[sorte]}
+                onChange={(e) => setCherche((precedent) => ({ ...precedent, [sorte]: e.target.value }))}
+                placeholder="Chercher…"
+                aria-label={`Chercher dans la colonne ${COLONNES[sorte].titre}`}
+              />
+            )}
 
-      <div className="fenetre" role="dialog" aria-modal="true" aria-labelledby="effacement-titre">
-        <h2 id="effacement-titre">Effacer « {nom} »&nbsp;?</h2>
-
-        <p>
-          Le PDF disparaîtra de HERACLES pour <strong>toute la loge</strong> : il ne s’ouvrira
-          plus depuis {ou}.
-        </p>
-
-        <p className="aide">Cela ne se défait pas.</p>
-
-        <div className="fenetre-gestes">
-          <Link href={adresse} scroll={false} className="bouton">
-            Annuler
-          </Link>
-          <form method="post" action={`/api/documents/${archive.id}/effacer`}>
-            <input type="hidden" name="retour" value={adresse} />
-            <button className="bouton bouton--danger" type="submit">
-              Effacer le PDF
-            </button>
-          </form>
-        </div>
-      </div>
+            {toutes.length === 0 ? (
+              <p className="archives-vide">
+                {avant ? COLONNES[sorte].videAvant : COLONNES[sorte].vide}
+              </p>
+            ) : lignes.length === 0 ? (
+              <p className="archives-vide">Aucun PDF ne correspond.</p>
+            ) : (
+              <ul className="liste-nue">
+                {lignes.map((d) => (
+                  <li key={d.id} className="archives-ligne">
+                    <a href={`/api/documents/${d.id}`} target="_blank" rel="noopener">
+                      {d.nom ?? 'Document sans nom'}
+                    </a>
+                    {/* Rouge, sur la ligne même du PDF, et seulement là où la
+                        base accepterait d'effacer : administrateur, Vénérable
+                        Maître, Secrétaire. La corbeille n'efface pas : elle
+                        ouvre la confirmation. */}
+                    {d.effacable && (
+                      <Link
+                        href={`${adresse}?effacer=${d.id}`}
+                        scroll={false}
+                        className="geste geste--retirer"
+                        aria-label={`Effacer ${d.nom ?? 'ce PDF'}`}
+                        title="Effacer ce PDF"
+                      >
+                        <Corbeille />
+                      </Link>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 }

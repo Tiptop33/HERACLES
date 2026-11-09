@@ -1,5 +1,6 @@
 import Link from 'next/link';
-import ColonnesDesArchives, { FenetreDEffacement } from '@/components/ColonnesDesArchives';
+import ColonnesDesArchives from '@/components/ColonnesDesArchives';
+import FenetreDEffacement from '@/components/FenetreDEffacement';
 import type { Chiffres, Demande, Offre } from '@/lib/accueil';
 import type { DocumentArchive, Sorte } from '@/lib/documents/archives';
 import { depuis, initiales, nomComplet } from '@/lib/format';
