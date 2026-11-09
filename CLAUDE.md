@@ -168,6 +168,9 @@ sert**, pas la liste des fichiers touchés.
 - **Lecture du CV** — `docs/lecture-du-cv.md` : le CV du candidat lu par Claude
   pour pré-remplir sa fiche, la clé `ANTHROPIC_API_KEY`, et ce qui reste à
   régler côté données personnelles.
+- **Documents de la commission** — `docs/mise-en-page.md` : le compte rendu,
+  l'affiche et l'affichette identiques à ceux de Bubble, leurs réglages dans
+  Paramètres › Mise en page, et le lien public du CV anonyme.
 - **Registre des traitements (RGPD)** — `docs/rgpd/registre-des-traitements.md`.
   Toute PR qui ajoute une donnée personnelle, un écran qui en montre ou un
   prestataire qui en voit passer le met à jour.

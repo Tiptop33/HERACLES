@@ -28,6 +28,13 @@ export const RUBRIQUES: readonly Rubrique[] = [
     propos: 'Les dates entre lesquelles se comptent les réunions et l’assiduité.',
   },
   {
+    libelle: 'Mise en page',
+    vers: '/espace/parametres/mise-en-page',
+    propos:
+      'La présentation du compte rendu, de l’affiche et de l’affichette : textes, tailles, couleurs, ' +
+      'colonnes et emblèmes. Chaque changement s’enregistre aussitôt et se voit dans l’aperçu.',
+  },
+  {
     libelle: 'Loges',
     vers: null,
     propos: 'Les loges, leurs noms et leurs emblèmes.',
