@@ -346,8 +346,22 @@ export async function listerLesDossiersRefermes(): Promise<Record<ListeRefermee,
 }
 
 /**
- * Le droit de clôturer un dossier (0071) : administrateur, Vénérable Maître,
- * Secrétaire — celui de `puis_je_supprimer_des_candidats()` (0062). La base
+ * La clôture d'un dossier, pour la fenêtre de réouverture : sa date (d'HERACLES,
+ * ou approchée par Bubble) — `null` si la base n'en sait rien.
+ */
+export async function lireLaDateDeCloture(
+  id: string,
+): Promise<{ clos_le: string | null; clos_estime: boolean } | null> {
+  const supabase = await supabaseServer();
+  const { data } = await supabase.rpc('dates_des_dossiers_refermes');
+  const dates = ((data as DatesDUnDossier[] | null) ?? []).find((d) => d.candidat_id === id);
+  return dates ? { clos_le: dates.clos_le, clos_estime: dates.clos_estime } : null;
+}
+
+/**
+ * Le droit de clôturer un dossier (0071), et de le rouvrir (0072) :
+ * administrateur, Vénérable Maître, Secrétaire — celui de
+ * `puis_je_supprimer_des_candidats()` (0062). La base
  * refuse de toute façon ; ceci ne sert qu'à ne pas montrer un bouton qui
  * échouerait.
  */

@@ -155,8 +155,15 @@ Migration 0071.
   `bubble_modifie_le`, recopiée à chaque mise en ligne
   (`reprendre-bubble.sh --dates-candidats`). Sans elle, la date est inconnue et
   le dossier n'entre pas dans la règle des deux mois.
+- **Rouvrir** (migration 0072) : sur la fiche d'un dossier clôturé — et pas
+  archivé —, le même emplacement porte « Rouvrir le dossier », pour les mêmes
+  personnes. Une fenêtre rappelle la clôture qui va être effacée (qui, et
+  quand) ; le dossier revient dans les dossiers en cours, sans motif ni date de
+  clôture, et la réouverture est datée (`candidat.rouvert_le`). Le refermer se
+  fait de nouveau par « Clôturer le dossier ».
 - **La reprise ne défait rien** : un déclencheur empêche MAJBUBBLE de rouvrir
-  un dossier clôturé ou archivé dans HERACLES.
+  un dossier clôturé ou archivé dans HERACLES, et de refermer — par CLOTURE ou
+  ARCHIVER — un dossier qu'HERACLES a rouvert.
 - Recopier la date de Bubble ou repousser l'archivage ne changent pas la
   « dernière mise à jour » affichée sur la fiche.
 - **Les PDF de Bubble arrivent à chaque mise en ligne**, jusqu'à la bascule :
