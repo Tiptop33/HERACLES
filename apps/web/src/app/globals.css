@@ -2195,7 +2195,10 @@ tbody tr:focus-within {
   max-width: none;
 }
 
-.corps.parametres:has(.archives--en-tete-fixe) {
+/* Sur les trois onglets d'Archives, et pas seulement celui des PDF : sans
+   quoi, en passant d'un bouton à l'autre, le menu de gauche sauterait d'une
+   position à l'autre. */
+.corps.parametres:has(.archives-onglets) {
   max-width: none;
 }
 

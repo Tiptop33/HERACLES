@@ -122,6 +122,15 @@ Affichette — ouvrent le PDF **et en rangent un exemplaire** :
   toute la largeur de l'écran ; trop étroit pour les trois (iPad en portrait),
   le tableau défile de côté. Sur téléphone, les colonnes s'empilent et la page
   défile normalement. L'accueil n'a ni recherche, ni nombre, ni en-tête figé.
+- **Trois boutons en tête de Paramètres › Archives** : « Archives » (ces
+  colonnes de PDF), « Candidat Clôturé (N) » et « Candidat Archivé (N) ». Les
+  deux derniers listent tous les dossiers refermés — toutes loges pour
+  l'administration —, rangés par la même règle que les pastilles « Clôturés »
+  et « Archivés » de l'écran Candidats (un dossier clôturé *et* archivé est
+  dans les archivés). Même ligne que l'écran Candidats, une recherche à chaque
+  lettre (nom, prénom, n°, métier, ville), et un clic ouvre la fiche dans
+  l'écran Candidats. Aucune lecture nouvelle en base : `candidats_de_la_loge()`
+  filtrée par `filtrerParVue()` (`app/espace/parametres/archives/[liste]/`).
 - **Les PDF de Bubble arrivent à chaque mise en ligne**, jusqu'à la bascule :
   `mettre-a-jour.sh` lance `reprendre-bubble.sh --pdf-commission`, qui reprend
   la table des PDF et ne rapatrie que les comptes rendus, affiches et

@@ -1,9 +1,11 @@
 import ColonnesDesArchives from '@/components/ColonnesDesArchives';
 import FenetreDEffacement from '@/components/FenetreDEffacement';
+import OngletsDesArchives from '@/components/OngletsDesArchives';
 import { listerLesDocuments, periodeEnCours } from '@/lib/accueil';
 import { avantLaPeriode, phraseDeRefusDocument, SORTES } from '@/lib/documents/archives';
 import { dateEnLettres } from '@/lib/format';
 import { RUBRIQUES } from '@/lib/parametres';
+import { listerLesDossiersRefermes } from '@/lib/poste';
 
 export const metadata = { title: 'Archives — Paramètres — HERACLES' };
 
@@ -26,7 +28,10 @@ const premier = (valeur: string | string[] | undefined) =>
 export default async function Archives({ searchParams }: { searchParams: Parametres }) {
   const parametres = await searchParams;
   const periode = await periodeEnCours();
-  const colonnes = await listerLesDocuments(avantLaPeriode(periode));
+  const [colonnes, refermes] = await Promise.all([
+    listerLesDocuments(avantLaPeriode(periode)),
+    listerLesDossiersRefermes(),
+  ]);
 
   // La fenêtre d'effacement ne s'ouvre que sur une ligne que la base a dite
   // effaçable — comme à l'accueil.
@@ -40,7 +45,13 @@ export default async function Archives({ searchParams }: { searchParams: Paramet
 
   return (
     <>
-      <h2>Archives</h2>
+      <OngletsDesArchives
+        courant="pdf"
+        nombres={{
+          'candidats-clotures': refermes['candidats-clotures'].length,
+          'candidats-archives': refermes['candidats-archives'].length,
+        }}
+      />
       <p className="aide">
         {propos} Ici, tout ce qui est daté d’avant le {dateEnLettres(periode.du) ?? periode.du},
         du plus récent au plus ancien.

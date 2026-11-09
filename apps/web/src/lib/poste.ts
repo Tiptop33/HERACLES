@@ -1,3 +1,9 @@
+import {
+  LISTES_REFERMEES,
+  type CandidatReferme,
+  type ListeRefermee,
+} from './candidats-refermes';
+import { initiales } from './format';
 import { supabaseServer } from './supabase-server';
 import {
   estArchive,
@@ -274,6 +280,44 @@ export function resumeDeLaVue(lignes: LigneCandidat[], vue: Vue): string {
   if (vue === 'clotures') return `${n} clôturé${n > 1 ? 's' : ''}`;
   if (vue === 'archives') return `${n} archivé${n > 1 ? 's' : ''}`;
   return `${n} en cours`;
+}
+
+/**
+ * Une ligne de Paramètres › Archives (« Candidat Clôturé », « Candidat
+ * Archivé »), préparée ici pour que le navigateur n'ait plus qu'à l'afficher
+ * et à la filtrer. Le lien ouvre la fiche dans l'écran Candidats, sur la
+ * pastille de la même liste.
+ */
+export function enCandidatReferme(ligne: LigneCandidat, liste: ListeRefermee): CandidatReferme {
+  const vue = LISTES_REFERMEES[liste].vue;
+  return {
+    id: ligne.id,
+    numero: ligne.numero,
+    nom: nomDeFamilleDabord(ligne.nom, ligne.prenom),
+    sous: sousTitreDuRang(ligne),
+    a_une_photo: ligne.a_une_photo,
+    initiales: initiales(ligne.prenom, ligne.nom),
+    famille: ligne.famille,
+    lien: `/espace/candidats?vue=${vue}&fiche=${ligne.id}`,
+  };
+}
+
+/**
+ * Les dossiers refermés, rangés comme les pastilles « Clôturés » et
+ * « Archivés » de l'écran Candidats — la même règle, `filtrerParVue()` : un
+ * dossier à la fois clôturé et archivé est rangé dans les archivés. La base
+ * dit lesquels la session peut voir (l'administration : toutes les loges).
+ */
+export async function listerLesDossiersRefermes(): Promise<Record<ListeRefermee, CandidatReferme[]>> {
+  const tous = await listerCandidatsDeLaLoge();
+  return {
+    'candidats-clotures': filtrerParVue(tous, 'clotures').map((l) =>
+      enCandidatReferme(l, 'candidats-clotures'),
+    ),
+    'candidats-archives': filtrerParVue(tous, 'archives').map((l) =>
+      enCandidatReferme(l, 'candidats-archives'),
+    ),
+  };
 }
 
 /** « MARTIN Julie », le nom en tête — c'est par là qu'on cherche quelqu'un. */
