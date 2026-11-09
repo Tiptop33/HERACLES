@@ -1,7 +1,10 @@
 import { describe, expect, it } from 'vitest';
+import { phraseDeRefusDArchivage } from '../src/lib/accueil';
 import {
   chercherUnCandidat,
   estUneListeRefermee,
+  estUnMotifDeCloture,
+  MOTIFS_DE_CLOTURE,
   type CandidatReferme,
 } from '../src/lib/candidats-refermes';
 import { correspond } from '../src/lib/documents/archives';
@@ -72,5 +75,55 @@ describe('les deux listes', () => {
     expect(correspond('Compte-rendu du Mercredi 14 Octobre 2026', 'octobre 14')).toBe(true);
     expect(correspond('812_du_09-07-2026', '812 du')).toBe(true);
     expect(correspond('quoi que ce soit', '   ')).toBe(true);
+  });
+});
+
+describe('les dates d’un dossier refermé', () => {
+  const dates = {
+    candidat_id: 'a',
+    cree_le: '2025-03-12T10:00:00+00:00',
+    clos_le: '2025-06-04T09:00:00+00:00',
+    clos_estime: true,
+    archive_le: '2025-09-01T09:00:00+00:00',
+    archive_estime: false,
+  };
+
+  it('prend la clôture pour les clôturés, l’archivage pour les archivés', () => {
+    const clos = enCandidatReferme(ligne({ id: 'a' }), 'candidats-clotures', dates);
+    expect(clos.cree_le).toBe(dates.cree_le);
+    expect(clos.ferme_le).toBe(dates.clos_le);
+    expect(clos.ferme_estime).toBe(true);
+    const archive = enCandidatReferme(ligne({ id: 'a' }), 'candidats-archives', dates);
+    expect(archive.ferme_le).toBe(dates.archive_le);
+    expect(archive.ferme_estime).toBe(false);
+  });
+
+  it('reste vide quand la base n’en connaît pas', () => {
+    const c = enCandidatReferme(ligne({}), 'candidats-clotures');
+    expect([c.cree_le, c.ferme_le, c.ferme_estime]).toEqual([null, null, false]);
+  });
+
+  it('se cherchent en chiffres comme en lettres', () => {
+    const lignes = [
+      enCandidatReferme(ligne({ id: 'a' }), 'candidats-clotures', dates),
+      enCandidatReferme(ligne({ id: 'b' }), 'candidats-clotures'),
+    ];
+    expect(chercherUnCandidat(lignes, 'juin 2025').map((c) => c.id)).toEqual(['a']);
+    expect(chercherUnCandidat(lignes, '12/03/2025').map((c) => c.id)).toEqual(['a']);
+  });
+});
+
+describe('la clôture d’un dossier', () => {
+  it('ne connaît que les trois motifs de Bubble', () => {
+    expect(MOTIFS_DE_CLOTURE).toEqual(['Lui-même', 'Heraclés', 'Autre']);
+    expect(estUnMotifDeCloture('Heraclés')).toBe(true);
+    expect(estUnMotifDeCloture('Autre ,,,')).toBe(false);
+    expect(estUnMotifDeCloture(undefined)).toBe(false);
+  });
+
+  it('traduit les refus de l’archivage sans répéter l’adresse', () => {
+    expect(phraseDeRefusDArchivage('droit')).toMatch(/Vénérable Maître/);
+    expect(phraseDeRefusDArchivage('<script>')).toBe(phraseDeRefusDArchivage('echec'));
+    expect(phraseDeRefusDArchivage(null)).toBeNull();
   });
 });

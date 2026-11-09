@@ -282,14 +282,30 @@ export function resumeDeLaVue(lignes: LigneCandidat[], vue: Vue): string {
   return `${n} en cours`;
 }
 
+/** Les dates d'un dossier refermé, telles que `dates_des_dossiers_refermes()` les rend (0071). */
+export type DatesDUnDossier = {
+  candidat_id: string;
+  cree_le: string | null;
+  clos_le: string | null;
+  clos_estime: boolean;
+  archive_le: string | null;
+  archive_estime: boolean;
+};
+
 /**
  * Une ligne de Paramètres › Archives (« Candidat Clôturé », « Candidat
  * Archivé »), préparée ici pour que le navigateur n'ait plus qu'à l'afficher
  * et à la filtrer. Le lien ouvre la fiche dans l'écran Candidats, sur la
- * pastille de la même liste.
+ * pastille de la même liste. La date de fermeture est celle de la clôture
+ * pour les clôturés, celle de l'archivage pour les archivés.
  */
-export function enCandidatReferme(ligne: LigneCandidat, liste: ListeRefermee): CandidatReferme {
+export function enCandidatReferme(
+  ligne: LigneCandidat,
+  liste: ListeRefermee,
+  dates?: DatesDUnDossier,
+): CandidatReferme {
   const vue = LISTES_REFERMEES[liste].vue;
+  const clotures = liste === 'candidats-clotures';
   return {
     id: ligne.id,
     numero: ligne.numero,
@@ -299,6 +315,9 @@ export function enCandidatReferme(ligne: LigneCandidat, liste: ListeRefermee): C
     initiales: initiales(ligne.prenom, ligne.nom),
     famille: ligne.famille,
     lien: `/espace/candidats?vue=${vue}&fiche=${ligne.id}`,
+    cree_le: dates?.cree_le ?? null,
+    ferme_le: (clotures ? dates?.clos_le : dates?.archive_le) ?? null,
+    ferme_estime: Boolean(clotures ? dates?.clos_estime : dates?.archive_estime),
   };
 }
 
@@ -306,18 +325,36 @@ export function enCandidatReferme(ligne: LigneCandidat, liste: ListeRefermee): C
  * Les dossiers refermés, rangés comme les pastilles « Clôturés » et
  * « Archivés » de l'écran Candidats — la même règle, `filtrerParVue()` : un
  * dossier à la fois clôturé et archivé est rangé dans les archivés. La base
- * dit lesquels la session peut voir (l'administration : toutes les loges).
+ * dit lesquels la session peut voir (l'administration : toutes les loges), et
+ * leurs dates (0071).
  */
 export async function listerLesDossiersRefermes(): Promise<Record<ListeRefermee, CandidatReferme[]>> {
-  const tous = await listerCandidatsDeLaLoge();
+  const supabase = await supabaseServer();
+  const [tous, { data }] = await Promise.all([
+    listerCandidatsDeLaLoge(),
+    supabase.rpc('dates_des_dossiers_refermes'),
+  ]);
+  const dates = new Map(((data as DatesDUnDossier[] | null) ?? []).map((d) => [d.candidat_id, d]));
   return {
     'candidats-clotures': filtrerParVue(tous, 'clotures').map((l) =>
-      enCandidatReferme(l, 'candidats-clotures'),
+      enCandidatReferme(l, 'candidats-clotures', dates.get(l.id)),
     ),
     'candidats-archives': filtrerParVue(tous, 'archives').map((l) =>
-      enCandidatReferme(l, 'candidats-archives'),
+      enCandidatReferme(l, 'candidats-archives', dates.get(l.id)),
     ),
   };
+}
+
+/**
+ * Le droit de clôturer un dossier (0071) : administrateur, Vénérable Maître,
+ * Secrétaire — celui de `puis_je_supprimer_des_candidats()` (0062). La base
+ * refuse de toute façon ; ceci ne sert qu'à ne pas montrer un bouton qui
+ * échouerait.
+ */
+export async function puisJeCloturerDesDossiers(): Promise<boolean> {
+  const supabase = await supabaseServer();
+  const { data } = await supabase.rpc('puis_je_supprimer_des_candidats');
+  return data === true;
 }
 
 /** « MARTIN Julie », le nom en tête — c'est par là qu'on cherche quelqu'un. */

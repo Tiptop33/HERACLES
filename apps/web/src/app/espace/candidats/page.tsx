@@ -9,6 +9,7 @@ import {
   lireFiche,
   listerCandidatsDeLaLoge,
   nomDeFamilleDabord,
+  puisJeCloturerDesDossiers,
   resumeDeLaVue,
   sousTitreDuRang,
   vueDOuverture,
@@ -22,6 +23,8 @@ import { Corbeille } from '@/components/Icones';
 // l'écrire.
 import { FAMILLES } from '@/components/VueAccueil';
 import { jeSuisReferent, lireJournal, lireRetirees } from '@/lib/journal';
+import { MOTIFS_DE_CLOTURE } from '@/lib/candidats-refermes';
+import { estFerme } from '@/lib/suivi';
 import { listerAnnuaire } from '@/lib/annuaire';
 import { exigerProfil } from '@/lib/profil';
 import { accueilDuRole } from '@/lib/roles';
@@ -45,6 +48,10 @@ type Parametres = {
   supprimer?: string | string[];
   /** Ce que la route de suppression a répondu, quand elle a refusé. */
   suppression?: string | string[];
+  /** « 1 » : la fenêtre de clôture s'ouvre sur la fiche (0071). */
+  cloturer?: string | string[];
+  /** Ce que la route de clôture a répondu, quand elle a refusé. */
+  cloture?: string | string[];
 };
 
 /**
@@ -52,6 +59,16 @@ type Parametres = {
  * l'adresse, jamais un message : un lien fabriqué ne peut faire afficher que
  * l'une de ces phrases-ci.
  */
+/** Ce que la route de clôture renvoie quand elle refuse (0071). */
+const REFUS_DE_CLOTURE: Record<string, string> = {
+  droit: 'Seuls l’administration, le Vénérable Maître et le Secrétaire clôturent un dossier.',
+  introuvable: 'Ce dossier n’existe plus, ou il n’est pas de votre loge.',
+  deja: 'Ce dossier est déjà clôturé ou archivé.',
+  motif: 'Dites qui a refermé le dossier : lui-même, Heraclés ou autre.',
+  session: 'Votre session a expiré. Reconnectez-vous.',
+  echec: 'Le dossier n’a pas pu être clôturé.',
+};
+
 const REFUS_DE_SUPPRESSION: Record<string, string> = {
   droit: 'Seuls l’administration, le Vénérable Maître et le Secrétaire suppriment un dossier.',
   introuvable: 'Ce dossier n’existe plus.',
@@ -111,7 +128,10 @@ export default async function PosteDeTravail({
   // sur le dossier d'un autre, ou sur un dossier repris de Bubble.
   const aSupprimer =
     tous.find((l) => l.id === premier(parametres.supprimer) && l.supprimable) ?? null;
-  const refusDeSuppression = REFUS_DE_SUPPRESSION[premier(parametres.suppression)] ?? null;
+  const refusDeSuppression =
+    REFUS_DE_SUPPRESSION[premier(parametres.suppression)] ??
+    REFUS_DE_CLOTURE[premier(parametres.cloture)] ??
+    null;
   // La place de la corbeille se réserve sur tous les rangs dès qu'un seul en
   // porte une — comme le point des « urgents » : sinon les numéros de droite
   // se décaleraient d'un rang à l'autre. Calculée sur toute la liste, et non
@@ -144,6 +164,11 @@ export default async function PosteDeTravail({
   // seulement d'avoir une fiche de référent (0027). `fiche.modifiable`, lui,
   // garde son sens : corriger la fiche elle-même reste au référent.
   const jePeuxNoter = fiche && onglet === 'suivi' ? await jeSuisReferent() : false;
+
+  // Le bouton « Clôturer le dossier » (0071) : un dossier en cours, et le
+  // droit de le faire. La base revérifie l'un et l'autre en clôturant.
+  const cloturable = fiche && !estFerme(fiche) ? await puisJeCloturerDesDossiers() : false;
+  const aCloturer = cloturable && premier(parametres.cloturer) === '1' ? fiche : null;
 
   // Le menu « Référent » (0057, élargi en 0063). La base dit si la session
   // peut choisir un référent pour ce candidat — un dossier sans référent pour
@@ -316,6 +341,7 @@ export default async function PosteDeTravail({
             collegues={collegues}
             referentActuel={referentActuel}
             prise={premier(parametres.prise) || null}
+            cloturable={cloturable}
           />
         ) : demande ? (
           // Ni « introuvable », ni « interdit ». La base n'a rien rendu, et
@@ -331,6 +357,14 @@ export default async function PosteDeTravail({
         )}
       </section>
 
+      {aCloturer && (
+        <FenetreDeCloture
+          id={aCloturer.id}
+          nom={nomComplet(aCloturer.prenom, aCloturer.nom)}
+          fermer={adresse({ cloturer: null })}
+        />
+      )}
+
       {aSupprimer && (
         <FenetreDeSuppression
           ligne={aSupprimer}
@@ -345,6 +379,51 @@ export default async function PosteDeTravail({
         />
       )}
     </main>
+  );
+}
+
+/**
+ * La fenêtre de clôture d'un dossier (0071) : qui l'a refermé — les mots de
+ * Bubble —, puis « Clôturer le dossier ». La date est celle du jour. Deux mois
+ * plus tard, l'accueil du Vénérable Maître et du Secrétaire proposera de
+ * l'archiver.
+ */
+function FenetreDeCloture({ id, nom, fermer }: { id: string; nom: string; fermer: string }) {
+  return (
+    <div className="fenetre-fond">
+      <Link href={fermer} scroll={false} className="fenetre-voile" aria-label="Fermer sans rien clôturer" />
+
+      <div className="fenetre" role="dialog" aria-modal="true" aria-labelledby="cloture-titre">
+        <h2 id="cloture-titre">Clôturer le dossier de {nom}&nbsp;?</h2>
+
+        <form method="post" action={`/api/candidats/${id}/cloturer`}>
+          <input type="hidden" name="retour" value={fermer} />
+          <fieldset className="cloture-motifs">
+            <legend>Qui a refermé le dossier&nbsp;?</legend>
+            {MOTIFS_DE_CLOTURE.map((motif, i) => (
+              <label key={motif}>
+                <input type="radio" name="par" value={motif} required defaultChecked={i === 0} />{' '}
+                {motif}
+              </label>
+            ))}
+          </fieldset>
+
+          <p className="aide">
+            Le dossier passe dans les clôturés, daté d’aujourd’hui. Son archivage sera proposé
+            au Vénérable Maître et au Secrétaire dans deux mois.
+          </p>
+
+          <div className="fenetre-gestes">
+            <Link href={fermer} scroll={false} className="bouton">
+              Annuler
+            </Link>
+            <button className="bouton bouton--fort" type="submit">
+              Clôturer le dossier
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
   );
 }
 

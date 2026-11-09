@@ -2,12 +2,21 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
-import { chercherUnCandidat, type CandidatReferme } from '@/lib/candidats-refermes';
+import {
+  chercherUnCandidat,
+  LISTES_REFERMEES,
+  type CandidatReferme,
+  type ListeRefermee,
+} from '@/lib/candidats-refermes';
+import { jourEntier } from '@/lib/documents/formats';
 
 /**
  * La liste des candidats clôturés ou archivés de Paramètres › Archives, avec
  * la ligne de l'écran Candidats : photo, NOM Prénom, métier · ville, numéro
- * de fiche. Un clic ouvre la fiche dans l'écran Candidats.
+ * de fiche — et, à droite, la date de création du dossier et celle de sa
+ * clôture ou de son archivage. « ≈ » marque une date approchée, reprise de la
+ * dernière modification de la fiche dans Bubble, qui ne datait ni l'une ni
+ * l'autre (migration 0071). Un clic ouvre la fiche dans l'écran Candidats.
  *
  * Le point orange « personne ne l'accompagne » n'y est pas : il signale un
  * dossier en cours qui attend quelqu'un, ce qu'un dossier refermé n'attend
@@ -18,12 +27,13 @@ import { chercherUnCandidat, type CandidatReferme } from '@/lib/candidats-referm
  */
 export default function ListeDesCandidatsRefermes({
   lignes,
-  vide,
+  liste,
 }: {
   lignes: CandidatReferme[];
-  /** Ce que dit la liste quand elle n'a personne. */
-  vide: string;
+  /** Clôturés ou archivés : ce que dit la liste vide, et le mot de la date. */
+  liste: ListeRefermee;
 }) {
+  const { vide, ferme, inconnue } = LISTES_REFERMEES[liste];
   const [recherche, setRecherche] = useState('');
   const trouves = chercherUnCandidat(lignes, recherche);
 
@@ -69,6 +79,25 @@ export default function ListeDesCandidatsRefermes({
                 <span className="poste-rang-textes">
                   <strong>{c.nom}</strong>
                   <small>{c.sous || 'métier non renseigné'}</small>
+                </span>
+
+                <span className="refermes-dates">
+                  <small>Créé le {jourEntier(c.cree_le) || '—'}</small>
+                  <small>
+                    {c.ferme_le ? (
+                      <>
+                        {ferme}{' '}
+                        {c.ferme_estime && (
+                          <abbr title="Date approchée : la dernière modification de la fiche dans Bubble">
+                            ≈{' '}
+                          </abbr>
+                        )}
+                        {jourEntier(c.ferme_le)}
+                      </>
+                    ) : (
+                      inconnue
+                    )}
+                  </small>
                 </span>
 
                 {c.numero !== null && (

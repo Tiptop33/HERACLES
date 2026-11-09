@@ -131,6 +131,34 @@ Affichette — ouvrent le PDF **et en rangent un exemplaire** :
   lettre (nom, prénom, n°, métier, ville), et un clic ouvre la fiche dans
   l'écran Candidats. Aucune lecture nouvelle en base : `candidats_de_la_loge()`
   filtrée par `filtrerParVue()` (`app/espace/parametres/archives/[liste]/`).
+  Chaque ligne porte aussi, à droite, la **date de création** du dossier et
+  celle de sa **clôture** (liste des clôturés) ou de son **archivage** (liste
+  des archivés). Bubble ne datait ni l'une ni l'autre : pour les dossiers
+  repris, c'est la dernière modification de la fiche dans Bubble, marquée
+  « ≈ » (`dates_des_dossiers_refermes()`, migration 0071).
+
+## Clôturer un dossier, puis l'archiver deux mois après
+
+Migration 0071.
+
+- **Clôturer** : bouton « Clôturer le dossier » sur la fiche d'un dossier en
+  cours, pour l'administrateur, le Vénérable Maître et le Secrétaire. Une
+  fenêtre demande qui l'a refermé — « Lui-même », « Heraclés », « Autre », les
+  mots de Bubble — et la date du jour est notée (`candidat.clos_le`).
+- **Archiver** : deux mois après la clôture, l'accueil du **Vénérable Maître
+  et du Secrétaire** (pas de l'administrateur sans titre) ouvre une fenêtre
+  qui liste les dossiers de leur loge à trancher, chacun avec « Archiver »
+  (daté, `archive_le`) et « Pas encore » (la question revient dans un mois,
+  `archivage_reporte_au`), jusqu'à ce que l'archivage soit confirmé.
+  « Fermer » ne tranche rien : la fenêtre revient au passage suivant.
+- **Dossiers de Bubble** : leur date de clôture approchée vient de
+  `bubble_modifie_le`, recopiée à chaque mise en ligne
+  (`reprendre-bubble.sh --dates-candidats`). Sans elle, la date est inconnue et
+  le dossier n'entre pas dans la règle des deux mois.
+- **La reprise ne défait rien** : un déclencheur empêche MAJBUBBLE de rouvrir
+  un dossier clôturé ou archivé dans HERACLES.
+- Recopier la date de Bubble ou repousser l'archivage ne changent pas la
+  « dernière mise à jour » affichée sur la fiche.
 - **Les PDF de Bubble arrivent à chaque mise en ligne**, jusqu'à la bascule :
   `mettre-a-jour.sh` lance `reprendre-bubble.sh --pdf-commission`, qui reprend
   la table des PDF et ne rapatrie que les comptes rendus, affiches et
