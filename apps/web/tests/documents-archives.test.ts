@@ -12,6 +12,7 @@ import {
   titreDeLAffiche,
   titreDeLAffichette,
   titreDuCompteRendu,
+  totalDesColonnes,
   veille,
   type DocumentArchive,
 } from '../src/lib/documents/archives';
@@ -115,6 +116,17 @@ describe('les trois colonnes', () => {
     expect(colonnes['compte-rendu'].map((d) => d.id)).toEqual(['cr-2', 'cr-1']);
     expect(colonnes.affiche.map((d) => d.id)).toEqual(['af-1']);
     expect(colonnes.affichette.map((d) => d.id)).toEqual(['at-1']);
+  });
+
+  it('donne au bouton « Archives » le total des trois colonnes', () => {
+    const colonnes = rangerParSorte([
+      ligne('cr-1', 'compte-rendu'),
+      ligne('cr-2', 'compte-rendu'),
+      ligne('af-1', 'affiche'),
+      ligne('at-1', 'affichette'),
+    ]);
+    expect(totalDesColonnes(colonnes)).toBe(4);
+    expect(totalDesColonnes(rangerParSorte([]))).toBe(0);
   });
 
   it('n’accueille pas une sorte qu’aucune colonne n’annonce', () => {

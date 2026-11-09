@@ -1,8 +1,8 @@
 import ColonnesDesArchives from '@/components/ColonnesDesArchives';
 import FenetreDEffacement from '@/components/FenetreDEffacement';
 import OngletsDesArchives from '@/components/OngletsDesArchives';
-import { listerLesDocuments, periodeEnCours } from '@/lib/accueil';
-import { avantLaPeriode, phraseDeRefusDocument, SORTES } from '@/lib/documents/archives';
+import { listerLesPdfAnterieurs } from '@/lib/accueil';
+import { phraseDeRefusDocument, SORTES, totalDesColonnes } from '@/lib/documents/archives';
 import { dateEnLettres } from '@/lib/format';
 import { RUBRIQUES } from '@/lib/parametres';
 import { listerLesDossiersRefermes } from '@/lib/poste';
@@ -27,9 +27,8 @@ const premier = (valeur: string | string[] | undefined) =>
  */
 export default async function Archives({ searchParams }: { searchParams: Parametres }) {
   const parametres = await searchParams;
-  const periode = await periodeEnCours();
-  const [colonnes, refermes] = await Promise.all([
-    listerLesDocuments(avantLaPeriode(periode)),
+  const [{ periode, colonnes }, refermes] = await Promise.all([
+    listerLesPdfAnterieurs(),
     listerLesDossiersRefermes(),
   ]);
 
@@ -48,6 +47,7 @@ export default async function Archives({ searchParams }: { searchParams: Paramet
       <OngletsDesArchives
         courant="pdf"
         nombres={{
+          pdf: totalDesColonnes(colonnes),
           'candidats-clotures': refermes['candidats-clotures'].length,
           'candidats-archives': refermes['candidats-archives'].length,
         }}

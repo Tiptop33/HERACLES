@@ -197,6 +197,11 @@ export function compteDeLaColonne(affiches: number, total: number): string {
   return affiches === total ? String(total) : `${affiches} sur ${total}`;
 }
 
+/** Le nombre de PDF des trois colonnes réunies — celui du bouton « Archives ». */
+export function totalDesColonnes(colonnes: Record<Sorte, readonly DocumentArchive[]>): number {
+  return SORTES.reduce((total, sorte) => total + colonnes[sorte].length, 0);
+}
+
 /**
  * Les lignes rangées dans leurs trois colonnes, dans l'ordre reçu — la base
  * les rend du plus récent au plus ancien. Une sorte inconnue n'entre nulle

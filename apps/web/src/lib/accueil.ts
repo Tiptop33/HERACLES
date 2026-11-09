@@ -1,5 +1,6 @@
 import {
   aujourdhuiAParis,
+  avantLaPeriode,
   periodeDesDocuments,
   rangerParSorte,
   type DocumentArchive,
@@ -101,6 +102,15 @@ export async function listerLesDocuments(periode: Periode): Promise<Record<Sorte
   if (error) console.error('[archives] documents illisibles', error.code);
 
   return rangerParSorte((data as DocumentArchive[] | null) ?? []);
+}
+
+/**
+ * Ceux des exercices précédents — Paramètres › Archives. Rend aussi la
+ * période en cours, dont le premier jour borne les archives.
+ */
+export async function listerLesPdfAnterieurs(maintenant: Date = new Date()) {
+  const periode = await periodeEnCours(maintenant);
+  return { periode, colonnes: await listerLesDocuments(avantLaPeriode(periode)) };
 }
 
 /** Ceux de l'exercice en cours — l'accueil. */

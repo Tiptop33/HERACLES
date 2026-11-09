@@ -8,18 +8,19 @@ import { LISTES_REFERMEES, type ListeRefermee } from '@/lib/candidats-refermes';
  * Chacun est une adresse — elle se partage, revient avec « retour », et le
  * menu de gauche reste sur « Archives ». Les mêmes onglets que Mise en page,
  * pour qu'une rubrique à plusieurs volets se lise partout de la même façon.
- * Le nombre de candidats est dans le bouton ; celui des PDF est sur le titre
- * de chaque colonne.
+ * Chaque bouton dit son nombre : « Archives » celui de tous les PDF des
+ * exercices précédents, les deux autres celui des candidats. Celui de chaque
+ * sorte de PDF est, en plus, sur le titre de sa colonne.
  */
 export default function OngletsDesArchives({
   courant,
   nombres,
 }: {
   courant: 'pdf' | ListeRefermee;
-  nombres: Record<ListeRefermee, number>;
+  nombres: Record<'pdf' | ListeRefermee, number>;
 }) {
   const onglets: { cle: 'pdf' | ListeRefermee; vers: string; libelle: string }[] = [
-    { cle: 'pdf', vers: '/espace/parametres/archives', libelle: 'Archives' },
+    { cle: 'pdf', vers: '/espace/parametres/archives', libelle: `Archives (${nombres.pdf})` },
     ...(Object.keys(LISTES_REFERMEES) as ListeRefermee[]).map((cle) => ({
       cle,
       vers: `/espace/parametres/archives/${cle}`,

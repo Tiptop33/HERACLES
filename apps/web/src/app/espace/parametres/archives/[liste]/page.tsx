@@ -1,7 +1,9 @@
 import { notFound } from 'next/navigation';
 import ListeDesCandidatsRefermes from '@/components/ListeDesCandidatsRefermes';
 import OngletsDesArchives from '@/components/OngletsDesArchives';
+import { listerLesPdfAnterieurs } from '@/lib/accueil';
 import { estUneListeRefermee } from '@/lib/candidats-refermes';
+import { totalDesColonnes } from '@/lib/documents/archives';
 import { listerLesDossiersRefermes } from '@/lib/poste';
 
 export const metadata = { title: 'Archives — Paramètres — HERACLES' };
@@ -18,13 +20,18 @@ export default async function CandidatsRefermes({ params }: { params: Promise<{ 
   const { liste } = await params;
   if (!estUneListeRefermee(liste)) notFound();
 
-  const listes = await listerLesDossiersRefermes();
+  // Les PDF aussi, pour le nombre du bouton « Archives ».
+  const [listes, { colonnes }] = await Promise.all([
+    listerLesDossiersRefermes(),
+    listerLesPdfAnterieurs(),
+  ]);
 
   return (
     <>
       <OngletsDesArchives
         courant={liste}
         nombres={{
+          pdf: totalDesColonnes(colonnes),
           'candidats-clotures': listes['candidats-clotures'].length,
           'candidats-archives': listes['candidats-archives'].length,
         }}
