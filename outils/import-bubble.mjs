@@ -34,6 +34,16 @@ const RACINE = `https://${APP}.bubbleapps.io${VERSION}/api/1.1`;
 // référentiels dans celle de l'éditeur, sans que la seconde écrase la première.
 const SEULEMENT_BRUT = process.env.SEULEMENT_BRUT === '1';
 
+// SEULEMENT_TYPES=pdfs : ne reprendre que ces types Bubble (séparés par des
+// virgules), leurs rattachements, et rien d'autre — ni les autres tables, ni la
+// réserve brute. Sert à reprendre les PDF de la commission sans toucher aux
+// candidats ni aux référents (`infra/essai/reprendre-bubble.sh
+// --pdf-commission`, joué à chaque mise en ligne jusqu'à la bascule).
+const SEULEMENT_TYPES = (process.env.SEULEMENT_TYPES ?? '')
+  .split(',')
+  .map((t) => t.trim())
+  .filter(Boolean);
+
 if (!DATABASE_URL) {
   console.error('DATABASE_URL manquante. Exemple :');
   console.error('  DATABASE_URL=postgres://postgres:postgres@localhost:54332/postgres');
@@ -322,7 +332,7 @@ const JETON_REFUSE = [
 async function verifierLeJeton() {
   if (!TOKEN) return;
 
-  const reponse = await fetch(`${RACINE}/obj/${PLAN[0].type}?limit=1`, {
+  const reponse = await fetch(`${RACINE}/obj/${ETAPES[0].type}?limit=1`, {
     headers: { Authorization: `Bearer ${TOKEN}` },
   });
 
@@ -409,6 +419,16 @@ async function ecrire(client, table, ligne, ligneUnique) {
   await client.query(sql, valeurs);
 }
 
+// --- Ce qu'on reprend vraiment ----------------------------------------------
+const inconnus = SEULEMENT_TYPES.filter((t) => !PLAN.some((e) => e.type === t));
+if (inconnus.length) {
+  console.error(`SEULEMENT_TYPES : type(s) inconnu(s) du plan — ${inconnus.join(', ')}`);
+  process.exit(1);
+}
+const ETAPES = SEULEMENT_TYPES.length ? PLAN.filter((e) => SEULEMENT_TYPES.includes(e.type)) : PLAN;
+const TABLES = new Set(ETAPES.map((e) => e.table));
+const RATTACHEMENTS = SEULEMENT_TYPES.length ? LIENS.filter(([table]) => TABLES.has(table)) : LIENS;
+
 // --- Déroulé ---------------------------------------------------------------
 const { Client } = pg;
 const client = new Client({ connectionString: DATABASE_URL });
@@ -416,6 +436,7 @@ await client.connect();
 
 console.log(`Reprise depuis ${APP}${TOKEN ? ' (avec jeton)' : ' (sans jeton)'}`);
 if (LIMITE !== Infinity) console.log(`⚠ limité à ${LIMITE} enregistrements par type`);
+if (SEULEMENT_TYPES.length) console.log(`Seulement : ${SEULEMENT_TYPES.join(', ')}`);
 console.log();
 
 await verifierLeJeton();
@@ -424,7 +445,7 @@ const liaisons = [];
 const compteurs = {};
 
 // Passe 1 — les lignes
-for (const etape of SEULEMENT_BRUT ? [] : PLAN) {
+for (const etape of SEULEMENT_BRUT ? [] : ETAPES) {
   let repris = 0;
   let erreurs = 0;
 
@@ -451,7 +472,7 @@ for (const etape of SEULEMENT_BRUT ? [] : PLAN) {
 
 // Passe 2 — les rattachements
 if (!SEULEMENT_BRUT) console.log('\nRattachements :');
-for (const [table, colonneBubble, cible, colonneId, garde] of SEULEMENT_BRUT ? [] : LIENS) {
+for (const [table, colonneBubble, cible, colonneId, garde] of SEULEMENT_BRUT ? [] : RATTACHEMENTS) {
   const { rowCount } = await client.query(
     `update public.${table} t
         set ${colonneId} = c.id
@@ -499,7 +520,8 @@ async function typesExposes(racine) {
 }
 
 try {
-  exposes = await typesExposes(RACINE);
+  // Une reprise ciblée ne touche pas à la réserve brute.
+  exposes = SEULEMENT_TYPES.length ? [] : await typesExposes(RACINE);
 } catch {
   // Sans /meta, on se contente des types modélisés.
 }
@@ -531,7 +553,9 @@ if (SEULEMENT_BRUT && VERSION) {
 
 const restants = exposes.filter((t) => !traites.has(t) && !reserves.has(t));
 
-if (restants.length === 0) {
+if (SEULEMENT_TYPES.length) {
+  // Rien à dire : la réserve brute n'était pas demandée.
+} else if (restants.length === 0) {
   console.log('\nAucun autre type exposé par l\'API.');
 } else {
   console.log(`\nTypes non modélisés, recopiés tels quels (${restants.length}) :`);

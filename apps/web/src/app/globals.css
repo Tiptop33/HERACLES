@@ -1607,11 +1607,52 @@ tbody tr:focus-within {
   font-size: 0.84rem !important;
 }
 
-.deux-colonnes {
+/* Les PDF archivés de l'accueil (migration 0069) : compte-rendu, affiche,
+   affichette, trois colonnes égales sur toute la largeur. Sur un écran étroit
+   elles passent l'une sous l'autre, dans le même ordre. */
+.archives {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0 1.4rem;
   align-items: start;
+}
+
+.archives-colonne h3 {
+  font-size: 0.86rem;
+  margin: 0 0 0.3rem;
+  padding-bottom: 0.35rem;
+  border-bottom: 1px solid var(--bordure);
+}
+
+/* Le nom à gauche, la corbeille au bout de la même ligne. */
+.liste-nue li.archives-ligne {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.3rem 0;
+}
+
+.archives-ligne a {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.archives-ligne .geste {
+  flex: none;
+}
+
+.archives-vide {
+  margin: 0.4rem 0 0;
+  font-size: 0.8rem;
+  color: var(--encre-douce);
+}
+
+@media (max-width: 46rem) {
+  .archives {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
 }
 
 .liste-nue {

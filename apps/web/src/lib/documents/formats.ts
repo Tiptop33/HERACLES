@@ -120,12 +120,3 @@ export function variablesDeLaCommission(c: Commission): Variables {
     secretaire_email: c.secretaire_email?.trim() ?? '',
   };
 }
-
-/** Un nom de fichier sûr : ni barre oblique, ni guillemet, ni caractère de contrôle. */
-export function nomDeFichierSur(nom: string): string {
-  return nom
-    .normalize('NFC')
-    .replace(/[\\/:*?"<>|\u0000-\u001f]/g, '-')
-    .replace(/\s+/g, '_')
-    .slice(0, 120);
-}

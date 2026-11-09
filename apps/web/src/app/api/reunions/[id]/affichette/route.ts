@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import { nomDeLAffichette } from '@/lib/documents/affichette';
+import { enPdf, titreDeLAffichette } from '@/lib/documents/archives';
+import { archiverLeDocument } from '@/lib/documents/archiver';
 import { donneesDeLAffichette } from '@/lib/documents/donnees';
 import { produireLAffichette } from '@/lib/documents/produire';
 import { enTeteDeTelechargement } from '@/lib/fichiers';
@@ -14,11 +15,13 @@ import { supabaseServer } from '@/lib/supabase-server';
  *   · `POST` — choisir le dossier, ou n'en choisir aucun. Toute la loge le
  *     peut, comme l'appel ; `choisir_l_affichette()` (migration 0068) n'accepte
  *     qu'un dossier en cours de la loge de la réunion ;
- *   · `GET` — produire l'affichette du dossier choisi, nommée à la date de la
- *     réunion qui l'a décidée.
+ *   · `GET` — produire l'affichette du dossier choisi, nommée du numéro et du
+ *     jour où on la tire — « 856 du 09-11-2026 » —, et en ranger un exemplaire
+ *     (migration 0069). Tirée deux fois le même jour, elle remplace le sien.
  *
  * La porte est celle des réunions (`ma_loge()`), puis celle de la fiche
- * (`fiche_candidat()`) pour lire le dossier : aucune clé de service.
+ * (`fiche_candidat()`) pour lire le dossier. La clé de service ne sert qu'à
+ * déposer l'exemplaire dans le seau, une fois les deux portes passées.
  */
 
 export const runtime = 'nodejs';
@@ -110,11 +113,21 @@ export async function GET(requete: Request, { params }: { params: Promise<{ id: 
     }
 
     const octets = await produireLAffichette(await donneesDeLAffichette(choix.candidat_id, fiche, origine(requete)));
+    const titre = titreDeLAffichette(fiche.numero);
+
+    // La réunion et le dossier sont vérifiés : l'exemplaire peut se ranger.
+    await archiverLeDocument({
+      reunion: reunion.id,
+      sorte: 'affichette',
+      titre,
+      octets,
+      candidat: choix.candidat_id,
+    });
 
     return new NextResponse(octets as unknown as BodyInit, {
       headers: {
         'Content-Type': 'application/pdf',
-        'Content-Disposition': enTeteDeTelechargement(nomDeLAffichette(fiche.numero, reunion.tenue_le), 'inline'),
+        'Content-Disposition': enTeteDeTelechargement(enPdf(titre), 'inline'),
         'Cache-Control': 'private, no-store',
         'X-Content-Type-Options': 'nosniff',
       },

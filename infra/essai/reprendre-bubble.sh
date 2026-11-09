@@ -1,8 +1,14 @@
 #!/usr/bin/env bash
 # Rejoue la reprise Bubble vers l'instance d'ESSAI, puis rapatrie les fichiers.
 #
-#   sudo ./infra/essai/reprendre-bubble.sh                 # les données
-#   sudo ./infra/essai/reprendre-bubble.sh --fichiers      # et les fichiers
+#   sudo ./infra/essai/reprendre-bubble.sh                    # les données
+#   sudo ./infra/essai/reprendre-bubble.sh --fichiers         # et les fichiers
+#   sudo ./infra/essai/reprendre-bubble.sh --pdf-commission   # les PDF seuls
+#
+# `--pdf-commission` ne reprend que la table des PDF de Bubble, et ne rapatrie
+# que les comptes rendus, affiches et affichettes — ni candidat, ni référent,
+# ni CV. `mettre-a-jour.sh` le joue à chaque mise en ligne, jusqu'à la bascule :
+# l'accueil (migration 0069) les montre et les ouvre depuis notre stockage.
 #
 # ─────────────────────────────────────────────────────────────────────────────
 # CE QUE CETTE COMMANDE FAIT ENTRER SUR LE SERVEUR
@@ -37,7 +43,13 @@
 set -euo pipefail
 
 FICHIERS=0
-[[ "${1:-}" == "--fichiers" ]] && FICHIERS=1
+PDF_COMMISSION=0
+case "${1:-}" in
+  "") ;;
+  --fichiers) FICHIERS=1 ;;
+  --pdf-commission) PDF_COMMISSION=1 ;;
+  *) printf 'Option inconnue : %s\n' "$1" >&2; exit 1 ;;
+esac
 
 DOSSIER=/opt/supabase-heracles-essai
 PREFIXE=heracles-essai
@@ -86,6 +98,38 @@ if [[ ! -d "$DEPOT/outils/node_modules/pg" ]]; then
   vert "pg installé"
 else
   vert "déjà là"
+fi
+
+# ————— Les PDF de la commission, et rien d'autre —————
+if [[ $PDF_COMMISSION -eq 1 ]]; then
+  etape "PDF de la commission — la table, depuis la base en service"
+  # Les 179 lignes de `pdfs` (CV anonymes compris : la table est reprise telle
+  # quelle, comme par MAJBUBBLE). Un PDF effacé depuis l'accueil le reste :
+  # l'upsert ne touche pas à `efface_le`.
+  outil -e SEULEMENT_TYPES=pdfs "$IMAGE" node import-bubble.mjs
+
+  etape "PDF de la commission — les fichiers, du CDN de Bubble vers le stockage"
+  CLE="$(grep -m1 '^SERVICE_ROLE_KEY=' "$DOSSIER/.env" | cut -d= -f2-)"
+  [[ -n "$CLE" ]] || { rouge "SERVICE_ROLE_KEY introuvable dans $DOSSIER/.env"; exit 1; }
+  outil -e SUPABASE_URL="http://kong:8000" \
+        -e SUPABASE_SERVICE_ROLE_KEY="$CLE" \
+        -e SEULEMENT=pdf-commission \
+        "$IMAGE" node rapatrier-fichiers.mjs
+
+  etape "PDF de la commission — bilan"
+  # Des nombres, jamais un nom : la table porte des comptes rendus.
+  docker exec -i "$PREFIXE-db" psql -U postgres -d postgres -c "
+    select lower(btrim(type_document))                      as sorte,
+           count(*)                                         as repris_de_bubble,
+           count(chemin)                                    as dans_le_stockage,
+           count(*) filter (where chemin is null and efface_le is null) as restants,
+           count(*) filter (where efface_le is not null)    as effaces
+      from public.document
+     where bubble_id is not null
+       and lower(btrim(type_document)) in ('compte-rendu', 'affiche', 'affichette')
+     group by 1
+     order by 1"
+  exit 0
 fi
 
 if [[ -z "${BUBBLE_TOKEN:-}" ]]; then

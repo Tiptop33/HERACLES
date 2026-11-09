@@ -15,6 +15,8 @@ produisait l'application Bubble, et leur présentation se règle dans
 | Réunions : 2e et 4e mercredi, jours fériés | `calendrier.ts` |
 | Écran | `app/espace/parametres/mise-en-page/` |
 | Base | migration `0067_mise_en_page_des_documents.sql` |
+| Exemplaires archivés : noms, période, colonnes | `archives.ts` (pur), dépôt dans le seau : `archiver.ts` |
+| Ouvrir, effacer un exemplaire | `app/api/documents/[id]/`, base : migration `0069_archives_des_documents.sql` |
 
 ## Pourquoi pdfmake
 
@@ -65,9 +67,50 @@ première page d'un PDF en cadre. Ne pas assouplir `X-Frame-Options` pour cela.
 Sur la feuille d'appel, « Dossier de l'affichette » propose les dossiers en
 cours de la loge ; le choix s'enregistre aussitôt (`reunion.affichette_candidat_id`,
 migration 0068) et le bouton « Affichette » le tire, à côté de l'affiche et du
-compte rendu, sous le nom `<numéro>_du_<date de la réunion>.pdf`. Toute la loge
+compte rendu, sous le nom `<numéro> du <jour où on la tire>.pdf`. Toute la loge
 peut choisir, comme pour l'appel. Un dossier refermé depuis ne s'imprime plus.
 Le bouton « Affichette » de la fiche du candidat reste disponible.
+
+## Chaque PDF tiré de la feuille d'appel est archivé
+
+Migration 0069. Les trois boutons de la feuille d'appel — Affiche, Compte rendu,
+Affichette — ouvrent le PDF **et en rangent un exemplaire** :
+
+| Document | Nom de l'exemplaire et du fichier |
+| --- | --- |
+| Compte rendu | `Compte-Rendu du 28-10-2026` — la date de la réunion |
+| Affiche | `Affiche du 28-10-2026` — la date de la réunion |
+| Affichette | `856 du 09-11-2026` — le numéro du dossier, le jour où on la tire |
+
+- **Un exemplaire par nom et par loge** : redemander le même document le
+  remplace. On corrige la feuille, on redemande, c'est la dernière version qui
+  reste. L'affichette de la fiche du candidat, elle, ne s'archive pas.
+- **Où** : une ligne dans `document` (la table des `PDFs` de Bubble, mêmes
+  valeurs de `type_document`), liée à la réunion ; le fichier dans le seau
+  privé `documents`, sous `archives/<loge>/<uuid>.pdf`. La base n'accepte pas
+  d'autre chemin.
+- **Si le seau ne répond pas**, le PDF s'ouvre quand même et le journal du
+  serveur dit `[archives] … PDF non archivé` : il suffit de le redemander.
+- **L'accueil** les montre en trois colonnes — Compte-rendu, Affiche,
+  Affichette —, ceux de **l'exercice réglé dans Paramètres › Exercice** (du
+  1er septembre au 31 juillet). Ce sont les dates de l'onglet qui font foi,
+  même dépassées : au changement d'exercice, c'est là qu'on règle le suivant.
+  Tant qu'aucune date n'y est réglée, l'accueil prend la saison en cours. Du
+  plus récent au plus ancien. Les PDF repris de Bubble y sont aussi, à leur
+  date de création. Le drapeau `archive` de Bubble (« prêt pour envoi » /
+  « archivé ») n'y change rien.
+- **Les PDF de Bubble arrivent à chaque mise en ligne**, jusqu'à la bascule :
+  `mettre-a-jour.sh` lance `reprendre-bubble.sh --pdf-commission`, qui reprend
+  la table des PDF et ne rapatrie que les comptes rendus, affiches et
+  affichettes (pas les CV anonymes, laissés à MAJBUBBLE). Non bloquant, borné à
+  cinq minutes, rejouable ; le journal du déploiement finit par un bilan
+  chiffré par sorte. À la main : `sudo …/infra/essai/reprendre-bubble.sh
+  --pdf-commission`.
+- **Effacer** : la corbeille rouge, sur la ligne du PDF, pour l'administrateur,
+  le Vénérable Maître et le Secrétaire (`puis_je_effacer_des_documents()`),
+  après une fenêtre de confirmation. Un PDF d'HERACLES quitte la base et le
+  seau. Un PDF de Bubble reste en base, marqué `efface_le`, sans fichier : la
+  reprise finale ne le fera pas revenir, et `rapatrier-fichiers.mjs` le saute.
 
 ## Le lien du CV anonyme
 
