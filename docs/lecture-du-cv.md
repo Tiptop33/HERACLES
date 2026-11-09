@@ -50,16 +50,24 @@ et remplit à la main. La fiche s'envoie dans tous les cas.
 Quand le candidat clique sur « Remplir », son CV quitte le serveur pour être lu
 par Anthropic, aux États-Unis. Il en est prévenu sous le bouton, et la case de
 consentement ajoute : « Si j'ai demandé à remplir ce formulaire à partir de mon
-CV, celui-ci a aussi été transmis à Anthropic pour être lu par Claude. » Deux
-points restent à régler, et ils ne relèvent pas du code :
+CV, celui-ci a aussi été transmis à Anthropic pour être lu par Claude. »
 
-1. **Le contrat avec Anthropic.** Accepter les conditions commerciales et
-   l'accord de traitement des données (DPA) de l'organisation Anthropic qui
-   porte la clé. Vérifier la durée de conservation des requêtes sur ce compte,
-   et demander la conservation zéro (*zero data retention*) si elle est
-   possible.
-2. **Le registre des traitements.** Y inscrire Anthropic comme sous-traitant
-   et le transfert hors de l'Union européenne.
+Ce qui encadre ce transfert, relevé le 9 novembre 2026 :
+
+- **Le contrat.** L'accord de traitement des données (DPA) d'Anthropic, du
+  24 février 2025, fait partie des conditions commerciales de l'API : il n'y a
+  rien à signer à part. Il contient les clauses contractuelles types de l'UE
+  pour le transfert vers les États-Unis. Pour un client de l'EEE, le
+  cocontractant est Anthropic Ireland, Limited.
+  <https://www.anthropic.com/legal/data-processing-addendum>
+- **La conservation.** Anthropic supprime les requêtes et les réponses sous
+  30 jours, et ne s'en sert pas pour entraîner ses modèles. La conservation
+  zéro se demande à son équipe commerciale.
+- **Le lieu.** L'espace de travail « HERACLES » de la console est restreint au
+  traitement aux États-Unis (zone d'inférence « US », facturée 1,1 fois le
+  tarif mondial).
+- **Le registre.** Le traitement y est inscrit :
+  `docs/rgpd/registre-des-traitements.md`, § 5.
 
 ## Configuration
 
@@ -67,11 +75,11 @@ Une variable, côté serveur seulement :
 
 | Variable | Rôle |
 | --- | --- |
-| `ANTHROPIC_API_KEY` | la clé de l'API d'Anthropic (`console.anthropic.com` → *API Keys*), qui commence par `sk-ant-` |
+| `ANTHROPIC_API_KEY` | la clé de l'API d'Anthropic (`platform.claude.com` → *Clés et accès*), qui commence par `sk-ant-` |
 
-Créer une clé **propre à HERACLES**, et poser une **limite de dépense**
-mensuelle sur l'espace de travail qui la porte. Une clé se révoque sans toucher
-au reste.
+La clé se crée **dans l'espace de travail « HERACLES »** de la console, et non
+dans l'espace par défaut que partagent d'autres projets. Cet espace a sa propre
+limite de dépense : 10 $ par mois. Une clé se révoque sans toucher au reste.
 
 **Sur l'instance d'essai**, ajouter la ligne à la main dans
 `/opt/heracles-essai-depot/.env.essai`, puis

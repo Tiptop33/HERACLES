@@ -168,6 +168,9 @@ sert**, pas la liste des fichiers touchés.
 - **Lecture du CV** — `docs/lecture-du-cv.md` : le CV du candidat lu par Claude
   pour pré-remplir sa fiche, la clé `ANTHROPIC_API_KEY`, et ce qui reste à
   régler côté données personnelles.
+- **Registre des traitements (RGPD)** — `docs/rgpd/registre-des-traitements.md`.
+  Toute PR qui ajoute une donnée personnelle, un écran qui en montre ou un
+  prestataire qui en voit passer le met à jour.
 - **Sauvegarde** — `docs/sauvegarde.md`. Le serveur porte des données réelles :
   base, fichiers, et la copie qui doit en sortir. À lire avant toute opération
   qui touche à la base.

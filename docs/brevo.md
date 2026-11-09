@@ -345,4 +345,5 @@ Les mêmes étapes, avec :
 Brevo est un sous-traitant : il voit passer les adresses des candidats, des
 parrains et des référents, et le texte des courriels. Société française,
 hébergement dans l'Union européenne — ce qui simplifie, sans dispenser de
-l'inscrire au registre des traitements.
+l'inscrire au registre des traitements : c'est fait, dans
+`docs/rgpd/registre-des-traitements.md` (§ 4).
