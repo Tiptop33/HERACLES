@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 import {
   aujourdhuiAParis,
   avantLaPeriode,
+  chercherDansLaColonne,
+  compteDeLaColonne,
   estUneAdresse,
   jourEnChiffres,
   periodeDesDocuments,
@@ -118,6 +120,65 @@ describe('les trois colonnes', () => {
   it('n’accueille pas une sorte qu’aucune colonne n’annonce', () => {
     const colonnes = rangerParSorte([ligne('cva-1', 'cva')]);
     expect(Object.values(colonnes).flat()).toEqual([]);
+  });
+});
+
+describe('la recherche d’une colonne — Paramètres › Archives', () => {
+  const doc = (id: string, nom: string, date_document: string): DocumentArchive => ({
+    id,
+    nom,
+    type_document: 'compte-rendu',
+    date_document,
+    effacable: false,
+  });
+  const colonne = [
+    doc('h', 'Compte-Rendu du 28-10-2026', '2026-10-28'),
+    doc('b', 'Compte-rendu du Mercredi 14 Octobre 2026', '2026-10-14'),
+    doc('a', '812_du_09-07-2026', '2026-07-09'),
+    doc('f', 'Compte-rendu du Mercredi 11 Février 2026', '2026-02-11'),
+  ];
+  const ids = (recherche: string) => chercherDansLaColonne(colonne, recherche).map((d) => d.id);
+
+  it('rend tout tant que rien n’est tapé', () => {
+    expect(ids('')).toEqual(['h', 'b', 'a', 'f']);
+    expect(ids('   ')).toEqual(['h', 'b', 'a', 'f']);
+  });
+
+  it('trouve un mois en lettres, même quand le nom l’écrit en chiffres', () => {
+    expect(ids('octobre')).toEqual(['h', 'b']);
+  });
+
+  it('trouve une date en chiffres, même quand le nom l’écrit en lettres', () => {
+    expect(ids('10-2026')).toEqual(['h', 'b']);
+    expect(ids('14/10/2026')).toEqual(['b']);
+  });
+
+  it('ignore accents et majuscules', () => {
+    expect(ids('FEVRIER')).toEqual(['f']);
+    expect(ids('février')).toEqual(['f']);
+  });
+
+  it('lit un nom de Bubble avec ses soulignés comme des espaces', () => {
+    expect(ids('812 du')).toEqual(['a']);
+  });
+
+  it('exige chaque mot, dans n’importe quel ordre', () => {
+    // Les deux réunions d'octobre tombent un mercredi : seul « 14 » les départage.
+    expect(ids('mercredi octobre')).toEqual(['h', 'b']);
+    expect(ids('2026 octobre 14')).toEqual(['b']);
+    expect(ids('octobre juillet')).toEqual([]);
+  });
+});
+
+describe('le nombre de PDF sur le titre d’une colonne', () => {
+  it('dit le total tant que rien ne filtre', () => {
+    expect(compteDeLaColonne(50, 50)).toBe('50');
+    expect(compteDeLaColonne(0, 0)).toBe('0');
+  });
+
+  it('dit ce qui reste sur le total pendant une recherche', () => {
+    expect(compteDeLaColonne(2, 50)).toBe('2 sur 50');
+    expect(compteDeLaColonne(0, 50)).toBe('0 sur 50');
   });
 });
 

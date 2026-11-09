@@ -1642,6 +1642,25 @@ tbody tr:focus-within {
   flex: none;
 }
 
+/* Le nombre de PDF à côté du titre (Paramètres › Archives) : lu après le
+   titre, sans lui disputer l'œil. */
+.archives-compte {
+  font-weight: 400;
+  color: var(--encre-douce);
+  font-variant-numeric: tabular-nums;
+}
+
+/* La recherche d'une colonne (Paramètres › Archives) : toute sa largeur, sous
+   son en-tête, à la taille de celle de la liste des candidats. */
+.archives-recherche {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  margin: 0.15rem 0 0.35rem;
+  font-size: 0.82rem;
+  padding: 0.3rem 0.55rem;
+}
+
 .archives-vide {
   margin: 0.4rem 0 0;
   font-size: 0.8rem;

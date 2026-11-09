@@ -1,4 +1,5 @@
 import type { Exercice } from '../exercice';
+import { dateLongue } from './formats';
 
 /**
  * Les PDF archivés de la commission — compte rendu, affiche, affichette —, et
@@ -144,6 +145,50 @@ export type DocumentArchive = {
   /** La base dit si la corbeille a lieu d'être sur cette ligne. */
   effacable: boolean;
 };
+
+/** Sans accents ni majuscules : « Février » se trouve en tapant « fevrier ». */
+function aplatir(texte: string): string {
+  return texte.normalize('NFD').replace(/\p{M}/gu, '').toLocaleLowerCase('fr');
+}
+
+/**
+ * Ce sur quoi porte la recherche d'une ligne : son nom, et sa date en chiffres
+ * comme en lettres. Les noms ne s'écrivent pas tous pareil — « Compte-Rendu du
+ * 28-10-2026 » chez HERACLES, « Compte-rendu du Mercredi 14 Octobre 2026 » ou
+ * « 812_du_09-07-2026 » chez Bubble — : avec la date sous ses deux formes,
+ * « octobre » et « 10-2026 » trouvent les deux.
+ */
+function texteCherchable(d: DocumentArchive): string {
+  return aplatir(
+    [d.nom ?? '', jourEnChiffres(d.date_document), dateLongue(d.date_document)].join(' '),
+  ).replace(/_/g, ' ');
+}
+
+/**
+ * Les lignes d'une colonne qui répondent à la recherche : chaque mot tapé doit
+ * s'y trouver, dans n'importe quel ordre. Une date tapée avec des barres ou
+ * des points (« 09/07/2026 ») se lit comme avec des tirets.
+ */
+export function chercherDansLaColonne(
+  lignes: readonly DocumentArchive[],
+  recherche: string,
+): DocumentArchive[] {
+  const mots = aplatir(recherche).replace(/[/.]/g, '-').split(/\s+/).filter(Boolean);
+  if (mots.length === 0) return [...lignes];
+  return lignes.filter((d) => {
+    const texte = texteCherchable(d);
+    return mots.every((mot) => texte.includes(mot));
+  });
+}
+
+/**
+ * Le nombre de PDF d'une colonne, à côté de son titre : « 50 », et pendant une
+ * recherche « 2 sur 50 » — le total seul laisserait croire que la liste
+ * réduite est complète.
+ */
+export function compteDeLaColonne(affiches: number, total: number): string {
+  return affiches === total ? String(total) : `${affiches} sur ${total}`;
+}
 
 /**
  * Les lignes rangées dans leurs trois colonnes, dans l'ordre reçu — la base
