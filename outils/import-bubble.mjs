@@ -44,6 +44,21 @@ const SEULEMENT_TYPES = (process.env.SEULEMENT_TYPES ?? '')
   .map((t) => t.trim())
   .filter(Boolean);
 
+// SEULEMENT_CHAMPS=bubble_modifie_le : avec SEULEMENT_TYPES, ne **mettre à
+// jour** que ces colonnes, sur les lignes déjà reprises — aucune insertion,
+// aucune autre colonne, aucun rattachement. Seules les lignes dont la valeur
+// a changé sont écrites, et la base ne compte pas une date recopiée de Bubble
+// comme une retouche de la fiche (`maj_le` ne bouge pas, migration 0071).
+// Sert à `reprendre-bubble.sh --dates-candidats`, joué à chaque mise en ligne.
+const SEULEMENT_CHAMPS = (process.env.SEULEMENT_CHAMPS ?? '')
+  .split(',')
+  .map((t) => t.trim())
+  .filter(Boolean);
+if (SEULEMENT_CHAMPS.length && !SEULEMENT_TYPES.length) {
+  console.error('SEULEMENT_CHAMPS demande SEULEMENT_TYPES : quels types mettre à jour ?');
+  process.exit(1);
+}
+
 if (!DATABASE_URL) {
   console.error('DATABASE_URL manquante. Exemple :');
   console.error('  DATABASE_URL=postgres://postgres:postgres@localhost:54332/postgres');
@@ -167,7 +182,9 @@ const PLAN = [
       Candidat_METIER: ['metier_libelle', txt],
       'Created By': ['cree_par_bubble_id', txt],
       'Created Date': ['cree_le', date],
-      'Modified Date': ['maj_le', date],
+      // `maj_le` est réécrite par un déclencheur à chaque mise à jour : la date
+      // de Bubble va dans sa propre colonne (migration 0071).
+      'Modified Date': ['bubble_modifie_le', date],
     },
   },
   {
@@ -426,8 +443,20 @@ if (inconnus.length) {
   process.exit(1);
 }
 const ETAPES = SEULEMENT_TYPES.length ? PLAN.filter((e) => SEULEMENT_TYPES.includes(e.type)) : PLAN;
+for (const etape of SEULEMENT_CHAMPS.length ? ETAPES : []) {
+  const colonnes = new Set(Object.values(etape.champs).map(([colonne]) => colonne));
+  const etrangeres = SEULEMENT_CHAMPS.filter((c) => !colonnes.has(c));
+  if (etrangeres.length) {
+    console.error(`SEULEMENT_CHAMPS : ${etrangeres.join(', ')} — pas une colonne reprise pour ${etape.type}`);
+    process.exit(1);
+  }
+}
 const TABLES = new Set(ETAPES.map((e) => e.table));
-const RATTACHEMENTS = SEULEMENT_TYPES.length ? LIENS.filter(([table]) => TABLES.has(table)) : LIENS;
+const RATTACHEMENTS = SEULEMENT_CHAMPS.length
+  ? []
+  : SEULEMENT_TYPES.length
+    ? LIENS.filter(([table]) => TABLES.has(table))
+    : LIENS;
 
 // --- Déroulé ---------------------------------------------------------------
 const { Client } = pg;
@@ -437,6 +466,7 @@ await client.connect();
 console.log(`Reprise depuis ${APP}${TOKEN ? ' (avec jeton)' : ' (sans jeton)'}`);
 if (LIMITE !== Infinity) console.log(`⚠ limité à ${LIMITE} enregistrements par type`);
 if (SEULEMENT_TYPES.length) console.log(`Seulement : ${SEULEMENT_TYPES.join(', ')}`);
+if (SEULEMENT_CHAMPS.length) console.log(`Mise à jour seule de : ${SEULEMENT_CHAMPS.join(', ')}`);
 console.log();
 
 await verifierLeJeton();
@@ -451,6 +481,20 @@ for (const etape of SEULEMENT_BRUT ? [] : ETAPES) {
 
   for await (const objet of lireType(etape.type)) {
     try {
+      if (SEULEMENT_CHAMPS.length) {
+        const ligne = preparer(objet, etape.champs);
+        const colonnes = SEULEMENT_CHAMPS.filter((c) => c in ligne);
+        if (!ligne.bubble_id || colonnes.length === 0) continue;
+        const { rowCount } = await client.query(
+          `update public.${etape.table}
+              set ${colonnes.map((c, i) => `${c} = $${i + 1}`).join(', ')}
+            where bubble_id = $${colonnes.length + 1}
+              and (${colonnes.map((c, i) => `${c} is distinct from $${i + 1}`).join(' or ')})`,
+          [...colonnes.map((c) => ligne[c]), ligne.bubble_id],
+        );
+        repris += rowCount;
+        continue;
+      }
       await ecrire(client, etape.table, preparer(objet, etape.champs), etape.ligneUnique);
       repris++;
     } catch (erreur) {
@@ -467,11 +511,14 @@ for (const etape of SEULEMENT_BRUT ? [] : ETAPES) {
   }
 
   compteurs[etape.table] = repris;
-  console.log(`${etape.type} → ${etape.table} : ${repris} repris${erreurs ? `, ${erreurs} en échec` : ''}`);
+  console.log(
+    `${etape.type} → ${etape.table} : ${repris} ${SEULEMENT_CHAMPS.length ? 'mis à jour' : 'repris'}` +
+      (erreurs ? `, ${erreurs} en échec` : ''),
+  );
 }
 
 // Passe 2 — les rattachements
-if (!SEULEMENT_BRUT) console.log('\nRattachements :');
+if (!SEULEMENT_BRUT && RATTACHEMENTS.length) console.log('\nRattachements :');
 for (const [table, colonneBubble, cible, colonneId, garde] of SEULEMENT_BRUT ? [] : RATTACHEMENTS) {
   const { rowCount } = await client.query(
     `update public.${table} t

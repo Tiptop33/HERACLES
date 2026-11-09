@@ -4,11 +4,18 @@
 #   sudo ./infra/essai/reprendre-bubble.sh                    # les données
 #   sudo ./infra/essai/reprendre-bubble.sh --fichiers         # et les fichiers
 #   sudo ./infra/essai/reprendre-bubble.sh --pdf-commission   # les PDF seuls
+#   sudo ./infra/essai/reprendre-bubble.sh --dates-candidats  # une date seule
 #
 # `--pdf-commission` ne reprend que la table des PDF de Bubble, et ne rapatrie
 # que les comptes rendus, affiches et affichettes — ni candidat, ni référent,
 # ni CV. `mettre-a-jour.sh` le joue à chaque mise en ligne, jusqu'à la bascule :
 # l'accueil (migration 0069) les montre et les ouvre depuis notre stockage.
+#
+# `--dates-candidats` ne recopie que la date de dernière modification de
+# chaque fiche dans Bubble (`bubble_modifie_le`, migration 0071), sur les
+# candidats déjà repris : aucune autre colonne, aucune fiche nouvelle. C'est
+# la date approchée de clôture ou d'archivage des dossiers repris. Joué aussi à
+# chaque mise en ligne, jusqu'à la bascule.
 #
 # ─────────────────────────────────────────────────────────────────────────────
 # CE QUE CETTE COMMANDE FAIT ENTRER SUR LE SERVEUR
@@ -44,10 +51,12 @@ set -euo pipefail
 
 FICHIERS=0
 PDF_COMMISSION=0
+DATES_CANDIDATS=0
 case "${1:-}" in
   "") ;;
   --fichiers) FICHIERS=1 ;;
   --pdf-commission) PDF_COMMISSION=1 ;;
+  --dates-candidats) DATES_CANDIDATS=1 ;;
   *) printf 'Option inconnue : %s\n' "$1" >&2; exit 1 ;;
 esac
 
@@ -98,6 +107,24 @@ if [[ ! -d "$DEPOT/outils/node_modules/pg" ]]; then
   vert "pg installé"
 else
   vert "déjà là"
+fi
+
+# ————— La date de modification Bubble des candidats, et rien d'autre —————
+if [[ $DATES_CANDIDATS -eq 1 ]]; then
+  etape "Dates de modification des candidats — depuis la base en service"
+  # Une seule colonne, sur les fiches déjà reprises. Le reste de la fiche, et
+  # ce qu'HERACLES y a changé, n'est pas touché.
+  outil -e SEULEMENT_TYPES=candidats -e SEULEMENT_CHAMPS=bubble_modifie_le \
+        "$IMAGE" node import-bubble.mjs
+
+  etape "Dates — bilan"
+  docker exec -i "$PREFIXE-db" psql -U postgres -d postgres -c "
+    select count(*) filter (where bubble_id is not null)        as repris_de_bubble,
+           count(bubble_modifie_le)                              as date_bubble_connue,
+           count(*) filter (where public.mot_de_fermeture(cloture) is not null
+                              and public.mot_de_fermeture(archive) is null) as clotures_non_archives
+      from public.candidat"
+  exit 0
 fi
 
 # ————— Les PDF de la commission, et rien d'autre —————

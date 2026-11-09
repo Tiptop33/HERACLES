@@ -186,4 +186,15 @@ else
   rouge "la prochaine mise en ligne reprendra où celle-ci s'est arrêtée."
 fi
 
+etape "Dates de modification des candidats — depuis Bubble"
+# La date approchée de clôture ou d'archivage des dossiers repris (migration
+# 0071) : une colonne seule, recopiée de Bubble. Même règle que les PDF : non
+# bloquant, borné, à retirer après la bascule.
+if timeout 120 "$DEPOT/infra/essai/reprendre-bubble.sh" --dates-candidats; then
+  vert "dates des candidats à jour"
+else
+  rouge "dates des candidats : reprise incomplète — sans effet sur l'application,"
+  rouge "la prochaine mise en ligne reprendra."
+fi
+
 vert "instance d'essai à jour"
