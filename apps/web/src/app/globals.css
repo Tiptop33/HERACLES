@@ -3195,6 +3195,80 @@ a.poste-document .poste-document-type {
   color: var(--encre-tres-douce);
 }
 
+/* ————— Le CV anonyme produit par HERACLES (0073) ————— */
+
+/* Sous les cartes, une ligne : l'état du CV, le voir, le valider. L'état se
+   lit à la pastille — ambre tant que le référent n'a pas relu, vert ensuite —
+   avant même le texte. */
+.cv-anonyme-bandeau {
+  margin-top: 1rem;
+  max-width: 40rem;
+  padding: 0.8rem 0.9rem;
+  display: grid;
+  gap: 0.6rem;
+  border: 1px solid var(--bordure);
+  border-radius: 10px;
+  background: var(--surface);
+}
+
+.cv-anonyme-etat {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem 0.8rem;
+  font-size: 0.88rem;
+}
+
+.cv-anonyme-pastille {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.15rem 0.6rem;
+  border-radius: 99px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--attention);
+  background: var(--attention-clair);
+}
+
+.cv-anonyme-pastille::before {
+  content: '';
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.cv-anonyme-pastille--valide {
+  color: var(--referent);
+  background: var(--referent-clair);
+}
+
+.cv-anonyme-pastille--valide::before {
+  content: '✓';
+  width: auto;
+  height: auto;
+  border-radius: 0;
+  background: none;
+}
+
+.cv-anonyme-gestes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.cv-anonyme-gestes form {
+  margin: 0;
+}
+
+.cv-anonyme-refus {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--alerte);
+}
+
 /* ————— Imprimer une fiche depuis le poste de travail ————— */
 
 @media print {
