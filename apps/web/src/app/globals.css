@@ -3269,6 +3269,14 @@ a.poste-document .poste-document-type {
   color: var(--alerte);
 }
 
+/* Pourquoi HERACLES n'a pas validé seul : une indication, pas une erreur —
+   l'encre douce, pas la couleur d'alerte. */
+.cv-anonyme-raison {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--encre-douce);
+}
+
 /* ————— Imprimer une fiche depuis le poste de travail ————— */
 
 @media print {

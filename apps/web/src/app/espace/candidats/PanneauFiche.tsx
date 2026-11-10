@@ -849,8 +849,10 @@ function Documents({
 
 /**
  * Le CV anonyme qu'HERACLES produit de la fiche (migration 0073), sous les
- * cartes : son état, le voir, et — pour tout référent de la loge du candidat
- * (0074) — le valider ou retirer sa validation.
+ * cartes : son état — validé par un référent ou par HERACLES (0078), sinon
+ * pourquoi HERACLES ne l'a pas validé seul (0079) —, le voir, et — pour tout
+ * référent de la loge du candidat (0074) — le valider ou retirer sa
+ * validation.
  *
  * Validé, c'est lui que servent le lien de l'affiche et le QR code de
  * l'affichette, dans sa copie figée (0075) ; jusque-là, ils servent le
@@ -885,6 +887,10 @@ function BandeauDuCvAnonyme({
           <span className="cv-anonyme-pastille">À valider</span>
         )}
       </div>
+
+      {/* Pourquoi HERACLES ne l'a pas validé seul (0079) : quoi corriger, ou
+          quoi relire avant de valider à la main. */}
+      {!valide && etat.raison ? <p className="cv-anonyme-raison">{etat.raison}</p> : null}
 
       {refus ? (
         <p className="cv-anonyme-refus" role="alert">

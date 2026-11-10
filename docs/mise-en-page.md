@@ -252,6 +252,13 @@ HERACLES le produit de la fiche, et en **range une copie à chaque validation**
   déjà en base ont été validés par la migration, aux mêmes conditions.
   **Ce que la vérification ne voit pas** : un nom d'employeur, un surnom, un
   nom mal orthographié, un tiers — elle cherche des mots, elle ne lit pas.
+- **Pourquoi pas validé** (0079) : sous la pastille « À valider », le bandeau
+  dit pourquoi HERACLES n'a pas validé seul — « Non validé automatiquement :
+  il contient le nom ou le prénom du candidat, dans « Expériences ». », pas de
+  CV original, CV anonyme déposé, emploi recherché manquant, dossier refermé,
+  ou « Validation retirée par un référent ». Le référent sait quoi corriger,
+  ou quoi relire avant de valider à la main (`raison_du_cv_anonyme()`, même
+  porte que la fiche).
 - **La copie figée** (0075) : au clic sur « Valider » — ou, pour une
   validation de HERACLES, à la première ouverture du CV (lien public, ou
   référent de la loge sur la fiche) —, le PDF tel qu'il est à cet instant est rangé dans le seau privé `documents`
