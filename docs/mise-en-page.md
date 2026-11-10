@@ -187,12 +187,15 @@ d'un dossier en cours, pour qui a le jeton (`candidat.cv_anonyme_jeton`). Voir l
 registre RGPD, § 5 bis.
 
 Il sert, dans cet ordre : le CV **produit par HERACLES**, s'il a été validé par
-le référent ; à défaut, le **fichier** repris de Bubble ou déposé à la main.
+un référent de la loge — sa **copie figée** à la validation, ou à défaut le PDF
+produit à la volée ; à défaut, le **fichier** repris de Bubble ou déposé à la
+main.
 
 ## Le CV anonyme produit par HERACLES
 
 Migration 0073. Bubble produisait le CV anonyme à l'envoi de la fiche ;
-HERACLES le produit de la fiche, à chaque ouverture, sans le stocker.
+HERACLES le produit de la fiche, et en **range une copie à chaque validation**
+(0075) : c'est elle qui circule.
 
 | | |
 | --- | --- |
@@ -200,6 +203,7 @@ HERACLES le produit de la fiche, à chaque ouverture, sans le stocker.
 | Le choix, et les cinq autres modèles | `docs/maquettes/cv-anonyme-propositions.html`, décisions dans `…-notes.md` |
 | Réglages | Paramètres › Mise en page › CV anonyme : écriture du numéro, couleurs, adresse de contact, phrases du pied |
 | Aperçu et validation (référent) | `app/api/candidats/[id]/cv-anonyme/` — GET : le PDF ; POST : valider ou retirer |
+| Copie figée | `lib/documents/copie-figee.ts` — `figer_cv_anonyme()`, `copie_figee_du_cv_anonyme()` (0075) |
 | Lien public | `app/cv-anonyme/[jeton]/` — `cv_anonyme_valide_public()`, puis `cv_anonyme_public()` |
 
 - **Ce qu'il imprime** : le numéro du dossier en haut à gauche, sur l'aplat ;
@@ -222,6 +226,28 @@ HERACLES le produit de la fiche, à chaque ouverture, sans le stocker.
   imprimé — à l'écran ou par la reprise de Bubble — efface la validation :
   le CV est à relire. Valider ne change pas la « dernière mise à jour » de la
   fiche.
+- **Automatique dès qu'il y a un CV original** (décision du 10 novembre
+  2026) : la carte « CV anonyme » de l'onglet *Documents* s'ouvre alors sur le
+  CV produit depuis la fiche, marquée « à valider » — plus de « non fourni ».
+  Vaut pour les dossiers déjà en base comme pour les nouveaux, CV original
+  déposé ou encore chez Bubble. L'ordre de la carte suit celui du lien public :
+  validé, le CV produit (copie figée) ; sinon le fichier déposé ou repris de
+  Bubble ; sinon, s'il y a un CV original, le CV produit à valider ; sinon
+  « non fourni ». Avant la validation, rien n'est rangé : la fiche peut encore
+  bouger, le PDF se produit à l'ouverture, toujours à jour. Il ne circule
+  qu'une fois validé (`lib/documents/carte-cv-anonyme.ts`).
+- **La copie figée** (0075) : au clic sur « Valider », le PDF tel qu'il est à
+  cet instant est rangé dans le seau privé `documents`
+  (`candidats/<id>/cv-anonyme-valide-<instant>.pdf`). Le lien public — affiche,
+  QR code de l'affichette — et « Voir le CV anonyme » servent cette copie : ce
+  qui circule est exactement ce qui a été relu, même si la mise en page change
+  ensuite. Elle ne sert que **sa** validation : fiche modifiée ou validation
+  retirée, elle se tait ; la validation suivante en range une nouvelle, qui
+  remplace l'ancienne dans le seau. Le chemin est calculé par la base, jamais
+  reçu de la requête. Si la copie n'a pas pu être rangée (seau indisponible),
+  la validation tient quand même et le PDF se produit à la volée, comme avant
+  0075 — de même pour un CV validé avant 0075, jusqu'à sa prochaine validation.
+  Supprimer le dossier efface la copie.
 - **Le contact** : l'adresse se règle dans Paramètres › Mise en page. Vide (par
   défaut), la phrase « Pour rencontrer ce candidat… » ne s'imprime pas. Le CV
   circule hors de la loge : une adresse de la commission, jamais celle d'une

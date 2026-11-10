@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
+import { estUneCopieFigee, figerLeCvAnonyme, lireLaCopieFigee } from '@/lib/documents/copie-figee';
 import { donneesDuCvAnonyme, nomDuCvAnonyme } from '@/lib/documents/cv-anonyme';
 import { lireLEtatDuCvAnonyme } from '@/lib/documents/donnees';
 import { produireLeCvAnonyme } from '@/lib/documents/produire';
@@ -14,11 +15,15 @@ import { supabaseServer } from '@/lib/supabase-server';
  * GET — « Voir le CV anonyme », sur le bandeau de la fiche : le PDF tel que le
  * lien public le servira. Le droit est celui de voir la fiche
  * (`fiche_candidat()`), comme pour l'affichette. Le CV ne reprend de la fiche
- * que les champs nommés dans `donneesDuCvAnonyme()` : jamais le nom.
+ * que les champs nommés dans `donneesDuCvAnonyme()` : jamais le nom. Validé,
+ * c'est la copie figée à la validation (0075) ; sinon, ou si elle manque, le
+ * PDF se produit à la volée.
  *
  * POST — « Valider » ou « Retirer la validation ». `valider_cv_anonyme()`
  * tranche : tout référent de la loge du candidat valide (0074), et la base le
- * vérifie quel que soit ce que l'écran a montré. Aucune clé de service.
+ * vérifie quel que soit ce que l'écran a montré. Validé, le PDF est aussitôt
+ * figé dans le seau (`figerLeCvAnonyme()`) : la clé de service n'y sert
+ * qu'après les deux vérifications de la base, au chemin qu'elle a donné.
  */
 
 export const runtime = 'nodejs';
@@ -43,19 +48,32 @@ export async function GET(_requete: Request, { params }: { params: Promise<{ id:
     const fiche = await lireFiche(id);
     if (!fiche) return NextResponse.json({ erreur: 'Ce dossier n’existe pas.' }, { status: 404 });
 
-    // Validé, le CV porte la date de sa validation, comme sur le lien public ;
-    // sinon celle du jour.
+    const pdf = (octets: BodyInit) =>
+      new NextResponse(octets, {
+        headers: {
+          'Content-Type': 'application/pdf',
+          'Content-Disposition': enTeteDeTelechargement(nomDuCvAnonyme(fiche.numero), 'inline'),
+          'Cache-Control': 'private, no-store',
+          'X-Content-Type-Options': 'nosniff',
+        },
+      });
+
+    // Validé et figé : la copie de cette validation, celle que le lien public
+    // sert. La base a vérifié qu'on voit la fiche avant de rendre le chemin.
+    const { data: copie, error: souciCopie } = await supabase.rpc('copie_figee_du_cv_anonyme', {
+      candidat_choisi: id,
+    });
+    if (souciCopie) console.error('[cv-anonyme] copie figée introuvable', souciCopie.code);
+    if (estUneCopieFigee(copie, id)) {
+      const octets = await lireLaCopieFigee(copie);
+      if (octets) return pdf(octets);
+    }
+
+    // Sinon, produit à la volée. Validé, le CV porte la date de sa validation,
+    // comme sur le lien public ; sinon celle du jour.
     const etat = await lireLEtatDuCvAnonyme(id);
     const octets = await produireLeCvAnonyme(donneesDuCvAnonyme(fiche, etat?.valide_le ?? JOUR()));
-
-    return new NextResponse(octets as unknown as BodyInit, {
-      headers: {
-        'Content-Type': 'application/pdf',
-        'Content-Disposition': enTeteDeTelechargement(nomDuCvAnonyme(fiche.numero), 'inline'),
-        'Cache-Control': 'private, no-store',
-        'X-Content-Type-Options': 'nosniff',
-      },
-    });
+    return pdf(octets as unknown as BodyInit);
   } catch (souci) {
     console.error('[cv-anonyme] aperçu impossible', souci);
     return NextResponse.json(
@@ -123,6 +141,10 @@ async function valider(requete: Request, id: string) {
     return repondre('incomplet', 'La fiche ne dit pas l’emploi recherché : le CV n’aurait pas de titre.', 409);
   }
   if (data !== 'valide' && data !== 'retire') return repondre('echec', 'Le CV anonyme n’a pas pu être validé.');
+
+  // Ce qui vient d'être relu est rangé tel quel. Un échec ne défait pas la
+  // validation : le PDF se produira à la volée, et le journal le dit.
+  if (data === 'valide') await figerLeCvAnonyme(id);
 
   return repondre(null, null);
 }
