@@ -1,5 +1,9 @@
 -- Tests de la migration 0075_copie_figee_du_cv_anonyme.sql.
 --
+-- `figer_cv_anonyme()` prend depuis 0078 l'instant de la validation attendue.
+-- Les fiches de ce test n'ont pas de CV original : HERACLES ne les valide pas
+-- de lui-même, la validation reste celle des référents.
+--
 --   · Lina   référente du dossier 7501, à Auch-0075 — valide et fige
 --   · Marc   autre référent d'Auch-0075              — fige aussi
 --   · Nino   référent de Dax-0075, parrain du dossier — voit la copie, ne fige pas
@@ -58,7 +62,7 @@ begin;
   set local request.jwt.claims = '{"sub":"cfcfcfcf-7500-0000-0000-000000000001"}';
   select public.verifier(
     (select issue = 'non_valide' and chemin is null and ancien is null
-       from public.figer_cv_anonyme(:'c1'::uuid)),
+       from public.figer_cv_anonyme(:'c1'::uuid, null)),
     'un CV non valide ne se fige pas');
 commit;
 
@@ -82,7 +86,7 @@ begin
     perform set_config('role', 'authenticated', true);
     perform set_config('request.jwt.claims', json_build_object('sub', qui)::text, true);
     begin
-      perform public.figer_cv_anonyme(dossier);
+      perform public.figer_cv_anonyme(dossier, now());
       raise exception 'ÉCHEC — % a fige hors de sa loge', qui;
     exception when insufficient_privilege then
       raise notice '  ok — % ne fige pas hors de sa loge', qui;
@@ -92,7 +96,7 @@ begin
   perform set_config('role', 'anon', true);
   perform set_config('request.jwt.claims', '', true);
   begin
-    perform public.figer_cv_anonyme(dossier);
+    perform public.figer_cv_anonyme(dossier, now());
     raise exception 'ÉCHEC — anon a fige un CV';
   exception when insufficient_privilege then
     raise notice '  ok — anon ne fige pas';
@@ -112,7 +116,7 @@ begin;
     public.valider_cv_anonyme(:'c1'::uuid, true) = 'valide',
     'Lina valide');
   select issue as f1_issue, chemin as k1, coalesce(ancien, '') as f1_ancien
-    from public.figer_cv_anonyme(:'c1'::uuid) \gset
+    from public.figer_cv_anonyme(:'c1'::uuid, (select valide_le from public.etat_du_cv_anonyme(:'c1'::uuid))) \gset
 commit;
 
 select public.verifier(:'f1_issue' = 'fige', 'la copie de la validation est figee');
@@ -234,9 +238,9 @@ begin;
   set local role authenticated;
   set local request.jwt.claims = '{"sub":"cfcfcfcf-7500-0000-0000-000000000002"}';
   select issue as f2_issue, chemin as k2, coalesce(ancien, '') as f2_ancien
-    from public.figer_cv_anonyme(:'c1'::uuid) \gset
+    from public.figer_cv_anonyme(:'c1'::uuid, (select valide_le from public.etat_du_cv_anonyme(:'c1'::uuid))) \gset
   select issue as f3_issue, chemin as k3, coalesce(ancien, '') as f3_ancien
-    from public.figer_cv_anonyme(:'c1'::uuid) \gset
+    from public.figer_cv_anonyme(:'c1'::uuid, (select valide_le from public.etat_du_cv_anonyme(:'c1'::uuid))) \gset
 commit;
 
 select public.verifier(
@@ -263,7 +267,7 @@ begin;
     public.valider_cv_anonyme(:'c1'::uuid, false) = 'retire',
     'Lina retire la validation');
   select public.verifier(
-    (select issue = 'non_valide' from public.figer_cv_anonyme(:'c1'::uuid)),
+    (select issue = 'non_valide' from public.figer_cv_anonyme(:'c1'::uuid, null)),
     'il n y a plus rien a figer');
   select public.verifier(
     public.copie_figee_du_cv_anonyme(:'c1'::uuid) is null,

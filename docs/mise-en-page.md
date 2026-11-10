@@ -236,8 +236,25 @@ HERACLES le produit de la fiche, et en **range une copie à chaque validation**
   « non fourni ». Avant la validation, rien n'est rangé : la fiche peut encore
   bouger, le PDF se produit à l'ouverture, toujours à jour. Il ne circule
   qu'une fois validé (`lib/documents/carte-cv-anonyme.ts`).
-- **La copie figée** (0075) : au clic sur « Valider », le PDF tel qu'il est à
-  cet instant est rangé dans le seau privé `documents`
+- **Validé tout seul quand rien n'est suspect** (0078, décision du 10 novembre
+  2026) : dès qu'il y a un CV original et un emploi recherché, HERACLES
+  cherche dans les champs imprimés le nom, le prénom, l'adresse et le
+  téléphone du candidat, et toute adresse électronique, tout numéro de
+  téléphone, tout lien web (`cv_anonyme_suspect()`). Rien : le CV est validé,
+  « par HERACLES » sur le bandeau. Sinon il reste « à valider » par un
+  référent. Réévalué à chaque modification de ce qui compte (champ imprimé,
+  CV original, identité, clôture) : une fiche corrigée se revalide d'elle-même,
+  une validation de HERACLES qui n'est plus propre est retirée. Une validation
+  **retirée par un référent** ne revient pas avant la prochaine modification
+  d'un champ imprimé ; une validation **donnée par un référent** tient. Pas de
+  validation d'office pour un dossier qui a déjà un CV anonyme déposé (celui de
+  la commission reste servi), refermé, ou sans emploi recherché. Les dossiers
+  déjà en base ont été validés par la migration, aux mêmes conditions.
+  **Ce que la vérification ne voit pas** : un nom d'employeur, un surnom, un
+  nom mal orthographié, un tiers — elle cherche des mots, elle ne lit pas.
+- **La copie figée** (0075) : au clic sur « Valider » — ou, pour une
+  validation de HERACLES, à la première ouverture du CV (lien public, ou
+  référent de la loge sur la fiche) —, le PDF tel qu'il est à cet instant est rangé dans le seau privé `documents`
   (`candidats/<id>/cv-anonyme-valide-<instant>.pdf`). Le lien public — affiche,
   QR code de l'affichette — et « Voir le CV anonyme » servent cette copie : ce
   qui circule est exactement ce qui a été relu, même si la mise en page change
@@ -246,7 +263,8 @@ HERACLES le produit de la fiche, et en **range une copie à chaque validation**
   remplace l'ancienne dans le seau. Le chemin est calculé par la base, jamais
   reçu de la requête. Si la copie n'a pas pu être rangée (seau indisponible),
   la validation tient quand même et le PDF se produit à la volée, comme avant
-  0075 — de même pour un CV validé avant 0075, jusqu'à sa prochaine validation.
+  0075 ; la première ouverture suivante la range. Un CV validé avant 0075
+  reçoit de même sa copie à sa première ouverture (0078).
   Supprimer le dossier efface la copie.
 - **Le contact** (migrations 0076, 0077) : la valeur d'origine du champ
   « Adresse de contact » est l'adresse électronique du **Secrétaire de la

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { estUneCopieFigee, lireLaCopieFigee } from '@/lib/documents/copie-figee';
+import { estUneCopieFigee, figerParLeJeton, lireLaCopieFigee } from '@/lib/documents/copie-figee';
 import { donneesDuCvAnonyme, nomDuCvAnonyme, type SourceDuCvAnonyme } from '@/lib/documents/cv-anonyme';
 import { produireLeCvAnonymePublic } from '@/lib/documents/produire';
 import { enTeteDeTelechargement, extensionDe, typeDeFichier } from '@/lib/fichiers';
@@ -12,11 +12,13 @@ import { supabaseServer } from '@/lib/supabase-server';
  *
  * Deux sources, dans cet ordre (migration 0073) :
  *
- *   1. le CV **produit par HERACLES** depuis la fiche, s'il a été validé par
- *      un référent de la loge : la **copie figée** à la validation
+ *   1. le CV **produit par HERACLES** depuis la fiche, s'il a été validé —
+ *      par un référent de la loge, ou par HERACLES quand rien n'y est
+ *      suspect (0078) : la **copie figée** à la validation
  *      (migration 0075), exactement ce qui a été relu ; à défaut — copie
- *      manquante, CV validé avant 0075 —, le PDF se fait ici, à la demande,
- *      des seuls champs anonymes que `cv_anonyme_valide_public()` rend ;
+ *      manquante, CV validé par HERACLES (0078) ou avant 0075 —, le PDF se
+ *      fait ici, à la demande, des seuls champs anonymes que
+ *      `cv_anonyme_valide_public()` rend, et il est rangé pour la suite ;
  *   2. à défaut, le **fichier** repris de Bubble ou déposé à la main, comme
  *      avant.
  *
@@ -91,12 +93,20 @@ export async function GET(_requete: Request, { params }: { params: Promise<{ jet
     const produit = (valide as CvValide[] | null)?.[0];
     if (produit) {
       const figee = estUneCopieFigee(produit.fige_chemin) ? await lireLaCopieFigee(produit.fige_chemin) : null;
-      const octets =
-        figee ??
-        ((await produireLeCvAnonymePublic(
+      let octets: BodyInit;
+      if (figee) {
+        octets = figee;
+      } else {
+        const produits = await produireLeCvAnonymePublic(
           donneesDuCvAnonyme(produit, produit.valide_le, produit.secretaire_email),
           produit.reglages,
-        )) as unknown as BodyInit);
+        );
+        // Première ouverture d'un CV validé sans copie — validé par HERACLES
+        // (0078), ou avant 0075 : on range ce qu'on sert. La base ne fige que
+        // cette validation-là, une seule fois.
+        if (!produit.fige_chemin && produit.valide_le) await figerParLeJeton(jeton, produit.valide_le, produits);
+        octets = produits as unknown as BodyInit;
+      }
       return new NextResponse(octets, {
         headers: {
           'Content-Type': 'application/pdf',
