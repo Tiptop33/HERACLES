@@ -226,6 +226,16 @@ HERACLES le produit de la fiche, et en **range une copie à chaque validation**
   imprimé — à l'écran ou par la reprise de Bubble — efface la validation :
   le CV est à relire. Valider ne change pas la « dernière mise à jour » de la
   fiche.
+- **Automatique dès qu'il y a un CV original** (décision du 10 novembre
+  2026) : la carte « CV anonyme » de l'onglet *Documents* s'ouvre alors sur le
+  CV produit depuis la fiche, marquée « à valider » — plus de « non fourni ».
+  Vaut pour les dossiers déjà en base comme pour les nouveaux, CV original
+  déposé ou encore chez Bubble. L'ordre de la carte suit celui du lien public :
+  validé, le CV produit (copie figée) ; sinon le fichier déposé ou repris de
+  Bubble ; sinon, s'il y a un CV original, le CV produit à valider ; sinon
+  « non fourni ». Avant la validation, rien n'est rangé : la fiche peut encore
+  bouger, le PDF se produit à l'ouverture, toujours à jour. Il ne circule
+  qu'une fois validé (`lib/documents/carte-cv-anonyme.ts`).
 - **La copie figée** (0075) : au clic sur « Valider », le PDF tel qu'il est à
   cet instant est rangé dans le seau privé `documents`
   (`candidats/<id>/cv-anonyme-valide-<instant>.pdf`). Le lien public — affiche,

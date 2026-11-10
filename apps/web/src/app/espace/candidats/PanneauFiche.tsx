@@ -15,6 +15,7 @@ import {
 } from '@/lib/journal';
 import { libelleDeRecherche } from '@/lib/parrainage';
 import { nomDeFamilleDabord, type FicheOuverte, type LigneCandidat } from '@/lib/poste';
+import { carteDuCvAnonyme } from '@/lib/documents/carte-cv-anonyme';
 import type { EtatDuCvAnonyme } from '@/lib/documents/donnees';
 import { jourEntier } from '@/lib/documents/formats';
 
@@ -719,6 +720,11 @@ function Profil({
  * mais la carte l'écrivait au jugé : tout fichier déposé s'annonçait « PDF »,
  * y compris les `.docx` et les `.odt` que la reprise de Bubble ramène. Le
  * dessin ne ment pas — c'est un document, et le nom dit lequel.
+ *
+ * **Le CV anonyme se fait tout seul** dès qu'il y a un CV original : la carte
+ * s'ouvre alors sur celui qu'HERACLES produit de la fiche, marquée « à
+ * valider » tant qu'un référent de la loge ne l'a pas relu
+ * (`carteDuCvAnonyme()`).
  */
 function Documents({
   fiche,
@@ -731,6 +737,7 @@ function Documents({
   refusCvAnonyme: string | null;
   retour: string;
 }) {
+  const carte = carteDuCvAnonyme(fiche, cvAnonyme?.valide_le);
   const documents = [
     {
       genre: 'lettre',
@@ -751,6 +758,31 @@ function Documents({
     <>
     <div className="poste-documents">
       {documents.map(({ genre, libelle, chemin, url }) => {
+        // Produit par HERACLES : validé, ou à valider dès qu'il y a un CV
+        // original. La route sert la copie figée, sinon le produit à la volée.
+        if (genre === 'cv-anonyme' && carte.sorte === 'produit') {
+          return (
+            <a
+              key={genre}
+              className="poste-document"
+              href={`/api/candidats/${fiche.id}/cv-anonyme`}
+              target="_blank"
+              rel="noopener noreferrer"
+              title={
+                carte.aValider
+                  ? 'Produit par HERACLES depuis la fiche — à relire et valider'
+                  : `Ouvrir : ${libelle}`
+              }
+            >
+              <span className="poste-document-type">
+                <Feuille />
+              </span>
+              <span>{libelle}</span>
+              {carte.aValider ? <small>à valider</small> : null}
+            </a>
+          );
+        }
+
         if (chemin) {
           return (
             <a
@@ -821,9 +853,9 @@ function Documents({
  * (0074) — le valider ou retirer sa validation.
  *
  * Validé, c'est lui que servent le lien de l'affiche et le QR code de
- * l'affichette ; jusque-là, ils servent le fichier de la carte « CV anonyme »,
- * s'il y en a un. Une fiche modifiée efface la validation : le CV est à
- * relire.
+ * l'affichette, dans sa copie figée (0075) ; jusque-là, ils servent le
+ * fichier déposé, s'il y en a un. Une fiche modifiée efface la validation :
+ * le CV est à relire.
  *
  * Rendu par le serveur, sans script : un formulaire par geste, qui revient
  * sur la fiche.
