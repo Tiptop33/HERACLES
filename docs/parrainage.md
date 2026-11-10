@@ -91,4 +91,6 @@ Sans secret configuré, la route répond `401` à tout le monde.
 - **L'écran *Modifier*** ne corrige pas encore les champs ajoutés par 0057.
 - **Le secteur et le métier ROME** : le candidat dit son métier en clair, faute des
   référentiels (`SECTEUR_ACTIVITE` n'est pas exposé par l'API Bubble).
-- **Le CV anonyme**, que Bubble produisait à l'envoi de la fiche.
+- ~~**Le CV anonyme**, que Bubble produisait à l'envoi de la fiche.~~ Fait :
+  HERACLES le produit de la fiche, et le lien public le sert une fois validé par
+  le référent (migration 0073, `docs/mise-en-page.md`).
