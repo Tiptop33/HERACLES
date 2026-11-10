@@ -16,8 +16,9 @@ describe('les cinq familles', () => {
     const total = FAMILLES.reduce((n, f) => n + f.entrees.length, 0);
     // Les 17 de Bubble, moins « Accueil » qui reste seul en tête, moins
     // « Action / Candidat » retiré du menu le 8 août 2026, plus « Nouveau
-    // candidat » ajouté à Admin le 8 novembre 2026.
-    expect(total).toBe(16);
+    // candidat » ajouté à Admin le 8 novembre 2026, plus « Province » ajoutée
+    // à Réseau le 10 novembre 2026.
+    expect(total).toBe(17);
   });
 
   it('ne propose plus « Action / Candidat »', () => {
@@ -95,6 +96,30 @@ describe('Nouveau candidat', () => {
     const visibles = famillesDuRole('referent').flatMap((f) => f.entrees);
     const candidats = visibles.find((e) => e.libelle === 'Candidats')!;
     expect(estCourante(candidats, '/espace/candidats/nouveau', visibles)).toBe(true);
+  });
+});
+
+describe('Province', () => {
+  it('ferme la famille Réseau, sans déplacer les entrées existantes', () => {
+    const reseau = FAMILLES.find((f) => f.nom === 'Réseau')!;
+    expect(reseau.entrees.map((e) => e.libelle)).toEqual([
+      'Référents',
+      'Correspondants',
+      'Réunion',
+      'Province',
+    ]);
+  });
+
+  it('mène aux cartes des provinces', () => {
+    const reseau = FAMILLES.find((f) => f.nom === 'Réseau')!;
+    expect(reseau.entrees.find((e) => e.libelle === 'Province')?.vers).toBe('/espace/provinces');
+  });
+
+  it('est visible d’un référent comme d’un administrateur — c’est un référentiel', () => {
+    for (const role of ['referent', 'admin'] as const) {
+      const libelles = famillesDuRole(role).flatMap((f) => f.entrees.map((e) => e.libelle));
+      expect(libelles).toContain('Province');
+    }
   });
 });
 

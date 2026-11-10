@@ -2196,6 +2196,95 @@ tbody tr:focus-within {
 }
 
 /* ————————————————————————————————————————————————————————————————————————
+   Province : une carte par province, son image puis son nom (migration 0080).
+   La grille et la carte reprennent celles de l'annuaire — mêmes colonnes,
+   mêmes seuils, même cadre — pour que les deux écrans de la famille Réseau
+   se ressemblent.
+   ———————————————————————————————————————————————————————————————————————— */
+
+.provinces {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.8rem;
+}
+
+@media (max-width: 1080px) {
+  .provinces { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+
+@media (max-width: 900px) {
+  .provinces { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+@media (max-width: 720px) {
+  .provinces { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 520px) {
+  .provinces { grid-template-columns: 1fr; }
+}
+
+.carte-province {
+  border: 1px solid var(--bordure);
+  border-radius: 12px;
+  background: var(--surface);
+  padding: 0.85rem 0.95rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+/* Un cadre de proportions fixes : avec ou sans image, toutes les cartes ont
+   la même hauteur, et les noms s'alignent d'une carte à l'autre. */
+.carte-province-image {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  border-radius: 8px;
+  background: var(--surface-creuse);
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+}
+
+/* `contain` et non `cover` : un blason ou un logo rogné sur les bords n'est
+   plus tout à fait le même.
+
+   L'image est posée sur le cadre, et non dans sa grille : dans une grille, la
+   ligne se dimensionne sur son contenu, et `height: 100%` y prenait la hauteur
+   naturelle de l'image — un blason en hauteur débordait alors du cadre et se
+   faisait rogner en bas, `contain` ou pas. */
+.carte-province-image img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* Tant que l'image n'est pas rapatriée : l'initiale, dans la pastille des
+   initiales de l'annuaire, à la même taille. */
+.carte-province-initiale {
+  width: 4.2rem;
+  height: 4.2rem;
+  border-radius: 50%;
+  background: var(--candidat-clair);
+  color: var(--candidat);
+  display: grid;
+  place-items: center;
+  font-size: 1.3rem;
+  font-weight: 700;
+}
+
+.carte-province-nom {
+  margin: 0;
+  font-size: 0.88rem;
+  font-weight: 600;
+  text-align: center;
+  /* Un nom long passe à la ligne au lieu de pousser la grille. */
+  overflow-wrap: anywhere;
+}
+
+/* ————————————————————————————————————————————————————————————————————————
    Les paramètres : le menu des rubriques à gauche, la rubrique à droite.
    ———————————————————————————————————————————————————————————————————————— */
 
