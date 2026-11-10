@@ -30,15 +30,26 @@ type Etat = { sorte: 'pret' } | { sorte: 'envoi' } | { sorte: 'enregistre' } | {
 
 const DELAI = 500;
 
+/** Pas d'origine lue en base : un seul objet, pour que `useMemo` ne recalcule rien. */
+const AUCUNE_ORIGINE_LUE: Reglages = {};
+
 export default function EditeurDeMiseEnPage({
   document,
   ecartsInitiaux,
+  originesLues = AUCUNE_ORIGINE_LUE,
 }: {
   document: DocumentCle;
   ecartsInitiaux: Reglages;
+  /**
+   * Des valeurs d'origine qui ne sont pas dans le gabarit mais dans la base :
+   * l'adresse du Secrétaire de la loge pour le contact du CV anonyme (0077).
+   * Elles s'affichent comme les autres valeurs d'origine, et « origine » y
+   * ramène.
+   */
+  originesLues?: Reglages;
 }) {
   const gabarit = GABARITS[document];
-  const origine = useMemo(() => defauts(document), [document]);
+  const origine = useMemo(() => ({ ...defauts(document), ...originesLues }), [document, originesLues]);
   const adresse = `/api/parametres/mise-en-page/${document}`;
 
   const [ecarts, setEcarts] = useState<Reglages>(ecartsInitiaux);

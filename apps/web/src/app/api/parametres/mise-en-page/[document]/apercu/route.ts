@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { exempleDAffiche, exempleDAffichette, exempleDeCompteRendu, exempleDeCvAnonyme } from '@/lib/documents/exemples';
 import { produireLAffiche, produireLAffichette, produireLeCompteRendu, produireLeCvAnonyme } from '@/lib/documents/produire';
+import { lireLeSecretaireDeMaLoge } from '@/lib/documents/donnees';
 import { origine } from '@/lib/formulaire';
 import { indisponible, ouvrir } from '../acces';
 
@@ -28,7 +29,9 @@ export async function GET(requete: Request, { params }: { params: Promise<{ docu
           ? await produireLAffiche(exempleDAffiche(racine))
           : acces.document === 'affichette'
             ? await produireLAffichette(exempleDAffichette(racine))
-            : await produireLeCvAnonyme(exempleDeCvAnonyme());
+            : // Le candidat est inventé ; le contact, lui, est celui que le
+              // champ montre : l'adresse du Secrétaire de la loge (0077).
+              await produireLeCvAnonyme({ ...exempleDeCvAnonyme(), contact_par_defaut: await lireLeSecretaireDeMaLoge() });
 
     return new NextResponse(octets as unknown as BodyInit, {
       headers: {
