@@ -45,6 +45,8 @@ export type EtatDuCvAnonyme = {
   valide_le: string | null;
   valide_par: string | null;
   peut_valider: boolean;
+  /** Pourquoi HERACLES ne l'a pas validé seul (0079) ; null s'il est validé. */
+  raison: string | null;
 };
 
 /**
@@ -54,12 +56,19 @@ export type EtatDuCvAnonyme = {
 export async function lireLEtatDuCvAnonyme(candidat: string): Promise<EtatDuCvAnonyme | null> {
   if (!UUID.test(candidat)) return null;
   const supabase = await supabaseServer();
-  const { data, error } = await supabase.rpc('etat_du_cv_anonyme', { candidat_choisi: candidat });
-  if (error) {
-    console.error('[cv-anonyme] état illisible', error.code);
+  const [etat, raison] = await Promise.all([
+    supabase.rpc('etat_du_cv_anonyme', { candidat_choisi: candidat }),
+    supabase.rpc('raison_du_cv_anonyme', { candidat_choisi: candidat }),
+  ]);
+  if (etat.error) {
+    console.error('[cv-anonyme] état illisible', etat.error.code);
     return null;
   }
-  return (data as EtatDuCvAnonyme[] | null)?.[0] ?? null;
+  const lu = (etat.data as Array<Omit<EtatDuCvAnonyme, 'raison'>> | null)?.[0];
+  if (!lu) return null;
+  // La raison n'est qu'une aide : illisible, le bandeau s'en passe.
+  if (raison.error) console.error('[cv-anonyme] raison illisible', raison.error.code);
+  return { ...lu, raison: typeof raison.data === 'string' && raison.data ? raison.data : null };
 }
 
 /**
