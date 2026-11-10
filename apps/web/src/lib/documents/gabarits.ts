@@ -952,8 +952,9 @@ const CV_ANONYME: Gabarit = {
               defaut: '',
               lignes: 1,
               aide:
-                'Vide : l’adresse e-mail du Secrétaire de la loge du candidat (titre « Secrétaire » au collège), lue à chaque CV. ' +
-                'Une adresse saisie ici la remplace sur tous les CV. Ni l’une ni l’autre : la phrase de contact ne s’imprime pas.',
+                'D’origine, l’adresse e-mail du Secrétaire de votre loge (titre « Secrétaire » au collège) : chaque CV porte ' +
+                'celle du Secrétaire de la loge de son candidat, relue à chaque CV. Une autre adresse saisie ici la remplace sur ' +
+                'tous les CV ; champ vidé, la phrase de contact ne s’imprime pas. « origine » revient à l’adresse du Secrétaire.',
             },
           ],
         },

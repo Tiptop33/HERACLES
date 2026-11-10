@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { definitionDeLAffiche } from '../src/lib/documents/affiche';
 import { definitionDeLAffichette } from '../src/lib/documents/affichette';
 import { definitionDuCompteRendu } from '../src/lib/documents/compte-rendu';
-import { definitionDuCvAnonyme, type DonneesCvAnonyme } from '../src/lib/documents/cv-anonyme';
+import { avecLeContactParDefaut, definitionDuCvAnonyme, type DonneesCvAnonyme } from '../src/lib/documents/cv-anonyme';
 import { exempleDAffiche, exempleDAffichette, exempleDeCompteRendu, exempleDeCvAnonyme } from '../src/lib/documents/exemples';
 import type { DocumentCle, Reglages } from '../src/lib/documents/gabarits';
 import { imagesDuDocument, rendre } from '../src/lib/documents/moteur';
@@ -254,8 +254,9 @@ describe('l’affichette', () => {
 });
 
 describe('le CV anonyme', () => {
+  // Comme `produireLeCvAnonyme()` : le Secrétaire de la loge pour origine du contact.
   const cv = (d: DonneesCvAnonyme, ecarts: Reglages = {}) =>
-    produire('cv_anonyme', ecarts, (r) => definitionDuCvAnonyme(d, r));
+    produire('cv_anonyme', avecLeContactParDefaut(ecarts, d.contact_par_defaut), (r) => definitionDuCvAnonyme(d, r));
 
   it('porte le numéro, ce qui est recherché et le parcours, sur une page', async () => {
     const { texte, pages } = await cv(exempleDeCvAnonyme());
@@ -302,6 +303,15 @@ describe('le CV anonyme', () => {
       { 'contact.adresse': 'commission@exemple.org' },
     );
     expect(texte).toContain('commission@exemple.org');
+    expect(texte).not.toContain('secretariat-pau@exemple.org');
+  });
+
+  it('n’écrit à personne quand le champ a été vidé, même avec un Secrétaire', async () => {
+    const { texte } = await cv(
+      { ...exempleDeCvAnonyme(), contact_par_defaut: 'secretariat-pau@exemple.org' },
+      { 'contact.adresse': '' },
+    );
+    expect(texte).not.toContain('Pour rencontrer ce candidat');
     expect(texte).not.toContain('secretariat-pau@exemple.org');
   });
 

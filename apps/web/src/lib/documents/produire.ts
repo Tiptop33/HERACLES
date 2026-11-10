@@ -2,7 +2,7 @@ import type { TDocumentDefinitions } from 'pdfmake/interfaces';
 import { definitionDeLAffiche, type DonneesAffiche } from './affiche';
 import { definitionDeLAffichette, type DonneesAffichette } from './affichette';
 import { definitionDuCompteRendu, type DonneesCompteRendu } from './compte-rendu';
-import { definitionDuCvAnonyme, type DonneesCvAnonyme } from './cv-anonyme';
+import { avecLeContactParDefaut, definitionDuCvAnonyme, type DonneesCvAnonyme } from './cv-anonyme';
 import { lireLaMiseEnPage } from './donnees';
 import type { DocumentCle, Reglages } from './gabarits';
 import { imagesDuDocument, rendre } from './moteur';
@@ -26,11 +26,19 @@ export const produireLeCompteRendu = (d: DonneesCompteRendu) => produire('compte
 export const produireLAffiche = (d: DonneesAffiche) => produire('affiche', d, definitionDeLAffiche);
 export const produireLAffichette = (d: DonneesAffichette) => produire('affichette', d, definitionDeLAffichette);
 
+/** La mise en page du CV, le Secrétaire de la loge pour origine du contact. */
+const lecteurDuCvAnonyme = (ecarts: Reglages, d: DonneesCvAnonyme) =>
+  lecteur('cv_anonyme', avecLeContactParDefaut(ecarts, d.contact_par_defaut));
+
 /**
  * Le CV anonyme, avec la mise en page enregistrée — sous la session de qui le
- * demande : l'aperçu du référent, celui de Paramètres › Mise en page.
+ * demande : l'aperçu du référent, celui de Paramètres › Mise en page. Le CV
+ * anonyme n'a pas d'image.
  */
-export const produireLeCvAnonyme = (d: DonneesCvAnonyme) => produire('cv_anonyme', d, (donnees, r) => definitionDuCvAnonyme(donnees, r));
+export async function produireLeCvAnonyme(d: DonneesCvAnonyme): Promise<Uint8Array> {
+  const { ecarts } = await lireLaMiseEnPage('cv_anonyme');
+  return rendre(definitionDuCvAnonyme(d, lecteurDuCvAnonyme(ecarts, d)), new Map());
+}
 
 /**
  * Le même, pour le lien public : sans session, `anon` ne lit pas la table des
@@ -40,5 +48,5 @@ export const produireLeCvAnonyme = (d: DonneesCvAnonyme) => produire('cv_anonyme
  */
 export async function produireLeCvAnonymePublic(d: DonneesCvAnonyme, reglages: unknown): Promise<Uint8Array> {
   const ecarts: Reglages = nettoyer('cv_anonyme', reglages);
-  return rendre(definitionDuCvAnonyme(d, lecteur('cv_anonyme', ecarts)), new Map());
+  return rendre(definitionDuCvAnonyme(d, lecteurDuCvAnonyme(ecarts, d)), new Map());
 }

@@ -162,6 +162,21 @@ export async function lireLeContactDuCvAnonyme(candidat: string): Promise<string
   return (data as Array<{ secretaire_email: string | null }> | null)?.[0]?.secretaire_email?.trim() || null;
 }
 
+/**
+ * L'adresse du Secrétaire de la loge de la personne connectée (0077) : ce que
+ * le champ « Adresse de contact » du CV anonyme montre comme valeur
+ * d'origine, et ce que son aperçu imprime. `null` sans Secrétaire.
+ */
+export async function lireLeSecretaireDeMaLoge(): Promise<string | null> {
+  const supabase = await supabaseServer();
+  const { data, error } = await supabase.rpc('email_du_secretaire_de_ma_loge');
+  if (error) {
+    console.error('[cv-anonyme] Secrétaire de la loge illisible', error.code);
+    return null;
+  }
+  return typeof data === 'string' && data.trim() ? data.trim() : null;
+}
+
 export async function donneesDeLAffichette(
   candidat: string,
   fiche: FicheAffichette,

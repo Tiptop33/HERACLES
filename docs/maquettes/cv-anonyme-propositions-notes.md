@@ -8,7 +8,7 @@ Planche : `cv-anonyme-propositions.html`, six modèles A4 (A à F). Décisions d
 | 1 | Le modèle | **B, « La colonne »** : une colonne teintée à gauche porte le numéro et les informations pratiques, le parcours occupe la droite |
 | 2 | La couleur | **Couleur HERACLES** — la même sur tous les CV, quel que soit le type de recherche |
 | 3 | L'écriture du numéro | **« N° 904 »** |
-| 4 | Le contact en bas de page | **Une adresse générique de la commission**, réglable dans Paramètres › Mise en page ; aucun nom de personne. Revu le 10 novembre, à l'essai : **par défaut, l'adresse du Secrétaire de la loge** ; une adresse réglée la remplace (migration 0076) |
+| 4 | Le contact en bas de page | **Une adresse générique de la commission**, réglable dans Paramètres › Mise en page ; aucun nom de personne. Revu le 10 novembre, à l'essai : **par défaut, l'adresse du Secrétaire de la loge**, affichée dans le champ ; une adresse réglée la remplace (migrations 0076, 0077) |
 | 5 | La relecture | **Validation par le référent du dossier** avant que le lien et le QR code ne servent le CV ; une fiche modifiée demande une nouvelle validation |
 | 6 | Les CV déjà déposés | **Le CV produit sert dès sa validation** ; d'ici là, le fichier de Bubble ou déposé à la main reste servi |
 | 7 | Le calendrier | **Tout de suite, dans le lot 5** — le lot glisse d'environ trois jours, la mise en ligne du 21 novembre et la bascule du 5 décembre ne bougent pas |

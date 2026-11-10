@@ -1,6 +1,7 @@
 import type { Content, ContentText, TDocumentDefinitions } from 'pdfmake/interfaces';
 import type { Variables } from './balisage';
 import { blocTexte } from './mise-en-forme';
+import type { Reglages } from './gabarits';
 import type { Lecteur } from './reglages';
 
 /**
@@ -102,6 +103,18 @@ export function donneesDuCvAnonyme(
     a_jour_le: aJourLe,
     contact_par_defaut: contactParDefaut,
   };
+}
+
+/**
+ * L'adresse du Secrétaire de la loge, posée **sous** les réglages comme
+ * origine du contact (0076, 0077) : un réglage enregistré — une autre adresse,
+ * ou le champ vidé — passe devant ; sans réglage, c'est elle. L'écran de mise
+ * en page fait de même, et montre donc dans le champ ce que le CV imprimera.
+ */
+export function avecLeContactParDefaut(ecarts: Reglages, contact: string | null | undefined): Reglages {
+  const adresse = contact?.trim();
+  if (!adresse || 'contact.adresse' in ecarts) return ecarts;
+  return { ...ecarts, 'contact.adresse': adresse };
 }
 
 /** « CV anonyme - dossier 904.pdf » : le nom ne dit que le numéro. */
@@ -223,8 +236,10 @@ export function numeroEcrit(numero: number | null, ecriture: string): { avant: s
 export function variablesDuCvAnonyme(d: DonneesCvAnonyme, r: Lecteur): Variables {
   return {
     numero: d.numero ?? '',
-    // L'adresse réglée l'emporte ; sinon, celle du Secrétaire de la loge.
-    contact: r.texte('contact.adresse').trim() || d.contact_par_defaut?.trim() || '',
+    // Le Secrétaire de la loge est l'origine de ce réglage
+    // (`avecLeContactParDefaut`) : une adresse réglée le remplace, un champ
+    // vidé n'imprime aucun contact.
+    contact: r.texte('contact.adresse').trim(),
     date: jourEnLettres(d.a_jour_le),
   };
 }
