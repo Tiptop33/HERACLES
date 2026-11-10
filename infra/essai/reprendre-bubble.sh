@@ -194,6 +194,16 @@ echo "jour, jamais dupliquée, et son retrait éventuel est préservé."
 docker exec -i "$PREFIXE-db" psql -U postgres -d postgres -c "
   select * from public.deverser_reunions_bubble()"
 
+# ————— Passe 5 : les provinces, et le rattachement des loges —————
+etape "Provinces — de la réserve brute vers leur table"
+echo "Même cas encore : le type « PROVINCE » n'est exposé que par la base de"
+echo "l'éditeur, il arrive en JSON dans bubble_brut. La migration 0080 le déplie"
+echo "— un nom, une image — puis rattache chaque loge à sa province."
+echo "« sans_nom » ou « sans_image » non nuls : un champ n'a pas été reconnu,"
+echo "sa clé exacte se lit dans bubble_brut (type_bubble = 'province')."
+docker exec -i "$PREFIXE-db" psql -U postgres -d postgres -c "
+  select * from public.deverser_provinces_bubble()"
+
 # ————— Les fichiers, si on les a demandés —————
 if [[ $FICHIERS -eq 1 ]]; then
   etape "Fichiers — du CDN de Bubble vers le stockage"
@@ -222,6 +232,7 @@ docker exec -i "$PREFIXE-db" psql -U postgres -d postgres -c "
   union all select 'suivi', count(*) from public.suivi
   union all select 'reunion', count(*) from public.reunion
   union all select 'appel', count(*) from public.appel
+  union all select 'province', count(*) from public.province
   union all select 'bubble_brut', count(*) from public.bubble_brut
   order by 1"
 

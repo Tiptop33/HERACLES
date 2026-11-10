@@ -56,6 +56,11 @@ export const FAMILLES: readonly Famille[] = [
       { libelle: 'Référents', vers: '/espace/referents' },
       { libelle: 'Correspondants', vers: null, lot: 'lot 5' },
       { libelle: 'Réunion', vers: '/espace/reunion' },
+      // Ajoutée le 10 novembre 2026, à la demande : une carte par province,
+      // son image puis son nom (migration 0080). En fin de famille, pour ne
+      // déplacer aucune des entrées que les référents connaissent déjà.
+      // Visible de tous : c'est un référentiel, il ne dit rien de personne.
+      { libelle: 'Province', vers: '/espace/provinces' },
     ],
   },
   {
