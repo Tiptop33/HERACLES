@@ -1,5 +1,5 @@
 /**
- * Ce qui se règle dans chacun des trois documents, et la valeur d'origine.
+ * Ce qui se règle dans chacun des quatre documents, et la valeur d'origine.
  *
  * UNE SEULE DESCRIPTION, DEUX LECTEURS
  *
@@ -15,6 +15,10 @@
  * dossier 856) : corps, couleurs, marges, largeurs de colonnes. Sans réglage,
  * HERACLES sort les mêmes documents.
  *
+ * Le CV anonyme fait exception : Bubble n'en laisse aucun gabarit à relever.
+ * Ses valeurs d'origine sont celles du modèle B, « La colonne », choisi le
+ * 10 novembre 2026 sur la planche `docs/maquettes/cv-anonyme-propositions.html`.
+ *
  * AUCUNE DONNÉE PERSONNELLE ICI
  *
  * Les noms qui figurent sur les originaux — le président, le secrétaire, la
@@ -25,9 +29,9 @@
  * Fichier sans dépendance serveur : l'écran le charge aussi.
  */
 
-export type DocumentCle = 'compte_rendu' | 'affiche' | 'affichette';
+export type DocumentCle = 'compte_rendu' | 'affiche' | 'affichette' | 'cv_anonyme';
 
-export const DOCUMENTS: readonly DocumentCle[] = ['compte_rendu', 'affiche', 'affichette'];
+export const DOCUMENTS: readonly DocumentCle[] = ['compte_rendu', 'affiche', 'affichette', 'cv_anonyme'];
 
 export function estUnDocument(valeur: unknown): valeur is DocumentCle {
   return typeof valeur === 'string' && (DOCUMENTS as readonly string[]).includes(valeur);
@@ -38,6 +42,7 @@ export const ADRESSES: Readonly<Record<DocumentCle, string>> = {
   compte_rendu: 'compte-rendu',
   affiche: 'affiche',
   affichette: 'affichette',
+  cv_anonyme: 'cv-anonyme',
 };
 
 export function documentDeLAdresse(segment: string): DocumentCle | null {
@@ -869,10 +874,104 @@ const AFFICHETTE: Gabarit = {
   ],
 };
 
+// ————————————————————————————————————————————————————————————————————————————
+// Le CV anonyme
+// ————————————————————————————————————————————————————————————————————————————
+
+/** Les couleurs du modèle B : la teinte de l'application, `--marque`. */
+const MARQUE = '#3f9fc2';
+/** Assez sombre pour porter du texte blanc (contraste 4,5:1). */
+const MARQUE_APLAT = '#2a7fa1';
+const MARQUE_FONCEE = '#1e6d8c';
+const MARQUE_CLAIRE = '#e4f1f7';
+const GRIS_DOUX = '#46525f';
+
+const CV_ANONYME: Gabarit = {
+  document: 'cv_anonyme',
+  libelle: 'CV anonyme',
+  propos:
+    'Le CV de chaque candidat, sans rien qui l’identifie : le numéro du dossier en haut à gauche, ce qu’il recherche, ' +
+    'son parcours. Il s’ouvre sans compte par le lien de l’affiche et le QR code de l’affichette, une fois validé par le référent.',
+  variables: [
+    { nom: 'numero', sens: 'le numéro du dossier' },
+    { nom: 'contact', sens: 'l’adresse de contact réglée ci-dessus' },
+    { nom: 'date', sens: 'la date du CV : celle de sa validation' },
+  ],
+  sections: [
+    {
+      titre: 'En-tête',
+      lignes: [
+        {
+          libelle: 'Numéro du dossier',
+          champs: [
+            {
+              cle: 'numero.ecriture',
+              libelle: 'Écriture',
+              genre: 'choix',
+              defaut: 'n',
+              options: [
+                { valeur: 'n', libelle: 'N° 904' },
+                { valeur: 'nu', libelle: '904' },
+                { valeur: 'dossier', libelle: 'Dossier 904' },
+              ],
+            },
+            { cle: 'numero.taille', libelle: 'Taille', genre: 'nombre', defaut: 46, min: 20, max: 72, pas: 0.5, unite: 'pt' },
+          ],
+        },
+        {
+          libelle: 'Au-dessus du numéro',
+          champs: [{ cle: 'entete.sur', libelle: 'Texte', genre: 'texte', defaut: 'CV anonyme', lignes: 1 }],
+        },
+      ],
+    },
+    {
+      titre: 'Couleurs',
+      lignes: [
+        {
+          libelle: 'Teintes',
+          champs: [
+            couleur('couleur.aplat', 'Fond du numéro', MARQUE_APLAT),
+            couleur('couleur.colonne', 'Fond de la colonne', MARQUE_CLAIRE),
+            couleur('couleur.accent', 'Filets et puces', MARQUE),
+            couleur('couleur.titres', 'Petits titres', MARQUE_FONCEE),
+          ],
+        },
+      ],
+    },
+    {
+      titre: 'Contact et date',
+      aide: 'En bas de la colonne. Le CV circule hors de la loge : une adresse de la commission, jamais celle d’une personne.',
+      lignes: [
+        {
+          libelle: 'Adresse de contact',
+          champs: [
+            {
+              cle: 'contact.adresse',
+              libelle: 'Adresse',
+              genre: 'texte',
+              defaut: '',
+              lignes: 1,
+              aide: 'Vide : la phrase de contact ne s’imprime pas.',
+            },
+          ],
+        },
+        bloc('contact', 'Phrase de contact', {
+          texte: 'Pour rencontrer ce candidat, écrire à **{contact}** en citant le n° {numero}.',
+          taille: 7.5,
+          couleur: GRIS_DOUX,
+          lignes: 2,
+        }),
+        bloc('date', 'Date du CV', { texte: 'CV à jour au {date}', taille: 7.5, couleur: GRIS_DOUX, avant: 4 }),
+      ],
+    },
+  ],
+};
+
 export const GABARITS: Readonly<Record<DocumentCle, Gabarit>> = {
   compte_rendu: COMPTE_RENDU,
   affiche: AFFICHE,
   affichette: AFFICHETTE,
+  cv_anonyme: CV_ANONYME,
 };
 
 /** Tous les champs d'un gabarit, à plat. */
@@ -884,6 +983,7 @@ const INDEX: Record<DocumentCle, Map<string, Champ>> = {
   compte_rendu: new Map(champsDe('compte_rendu').map((c) => [c.cle, c])),
   affiche: new Map(champsDe('affiche').map((c) => [c.cle, c])),
   affichette: new Map(champsDe('affichette').map((c) => [c.cle, c])),
+  cv_anonyme: new Map(champsDe('cv_anonyme').map((c) => [c.cle, c])),
 };
 
 export function champ(document: DocumentCle, cle: string): Champ | undefined {

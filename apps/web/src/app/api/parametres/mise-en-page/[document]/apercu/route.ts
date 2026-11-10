@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { exempleDAffiche, exempleDAffichette, exempleDeCompteRendu } from '@/lib/documents/exemples';
-import { produireLAffiche, produireLAffichette, produireLeCompteRendu } from '@/lib/documents/produire';
+import { exempleDAffiche, exempleDAffichette, exempleDeCompteRendu, exempleDeCvAnonyme } from '@/lib/documents/exemples';
+import { produireLAffiche, produireLAffichette, produireLeCompteRendu, produireLeCvAnonyme } from '@/lib/documents/produire';
 import { origine } from '@/lib/formulaire';
 import { indisponible, ouvrir } from '../acces';
 
@@ -26,7 +26,9 @@ export async function GET(requete: Request, { params }: { params: Promise<{ docu
         ? await produireLeCompteRendu(exempleDeCompteRendu())
         : acces.document === 'affiche'
           ? await produireLAffiche(exempleDAffiche(racine))
-          : await produireLAffichette(exempleDAffichette(racine));
+          : acces.document === 'affichette'
+            ? await produireLAffichette(exempleDAffichette(racine))
+            : await produireLeCvAnonyme(exempleDeCvAnonyme());
 
     return new NextResponse(octets as unknown as BodyInit, {
       headers: {

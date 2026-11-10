@@ -1,6 +1,7 @@
 import type { DonneesAffiche } from './affiche';
 import type { DonneesAffichette } from './affichette';
 import type { DonneesCompteRendu } from './compte-rendu';
+import type { DonneesCvAnonyme } from './cv-anonyme';
 import type { Commission } from './formats';
 
 /**
@@ -137,5 +138,45 @@ export function exempleDAffichette(racine: string): DonneesAffichette {
     mobilite_geographique: 'Agglomération',
     commission: COMMISSION,
     lienCvAnonyme: `${racine}/cv-anonyme/00000000-0000-4000-8000-000000000000`,
+  };
+}
+
+/**
+ * Le dossier 904 de la planche des maquettes, dans les champs de la fiche : le
+ * plus chargé des trois exemples, pour juger si une mise en page tient.
+ */
+export function exempleDeCvAnonyme(): DonneesCvAnonyme {
+  return {
+    numero: 904,
+    type_emploi: 'emploi',
+    emploi_recherche: 'Directeur des opérations, second œuvre du bâtiment',
+    secteur_activite_libelle: 'Bâtiment et travaux publics',
+    metier_libelle: 'Direction de travaux',
+    debut_stage: null,
+    mobilite_geographique: 'Agglomération et départements limitrophes',
+    permis_vl: 'Oui',
+    vehicule: 'Oui',
+    experiences: [
+      '2019-2025 — Directeur de travaux, entreprise générale de second œuvre (85 salariés) : pilotage de douze chantiers simultanés, budget annuel de 9 M€, encadrement de six conducteurs de travaux',
+      '2012-2019 — Conducteur de travaux principal, groupe national de construction : réhabilitation de logements en site occupé, relation avec la maîtrise d’ouvrage et les bailleurs',
+      '2007-2012 — Conducteur de travaux, PME de plâtrerie et d’isolation : chiffrage, plannings, consultation des sous-traitants',
+      '2004-2007 — Chef d’équipe, entreprise de menuiserie intérieure : pose, réception des ouvrages, formation des apprentis',
+    ].join('\n'),
+    formations: [
+      '2020 — Certificat de sauveteur secouriste du travail et habilitation électrique',
+      '2011 — Licence professionnelle Management de chantier, IUT',
+      '2004 — BTS Bâtiment, lycée professionnel',
+    ].join('\n'),
+    competences: [
+      'Pilotage de chantiers tous corps d’état',
+      'Chiffrage et suivi budgétaire',
+      'Management d’équipes pluridisciplinaires',
+      'Négociation avec fournisseurs et sous-traitants',
+      'Réglementation RE2020 et sécurité',
+      'Anglais professionnel',
+    ].join('\n'),
+    savoir_etre: 'Rigueur\nSens de l’écoute\nCalme sous pression\nEsprit d’équipe',
+    informatique: 'MS Project\nExcel avancé\nAutoCAD (lecture de plans)\nLogiciel de devis',
+    a_jour_le: '2026-11-04',
   };
 }
