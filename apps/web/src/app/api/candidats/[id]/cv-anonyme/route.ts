@@ -7,7 +7,7 @@ import {
   lireLaCopieFigee,
 } from '@/lib/documents/copie-figee';
 import { donneesDuCvAnonyme, nomDuCvAnonyme } from '@/lib/documents/cv-anonyme';
-import { lireLEtatDuCvAnonyme } from '@/lib/documents/donnees';
+import { lireLEtatDuCvAnonyme, lireLeContactDuCvAnonyme } from '@/lib/documents/donnees';
 import { produireLeCvAnonyme } from '@/lib/documents/produire';
 import { enTeteDeTelechargement } from '@/lib/fichiers';
 import { destinationInterne, lireCorps, origine, vientDUnFormulaire } from '@/lib/formulaire';
@@ -22,7 +22,7 @@ import { supabaseServer } from '@/lib/supabase-server';
  * (`fiche_candidat()`), comme pour l'affichette. Le CV ne reprend de la fiche
  * que les champs nommés dans `donneesDuCvAnonyme()` : jamais le nom. Validé,
  * c'est la copie figée à la validation (0075) ; sinon, ou si elle manque, le
- * PDF se produit à la volée — et, validé, il est alors rangé (0076).
+ * PDF se produit à la volée — et, validé, il est alors rangé (0078).
  *
  * POST — « Valider » ou « Retirer la validation ». `valider_cv_anonyme()`
  * tranche : tout référent de la loge du candidat valide (0074), et la base le
@@ -76,10 +76,10 @@ export async function GET(_requete: Request, { params }: { params: Promise<{ id:
 
     // Sinon, produit à la volée. Validé, le CV porte la date de sa validation,
     // comme sur le lien public ; sinon celle du jour.
-    const etat = await lireLEtatDuCvAnonyme(id);
-    const octets = await produireLeCvAnonyme(donneesDuCvAnonyme(fiche, etat?.valide_le ?? JOUR()));
+    const [etat, contact] = await Promise.all([lireLEtatDuCvAnonyme(id), lireLeContactDuCvAnonyme(id)]);
+    const octets = await produireLeCvAnonyme(donneesDuCvAnonyme(fiche, etat?.valide_le ?? JOUR(), contact));
 
-    // Validé sans copie — par HERACLES (0076), qui n'a pas de clic pour la
+    // Validé sans copie — par HERACLES (0078), qui n'a pas de clic pour la
     // ranger, ou avant 0075 : un référent de la loge qui l'ouvre la range. La
     // base ne fige que si la validation n'a pas bougé depuis la lecture.
     if (etat?.valide_le && etat.peut_valider) await figerSousLaSession(id, etat.valide_le, octets);

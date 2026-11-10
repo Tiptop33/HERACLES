@@ -221,8 +221,10 @@ begin;
     'et les reglages de sa mise en page, que la table ne lui donne pas');
 commit;
 
+-- `secretaire_email` (0076) est l'adresse du Secrétaire de la loge, le contact
+-- imprimé sur le CV : pas une donnée du candidat. On l'écarte de la recherche.
 select public.verifier(
-  pg_get_function_result('public.cv_anonyme_valide_public(uuid)'::regprocedure)
+  replace(pg_get_function_result('public.cv_anonyme_valide_public(uuid)'::regprocedure), 'secretaire_email text', '')
     !~* '(\mnom\M|prenom|email|telephone|\mage\M|ville|adresse|situation|photo|loge|referent|parrain)',
   'le lien public ne rend aucune colonne qui identifie la personne');
 

@@ -6,7 +6,7 @@
  * carte s'ouvre dessus, marquée « à valider », sans que personne ait à le
  * fabriquer. Il ne circule — affiche, QR code de l'affichette — qu'une fois
  * validé, dans sa copie figée (0075) : par un référent de la loge (0074), ou
- * par HERACLES lui-même quand rien n'y est suspect (0076). Seul un CV que
+ * par HERACLES lui-même quand rien n'y est suspect (0078). Seul un CV que
  * HERACLES n'a pas pu valider reste donc « à valider ».
  *
  * L'ordre suit celui du lien public :

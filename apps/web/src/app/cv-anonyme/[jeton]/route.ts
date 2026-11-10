@@ -14,9 +14,9 @@ import { supabaseServer } from '@/lib/supabase-server';
  *
  *   1. le CV **produit par HERACLES** depuis la fiche, s'il a été validé —
  *      par un référent de la loge, ou par HERACLES quand rien n'y est
- *      suspect (0076) : la **copie figée** à la validation
+ *      suspect (0078) : la **copie figée** à la validation
  *      (migration 0075), exactement ce qui a été relu ; à défaut — copie
- *      manquante, CV validé par HERACLES (0076) ou avant 0075 —, le PDF se
+ *      manquante, CV validé par HERACLES (0078) ou avant 0075 —, le PDF se
  *      fait ici, à la demande, des seuls champs anonymes que
  *      `cv_anonyme_valide_public()` rend, et il est rangé pour la suite ;
  *   2. à défaut, le **fichier** repris de Bubble ou déposé à la main, comme
@@ -59,6 +59,8 @@ type CvValide = SourceDuCvAnonyme & {
   reglages: unknown;
   /** La copie figée de cette validation-ci, ou null (0075). */
   fige_chemin: string | null;
+  /** Le contact par défaut : l'adresse du Secrétaire de la loge (0076). */
+  secretaire_email: string | null;
 };
 
 /** Ce qui s'affiche dans le navigateur sans risque ; le reste se télécharge. */
@@ -96,11 +98,11 @@ export async function GET(_requete: Request, { params }: { params: Promise<{ jet
         octets = figee;
       } else {
         const produits = await produireLeCvAnonymePublic(
-          donneesDuCvAnonyme(produit, produit.valide_le),
+          donneesDuCvAnonyme(produit, produit.valide_le, produit.secretaire_email),
           produit.reglages,
         );
         // Première ouverture d'un CV validé sans copie — validé par HERACLES
-        // (0076), ou avant 0075 : on range ce qu'on sert. La base ne fige que
+        // (0078), ou avant 0075 : on range ce qu'on sert. La base ne fige que
         // cette validation-là, une seule fois.
         if (!produit.fige_chemin && produit.valide_le) await figerParLeJeton(jeton, produit.valide_le, produits);
         octets = produits as unknown as BodyInit;

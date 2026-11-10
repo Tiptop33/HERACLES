@@ -178,5 +178,6 @@ export function exempleDeCvAnonyme(): DonneesCvAnonyme {
     savoir_etre: 'Rigueur\nSens de l’écoute\nCalme sous pression\nEsprit d’équipe',
     informatique: 'MS Project\nExcel avancé\nAutoCAD (lecture de plans)\nLogiciel de devis',
     a_jour_le: '2026-11-04',
+    contact_par_defaut: COMMISSION.secretaire_email,
   };
 }

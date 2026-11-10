@@ -2,18 +2,18 @@ import { lireFiche } from '../poste';
 import { supabaseAdmin } from '../supabase-admin';
 import { supabaseServer } from '../supabase-server';
 import { donneesDuCvAnonyme } from './cv-anonyme';
-import { lireLEtatDuCvAnonyme } from './donnees';
+import { lireLEtatDuCvAnonyme, lireLeContactDuCvAnonyme } from './donnees';
 import { produireLeCvAnonyme } from './produire';
 
 /**
- * La copie figée du CV anonyme (migrations 0075, 0076) : le PDF d'une
+ * La copie figée du CV anonyme (migrations 0075, 0078) : le PDF d'une
  * validation, rangé dans le seau privé « documents ». Le lien public et « Voir
  * le CV anonyme » la servent ; à défaut, le PDF se produit à la volée.
  *
  * Elle se range :
  *
  *   · au clic « Valider » d'un référent (`figerLeCvAnonyme()`) ;
- *   · pour une validation de HERACLES (0076), qui n'a pas de clic, à la
+ *   · pour une validation de HERACLES (0078), qui n'a pas de clic, à la
  *     première ouverture du CV — par le lien public (`figerParLeJeton()`) ou
  *     par un référent de la loge depuis la fiche (`figerSousLaSession()`).
  *
@@ -27,7 +27,7 @@ import { produireLeCvAnonyme } from './produire';
  * forme qu'écrit la base passe.
  */
 
-/** `candidats/<id du candidat>/cv-anonyme-valide-<millisecondes>.pdf` — la forme qu'écrivent 0075 et 0076. */
+/** `candidats/<id du candidat>/cv-anonyme-valide-<millisecondes>.pdf` — la forme qu'écrivent 0075 et 0078. */
 const CHEMIN = /^candidats\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\/cv-anonyme-valide-\d{1,16}\.pdf$/i;
 
 /**
@@ -106,18 +106,21 @@ export async function figerSousLaSession(candidat: string, valideLe: string, oct
  *
  * **À n'appeler qu'après `valider_cv_anonyme()` rendu `valide`, sous la même
  * session.** La validation est relue, puis la fiche ; le PDF en est produit
- * — exactement ce que le lien public aurait produit —, et la base ne le fige
- * que si c'est toujours cette validation-là.
+ * — exactement ce que le lien public aurait produit, contact du Secrétaire
+ * compris (0076) —, et la base ne le fige que si c'est toujours cette
+ * validation-là.
  */
 export async function figerLeCvAnonyme(candidat: string): Promise<boolean> {
   try {
     const etat = await lireLEtatDuCvAnonyme(candidat);
-    const fiche = etat?.valide_le ? await lireFiche(candidat) : null;
+    const [fiche, contact] = etat?.valide_le
+      ? await Promise.all([lireFiche(candidat), lireLeContactDuCvAnonyme(candidat)])
+      : [null, null];
     if (!etat?.valide_le || !fiche) {
       console.error('[cv-anonyme] copie non figée : la validation a changé entre-temps');
       return false;
     }
-    const octets = await produireLeCvAnonyme(donneesDuCvAnonyme(fiche, etat.valide_le));
+    const octets = await produireLeCvAnonyme(donneesDuCvAnonyme(fiche, etat.valide_le, contact));
     return await figerSousLaSession(candidat, etat.valide_le, octets);
   } catch (souci) {
     console.error('[cv-anonyme] copie non figée : échec inattendu', souci);

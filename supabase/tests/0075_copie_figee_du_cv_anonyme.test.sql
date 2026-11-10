@@ -1,6 +1,6 @@
 -- Tests de la migration 0075_copie_figee_du_cv_anonyme.sql.
 --
--- `figer_cv_anonyme()` prend depuis 0076 l'instant de la validation attendue.
+-- `figer_cv_anonyme()` prend depuis 0078 l'instant de la validation attendue.
 -- Les fiches de ce test n'ont pas de CV original : HERACLES ne les valide pas
 -- de lui-même, la validation reste celle des référents.
 --

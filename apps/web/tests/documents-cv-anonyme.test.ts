@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { elements, familleDeRecherche, jourEnLettres, numeroEcrit, parcours, permisLisible } from '../src/lib/documents/cv-anonyme';
+import { avecLeContactParDefaut, elements, familleDeRecherche, jourEnLettres, numeroEcrit, parcours, permisLisible } from '../src/lib/documents/cv-anonyme';
 
 /**
  * La lecture des champs de la fiche pour le CV anonyme. Les fiches viennent de
@@ -70,5 +70,23 @@ describe('les petits champs', () => {
     expect(numeroEcrit(904, 'nu')).toEqual({ avant: '', chiffres: '904' });
     expect(numeroEcrit(904, 'dossier')).toEqual({ avant: 'Dossier', chiffres: '904' });
     expect(numeroEcrit(null, 'n').chiffres).toBe('—');
+  });
+});
+
+describe('le contact par défaut', () => {
+  it('pose l’adresse du Secrétaire comme origine du contact', () => {
+    expect(avecLeContactParDefaut({}, ' secretariat@exemple.org ')).toEqual({ 'contact.adresse': 'secretariat@exemple.org' });
+  });
+
+  it('laisse passer devant une adresse réglée, ou un champ vidé', () => {
+    expect(avecLeContactParDefaut({ 'contact.adresse': 'autre@exemple.org' }, 'secretariat@exemple.org')).toEqual({
+      'contact.adresse': 'autre@exemple.org',
+    });
+    expect(avecLeContactParDefaut({ 'contact.adresse': '' }, 'secretariat@exemple.org')).toEqual({ 'contact.adresse': '' });
+  });
+
+  it('ne pose rien sans Secrétaire', () => {
+    expect(avecLeContactParDefaut({ 'numero.taille': 40 }, null)).toEqual({ 'numero.taille': 40 });
+    expect(avecLeContactParDefaut({}, '   ')).toEqual({});
   });
 });

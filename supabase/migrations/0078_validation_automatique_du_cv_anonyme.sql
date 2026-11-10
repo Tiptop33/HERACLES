@@ -1,5 +1,5 @@
 -- ---------------------------------------------------------------------------
--- 0076 — le CV anonyme se valide tout seul, quand rien n'y est suspect
+-- 0078 — le CV anonyme se valide tout seul, quand rien n'y est suspect
 --
 -- Ce que ça change : dès qu'un candidat a un **CV original** et un emploi
 -- recherché, HERACLES valide lui-même son CV anonyme (0073) — **si rien de
@@ -55,10 +55,10 @@ alter table public.candidat
 
 comment on column public.candidat.cv_anonyme_valide_auto is
   'Vrai si la validation en cours du CV anonyme a été donnée par HERACLES, '
-  'faute de rien de suspect (0076) ; faux si un référent l''a donnée.';
+  'faute de rien de suspect (0078) ; faux si un référent l''a donnée.';
 comment on column public.candidat.cv_anonyme_retire_le is
   'Un référent a retiré la validation du CV anonyme : HERACLES ne la redonne '
-  'pas avant la prochaine modification d''un champ imprimé (0076).';
+  'pas avant la prochaine modification d''un champ imprimé (0078).';
 
 -- ---------------------------------------------------------------------------
 -- 1. Le texte réduit : sans accents, sans casse, des mots séparés d'un espace
@@ -235,7 +235,7 @@ declare
   imprime_change   boolean := false;
   entrees_changent boolean := true;
 begin
-  -- Hors des fonctions de 0073 à 0076, une session n'écrit rien de la
+  -- Hors des fonctions de 0073 à 0078, une session n'écrit rien de la
   -- validation ni de la copie : à la création, tout part de zéro ; à la
   -- modification, tout reste comme avant.
   if auth.uid() is not null
@@ -312,8 +312,8 @@ $$;
 
 comment on function public.relire_le_cv_anonyme() is
   'Réserve la validation du CV anonyme et sa copie aux fonctions de 0073 à '
-  '0076 ; efface la validation quand un champ imprimé change ; la donne au '
-  'nom de HERACLES quand rien n''est suspect (0076).';
+  '0078 ; efface la validation quand un champ imprimé change ; la donne au '
+  'nom de HERACLES quand rien n''est suspect (0078).';
 
 drop trigger if exists candidat_relire_le_cv_anonyme on public.candidat;
 create trigger candidat_relire_le_cv_anonyme

@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { ADRESSES, DOCUMENTS, GABARITS, documentDeLAdresse } from '@/lib/documents/gabarits';
+import { lireLeSecretaireDeMaLoge } from '@/lib/documents/donnees';
+import { ADRESSES, DOCUMENTS, GABARITS, documentDeLAdresse, type Reglages } from '@/lib/documents/gabarits';
 import { nettoyer } from '@/lib/documents/reglages';
 import { RUBRIQUES } from '@/lib/parametres';
 import { supabaseServer } from '@/lib/supabase-server';
@@ -25,6 +26,14 @@ export default async function MiseEnPageDUnDocument({ params }: { params: Promis
   const supabase = await supabaseServer();
   const { data } = await supabase.from('mise_en_page').select('reglages').eq('document', document).maybeSingle();
   const ecarts = nettoyer(document, (data as { reglages: unknown } | null)?.reglages);
+
+  // Le contact du CV anonyme a pour origine l'adresse du Secrétaire de la
+  // loge (0076) : le champ la montre, comme les CV l'impriment.
+  const originesLues: Reglages = {};
+  if (document === 'cv_anonyme') {
+    const secretaire = await lireLeSecretaireDeMaLoge();
+    if (secretaire) originesLues['contact.adresse'] = secretaire;
+  }
 
   const propos = RUBRIQUES.find((r) => r.libelle === 'Mise en page')?.propos ?? '';
   const gabarit = GABARITS[document];
@@ -51,7 +60,7 @@ export default async function MiseEnPageDUnDocument({ params }: { params: Promis
 
       {/* La clé force un éditeur neuf à chaque onglet : les réglages en cours
           d'envoi d'un document ne passent jamais sur un autre. */}
-      <EditeurDeMiseEnPage key={document} document={document} ecartsInitiaux={ecarts} />
+      <EditeurDeMiseEnPage key={document} document={document} ecartsInitiaux={ecarts} originesLues={originesLues} />
     </div>
   );
 }

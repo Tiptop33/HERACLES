@@ -236,7 +236,7 @@ HERACLES le produit de la fiche, et en **range une copie à chaque validation**
   « non fourni ». Avant la validation, rien n'est rangé : la fiche peut encore
   bouger, le PDF se produit à l'ouverture, toujours à jour. Il ne circule
   qu'une fois validé (`lib/documents/carte-cv-anonyme.ts`).
-- **Validé tout seul quand rien n'est suspect** (0076, décision du 10 novembre
+- **Validé tout seul quand rien n'est suspect** (0078, décision du 10 novembre
   2026) : dès qu'il y a un CV original et un emploi recherché, HERACLES
   cherche dans les champs imprimés le nom, le prénom, l'adresse et le
   téléphone du candidat, et toute adresse électronique, tout numéro de
@@ -264,12 +264,19 @@ HERACLES le produit de la fiche, et en **range une copie à chaque validation**
   reçu de la requête. Si la copie n'a pas pu être rangée (seau indisponible),
   la validation tient quand même et le PDF se produit à la volée, comme avant
   0075 ; la première ouverture suivante la range. Un CV validé avant 0075
-  reçoit de même sa copie à sa première ouverture (0076).
+  reçoit de même sa copie à sa première ouverture (0078).
   Supprimer le dossier efface la copie.
-- **Le contact** : l'adresse se règle dans Paramètres › Mise en page. Vide (par
-  défaut), la phrase « Pour rencontrer ce candidat… » ne s'imprime pas. Le CV
-  circule hors de la loge : une adresse de la commission, jamais celle d'une
-  personne.
+- **Le contact** (migrations 0076, 0077) : la valeur d'origine du champ
+  « Adresse de contact » est l'adresse électronique du **Secrétaire de la
+  loge** — le référent qui porte le titre « Secrétaire » au collège, celui que
+  l'affichette nomme. Le champ montre celle du Secrétaire de la loge de la
+  personne connectée, et l'aperçu l'imprime ; chaque CV porte celle du
+  Secrétaire de la loge de **son** candidat, relue à chaque CV : quand le titre
+  change de mains, les CV suivent. Une autre adresse saisie la remplace sur
+  tous les CV ; le champ vidé, la phrase « Pour rencontrer ce candidat… » ne
+  s'imprime pas ; « origine » ramène à l'adresse du Secrétaire. La copie figée
+  d'une validation (0075) garde l'adresse du moment : pour la mettre à jour,
+  retirer la validation puis valider de nouveau.
 - **Les champs libres** sont lus dans la forme de la lecture du CV
   (« 2019-2025 — Poste, employeur : missions ») ; une ligne tapée autrement
   reste entière. Une liste tapée sur une ligne se coupe aux virgules.
