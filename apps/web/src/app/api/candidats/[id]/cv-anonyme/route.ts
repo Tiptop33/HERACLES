@@ -17,8 +17,8 @@ import { supabaseServer } from '@/lib/supabase-server';
  * que les champs nommés dans `donneesDuCvAnonyme()` : jamais le nom.
  *
  * POST — « Valider » ou « Retirer la validation ». `valider_cv_anonyme()`
- * tranche : seul le référent du dossier valide, et la base le vérifie quel
- * que soit ce que l'écran a montré. Aucune clé de service.
+ * tranche : tout référent de la loge du candidat valide (0074), et la base le
+ * vérifie quel que soit ce que l'écran a montré. Aucune clé de service.
  */
 
 export const runtime = 'nodejs';
@@ -112,7 +112,7 @@ async function valider(requete: Request, id: string) {
   const { data, error } = await supabase.rpc('valider_cv_anonyme', { cible: id, valider: lu.data.valider === 'oui' });
   if (error) {
     if (error.code === '42501') {
-      return repondre('droit', 'Seul le référent du dossier valide son CV anonyme.', 403);
+      return repondre('droit', 'Seuls les référents de la loge du candidat valident son CV anonyme.', 403);
     }
     console.error('[cv-anonyme] validation refusée', error.code);
     return repondre('echec', 'Le CV anonyme n’a pas pu être validé.');

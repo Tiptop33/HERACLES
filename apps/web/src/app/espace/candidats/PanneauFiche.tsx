@@ -817,8 +817,8 @@ function Documents({
 
 /**
  * Le CV anonyme qu'HERACLES produit de la fiche (migration 0073), sous les
- * cartes : son état, le voir, et — pour le seul référent du dossier — le
- * valider ou retirer sa validation.
+ * cartes : son état, le voir, et — pour tout référent de la loge du candidat
+ * (0074) — le valider ou retirer sa validation.
  *
  * Validé, c'est lui que servent le lien de l'affiche et le QR code de
  * l'affichette ; jusque-là, ils servent le fichier de la carte « CV anonyme »,
