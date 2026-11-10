@@ -288,6 +288,51 @@ est un oui/non — d'où la précaution posée dans `apps/web/src/lib/suivi.ts` 
 une valeur qui commence par une négation ne referme rien. Sans elle, les
 treize « Non » auraient été comptés comme archivés.
 
+### Les provinces — le même chemin que les tâches
+
+Le type `PROVINCE` est dans le cas de `tache` et de `reunion` : absent de la
+base en service, présent dans celle de l'éditeur, donc recopié en JSON dans
+`bubble_brut` par la passe `SEULEMENT_BRUT`. La migration
+`0080_provinces.sql` le déplie dans la table `province` — un nom, une image —,
+puis rattache chaque loge à sa province (`loge.province_id`). L'écran
+« Province » du tableau de bord en affiche une carte par province.
+
+```sql
+select * from public.deverser_provinces_bubble();
+```
+
+`reprendre-bubble.sh` l'appelle tout seul (passe 5), et `--fichiers` rapatrie
+les images avec le reste. **Trois vérifications, le jour de la bascule :**
+
+1. **Le type est-il bien arrivé ?** Le dépliage lit
+   `type_bubble = 'province'` (casse indifférente). Si Bubble l'a nommé
+   autrement, il n'apparaît pas — et le compte rendu de la fonction dit
+   `deversees = 0` :
+
+   ```sql
+   select type_bubble, count(*) from public.bubble_brut
+    where type_bubble ilike '%prov%' group by 1;
+   ```
+
+2. **Les champs ont-ils été reconnus ?** Les clés du type n'ont jamais été
+   relevées : la fonction reconnaît le nom (clé commençant par « nom » ou
+   « name ») et l'image (adresse de fichier Bubble) à leur forme. `sans_nom`
+   ou `sans_image` non nuls : un champ a échappé à la détection. Ses clés se
+   lisent ainsi — les clés seules, c'est un référentiel sans personne :
+
+   ```sql
+   select distinct jsonb_object_keys(donnees) from public.bubble_brut
+    where type_bubble ilike 'province';
+   ```
+
+3. **Les images sont-elles rapatriées ?** Une carte dont l'image n'est pas
+   encore dans notre stockage montre l'initiale de la province à sa place,
+   comme l'annuaire le fait pour un référent sans photo. Le reste à faire se
+   lit dans `public.fichiers_a_rapatrier` (`source = 'province'`).
+
+*Ce qui resterait propre à faire avant la bascule* : le même geste que pour
+`tache` — exposer `PROVINCE` sur la base **en service**, puis déployer.
+
 ## Compte rendu
 
 Le jour où MAJBUBBLE est passée, noter dans `docs/reprise-bubble-releve.md` :

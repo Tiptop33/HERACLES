@@ -52,6 +52,8 @@ const CIBLES = [
   ['candidat', 'photo_url', 'photo_chemin', 'candidat/photo'],
   ['referent', 'photo_url', 'photo_chemin', 'referent/photo'],
   ['loge', 'logo_url', 'logo_chemin', 'loge/logo'],
+  // L'image de chaque province (migration 0080), affichée sur sa carte.
+  ['province', 'image_url', 'image_chemin', 'province/image'],
   ['document', 'lien_url', 'chemin', 'document', 'efface_le is null'],
 ];
 
