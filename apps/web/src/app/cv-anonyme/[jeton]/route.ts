@@ -1,4 +1,6 @@
 import { NextResponse } from 'next/server';
+import { donneesDuCvAnonyme, nomDuCvAnonyme, type SourceDuCvAnonyme } from '@/lib/documents/cv-anonyme';
+import { produireLeCvAnonymePublic } from '@/lib/documents/produire';
 import { enTeteDeTelechargement, extensionDe, typeDeFichier } from '@/lib/fichiers';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { supabaseServer } from '@/lib/supabase-server';
@@ -6,6 +8,14 @@ import { supabaseServer } from '@/lib/supabase-server';
 /**
  * Le CV anonyme d'un dossier, sans compte — l'adresse du QR code de
  * l'affichette et du lien « CV » de l'affiche.
+ *
+ * Deux sources, dans cet ordre (migration 0073) :
+ *
+ *   1. le CV **produit par HERACLES** depuis la fiche, s'il a été validé par
+ *      le référent : `cv_anonyme_valide_public()` rend ses seuls champs
+ *      anonymes, et le PDF se fait ici, à la demande — rien n'est stocké ;
+ *   2. à défaut, le **fichier** repris de Bubble ou déposé à la main, comme
+ *      avant.
  *
  * C'est la seule porte de l'application ouverte à qui n'est pas connecté, et
  * elle est étroite (migration 0067) :
@@ -28,6 +38,19 @@ export const runtime = 'nodejs';
 
 const JETON = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
+/** Les en-têtes de toute réponse qui porte un CV. */
+const PROTECTIONS = {
+  // Le lien circule, le fichier ne doit pas s'installer ailleurs : ni
+  // dans un cache partagé, ni dans un moteur de recherche, ni dans
+  // l'en-tête « Referer » d'un site ouvert depuis le PDF.
+  'Cache-Control': 'private, no-store',
+  'X-Robots-Tag': 'noindex, nofollow',
+  'Referrer-Policy': 'no-referrer',
+  'X-Content-Type-Options': 'nosniff',
+} as const;
+
+type CvValide = SourceDuCvAnonyme & { valide_le: string | null; reglages: unknown };
+
 /** Ce qui s'affiche dans le navigateur sans risque ; le reste se télécharge. */
 const AFFICHABLE = /^(application\/pdf|image\/(png|jpeg|webp|gif|avif))$/;
 
@@ -48,6 +71,29 @@ export async function GET(_requete: Request, { params }: { params: Promise<{ jet
 
   try {
     const supabase = await supabaseServer();
+
+    // 1. Le CV validé, produit à la demande.
+    const { data: valide, error: refus } = await supabase.rpc('cv_anonyme_valide_public', { jeton });
+    if (refus) {
+      console.error('[cv-anonyme] lecture refusée', refus.code);
+      return introuvable();
+    }
+    const produit = (valide as CvValide[] | null)?.[0];
+    if (produit) {
+      const octets = await produireLeCvAnonymePublic(
+        donneesDuCvAnonyme(produit, produit.valide_le),
+        produit.reglages,
+      );
+      return new NextResponse(octets as unknown as BodyInit, {
+        headers: {
+          'Content-Type': 'application/pdf',
+          'Content-Disposition': enTeteDeTelechargement(nomDuCvAnonyme(produit.numero), 'inline'),
+          ...PROTECTIONS,
+        },
+      });
+    }
+
+    // 2. Le fichier déposé.
     const { data, error } = await supabase.rpc('cv_anonyme_public', { jeton });
     if (error) {
       console.error('[cv-anonyme] lecture refusée', error.code);
@@ -66,13 +112,7 @@ export async function GET(_requete: Request, { params }: { params: Promise<{ jet
       headers: {
         'Content-Type': type,
         'Content-Disposition': enTeteDeTelechargement(nom, AFFICHABLE.test(type) ? 'inline' : 'attachment'),
-        // Le lien circule, le fichier ne doit pas s'installer ailleurs : ni
-        // dans un cache partagé, ni dans un moteur de recherche, ni dans
-        // l'en-tête « Referer » d'un site ouvert depuis le PDF.
-        'Cache-Control': 'private, no-store',
-        'X-Robots-Tag': 'noindex, nofollow',
-        'Referrer-Policy': 'no-referrer',
-        'X-Content-Type-Options': 'nosniff',
+        ...PROTECTIONS,
       },
     });
   } catch (souci) {

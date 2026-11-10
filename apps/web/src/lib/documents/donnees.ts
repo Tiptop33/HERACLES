@@ -40,6 +40,28 @@ export async function lireLaMiseEnPage(document: DocumentCle): Promise<{
   };
 }
 
+/** Le CV anonyme produit par HERACLES : validé ou non, par qui, et si c'est à moi (0073). */
+export type EtatDuCvAnonyme = {
+  valide_le: string | null;
+  valide_par: string | null;
+  peut_valider: boolean;
+};
+
+/**
+ * L'état du CV anonyme d'un candidat que la session peut voir — même porte que
+ * la fiche. `null` hors de ses loges.
+ */
+export async function lireLEtatDuCvAnonyme(candidat: string): Promise<EtatDuCvAnonyme | null> {
+  if (!UUID.test(candidat)) return null;
+  const supabase = await supabaseServer();
+  const { data, error } = await supabase.rpc('etat_du_cv_anonyme', { candidat_choisi: candidat });
+  if (error) {
+    console.error('[cv-anonyme] état illisible', error.code);
+    return null;
+  }
+  return (data as EtatDuCvAnonyme[] | null)?.[0] ?? null;
+}
+
 /**
  * L'adresse publique du CV anonyme. Sur l'adresse configurée du site, jamais
  * sur celle de la requête : l'affiche part chez des gens qui ne sont pas

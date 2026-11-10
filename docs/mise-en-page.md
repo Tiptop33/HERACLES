@@ -185,3 +185,44 @@ Migration 0071.
 l'affichette. Seule adresse lisible **sans compte** : le CV anonyme seulement,
 d'un dossier en cours, pour qui a le jeton (`candidat.cv_anonyme_jeton`). Voir le
 registre RGPD, § 5 bis.
+
+Il sert, dans cet ordre : le CV **produit par HERACLES**, s'il a été validé par
+le référent ; à défaut, le **fichier** repris de Bubble ou déposé à la main.
+
+## Le CV anonyme produit par HERACLES
+
+Migration 0073. Bubble produisait le CV anonyme à l'envoi de la fiche ;
+HERACLES le produit de la fiche, à chaque ouverture, sans le stocker.
+
+| | |
+| --- | --- |
+| Mise en page (modèle B, « La colonne ») | `apps/web/src/lib/documents/cv-anonyme.ts` |
+| Le choix, et les cinq autres modèles | `docs/maquettes/cv-anonyme-propositions.html`, décisions dans `…-notes.md` |
+| Réglages | Paramètres › Mise en page › CV anonyme : écriture du numéro, couleurs, adresse de contact, phrases du pied |
+| Aperçu et validation (référent) | `app/api/candidats/[id]/cv-anonyme/` — GET : le PDF ; POST : valider ou retirer |
+| Lien public | `app/cv-anonyme/[jeton]/` — `cv_anonyme_valide_public()`, puis `cv_anonyme_public()` |
+
+- **Ce qu'il imprime** : le numéro du dossier en haut à gauche, sur l'aplat ;
+  ce qui est recherché, le secteur, le métier ; le début souhaité, la mobilité,
+  le permis B (seulement s'il est là), le savoir-être et l'informatique dans la
+  colonne ; les expériences, les formations et les compétences à droite. Une
+  rubrique vide ne s'imprime pas. Un parcours trop long passe sur une seconde
+  page.
+- **Ce qu'il n'imprime jamais** : nom, prénom, photo, âge, adresse, ville,
+  téléphone, courriel, situation familiale, loge, référent, parrain. Ces
+  colonnes ne sont ni lues par `cv_anonyme_valide_public()`, ni connues du
+  gabarit.
+- **La validation** : sur la fiche, onglet *Documents*, un bandeau sous les
+  cartes dit « À valider » ou « Validé le … par … ». Tout le monde peut
+  « Voir le CV anonyme » ; seul le **référent du dossier** voit « Valider » et
+  « Retirer la validation », et la base le revérifie. Modifier un champ
+  imprimé — à l'écran ou par la reprise de Bubble — efface la validation :
+  le CV est à relire. Valider ne change pas la « dernière mise à jour » de la
+  fiche.
+- **Le contact** : l'adresse se règle dans Paramètres › Mise en page. Vide (par
+  défaut), la phrase « Pour rencontrer ce candidat… » ne s'imprime pas. Le CV
+  circule hors de la loge : une adresse de la commission, jamais celle d'une
+  personne.
+- **Les champs libres** sont lus dans la forme de la lecture du CV
+  (« 2019-2025 — Poste, employeur : missions ») ; une ligne tapée autrement
+  reste entière. Une liste tapée sur une ligne se coupe aux virgules.

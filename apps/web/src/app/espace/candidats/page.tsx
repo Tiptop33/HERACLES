@@ -27,6 +27,7 @@ import { jeSuisReferent, lireJournal, lireRetirees } from '@/lib/journal';
 import { MOTIFS_DE_CLOTURE } from '@/lib/candidats-refermes';
 import { estArchive, estCloture, estFerme, raisonDeFermeture } from '@/lib/suivi';
 import { jourEntier } from '@/lib/documents/formats';
+import { lireLEtatDuCvAnonyme } from '@/lib/documents/donnees';
 import { listerAnnuaire } from '@/lib/annuaire';
 import { exigerProfil } from '@/lib/profil';
 import { accueilDuRole } from '@/lib/roles';
@@ -58,6 +59,7 @@ type Parametres = {
   rouvrir?: string | string[];
   /** Ce que la route de réouverture a répondu, quand elle a refusé. */
   reouverture?: string | string[];
+  cvanonyme?: string | string[];
 };
 
 /**
@@ -82,6 +84,16 @@ const REFUS_DE_REOUVERTURE: Record<string, string> = {
   'pas-cloture': 'Seul un dossier clôturé, et pas archivé, se rouvre.',
   session: 'Votre session a expiré. Reconnectez-vous.',
   echec: 'Le dossier n’a pas pu être rouvert.',
+};
+
+/** Ce que la validation du CV anonyme (0073) a refusé, sous son bandeau. */
+const REFUS_DU_CV_ANONYME: Record<string, string> = {
+  droit: 'Seul le référent du dossier valide son CV anonyme.',
+  ferme: 'Le dossier est refermé : son CV anonyme ne circule plus.',
+  incomplet: 'La fiche ne dit pas l’emploi recherché : le CV n’aurait pas de titre.',
+  introuvable: 'Ce dossier n’existe plus, ou il n’est pas de votre loge.',
+  session: 'Votre session a expiré. Reconnectez-vous.',
+  echec: 'Le CV anonyme n’a pas pu être validé.',
 };
 
 const REFUS_DE_SUPPRESSION: Record<string, string> = {
@@ -180,6 +192,9 @@ export default async function PosteDeTravail({
   // seulement d'avoir une fiche de référent (0027). `fiche.modifiable`, lui,
   // garde son sens : corriger la fiche elle-même reste au référent.
   const jePeuxNoter = fiche && onglet === 'suivi' ? await jeSuisReferent() : false;
+  // Le CV anonyme produit par HERACLES (0073) : son état ne se lit que sous
+  // l'onglet « Documents », où son bandeau s'affiche.
+  const cvAnonyme = fiche && onglet === 'documents' ? await lireLEtatDuCvAnonyme(fiche.id) : null;
 
   // Le bouton « Clôturer le dossier » (0071) : un dossier en cours, et le
   // droit de le faire. La base revérifie l'un et l'autre en clôturant.
@@ -364,6 +379,8 @@ export default async function PosteDeTravail({
             prise={premier(parametres.prise) || null}
             cloturable={cloturable}
             rouvrable={rouvrable}
+            cvAnonyme={cvAnonyme}
+            refusCvAnonyme={REFUS_DU_CV_ANONYME[premier(parametres.cvanonyme)] ?? null}
           />
         ) : demande ? (
           // Ni « introuvable », ni « interdit ». La base n'a rien rendu, et

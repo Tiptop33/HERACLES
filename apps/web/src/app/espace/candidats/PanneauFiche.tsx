@@ -15,6 +15,8 @@ import {
 } from '@/lib/journal';
 import { libelleDeRecherche } from '@/lib/parrainage';
 import { nomDeFamilleDabord, type FicheOuverte, type LigneCandidat } from '@/lib/poste';
+import type { EtatDuCvAnonyme } from '@/lib/documents/donnees';
+import { jourEntier } from '@/lib/documents/formats';
 
 /** Un référent de la loge, à qui confier une nouvelle demande. */
 export type Collegue = { id: string; nom: string; c_est_moi: boolean };
@@ -76,6 +78,8 @@ export default function PanneauFiche({
   prise,
   cloturable,
   rouvrable,
+  cvAnonyme,
+  refusCvAnonyme,
 }: {
   fiche: FicheOuverte;
   /** La ligne correspondante de la liste, quand la vue courante la contient. */
@@ -111,6 +115,13 @@ export default function PanneauFiche({
    * Fait paraître « Rouvrir le dossier » à la place de « Clôturer ».
    */
   rouvrable: boolean;
+  /**
+   * Le CV anonyme produit par HERACLES (0073), lu sous l'onglet « Documents » :
+   * validé ou non, et si c'est à la session de le valider.
+   */
+  cvAnonyme: EtatDuCvAnonyme | null;
+  /** Ce que la validation du CV anonyme a refusé. */
+  refusCvAnonyme: string | null;
 }) {
   const nom = nomDeFamilleDabord(fiche.nom, fiche.prenom);
   const metier = fiche.metier_libelle ?? fiche.emploi_recherche ?? rang?.metier ?? null;
@@ -232,7 +243,12 @@ export default function PanneauFiche({
 
       <div className="poste-contenu">
         {onglet === 'documents' ? (
-          <Documents fiche={fiche} />
+          <Documents
+            fiche={fiche}
+            cvAnonyme={cvAnonyme}
+            refusCvAnonyme={refusCvAnonyme}
+            retour={adresse({ cvanonyme: null })}
+          />
         ) : onglet === 'suivi' ? (
           <Suivi
             fiche={fiche}
@@ -704,7 +720,17 @@ function Profil({
  * y compris les `.docx` et les `.odt` que la reprise de Bubble ramène. Le
  * dessin ne ment pas — c'est un document, et le nom dit lequel.
  */
-function Documents({ fiche }: { fiche: FicheOuverte }) {
+function Documents({
+  fiche,
+  cvAnonyme,
+  refusCvAnonyme,
+  retour,
+}: {
+  fiche: FicheOuverte;
+  cvAnonyme: EtatDuCvAnonyme | null;
+  refusCvAnonyme: string | null;
+  retour: string;
+}) {
   const documents = [
     {
       genre: 'lettre',
@@ -722,6 +748,7 @@ function Documents({ fiche }: { fiche: FicheOuverte }) {
   ];
 
   return (
+    <>
     <div className="poste-documents">
       {documents.map(({ genre, libelle, chemin, url }) => {
         if (chemin) {
@@ -780,5 +807,78 @@ function Documents({ fiche }: { fiche: FicheOuverte }) {
         <small>à venir</small>
       </div>
     </div>
+
+    {cvAnonyme ? (
+      <BandeauDuCvAnonyme id={fiche.id} etat={cvAnonyme} refus={refusCvAnonyme} retour={retour} />
+    ) : null}
+    </>
+  );
+}
+
+/**
+ * Le CV anonyme qu'HERACLES produit de la fiche (migration 0073), sous les
+ * cartes : son état, le voir, et — pour le seul référent du dossier — le
+ * valider ou retirer sa validation.
+ *
+ * Validé, c'est lui que servent le lien de l'affiche et le QR code de
+ * l'affichette ; jusque-là, ils servent le fichier de la carte « CV anonyme »,
+ * s'il y en a un. Une fiche modifiée efface la validation : le CV est à
+ * relire.
+ *
+ * Rendu par le serveur, sans script : un formulaire par geste, qui revient
+ * sur la fiche.
+ */
+function BandeauDuCvAnonyme({
+  id,
+  etat,
+  refus,
+  retour,
+}: {
+  id: string;
+  etat: EtatDuCvAnonyme;
+  refus: string | null;
+  retour: string;
+}) {
+  const valide = Boolean(etat.valide_le);
+  return (
+    <section className="cv-anonyme-bandeau" aria-labelledby="cv-anonyme-titre">
+      <div className="cv-anonyme-etat">
+        <strong id="cv-anonyme-titre">CV anonyme produit par HERACLES</strong>
+        {valide ? (
+          <span className="cv-anonyme-pastille cv-anonyme-pastille--valide">
+            Validé le {jourEntier(etat.valide_le)}
+            {etat.valide_par ? ` par ${etat.valide_par}` : ''}
+          </span>
+        ) : (
+          <span className="cv-anonyme-pastille">À valider</span>
+        )}
+      </div>
+
+      {refus ? (
+        <p className="cv-anonyme-refus" role="alert">
+          {refus}
+        </p>
+      ) : null}
+
+      <div className="cv-anonyme-gestes">
+        <a
+          className="bouton bouton--petit"
+          href={`/api/candidats/${id}/cv-anonyme`}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Voir le CV anonyme
+        </a>
+        {etat.peut_valider ? (
+          <form method="post" action={`/api/candidats/${id}/cv-anonyme`}>
+            <input type="hidden" name="retour" value={retour} />
+            <input type="hidden" name="valider" value={valide ? 'non' : 'oui'} />
+            <button className={`bouton bouton--petit${valide ? '' : ' bouton--fort'}`} type="submit">
+              {valide ? 'Retirer la validation' : 'Valider'}
+            </button>
+          </form>
+        ) : null}
+      </div>
+    </section>
   );
 }
