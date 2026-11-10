@@ -146,6 +146,22 @@ type FicheAffichette = {
   mobilite_geographique: string | null;
 };
 
+/**
+ * Le contact par défaut du CV anonyme (0076) : l'adresse du Secrétaire de la
+ * loge du candidat, sous la même porte que la fiche. `null` sans Secrétaire,
+ * ou hors de ses loges.
+ */
+export async function lireLeContactDuCvAnonyme(candidat: string): Promise<string | null> {
+  if (!UUID.test(candidat)) return null;
+  const supabase = await supabaseServer();
+  const { data, error } = await supabase.rpc('commission_du_candidat', { candidat_choisi: candidat });
+  if (error) {
+    console.error('[cv-anonyme] commission illisible', error.code);
+    return null;
+  }
+  return (data as Array<{ secretaire_email: string | null }> | null)?.[0]?.secretaire_email?.trim() || null;
+}
+
 export async function donneesDeLAffichette(
   candidat: string,
   fiche: FicheAffichette,

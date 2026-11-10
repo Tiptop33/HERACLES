@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { estUneCopieFigee, figerLeCvAnonyme, lireLaCopieFigee } from '@/lib/documents/copie-figee';
 import { donneesDuCvAnonyme, nomDuCvAnonyme } from '@/lib/documents/cv-anonyme';
-import { lireLEtatDuCvAnonyme } from '@/lib/documents/donnees';
+import { lireLEtatDuCvAnonyme, lireLeContactDuCvAnonyme } from '@/lib/documents/donnees';
 import { produireLeCvAnonyme } from '@/lib/documents/produire';
 import { enTeteDeTelechargement } from '@/lib/fichiers';
 import { destinationInterne, lireCorps, origine, vientDUnFormulaire } from '@/lib/formulaire';
@@ -71,8 +71,8 @@ export async function GET(_requete: Request, { params }: { params: Promise<{ id:
 
     // Sinon, produit à la volée. Validé, le CV porte la date de sa validation,
     // comme sur le lien public ; sinon celle du jour.
-    const etat = await lireLEtatDuCvAnonyme(id);
-    const octets = await produireLeCvAnonyme(donneesDuCvAnonyme(fiche, etat?.valide_le ?? JOUR()));
+    const [etat, contact] = await Promise.all([lireLEtatDuCvAnonyme(id), lireLeContactDuCvAnonyme(id)]);
+    const octets = await produireLeCvAnonyme(donneesDuCvAnonyme(fiche, etat?.valide_le ?? JOUR(), contact));
     return pdf(octets as unknown as BodyInit);
   } catch (souci) {
     console.error('[cv-anonyme] aperçu impossible', souci);

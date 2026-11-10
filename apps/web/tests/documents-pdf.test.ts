@@ -289,8 +289,24 @@ describe('le CV anonyme', () => {
     }
   });
 
-  it('n’invite à écrire à personne tant qu’aucune adresse n’est réglée', async () => {
-    const sans = await cv(exempleDeCvAnonyme());
+  it('écrit au Secrétaire de la loge tant qu’aucune adresse n’est réglée', async () => {
+    const { texte } = await cv({ ...exempleDeCvAnonyme(), contact_par_defaut: 'secretariat-pau@exemple.org' });
+    expect(texte.replace(/\s+/g, ' ')).toContain(
+      'Pour rencontrer ce candidat, écrire à secretariat-pau@exemple.org en citant le n° 904.',
+    );
+  });
+
+  it('préfère l’adresse réglée à celle du Secrétaire', async () => {
+    const { texte } = await cv(
+      { ...exempleDeCvAnonyme(), contact_par_defaut: 'secretariat-pau@exemple.org' },
+      { 'contact.adresse': 'commission@exemple.org' },
+    );
+    expect(texte).toContain('commission@exemple.org');
+    expect(texte).not.toContain('secretariat-pau@exemple.org');
+  });
+
+  it('n’invite à écrire à personne sans adresse réglée ni Secrétaire', async () => {
+    const sans = await cv({ ...exempleDeCvAnonyme(), contact_par_defaut: null });
     expect(sans.texte).not.toContain('Pour rencontrer ce candidat');
     const avec = await cv(exempleDeCvAnonyme(), { 'contact.adresse': 'commission@exemple.org' });
     // La phrase passe à la ligne dans la colonne : on la relit d'un seul tenant.
@@ -319,6 +335,7 @@ describe('le CV anonyme', () => {
       savoir_etre: null,
       informatique: null,
       a_jour_le: null,
+      contact_par_defaut: null,
     };
     const { texte, pages } = await cv(vide);
     expect(texte).toContain('905');

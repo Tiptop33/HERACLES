@@ -57,6 +57,8 @@ type CvValide = SourceDuCvAnonyme & {
   reglages: unknown;
   /** La copie figée de cette validation-ci, ou null (0075). */
   fige_chemin: string | null;
+  /** Le contact par défaut : l'adresse du Secrétaire de la loge (0076). */
+  secretaire_email: string | null;
 };
 
 /** Ce qui s'affiche dans le navigateur sans risque ; le reste se télécharge. */
@@ -92,7 +94,7 @@ export async function GET(_requete: Request, { params }: { params: Promise<{ jet
       const octets =
         figee ??
         ((await produireLeCvAnonymePublic(
-          donneesDuCvAnonyme(produit, produit.valide_le),
+          donneesDuCvAnonyme(produit, produit.valide_le, produit.secretaire_email),
           produit.reglages,
         )) as unknown as BodyInit);
       return new NextResponse(octets, {
