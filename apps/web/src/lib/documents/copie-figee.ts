@@ -2,7 +2,7 @@ import { lireFiche } from '../poste';
 import { supabaseAdmin } from '../supabase-admin';
 import { supabaseServer } from '../supabase-server';
 import { donneesDuCvAnonyme } from './cv-anonyme';
-import { lireLEtatDuCvAnonyme } from './donnees';
+import { lireLEtatDuCvAnonyme, lireLeContactDuCvAnonyme } from './donnees';
 import { produireLeCvAnonyme } from './produire';
 
 /**
@@ -67,14 +67,18 @@ export async function figerLeCvAnonyme(candidat: string): Promise<boolean> {
     }
 
     // 2. Le PDF de cette validation.
-    const [fiche, etat] = await Promise.all([lireFiche(candidat), lireLEtatDuCvAnonyme(candidat)]);
+    const [fiche, etat, contact] = await Promise.all([
+      lireFiche(candidat),
+      lireLEtatDuCvAnonyme(candidat),
+      lireLeContactDuCvAnonyme(candidat),
+    ]);
     if (!fiche || !etat?.valide_le) {
       // La fiche a bougé entre-temps : la validation est effacée, il n'y a
       // plus rien à figer.
       console.error('[cv-anonyme] copie non figée : la validation a changé entre-temps');
       return false;
     }
-    const octets = await produireLeCvAnonyme(donneesDuCvAnonyme(fiche, etat.valide_le));
+    const octets = await produireLeCvAnonyme(donneesDuCvAnonyme(fiche, etat.valide_le, contact));
 
     // 3. Le seau.
     const seau = supabaseAdmin().storage.from('documents');

@@ -45,6 +45,11 @@ export type DonneesCvAnonyme = {
   informatique: string | null;
   /** La date du CV : celle de sa validation, ou du jour pour un aperçu. Date ISO. */
   a_jour_le: string | null;
+  /**
+   * Le contact quand aucune adresse n'est réglée : l'adresse électronique du
+   * Secrétaire de la loge du candidat (0076). Pas une donnée du candidat.
+   */
+  contact_par_defaut: string | null;
 };
 
 // ————————————————————————————————————————————————————————————————————————————
@@ -74,7 +79,11 @@ export type SourceDuCvAnonyme = {
  * fiche entière, qui porte aussi le nom, l'adresse et le téléphone. Ce qui
  * n'est pas nommé ici ne peut pas arriver jusqu'au PDF.
  */
-export function donneesDuCvAnonyme(s: SourceDuCvAnonyme, aJourLe: string | null): DonneesCvAnonyme {
+export function donneesDuCvAnonyme(
+  s: SourceDuCvAnonyme,
+  aJourLe: string | null,
+  contactParDefaut: string | null = null,
+): DonneesCvAnonyme {
   return {
     numero: s.numero,
     type_emploi: s.type_emploi,
@@ -91,6 +100,7 @@ export function donneesDuCvAnonyme(s: SourceDuCvAnonyme, aJourLe: string | null)
     savoir_etre: s.savoir_etre,
     informatique: s.informatique,
     a_jour_le: aJourLe,
+    contact_par_defaut: contactParDefaut,
   };
 }
 
@@ -213,7 +223,8 @@ export function numeroEcrit(numero: number | null, ecriture: string): { avant: s
 export function variablesDuCvAnonyme(d: DonneesCvAnonyme, r: Lecteur): Variables {
   return {
     numero: d.numero ?? '',
-    contact: r.texte('contact.adresse').trim(),
+    // L'adresse réglée l'emporte ; sinon, celle du Secrétaire de la loge.
+    contact: r.texte('contact.adresse').trim() || d.contact_par_defaut?.trim() || '',
     date: jourEnLettres(d.a_jour_le),
   };
 }

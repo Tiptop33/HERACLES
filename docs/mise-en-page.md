@@ -248,10 +248,14 @@ HERACLES le produit de la fiche, et en **range une copie à chaque validation**
   la validation tient quand même et le PDF se produit à la volée, comme avant
   0075 — de même pour un CV validé avant 0075, jusqu'à sa prochaine validation.
   Supprimer le dossier efface la copie.
-- **Le contact** : l'adresse se règle dans Paramètres › Mise en page. Vide (par
-  défaut), la phrase « Pour rencontrer ce candidat… » ne s'imprime pas. Le CV
-  circule hors de la loge : une adresse de la commission, jamais celle d'une
-  personne.
+- **Le contact** (migration 0076) : par défaut, l'adresse électronique du
+  **Secrétaire de la loge du candidat** — le référent qui porte le titre
+  « Secrétaire » au collège, celui que l'affichette nomme —, lue à chaque CV :
+  quand le titre change de mains, les CV suivent. Une adresse saisie dans
+  Paramètres › Mise en page › CV anonyme la remplace sur tous les CV. Sans
+  l'une ni l'autre, la phrase « Pour rencontrer ce candidat… » ne s'imprime
+  pas. La copie figée d'une validation (0075) garde l'adresse du moment :
+  pour la mettre à jour, retirer la validation puis valider de nouveau.
 - **Les champs libres** sont lus dans la forme de la lecture du CV
   (« 2019-2025 — Poste, employeur : missions ») ; une ligne tapée autrement
   reste entière. Une liste tapée sur une ligne se coupe aux virgules.

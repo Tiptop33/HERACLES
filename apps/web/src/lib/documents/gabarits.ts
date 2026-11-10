@@ -894,7 +894,7 @@ const CV_ANONYME: Gabarit = {
     'son parcours. Il s’ouvre sans compte par le lien de l’affiche et le QR code de l’affichette, une fois validé par le référent.',
   variables: [
     { nom: 'numero', sens: 'le numéro du dossier' },
-    { nom: 'contact', sens: 'l’adresse de contact réglée ci-dessus' },
+    { nom: 'contact', sens: 'l’adresse de contact : celle réglée ci-dessus, sinon l’e-mail du Secrétaire de la loge' },
     { nom: 'date', sens: 'la date du CV : celle de sa validation' },
   ],
   sections: [
@@ -940,7 +940,7 @@ const CV_ANONYME: Gabarit = {
     },
     {
       titre: 'Contact et date',
-      aide: 'En bas de la colonne. Le CV circule hors de la loge : une adresse de la commission, jamais celle d’une personne.',
+      aide: 'En bas de la colonne. Le CV circule hors de la loge : l’adresse imprimée est lue par tous ceux qui reçoivent le lien.',
       lignes: [
         {
           libelle: 'Adresse de contact',
@@ -951,7 +951,9 @@ const CV_ANONYME: Gabarit = {
               genre: 'texte',
               defaut: '',
               lignes: 1,
-              aide: 'Vide : la phrase de contact ne s’imprime pas.',
+              aide:
+                'Vide : l’adresse e-mail du Secrétaire de la loge du candidat (titre « Secrétaire » au collège), lue à chaque CV. ' +
+                'Une adresse saisie ici la remplace sur tous les CV. Ni l’une ni l’autre : la phrase de contact ne s’imprime pas.',
             },
           ],
         },
