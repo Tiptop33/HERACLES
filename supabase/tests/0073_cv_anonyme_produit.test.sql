@@ -1,8 +1,8 @@
 -- Tests de la migration 0073_cv_anonyme_produit.sql.
 --
 --   · Rémi   référent du dossier 7301 à Pau-0073  — valide
---   · Paule  marraine du même dossier             — voit l'état, ne valide pas
---   · Odile  autre référente de Pau-0073          — voit l'état, ne valide pas
+--   · Paule  marraine du même dossier, à Pau-0073 — valide aussi depuis 0074
+--   · Odile  autre référente de Pau-0073          — valide aussi depuis 0074
 --   · Teo    référent à Tarbes-0073               — ne voit rien
 --
 -- Le lien public se teste en `anon` : c'est ainsi qu'il s'ouvre.
@@ -81,16 +81,16 @@ begin;
 commit;
 
 -- ---------------------------------------------------------------------------
-\echo '— seul le referent du dossier valide'
+\echo '— hors de la loge, on ne valide pas'
 -- ---------------------------------------------------------------------------
+-- Depuis 0074, tout référent de la loge valide — la marraine et Odile siègent
+-- à Pau : leur cas est éprouvé dans le test de 0074. Reste le refus.
 do $$
 declare
   dossier uuid := (select id from public.candidat where numero = 7301);
   qui text;
 begin
   foreach qui in array array[
-    'cdcdcdcd-7300-0000-0000-000000000002',  -- la marraine
-    'cdcdcdcd-7300-0000-0000-000000000003',  -- une autre referente de la loge
     'cdcdcdcd-7300-0000-0000-000000000004'   -- un referent d'une autre loge
   ] loop
     perform set_config('role', 'authenticated', true);
@@ -187,8 +187,8 @@ begin;
   set local role authenticated;
   set local request.jwt.claims = '{"sub":"cdcdcdcd-7300-0000-0000-000000000003"}';
   select public.verifier(
-    (select valide_le is not null and not peut_valider from public.etat_du_cv_anonyme(:'c1'::uuid)),
-    'une autre referente de la loge voit l etat, sans pouvoir valider');
+    (select valide_le is not null and peut_valider from public.etat_du_cv_anonyme(:'c1'::uuid)),
+    'une autre referente de la loge voit l etat, et peut valider (0074)');
 commit;
 
 begin;

@@ -88,7 +88,7 @@ const REFUS_DE_REOUVERTURE: Record<string, string> = {
 
 /** Ce que la validation du CV anonyme (0073) a refusé, sous son bandeau. */
 const REFUS_DU_CV_ANONYME: Record<string, string> = {
-  droit: 'Seul le référent du dossier valide son CV anonyme.',
+  droit: 'Seuls les référents de la loge du candidat valident son CV anonyme.',
   ferme: 'Le dossier est refermé : son CV anonyme ne circule plus.',
   incomplet: 'La fiche ne dit pas l’emploi recherché : le CV n’aurait pas de titre.',
   introuvable: 'Ce dossier n’existe plus, ou il n’est pas de votre loge.',

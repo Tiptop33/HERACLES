@@ -214,8 +214,11 @@ HERACLES le produit de la fiche, à chaque ouverture, sans le stocker.
   gabarit.
 - **La validation** : sur la fiche, onglet *Documents*, un bandeau sous les
   cartes dit « À valider » ou « Validé le … par … ». Tout le monde peut
-  « Voir le CV anonyme » ; seul le **référent du dossier** voit « Valider » et
-  « Retirer la validation », et la base le revérifie. Modifier un champ
+  « Voir le CV anonyme » ; **tout référent de la loge du candidat** — pas
+  seulement le référent du dossier (0074) — voit « Valider » et « Retirer la
+  validation », et la base le revérifie. Le CV n'a pas à être « fait » : il est
+  produit depuis la fiche dès que le candidat a envoyé son formulaire et son
+  CV, il ne reste qu'à le relire. Modifier un champ
   imprimé — à l'écran ou par la reprise de Bubble — efface la validation :
   le CV est à relire. Valider ne change pas la « dernière mise à jour » de la
   fiche.
