@@ -99,6 +99,47 @@ dossier qu'HERACLES a rouvert alors que Bubble le tient encore pour clôturé.
 Le reste de ce qu'HERACLES a changé sur ces fiches est, lui, remplacé par les
 valeurs de Bubble, comme avant.
 
+## Les numéros des candidats
+
+Dans une même loge, deux dossiers ne portent jamais le même numéro : la base le refuse
+(migration `0084`). Or Bubble numérote encore de son côté jusqu'à la bascule. Un de ses
+candidats prendra donc tôt ou tard un numéro déjà porté par un dossier ouvert dans HERACLES.
+
+**Bubble garde son numéro.** La reprise suspend la règle le temps d'écrire, puis la rétablit :
+le dossier venu de Bubble garde son numéro, celui ouvert dans HERACLES est renuméroté à la
+suite de sa loge. Elle l'annonce :
+
+```
+Numéros des candidats :
+  1 dossier(s) ouvert(s) dans HERACLES renuméroté(s) : Bubble garde son numéro
+```
+
+Un dossier renuméroté a changé de numéro sur tout ce qui se produira ensuite — compte rendu,
+affiche, affichette, CV anonyme. Ce qui a déjà été imprimé porte l'ancien.
+
+Un seul cas ne se règle pas tout seul : **deux dossiers de Bubble lui-même** sous le même
+numéro dans la même loge. On ne corrige pas Bubble, et rien ne dit lequel renuméroter. La
+reprise continue, mais l'unicité n'est pas posée, et elle le dit :
+
+```
+  ! 1 numéro(s) porté(s) deux fois dans une même loge PAR BUBBLE LUI-MÊME.
+```
+
+Pour les trouver — des numéros et des noms de loge, aucune fiche :
+
+```bash
+docker exec -i <prefixe>-db psql -U postgres -d postgres -c "
+select l.nom, c.numero, count(*) as dossiers
+  from public.candidat c join public.loge l on l.id = c.loge_id
+ where c.numero is not null
+ group by l.nom, c.numero having count(*) > 1
+ order by l.nom, c.numero;"
+```
+
+Une fois le doublon levé, l'unicité revient d'elle-même : au déploiement suivant, ou à la
+reprise suivante. Après la bascule, Bubble est fermé et la question ne se pose plus — il n'y
+a plus qu'une seule suite de numéros.
+
 ## Ce que MAJBUBBLE ne fait pas
 
 **Les mots de passe.** Bubble ne les expose pas, et c'est heureux. Les 71

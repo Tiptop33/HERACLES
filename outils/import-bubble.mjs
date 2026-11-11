@@ -486,6 +486,20 @@ await verifierLeJeton();
 const liaisons = [];
 const compteurs = {};
 
+// --- Le numéro du candidat : unique par loge, et Bubble garde le sien -------
+// Depuis 0084, deux dossiers d'une même loge ne portent plus le même numéro.
+// Or Bubble numérote encore de son côté : un de ses candidats prendra un
+// numéro déjà porté par un dossier ouvert dans HERACLES, et le rattachement
+// des candidats à leur loge — une seule requête, plus bas — s'arrêterait net
+// sur cette collision, laissant tous les candidats repris sans loge.
+//
+// On suspend donc la règle le temps d'écrire, puis on la rétablit : le dossier
+// venu de Bubble garde son numéro, celui ouvert dans HERACLES est renuméroté à
+// la suite de sa loge. Si la reprise s'interrompt entre les deux, la règle
+// revient au déploiement suivant, qui rejoue 0084.
+const NUMEROS_EN_JEU = !SEULEMENT_BRUT && TABLES.has('candidat');
+if (NUMEROS_EN_JEU) await client.query('select public.suspendre_l_unicite_des_numeros()');
+
 // Passe 1 — les lignes
 for (const etape of SEULEMENT_BRUT ? [] : ETAPES) {
   let repris = 0;
@@ -550,6 +564,25 @@ for (const [table, colonneBubble, cible, colonneId, garde] of SEULEMENT_BRUT ? [
     `  ${table}.${colonneId} : ${rowCount} résolus` +
       (orphelins ? ` — ${orphelins} sans correspondance` : ''),
   );
+}
+
+if (NUMEROS_EN_JEU) {
+  const { rows } = await client.query('select * from public.retablir_l_unicite_des_numeros()');
+  const { renumerotes, doublons_restants: doublons, unicite } = rows[0];
+  console.log('\nNuméros des candidats :');
+  console.log(
+    renumerotes
+      ? `  ${renumerotes} dossier(s) ouvert(s) dans HERACLES renuméroté(s) : Bubble garde son numéro`
+      : '  aucun numéro disputé entre Bubble et HERACLES',
+  );
+  if (!unicite) {
+    // Des comptes seulement : jamais les dossiers, qui sont des personnes.
+    console.error(
+      `  ! ${doublons} numéro(s) porté(s) deux fois dans une même loge PAR BUBBLE LUI-MÊME.`,
+    );
+    console.error("    La reprise continue, mais l'unicité des numéros n'est pas posée.");
+    console.error('    Voir docs/MAJBUBBLE.md, « Les numéros des candidats ».');
+  }
 }
 
 for (const [logeBubble, referentBubble] of liaisons) {
