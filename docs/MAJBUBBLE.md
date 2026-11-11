@@ -288,50 +288,59 @@ est un oui/non — d'où la précaution posée dans `apps/web/src/lib/suivi.ts` 
 une valeur qui commence par une négation ne referme rien. Sans elle, les
 treize « Non » auraient été comptés comme archivés.
 
-### Les provinces — le même chemin que les tâches
+### Les provinces — un jeton obligatoire
 
-Le type `PROVINCE` est dans le cas de `tache` et de `reunion` : absent de la
-base en service, présent dans celle de l'éditeur, donc recopié en JSON dans
-`bubble_brut` par la passe `SEULEMENT_BRUT`. La migration
-`0080_provinces.sql` le déplie dans la table `province` — un nom, une image —,
-puis rattache chaque loge à sa province (`loge.province_id`). L'écran
-« Province » du tableau de bord en affiche une carte par province.
+Relevé du 11 novembre 2026 (`/api/1.1/meta`, les deux bases) :
 
-```sql
-select * from public.deverser_provinces_bubble();
+| | |
+| --- | --- |
+| Nom du type | **`provinces`**, au pluriel — l'affichage dit « PROVINCES » |
+| Champs | `Nom` (texte), `Ecusson` (image), `LOGES-OAF` (liste de loges), `Slug`, et les champs système |
+| Exposé | par **les deux bases** — la base en service expose désormais 45 types, et non plus 7 |
+| Enregistrements | **deux**, désignés par les trois loges de la base en service |
+| Sans jeton | la liste répond **vide** ; une fiche lue par son identifiant ne rend **que son `_id`** |
+
+Ce dernier point est une règle de confidentialité de Bubble sur le type. Elle
+ne gêne pas l'application : elle gêne la reprise, qui sans jeton n'obtient que
+des identifiants. **La reprise des provinces se fait donc avec
+`BUBBLE_TOKEN`**, et une option la fait seule :
+
+```bash
+BUBBLE_TOKEN=xxx sudo -E /opt/heracles-essai-depot/infra/essai/reprendre-bubble.sh --provinces
 ```
 
-`reprendre-bubble.sh` l'appelle tout seul (passe 5), et `--fichiers` rapatrie
-les images avec le reste. **Trois vérifications, le jour de la bascule :**
+Elle recopie le type `provinces` dans `bubble_brut` — lui seul —, le déplie
+dans la table `province` (`deverser_provinces_bubble()`, migrations 0080 et
+0081), rattache chaque loge à sa province, rapatrie les écussons dans le
+stockage, et finit par un bilan chiffré. Sans jeton, elle refuse de tourner.
 
-1. **Le type est-il bien arrivé ?** Le dépliage lit
-   `type_bubble = 'province'` (casse indifférente). Si Bubble l'a nommé
-   autrement, il n'apparaît pas — et le compte rendu de la fonction dit
-   `deversees = 0` :
+Deux défauts de 0080, corrigés par 0081 avant toute reprise réelle :
 
-   ```sql
-   select type_bubble, count(*) from public.bubble_brut
-    where type_bubble ilike '%prov%' group by 1;
-   ```
+- 0080 cherchait le type `province`, au singulier : le dépliage n'aurait rien
+  trouvé, et l'aurait dit par un `deversees = 0` qu'on pouvait lire comme
+  « rien de neuf » ;
+- une reprise complète lancée **sans** jeton recopie des provinces réduites à
+  leur `_id`, et le dépliage effaçait alors le nom et l'écusson déjà connus.
+  Désormais, ce que Bubble ne dit pas n'efface pas ce qu'on sait.
 
-2. **Les champs ont-ils été reconnus ?** Les clés du type n'ont jamais été
-   relevées : la fonction reconnaît le nom (clé commençant par « nom » ou
-   « name ») et l'image (adresse de fichier Bubble) à leur forme. `sans_nom`
-   ou `sans_image` non nuls : un champ a échappé à la détection. Ses clés se
-   lisent ainsi — les clés seules, c'est un référentiel sans personne :
+**À vérifier après chaque reprise des provinces**, sur le bilan :
 
-   ```sql
-   select distinct jsonb_object_keys(donnees) from public.bubble_brut
-    where type_bubble ilike 'province';
-   ```
+- `provinces` = 2, `avec_nom` = 2, `avec_ecusson` = 2 ;
+- `ecusson_dans_le_stockage` = 2 — sinon relancer : le rapatriement reprend
+  où il s'est arrêté ;
+- `loges_rattachees` = le nombre de loges reprises.
 
-3. **Les images sont-elles rapatriées ?** Une carte dont l'image n'est pas
-   encore dans notre stockage montre l'initiale de la province à sa place,
-   comme l'annuaire le fait pour un référent sans photo. Le reste à faire se
-   lit dans `public.fichiers_a_rapatrier` (`source = 'province'`).
+Un `avec_nom` inférieur à `provinces` veut dire que le jeton n'a pas été pris
+— ou que Bubble a renommé un champ. Les clés se lisent ainsi, les clés seules :
 
-*Ce qui resterait propre à faire avant la bascule* : le même geste que pour
-`tache` — exposer `PROVINCE` sur la base **en service**, puis déployer.
+```sql
+select distinct jsonb_object_keys(donnees) from public.bubble_brut
+ where type_bubble = 'provinces';
+```
+
+Une carte dont l'écusson n'est pas encore dans notre stockage montre
+l'initiale de la province à sa place, comme l'annuaire le fait pour un
+référent sans photo.
 
 ## Compte rendu
 

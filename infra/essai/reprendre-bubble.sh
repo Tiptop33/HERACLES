@@ -5,6 +5,12 @@
 #   sudo ./infra/essai/reprendre-bubble.sh --fichiers         # et les fichiers
 #   sudo ./infra/essai/reprendre-bubble.sh --pdf-commission   # les PDF seuls
 #   sudo ./infra/essai/reprendre-bubble.sh --dates-candidats  # une date seule
+#   BUBBLE_TOKEN=xxx sudo -E ./infra/essai/reprendre-bubble.sh --provinces
+#
+# `--provinces` ne reprend que les provinces — nom et écusson — et rattache
+# les loges (migrations 0080, 0081). Jeton obligatoire : Bubble cache ce type
+# à l'API anonyme. Pas joué à chaque mise en ligne, faute de jeton sur la
+# chaîne de déploiement : il se lance à la main.
 #
 # `--pdf-commission` ne reprend que la table des PDF de Bubble, et ne rapatrie
 # que les comptes rendus, affiches et affichettes — ni candidat, ni référent,
@@ -52,11 +58,13 @@ set -euo pipefail
 FICHIERS=0
 PDF_COMMISSION=0
 DATES_CANDIDATS=0
+PROVINCES=0
 case "${1:-}" in
   "") ;;
   --fichiers) FICHIERS=1 ;;
   --pdf-commission) PDF_COMMISSION=1 ;;
   --dates-candidats) DATES_CANDIDATS=1 ;;
+  --provinces) PROVINCES=1 ;;
   *) printf 'Option inconnue : %s\n' "$1" >&2; exit 1 ;;
 esac
 
@@ -124,6 +132,51 @@ if [[ $DATES_CANDIDATS -eq 1 ]]; then
            count(*) filter (where public.mot_de_fermeture(cloture) is not null
                               and public.mot_de_fermeture(archive) is null) as clotures_non_archives
       from public.candidat"
+  exit 0
+fi
+
+# ————— Les provinces, et rien d'autre —————
+if [[ $PROVINCES -eq 1 ]]; then
+  # Une règle de confidentialité de Bubble cache les provinces à l'API sans
+  # jeton : chaque fiche répond, mais réduite à son identifiant — ni nom, ni
+  # écusson. Sans jeton, cette reprise n'apporterait rien ; on refuse plutôt
+  # que de finir en vert sur des cartes vides.
+  if [[ -z "${BUBBLE_TOKEN:-}" ]]; then
+    rouge "BUBBLE_TOKEN est obligatoire pour les provinces."
+    echo  "Bubble les cache à l'API sans jeton (règle de confidentialité du type"
+    echo  "« provinces ») : on n'obtiendrait que des identifiants. Le jeton se crée"
+    echo  "dans l'éditeur Bubble, Settings → API → API Tokens, puis :"
+    echo  "  BUBBLE_TOKEN=xxx sudo -E $0 --provinces"
+    exit 1
+  fi
+
+  etape "Provinces — la réserve brute, depuis la base en service"
+  # Le type `provinces`, seul, recopié dans bubble_brut. Les tables métier et
+  # les autres types de la réserve ne sont pas touchés.
+  outil -e TYPES_BRUTS=provinces "$IMAGE" node import-bubble.mjs
+
+  etape "Provinces — dépliées dans leur table, loges rattachées"
+  docker exec -i "$PREFIXE-db" psql -U postgres -d postgres -v ON_ERROR_STOP=1 -c "
+    select * from public.deverser_provinces_bubble()"
+
+  etape "Provinces — les écussons, du CDN de Bubble vers le stockage"
+  CLE="$(grep -m1 '^SERVICE_ROLE_KEY=' "$DOSSIER/.env" | cut -d= -f2-)"
+  [[ -n "$CLE" ]] || { rouge "SERVICE_ROLE_KEY introuvable dans $DOSSIER/.env"; exit 1; }
+  outil -e SUPABASE_URL="http://kong:8000" \
+        -e SUPABASE_SERVICE_ROLE_KEY="$CLE" \
+        -e SEULEMENT=provinces \
+        "$IMAGE" node rapatrier-fichiers.mjs
+
+  etape "Provinces — bilan"
+  # Une carte sans nom ou sans écusson se voit ici, avant de se voir à l'écran.
+  docker exec -i "$PREFIXE-db" psql -U postgres -d postgres -c "
+    select count(*)            as provinces,
+           count(nom)          as avec_nom,
+           count(image_url)    as avec_ecusson,
+           count(image_chemin) as ecusson_dans_le_stockage,
+           (select count(*) from public.loge where province_id is not null) as loges_rattachees
+      from public.province
+     where bubble_id is not null"
   exit 0
 fi
 

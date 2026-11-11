@@ -185,6 +185,10 @@ dans la table `bubble_brut`. Les identifiants étant communs aux deux bases, ce 
 l'éditeur se rattache aux vraies fiches. Les **tâches** ont fait ce chemin-là : 467 lignes de
 suivi, reprises en brut puis dépliées dans le journal des candidats par la migration 0023.
 
+> **Relevé du 11 novembre 2026** : la base en service expose désormais 45 types, dont les
+> provinces (`provinces`, au pluriel). Celles-ci sont cachées à l'API sans jeton : leur reprise
+> a sa propre commande, avec `BUBBLE_TOKEN` — voir « Les provinces » dans `docs/MAJBUBBLE.md`.
+
 ---
 
 ## Si ça coince
