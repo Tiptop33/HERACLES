@@ -174,6 +174,11 @@ describe('la recherche de l’aide', () => {
     ['supprimer une réunion', 'retirer-une-reunion'],
     ['j’ai retiré une réunion par erreur', 'rendre-une-reunion'],
     ['effacer définitivement une réunion', 'effacer-une-reunion'],
+    ['retirer une note du suivi', 'retirer-une-note'],
+    ['j’ai écrit une note par erreur', 'retirer-une-note'],
+    ['j’ai retiré une note par erreur', 'rendre-une-note'],
+    ['supprimer une affiche', 'effacer-un-pdf'],
+    ['effacer un compte rendu', 'effacer-un-pdf'],
   ])('« %s » mène à %s', (question, attendu) => {
     expect(premier(question)).toBe(attendu);
   });
@@ -191,6 +196,7 @@ describe('la recherche de l’aide', () => {
     ['inviter un nouveau référent', 'invitations'],
     ['retirer un référent', 'retirer-un-referent'],
     ['un référent quitte la loge', 'retirer-un-referent'],
+    ['retirer un titre du collège', 'retirer-un-titre'],
   ])('pour l’administration, « %s » mène à %s', (question, attendu) => {
     expect(chercherDesParcours(question, parcoursDuRole('admin'))[0]?.id).toBe(attendu);
   });
@@ -504,6 +510,44 @@ describe('les gestes qui retirent ou effacent', () => {
     // « Emmène-moi » ouvre l'écran, pas la fenêtre : aucune adresse ne porte
     // le paramètre qui la déclenche.
     for (const id of DESTRUCTEURS) {
+      expect(geste(id).destination, id).not.toMatch(/supprimer=|retirer=|effacer=|rendre=/);
+    }
+  });
+});
+
+describe('les retraits plus fins', () => {
+  const geste = (id: string) => PARCOURS.find((p) => p.id === id)!;
+  const derniere = (id: string) => geste(id).etapes[geste(id).etapes.length - 1];
+
+  it('prévient que la note part d’un clic, sans confirmation — et qu’elle se rattrape', () => {
+    // C'est le seul retrait sans fenêtre : le dire avant, pas après.
+    const texte = derniere('retirer-une-note').texte;
+    expect(texte).toMatch(/sans fenêtre de confirmation/);
+    expect(texte).toMatch(/sans être effacée/);
+    expect(texte).toMatch(/rendre/);
+  });
+
+  it('dit ce qui ne se défait pas : le PDF effacé', () => {
+    const texte = derniere('effacer-un-pdf').texte;
+    expect(texte).toMatch(/confirmation/);
+    expect(texte).toMatch(/ne se défait pas/);
+    expect(texte).toMatch(/toute la loge/);
+    expect(derniere('effacer-un-pdf').siAbsent).toMatch(/Vénérable Maître/);
+  });
+
+  it('dit ce que garde une fiche quand son titre est retiré', () => {
+    const texte = derniere('retirer-un-titre').texte;
+    expect(texte).toMatch(/confirmation/);
+    expect(texte).toMatch(/rien n’est effacé sur une fiche/);
+  });
+
+  it('réserve le retrait d’un titre à l’administration', () => {
+    expect(geste('retirer-un-titre').roles).toEqual(['admin']);
+    expect(parcoursDuRole('referent').map((p) => p.id)).not.toContain('retirer-un-titre');
+  });
+
+  it('n’emmène jamais droit à une fenêtre de confirmation', () => {
+    for (const id of ['retirer-une-note', 'rendre-une-note', 'effacer-un-pdf', 'retirer-un-titre']) {
       expect(geste(id).destination, id).not.toMatch(/supprimer=|retirer=|effacer=|rendre=/);
     }
   });

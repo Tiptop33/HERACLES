@@ -639,6 +639,96 @@ export const PARCOURS: readonly Parcours[] = [
       },
     ],
   },
+  // ——— Les retraits plus fins : une note, un PDF, un titre ———
+  {
+    id: 'retirer-une-note',
+    titre: 'Retirer une note du suivi',
+    motsCles: ['retirer une note', 'supprimer une note', 'enlever une note', 'effacer une note', 'note écrite à tort', 'note en trop', 'corbeille'],
+    destination: CANDIDATS,
+    arrivee: 1,
+    etapes: [
+      MENU_CANDIDATS,
+      CHOISIR_UN_CANDIDAT,
+      {
+        ancre: 'onglet:suivi',
+        ecran: CANDIDATS,
+        texte: 'Les notes sont dans l’onglet « Suivi ».',
+        siAbsent: FICHE_DABORD,
+      },
+      {
+        ancre: 'retirer-note',
+        ecran: CANDIDATS,
+        texte:
+          'La corbeille, sur la ligne de la note, la retire d’un clic, sans fenêtre de confirmation. La note quitte le journal sans être effacée : elle se retrouve plus bas, sous « notes retirées », d’où on peut la rendre.',
+        siAbsent:
+          'Aucune corbeille ici : soit le journal est vide, soit ces notes ne sont pas les vôtres à retirer. Seuls les référents de la loge agissent sur le suivi.',
+      },
+    ],
+  },
+  {
+    id: 'rendre-une-note',
+    titre: 'Remettre dans le suivi une note retirée',
+    motsCles: ['rendre une note', 'remettre une note', 'récupérer une note', 'restaurer', 'note retirée', 'notes retirées', 'retiré une note par erreur', 'annuler le retrait'],
+    destination: CANDIDATS,
+    arrivee: 1,
+    etapes: [
+      MENU_CANDIDATS,
+      CHOISIR_UN_CANDIDAT,
+      {
+        ancre: 'onglet:suivi',
+        ecran: CANDIDATS,
+        texte: 'Les notes retirées sont dans l’onglet « Suivi », tout en bas.',
+        siAbsent: FICHE_DABORD,
+      },
+      {
+        ancre: 'notes-retirees',
+        ecran: CANDIDATS,
+        texte: 'Dépliez « notes retirées » : chaque note y a son bouton « Rendre », qui la remet dans le journal.',
+        siAbsent: 'Aucune note n’a été retirée de ce dossier.',
+      },
+    ],
+  },
+  {
+    id: 'effacer-un-pdf',
+    titre: 'Effacer un compte rendu, une affiche ou une affichette archivés',
+    motsCles: ['effacer un pdf', 'supprimer un pdf', 'effacer un compte rendu', 'supprimer une affiche', 'supprimer une affichette', 'document en trop', 'mauvais document', 'corbeille'],
+    destination: ACCUEIL,
+    etapes: [
+      MENU_ACCUEIL,
+      {
+        ancre: 'effacer-pdf',
+        ecran: ACCUEIL,
+        texte:
+          'La corbeille, sur la ligne du PDF, ouvre une fenêtre de confirmation. Le PDF disparaît alors pour toute la loge, et cela ne se défait pas. Un document se reproduit toutefois depuis sa réunion ou sa fiche.',
+        siAbsent:
+          'Aucune corbeille ici : soit aucun PDF n’est rangé, soit ce geste ne vous est pas ouvert. Il est réservé à l’administration, au Vénérable Maître et au Secrétaire.',
+      },
+    ],
+  },
+  {
+    ...versUneRubrique(
+      'retirer-un-titre',
+      'Retirer un titre du collège',
+      ['retirer un titre', 'supprimer un titre', 'enlever un titre', 'titre en trop', 'fonction supprimée', 'corbeille'],
+      'college',
+      '« Collège » liste les titres proposés sur les fiches des référents.',
+    ),
+    etapes: [
+      ROUE_DES_PARAMETRES,
+      {
+        ancre: `rubrique:${PARAMETRES}/college`,
+        ecran: PARAMETRES,
+        texte: '« Collège » liste les titres proposés sur les fiches des référents.',
+      },
+      {
+        ancre: 'retirer-titre',
+        ecran: `${PARAMETRES}/college`,
+        texte:
+          'La corbeille, sur la ligne du titre, ouvre une fenêtre de confirmation. Le titre n’est plus proposé, mais les fiches qui le portent le gardent : rien n’est effacé sur une fiche.',
+        siAbsent: 'La liste des titres est vide.',
+      },
+    ],
+  },
   {
     id: 'mon-compte',
     titre: 'Changer mon nom, mon adresse ou mon mot de passe',

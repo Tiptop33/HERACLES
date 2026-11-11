@@ -125,6 +125,7 @@ export default function LigneDeSuivi({
               <button
                 type="submit"
                 className="geste geste--retirer"
+                data-aide="retirer-note"
                 aria-label="Retirer cette note"
                 title="La note quitte le journal, sans être effacée"
               >

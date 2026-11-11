@@ -148,6 +148,7 @@ export default function ColonnesDesArchives({
                         href={`${adresse}?effacer=${d.id}`}
                         scroll={false}
                         className="geste geste--retirer"
+                        data-aide="effacer-pdf"
                         aria-label={`Effacer ${d.nom ?? 'ce PDF'}`}
                         title="Effacer ce PDF"
                       >
