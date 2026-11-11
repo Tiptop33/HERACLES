@@ -26,7 +26,7 @@ insert into auth.users (id, email, raw_user_meta_data) values
   (:'tess',    'tess0057@example.org',    '{"role":"referent","nom":"Tess","prenom":"T"}');
 
 -- Le compteur de Pau dit 41 ; un dossier repris porte pourtant le 45. Le
--- numéro suivant doit être 46 : le plus grand des deux, plus un.
+-- numéro suivant doit être 46 : le plus haut numéro porté, plus un (0083).
 insert into public.loge (bubble_id, nom, prochain_numero_candidat) values
   ('loge-0057-pau',    'Pau — 0057',    41),
   ('loge-0057-rennes', 'Rennes — 0057', null)
@@ -217,7 +217,7 @@ select set_config('essai.lucie', :'lucie', false);
 
 select public.verifier(
   (:'presentation'::jsonb ->> 'numero')::integer = 46,
-  'numéro 46 : le plus grand du compteur (41) et des dossiers (45), plus un');
+  'numéro 46 : le plus haut numéro porté dans la loge (45), plus un');
 
 select public.verifier(
   (select prochain_numero_candidat from public.loge where bubble_id = 'loge-0057-pau') = 46,
