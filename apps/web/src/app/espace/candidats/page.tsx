@@ -23,7 +23,13 @@ import { Corbeille } from '@/components/Icones';
 // seul endroit où lire « Changement d'emploi », et donc une seule façon de
 // l'écrire.
 import { FAMILLES } from '@/components/VueAccueil';
-import { jeSuisReferent, lireJournal, lireRetirees, type LigneDeJournal } from '@/lib/journal';
+import {
+  jeSuisReferent,
+  lireJournal,
+  lireRetirees,
+  type LigneDeJournal,
+  type LigneRetiree,
+} from '@/lib/journal';
 import { MOTIFS_DE_CLOTURE } from '@/lib/candidats-refermes';
 import { estArchive, estCloture, estFerme, raisonDeFermeture } from '@/lib/suivi';
 import { jourEntier } from '@/lib/documents/formats';
@@ -59,6 +65,8 @@ type Parametres = {
   rouvrir?: string | string[];
   /** La note du suivi dont on demande le retrait : ouvre la confirmation. */
   retirer?: string | string[];
+  /** La note retirée qu'on demande à rendre au journal : ouvre la confirmation. */
+  rendre?: string | string[];
   /** Ce que la route de réouverture a répondu, quand elle a refusé. */
   reouverture?: string | string[];
   cvanonyme?: string | string[];
@@ -199,6 +207,10 @@ export default async function PosteDeTravail({
   // la base refuserait.
   const noteARetirer =
     journal.find((l) => l.id === premier(parametres.retirer) && l.je_peux_agir) ?? null;
+  // La note à rendre : parmi les retirées de ce dossier, et seulement si la
+  // personne peut agir dessus.
+  const noteARendre =
+    retirees.find((n) => n.id === premier(parametres.rendre) && n.je_peux_agir) ?? null;
   // Le CV anonyme produit par HERACLES (0073) : son état ne se lit que sous
   // l'onglet « Documents », où son bandeau s'affiche.
   const cvAnonyme = fiche && onglet === 'documents' ? await lireLEtatDuCvAnonyme(fiche.id) : null;
@@ -435,6 +447,10 @@ export default async function PosteDeTravail({
         <FenetreDeRetraitDeNote note={noteARetirer} fermer={adresse({ retirer: null })} />
       )}
 
+      {noteARendre && (
+        <FenetreDeRetourDeNote note={noteARendre} fermer={adresse({ rendre: null })} />
+      )}
+
       {aSupprimer && (
         <FenetreDeSuppression
           ligne={aSupprimer}
@@ -499,6 +515,56 @@ function FenetreDeRetraitDeNote({ note, fermer }: { note: LigneDeJournal; fermer
             <input type="hidden" name="retour" value={fermer} />
             <button className="bouton bouton--danger" type="submit">
               Retirer la note
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Rendre une note retirée au suivi — la confirmation.
+ *
+ * Le geste ne fait rien perdre, mais il change ce que tout le monde lit dans
+ * le dossier : une note écartée y reparaît. La fenêtre la montre avant.
+ */
+function FenetreDeRetourDeNote({ note, fermer }: { note: LigneRetiree; fermer: string }) {
+  const debut = note.texte.length > 160 ? `${note.texte.slice(0, 160).trimEnd()}…` : note.texte;
+
+  return (
+    <div className="fenetre-fond">
+      <Link
+        href={fermer}
+        scroll={false}
+        className="fenetre-voile"
+        aria-label="Fermer sans rien rendre"
+      />
+
+      <div className="fenetre" role="dialog" aria-modal="true" aria-labelledby="retour-note-titre">
+        <h2 id="retour-note-titre">Rendre cette note au suivi&nbsp;?</h2>
+
+        <p>
+          <time dateTime={note.fait_le}>{dateEnLettres(note.fait_le)}</time>
+          {note.auteur_nom ? `, ${note.auteur_nom}` : ''}&nbsp;: «&nbsp;{debut}&nbsp;»
+        </p>
+
+        <p className="aide">
+          Elle avait été retirée
+          {note.retire_par_nom ? ` par ${note.retire_par_nom}` : ''}
+          {note.retire_le ? `, le ${dateEnLettres(note.retire_le.slice(0, 10))}` : ''}. Rendue,
+          elle reprend sa place dans le journal, à sa date.
+        </p>
+
+        <div className="fenetre-gestes">
+          <Link href={fermer} scroll={false} className="bouton">
+            Annuler
+          </Link>
+          <form method="post" action={`/api/suivi/${note.id}/retirer`}>
+            <input type="hidden" name="geste" value="rendre" />
+            <input type="hidden" name="retour" value={fermer} />
+            <button className="bouton bouton--fort" type="submit">
+              Rendre la note
             </button>
           </form>
         </div>

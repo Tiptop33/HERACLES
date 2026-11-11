@@ -3595,7 +3595,8 @@ a.poste-document .poste-document-type {
   display: inline;
 }
 
-.journal-agir button {
+.journal-agir button,
+.journal-agir a {
   font: inherit;
   font-size: 0.76rem;
   padding: 0;
@@ -3607,11 +3608,13 @@ a.poste-document .poste-document-type {
   cursor: pointer;
 }
 
-.journal-agir button:hover {
+.journal-agir button:hover,
+.journal-agir a:hover {
   color: var(--encre);
 }
 
-.journal-agir button:focus-visible {
+.journal-agir button:focus-visible,
+.journal-agir a:focus-visible {
   outline: 2px solid var(--candidat);
   outline-offset: 2px;
   border-radius: 2px;

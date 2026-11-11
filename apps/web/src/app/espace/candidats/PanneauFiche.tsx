@@ -415,7 +415,7 @@ function Suivi({
         </ol>
       )}
 
-      <NotesRetirees retirees={retirees} retour={retour} />
+      <NotesRetirees retirees={retirees} versRetour={(id) => adresse({ rendre: id })} />
     </div>
   );
 }
@@ -431,7 +431,14 @@ function Suivi({
  * écarté n'a pas à encombrer la lecture courante du dossier ; il faut
  * seulement pouvoir y revenir.
  */
-function NotesRetirees({ retirees, retour }: { retirees: LigneRetiree[]; retour: string }) {
+function NotesRetirees({
+  retirees,
+  versRetour,
+}: {
+  retirees: LigneRetiree[];
+  /** L'adresse qui ouvre la fenêtre de confirmation, pour cette note. */
+  versRetour: (id: string) => string;
+}) {
   if (retirees.length === 0) return null;
 
   return (
@@ -451,18 +458,15 @@ function NotesRetirees({ retirees, retour }: { retirees: LigneRetiree[]; retour:
                 {note.retire_par_nom && ` · retirée par ${note.retire_par_nom}`}
               </span>
 
+              {/* « Rendre » ne rend pas : il ouvre la fenêtre de confirmation,
+                  comme la corbeille d'une note. Un lien, donc — la fenêtre
+                  n'est qu'une adresse, et « retour » la referme. */}
               {note.je_peux_agir && (
-                <form
-                  method="post"
-                  action={`/api/suivi/${note.id}/retirer`}
-                  className="journal-agir"
-                >
-                  <input type="hidden" name="geste" value="rendre" />
-                  <input type="hidden" name="retour" value={retour} />
-                  <button type="submit" title="La note revient dans le journal">
+                <span className="journal-agir">
+                  <Link href={versRetour(note.id)} scroll={false} title="Rendre cette note au journal">
                     Rendre
-                  </button>
-                </form>
+                  </Link>
+                </span>
               )}
             </div>
             <p className="prose">{note.texte}</p>
