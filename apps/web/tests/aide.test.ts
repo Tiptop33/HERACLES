@@ -631,4 +631,14 @@ describe('l’aide pour retirer une photo', () => {
     expect(PARCOURS.find((p) => p.id === 'mon-compte')!.titre).not.toMatch(/mot de passe/);
     expect(PARCOURS.find((p) => p.id === 'mot-de-passe')!.etapes[0].texte).toMatch(/Mot de passe oublié/);
   });
+
+  it('et l’écran des paramètres non plus', () => {
+    // Le pied des paramètres décrit « Mon compte » : il doit en dire ce qui
+    // s'y trouve, comme l'aide.
+    const pied = readFileSync(join(SRC, 'app', 'espace', 'parametres', 'layout.tsx'), 'utf8');
+    const phrase = pied.slice(pied.indexOf('<Link href="/mon-compte">'));
+    expect(phrase).not.toMatch(/mot de\s+passe/);
+    expect(phrase).not.toMatch(/votre adresse/);
+    expect(phrase).toMatch(/votre nom, votre téléphone, votre\s+photo/);
+  });
 });
