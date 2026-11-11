@@ -35,8 +35,10 @@ export default async function ParametresLayout({ children }: { children: React.R
       </div>
 
       <p className="aide">
-        <Link href="/mon-compte">Mon compte</Link> — votre nom, votre adresse, votre mot de
-        passe. C&apos;est ailleurs : ce qui se règle ici vaut pour tout le monde.
+        {/* Ce que « Mon compte » règle vraiment : il n'a de champ ni pour
+            l'adresse électronique ni pour le mot de passe. */}
+        <Link href="/mon-compte">Mon compte</Link> — votre nom, votre téléphone, votre
+        photo. C&apos;est ailleurs : ce qui se règle ici vaut pour tout le monde.
       </p>
     </main>
   );
