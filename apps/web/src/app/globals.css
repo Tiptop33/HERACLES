@@ -4365,6 +4365,13 @@ a.poste-document .poste-document-type {
   margin-left: auto;
 }
 
+/* Sur un formulaire public, le bouton « Aide » flotte au-dessus de la page :
+   un peu de marge en bas, pour qu'on puisse toujours faire défiler le bouton
+   d'envoi au-dessus de lui — sur un téléphone, ils se chevaucheraient. */
+.entree:has(.aide-bouton) {
+  padding-bottom: 5rem;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .aide-halo {
     animation: none;

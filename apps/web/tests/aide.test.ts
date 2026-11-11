@@ -3,6 +3,7 @@ import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { PARCOURS, cheminDe, etapeDArrivee, parcoursDuRole } from '../src/lib/aide/parcours';
 import { PAS_MINIMAL, marcheEntre } from '../src/lib/aide/marche';
+import { CATALOGUES, EXEMPLES, parcoursDuCatalogue } from '../src/lib/aide/parcours-publics';
 import { placer } from '../src/lib/aide/placement';
 import { chercherDesParcours, motsUtiles, normaliser } from '../src/lib/aide/recherche';
 import {
@@ -222,6 +223,17 @@ describe('la place du personnage', () => {
     expect(place.direction.y).toBeGreaterThan(0);
   });
 
+  it('se cale en haut de l’écran quand un élément haut ne laisse de place nulle part', () => {
+    // Un téléphone, et la case d'accord d'un formulaire : 256 px de haut.
+    const telephone = { ...mesures, ecran: { l: 390, h: 664 }, guide: { l: 270, h: 340 } };
+    const place = placer({ x: 30, y: 290, l: 330, h: 256 }, telephone);
+    expect(place.cote).toBe('dessus');
+    expect(place.depuisLeBas).toBe(false);
+    expect(place.y).toBe(8);
+    expect(place.x).toBeGreaterThanOrEqual(8);
+    expect(place.x + telephone.guide.l).toBeLessThanOrEqual(390 - 8);
+  });
+
   it('ne sort jamais de l’écran, même sur un petit', () => {
     const petit = { ...mesures, ecran: { l: 320, h: 480 } };
     const place = placer({ x: 20, y: 20, l: 280, h: 40 }, petit);
@@ -305,5 +317,91 @@ describe('la marche du personnage', () => {
     const pas = marcheEntre({ x: 0, y: 0 }, { x: 300, y: 400 });
     expect(Math.hypot(pas!.sens.x, pas!.sens.y)).toBeCloseTo(1);
     expect(pas?.sens.y).toBeGreaterThan(0);
+  });
+});
+
+describe('l’aide des formulaires publics', () => {
+  const candidature = parcoursDuCatalogue('candidature');
+  const parrainage = parcoursDuCatalogue('parrainage');
+
+  it('ne cite que des ancres posées sur son propre formulaire', () => {
+    const formulaires = {
+      candidature: readFileSync(
+        join(SRC, 'app', 'candidature', '[jeton]', 'FormulaireCandidature.tsx'),
+        'utf8',
+      ),
+      parrainage: readFileSync(
+        join(SRC, 'app', 'parrainage', '[jeton]', 'FormulaireParrain.tsx'),
+        'utf8',
+      ),
+    };
+    for (const catalogue of CATALOGUES) {
+      for (const parcours of parcoursDuCatalogue(catalogue)) {
+        for (const etape of parcours.etapes) {
+          expect(formulaires[catalogue], parcours.id).toContain(`data-aide="${etape.ancre}"`);
+        }
+      }
+    }
+  });
+
+  it('est montée sur les deux pages, et sans Claude', () => {
+    for (const catalogue of CATALOGUES) {
+      const page = readFileSync(join(SRC, 'app', catalogue, '[jeton]', 'page.tsx'), 'utf8');
+      expect(page).toContain(`<Aide catalogue="${catalogue}" />`);
+      expect(page).not.toContain('renfort');
+    }
+  });
+
+  it('reste sur la page : aucun parcours n’emmène ailleurs', () => {
+    for (const catalogue of CATALOGUES) {
+      for (const parcours of parcoursDuCatalogue(catalogue)) {
+        expect(parcours.destination, parcours.id).toBeNull();
+        expect(parcours.etapes, parcours.id).toHaveLength(1);
+        expect(parcours.etapes[0].ecran, parcours.id).toBeUndefined();
+      }
+    }
+  });
+
+  it('ne partage aucun identifiant avec l’espace de travail', () => {
+    const publics = CATALOGUES.flatMap((c) => parcoursDuCatalogue(c).map((p) => p.id));
+    expect(new Set(publics).size).toBe(publics.length);
+    const internes = new Set(PARCOURS.map((p) => p.id));
+    for (const id of publics) expect(internes.has(id), id).toBe(false);
+  });
+
+  it('parle au candidat avec les mots du produit', () => {
+    const textes = CATALOGUES.flatMap((c) =>
+      parcoursDuCatalogue(c).flatMap((p) => [p.titre, ...p.etapes.map((e) => e.texte)]),
+    ).join(' ');
+    expect(textes).not.toMatch(/chercheur|demandeur d’emploi|utilisateur/i);
+  });
+
+  it.each([
+    ['comment joindre mon CV', 'candidature-cv'],
+    ['peut-on remplir le formulaire automatiquement', 'candidature-lecture'],
+    ['quels champs sont obligatoires', 'candidature-vous'],
+    ['je cherche un stage, où le dire', 'candidature-recherche'],
+    ['où mettre mon permis', 'candidature-permis'],
+    ['où indiquer mes diplômes', 'candidature-parcours'],
+    ['ajouter une lettre de motivation', 'candidature-lettre'],
+    ['qui verra mes informations', 'candidature-donnees'],
+    ['comment envoyer ma fiche', 'candidature-envoyer'],
+  ])('le candidat : « %s » mène à %s', (question, attendu) => {
+    expect(chercherDesParcours(question, candidature)[0]?.id).toBe(attendu);
+  });
+
+  it.each([
+    ['que veut dire le degré d’urgence', 'parrainage-commission'],
+    ['où mettre l’e-mail du candidat', 'parrainage-candidat'],
+    ['qui verra ces informations', 'parrainage-donnees'],
+    ['comment envoyer', 'parrainage-envoyer'],
+  ])('le parrain : « %s » mène à %s', (question, attendu) => {
+    expect(chercherDesParcours(question, parrainage)[0]?.id).toBe(attendu);
+  });
+
+  it('propose un exemple que sa propre recherche sait résoudre', () => {
+    for (const catalogue of CATALOGUES) {
+      expect(chercherDesParcours(EXEMPLES[catalogue], parcoursDuCatalogue(catalogue))).not.toHaveLength(0);
+    }
   });
 });

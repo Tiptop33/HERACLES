@@ -11,6 +11,7 @@ import {
   type Parcours,
 } from '@/lib/aide/parcours';
 import { marcheEntre, type Point } from '@/lib/aide/marche';
+import { EXEMPLES, parcoursDuCatalogue, type Catalogue } from '@/lib/aide/parcours-publics';
 import { placer, type Boite } from '@/lib/aide/placement';
 import { chercherDesParcours } from '@/lib/aide/recherche';
 import type { Role } from '@/lib/roles';
@@ -42,7 +43,8 @@ import type { Role } from '@/lib/roles';
 const Personnage = dynamic(() => import('./Personnage'), { ssr: false });
 
 // Les mêmes mesures que la feuille de style et que `Personnage.tsx`.
-const GUIDE = { l: 270, h: 260 };
+// La hauteur est une estimation prudente : la bulle grandit avec son texte.
+const GUIDE = { l: 270, h: 340 };
 const PERSONNAGE = { l: 120, h: 140 };
 
 /** Le temps laissé à un écran pour s'afficher avant de dire « je ne le vois pas ». */
@@ -157,9 +159,13 @@ function ecranDe(etape: Etape): string | null {
 
 export default function Aide({
   role,
+  catalogue,
   renfort: renfortOuvert = false,
 }: {
-  role: Role;
+  /** En espace de travail : le rôle décide des parcours proposés. */
+  role?: Role;
+  /** Sur un formulaire public, sans compte : le catalogue de ce formulaire. */
+  catalogue?: Catalogue;
   /** Vrai quand le serveur peut interroger Claude (clé présente). */
   renfort?: boolean;
 }) {
@@ -182,7 +188,12 @@ export default function Aide({
   const trajet = useRef<Animation | null>(null);
   const bouton = useRef<HTMLButtonElement>(null);
 
-  const tous = useMemo(() => parcoursDuRole(role), [role]);
+  const tous = useMemo(
+    () => (catalogue ? parcoursDuCatalogue(catalogue) : role ? parcoursDuRole(role) : []),
+    [catalogue, role],
+  );
+  // Claude ne répond qu'en espace de travail : sa route exige une session.
+  const renfortPossible = renfortOuvert && !catalogue;
   const trouves = useMemo(() => chercherDesParcours(question, tous), [question, tous]);
   const sansReponse = question.trim() !== '' && trouves.length === 0;
 
@@ -419,13 +430,13 @@ export default function Aide({
               type="search"
               value={question}
               onChange={(e) => setQuestion(e.target.value)}
-              placeholder="Que cherchez-vous ? Ex. la liste de mes candidats"
+              placeholder={`Que cherchez-vous ? Ex. ${catalogue ? EXEMPLES[catalogue] : 'la liste de mes candidats'}`}
               autoComplete="off"
             />
 
             {/* Claude en renfort : proposé seulement quand la recherche locale
                 n'a rien trouvé, et jamais envoyé sans ce clic. */}
-            {sansReponse && renfortOuvert && renfort?.etat !== 'trouve' && (
+            {sansReponse && renfortPossible && renfort?.etat !== 'trouve' && (
               <div className="aide-renfort">
                 <button
                   type="button"

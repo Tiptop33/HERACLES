@@ -69,6 +69,28 @@ mais un nom tapé dans la question partirait avec elle. D'où l'avertissement
 sous le bouton, et le § 5 ter du registre des traitements
 (`docs/rgpd/registre-des-traitements.md`).
 
+## Sur les formulaires publics
+
+Le même bouton « Aide » est présent sur la fiche que remplit le candidat
+(`/candidature/<jeton>`) et sur la présentation que fait le parrain
+(`/parrainage/<jeton>`). Chaque formulaire a son propre catalogue, dans
+`apps/web/src/lib/aide/parcours-publics.ts` : neuf parcours pour le candidat,
+cinq pour le parrain.
+
+Ce qui diffère de l'espace de travail :
+
+- **Une étape par parcours, sur la page.** Le personnage désigne la partie du
+  formulaire et dit ce qu'on y attend. Pas de « Emmène-moi » : il n'y a nulle
+  part où aller.
+- **Pas de Claude.** La route du renfort exige une session, et ces pages n'en
+  ont pas : une question tapée par un candidat ne quitte jamais son navigateur.
+- **Aucune donnée.** Les textes parlent du formulaire, pas de la personne ; ils
+  ne reprennent ni nom, ni loge, ni rien de ce qui est saisi.
+
+Limite connue : sur un téléphone, la bulle peut recouvrir une partie de
+l'élément qu'elle explique (la case d'accord, par exemple). Elle reste toujours
+dans l'écran, et « Terminer » la referme.
+
 ## Ajouter un parcours
 
 1. Poser une **ancre** sur l'élément à désigner : `data-aide="mon-element"`.
@@ -97,4 +119,3 @@ se trouve le bouton « Aide ». Sa bulle, elle, est déjà à l'arrivée.
 ## Ce qui vient après la bascule
 
 - Le reste du catalogue, au fil des lots 4 et 5 (offres, messagerie, pilotage).
-- L'aide sur les formulaires publics (candidature, parrainage).

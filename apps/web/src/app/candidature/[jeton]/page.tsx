@@ -1,3 +1,4 @@
+import Aide from '@/components/aide/Aide';
 import Logo from '@/components/Logo';
 import { lireCandidature } from '@/lib/parrainage-serveur';
 import FormulaireCandidature from './FormulaireCandidature';
@@ -92,6 +93,10 @@ export default async function PageDuCandidat({
           lectureDisponible={Boolean(process.env.ANTHROPIC_API_KEY)}
         />
       </div>
+
+      {/* L'aide du formulaire : elle désigne chaque partie et dit ce qu'on y
+          attend. Sans Claude ici — la question ne quitte pas le navigateur. */}
+      <Aide catalogue="candidature" />
     </main>
   );
 }
