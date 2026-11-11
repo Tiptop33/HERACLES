@@ -106,6 +106,11 @@ plutôt que supprimer, la corbeille plutôt que la croix). Un test le vérifie, 
 vérifie qu'aucun « Emmène-moi » n'ouvre directement une fenêtre de
 confirmation.
 
+Les retraits plus fins y sont aussi : retirer une note du suivi et la rendre,
+effacer un PDF archivé, retirer un titre du collège. Un cas à part, que l'aide
+annonce : la note du suivi part **d'un clic, sans fenêtre de confirmation** —
+elle n'est pas effacée, et se rend depuis « notes retirées ».
+
 ## Ajouter un parcours
 
 1. Poser une **ancre** sur l'élément à désigner : `data-aide="mon-element"`.

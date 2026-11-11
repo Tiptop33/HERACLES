@@ -430,7 +430,7 @@ function NotesRetirees({ retirees, retour }: { retirees: LigneRetiree[]; retour:
 
   return (
     <details className="journal-retirees">
-      <summary>
+      <summary data-aide="notes-retirees">
         {retirees.length} note{retirees.length > 1 ? 's' : ''} retirée
         {retirees.length > 1 ? 's' : ''}
       </summary>

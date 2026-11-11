@@ -193,6 +193,7 @@ export default function ListeCollege({ titres }: { titres: TitreCollege[] }) {
             <Link
               href={`/espace/parametres/college?supprimer=${titre.id}`}
               className="geste geste--retirer"
+              data-aide="retirer-titre"
               aria-label={`Retirer ${titre.nom}`}
               title="Retirer ce titre"
             >
