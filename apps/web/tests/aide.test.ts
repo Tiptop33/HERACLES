@@ -592,6 +592,18 @@ describe('les retraits plus fins', () => {
     expect(page).toContain('name="geste" value="retirer"');
   });
 
+  it('annonce aussi la confirmation avant de rendre une note', () => {
+    expect(derniere('rendre-une-note').texte).toMatch(/fenêtre de confirmation/);
+    // Là encore, l'aide et l'écran racontent la même chose : « Rendre » est
+    // un lien vers la fenêtre, et c'est la fenêtre qui poste.
+    const fiche = readFileSync(join(SRC, 'app', 'espace', 'candidats', 'PanneauFiche.tsx'), 'utf8');
+    expect(fiche).toContain('href={versRetour(note.id)}');
+    expect(fiche).not.toContain('name="geste" value="rendre"');
+    const page = readFileSync(join(SRC, 'app', 'espace', 'candidats', 'page.tsx'), 'utf8');
+    expect(page).toContain('FenetreDeRetourDeNote');
+    expect(page).toContain('name="geste" value="rendre"');
+  });
+
   it('dit ce qui ne se défait pas : le PDF effacé', () => {
     const texte = derniere('effacer-un-pdf').texte;
     expect(texte).toMatch(/confirmation/);

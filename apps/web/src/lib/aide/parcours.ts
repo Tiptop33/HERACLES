@@ -896,7 +896,7 @@ export const PARCOURS: readonly Parcours[] = [
       {
         ancre: 'notes-retirees',
         ecran: CANDIDATS,
-        texte: 'Dépliez « notes retirées » : chaque note y a son bouton « Rendre », qui la remet dans le journal.',
+        texte: 'Dépliez « notes retirées » : chaque note y a son « Rendre », qui ouvre une fenêtre de confirmation avant de la remettre dans le journal.',
         siAbsent: 'Aucune note n’a été retirée de ce dossier.',
       },
     ],
