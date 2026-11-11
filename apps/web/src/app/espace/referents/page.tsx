@@ -198,6 +198,7 @@ export default async function Referents({
                       <Link
                         href={`/espace/referents/${f.id}/modifier`}
                         className="geste geste--corriger"
+                        data-aide="corriger-referent"
                         aria-label={`Corriger la fiche de ${nom}`}
                         title="Corriger cette fiche"
                       >

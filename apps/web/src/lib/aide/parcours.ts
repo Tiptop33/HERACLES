@@ -730,14 +730,67 @@ export const PARCOURS: readonly Parcours[] = [
     ],
   },
   {
+    id: 'retirer-la-photo-d-un-referent',
+    titre: 'Retirer la photo d’un référent',
+    motsCles: ['retirer la photo', 'supprimer la photo', 'enlever la photo', 'photo d’un référent', 'portrait d’un référent', 'mauvaise photo'],
+    roles: ['admin'],
+    destination: '/espace/referents',
+    arrivee: 1,
+    etapes: [
+      {
+        ancre: 'menu:/espace/referents',
+        texte: 'Dans la colonne de gauche, famille « Réseau », cliquez sur « Référents ».',
+      },
+      {
+        ancre: 'corriger-referent',
+        ecran: '/espace/referents',
+        texte: 'Le stylo, sur la ligne du référent, ouvre sa fiche en modification.',
+        siAbsent: 'Aucun référent dans cette liste : changez de loge ou effacez la recherche.',
+      },
+      {
+        ancre: 'retirer-photo',
+        texte:
+          '« Retirer », sous le portrait, ouvre une fenêtre de confirmation. Le fichier est alors effacé et la fiche n’a plus de visage, dans l’annuaire comme sur la feuille d’appel : rien ne défait ce geste. Pour changer de photo sans la perdre, déposez-en simplement une autre sur le portrait.',
+        siAbsent:
+          'Ouvrez d’abord la fiche d’un référent avec le stylo. « Retirer » n’apparaît que si la fiche porte une photo.',
+      },
+    ],
+  },
+  {
+    id: 'retirer-ma-photo',
+    titre: 'Retirer ma propre photo',
+    motsCles: ['retirer ma photo', 'supprimer ma photo', 'enlever ma photo', 'effacer ma photo', 'ma photo', 'mon portrait'],
+    destination: '/mon-compte',
+    etapes: [
+      {
+        ancre: 'mon-compte',
+        texte:
+          'Votre photo se gère dans « Mon compte » : cliquez la pastille à vos initiales. Là, le bouton « Retirer » est sous votre portrait — et l’aide de cette page vous le montre.',
+      },
+    ],
+  },
+  {
     id: 'mon-compte',
-    titre: 'Changer mon nom, mon adresse ou mon mot de passe',
-    motsCles: ['mot de passe', 'compte', 'profil', 'ma photo', 'mon adresse', 'courriel', 'email', 'mes informations'],
+    titre: 'Changer mon nom, mon téléphone ou ma photo',
+    motsCles: ['compte', 'profil', 'mon nom', 'mon téléphone', 'ma ville', 'ma présentation', 'changer ma photo', 'mes informations'],
     destination: '/mon-compte',
     etapes: [
       {
         ancre: 'mon-compte',
         texte: 'La pastille à vos initiales, en haut à droite, ouvre « Mon compte ».',
+      },
+    ],
+  },
+  {
+    id: 'mot-de-passe',
+    titre: 'Changer mon mot de passe',
+    motsCles: ['mot de passe', 'changer de mot de passe', 'mot de passe oublié', 'mot de passe perdu', 'réinitialiser'],
+    destination: null,
+    etapes: [
+      {
+        ancre: 'deconnexion',
+        texte:
+          'Le mot de passe ne se change pas depuis l’application. Déconnectez-vous, puis sur l’écran de connexion cliquez « Mot de passe oublié ? » : un lien vous est envoyé par courriel.',
       },
     ],
   },
