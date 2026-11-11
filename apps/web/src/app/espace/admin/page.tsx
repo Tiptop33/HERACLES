@@ -34,7 +34,7 @@ export default async function EspaceAdmin() {
           </div>
         </div>
 
-        <section className="bloc">
+        <section className="bloc" data-aide="inviter">
           <h2>Inviter quelqu&apos;un</h2>
           <p className="aide" style={{ margin: '0 0 0.9rem' }}>
             La personne reçoit un lien valable sept jours. Il ne sert qu&apos;une fois, et ne vaut

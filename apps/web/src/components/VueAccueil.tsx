@@ -86,7 +86,7 @@ export default function VueAccueil({
         ))}
       </div>
 
-      <section className="bloc">
+      <section className="bloc" data-aide="urgences">
         <div className="bloc-tete">
           <h2>Urgences — nouvelles demandes</h2>
           <div className="pastilles">
@@ -128,7 +128,7 @@ export default function VueAccueil({
           « Comptes-rendus & affiches » : chaque PDF que la feuille d'appel
           produit y est archivé (migration 0069). La période est l'exercice
           réglé dans Paramètres › Exercice. */}
-      <section className="bloc">
+      <section className="bloc" data-aide="documents-commission">
         <h2>Comptes-rendus, affiches et affichettes</h2>
         {refusDArchive && (
           <p className="erreur" role="alert">

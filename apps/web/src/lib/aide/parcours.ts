@@ -12,6 +12,7 @@ import type { Role } from '../roles';
  * - `menu:<adresse>` — une entrée de la colonne de gauche ;
  * - `vue:<valeur>` / `onglet:<valeur>` — une pastille du volet des candidats,
  *   un onglet de la fiche ;
+ * - `rubrique:<adresse>` — une rubrique du menu des paramètres ;
  * - un nom libre (`recherche-candidats`) — un élément marqué à la main.
  *
  * Tout ce fichier est du texte et des adresses : aucune donnée de personne n'y
@@ -53,6 +54,8 @@ export type Parcours = {
 
 const CANDIDATS = '/espace/candidats';
 const REUNION = '/espace/reunion';
+const ACCUEIL = '/espace/accueil';
+const PARAMETRES = '/espace/parametres';
 
 /** La première étape de presque tous les parcours du suivi. */
 const MENU_CANDIDATS: Etape = {
@@ -66,6 +69,37 @@ const CHOISIR_UN_CANDIDAT: Etape = {
   texte: 'Cliquez sur un candidat : sa fiche s’ouvre à droite, et la liste reste en place.',
   siAbsent: 'La liste est vide dans cette vue. Essayez « En cours », ou effacez la recherche.',
 };
+
+const FICHE_DABORD = 'Choisissez d’abord un candidat dans la liste.';
+
+const MENU_ACCUEIL: Etape = {
+  ancre: `menu:${ACCUEIL}`,
+  texte: 'En haut de la colonne de gauche, cliquez sur « Accueil ».',
+};
+
+const ROUE_DES_PARAMETRES: Etape = {
+  ancre: `menu:${PARAMETRES}`,
+  texte: 'La roue crantée, tout en bas de la colonne, ouvre les paramètres.',
+};
+
+/** Un parcours vers une rubrique des paramètres : la roue, puis la rubrique. */
+function versUneRubrique(
+  id: string,
+  titre: string,
+  motsCles: readonly string[],
+  rubrique: string,
+  texte: string,
+): Parcours {
+  const adresse = `${PARAMETRES}/${rubrique}`;
+  return {
+    id,
+    titre,
+    motsCles,
+    roles: ['admin'],
+    destination: adresse,
+    etapes: [ROUE_DES_PARAMETRES, { ancre: `rubrique:${adresse}`, ecran: PARAMETRES, texte }],
+  };
+}
 
 const MENU_REUNION: Etape = {
   ancre: `menu:${REUNION}`,
@@ -202,12 +236,19 @@ export const PARCOURS: readonly Parcours[] = [
         texte: 'L’onglet « Suivi » tient le journal du dossier : ce qui a été fait, et ce qui reste à faire.',
         siAbsent: 'Choisissez d’abord un candidat dans la liste : les onglets apparaissent avec sa fiche.',
       },
+      {
+        ancre: 'noter-suivi',
+        ecran: CANDIDATS,
+        texte:
+          'Écrivez ici ce qui s’est passé, choisissez la nature et le jour, puis enregistrez — ou gardez-le comme tâche à faire.',
+        siAbsent: 'Seuls les référents écrivent dans le suivi ; il faut aussi être sur l’onglet « Suivi ».',
+      },
     ],
   },
   {
     id: 'dossiers-clotures',
     titre: 'Retrouver les dossiers clôturés',
-    motsCles: ['clôturé', 'clôturés', 'clôture', 'fermé', 'terminé', 'rouvrir', 'a trouvé'],
+    motsCles: ['clôturé', 'clôturés', 'dossiers fermés', 'dossiers terminés', 'refermés'],
     destination: `${CANDIDATS}?vue=clotures`,
     etapes: [
       MENU_CANDIDATS,
@@ -250,7 +291,7 @@ export const PARCOURS: readonly Parcours[] = [
   {
     id: 'documents-de-la-reunion',
     titre: 'Produire l’affiche, le compte rendu ou l’affichette',
-    motsCles: ['affiche', 'affichette', 'compte rendu', 'imprimer', 'pdf', 'document', 'commission'],
+    motsCles: ['affiche', 'affichette', 'compte rendu', 'imprimer', 'sortir', 'pdf', 'document', 'commission', 'réunion'],
     destination: REUNION,
     etapes: [
       MENU_REUNION,
@@ -294,6 +335,211 @@ export const PARCOURS: readonly Parcours[] = [
     ],
   },
   {
+    id: 'urgences',
+    titre: 'Voir les nouvelles demandes à traiter',
+    motsCles: ['urgence', 'urgences', 'urgent', 'nouvelle demande', 'nouvelles demandes', 'à traiter', 'en attente', 'accueil'],
+    destination: ACCUEIL,
+    etapes: [
+      MENU_ACCUEIL,
+      {
+        ancre: 'urgences',
+        ecran: ACCUEIL,
+        texte: 'Les nouvelles demandes arrivent ici, rangées par type de recherche. Un clic ouvre le dossier.',
+      },
+    ],
+  },
+  {
+    id: 'documents-de-la-commission',
+    titre: 'Retrouver un compte rendu, une affiche ou une affichette déjà produits',
+    motsCles: ['déjà produit', 'retrouver', 'ancien compte rendu', 'ancienne affiche', 'documents de la commission', 'télécharger', 'exemplaire'],
+    destination: ACCUEIL,
+    etapes: [
+      MENU_ACCUEIL,
+      {
+        ancre: 'documents-commission',
+        ecran: ACCUEIL,
+        texte: 'Chaque compte rendu, affiche ou affichette produit est rangé ici, pour l’exercice en cours.',
+      },
+    ],
+  },
+  {
+    id: 'cloturer-un-dossier',
+    titre: 'Clôturer le dossier d’un candidat',
+    motsCles: ['clôturer', 'clore', 'fermer', 'refermer', 'terminer', 'a trouvé un emploi', 'fin de suivi', 'abandon'],
+    destination: CANDIDATS,
+    arrivee: 1,
+    etapes: [
+      MENU_CANDIDATS,
+      CHOISIR_UN_CANDIDAT,
+      {
+        ancre: 'cloturer-dossier',
+        ecran: CANDIDATS,
+        texte: '« Clôturer le dossier » ouvre une fenêtre : vous y dites qui a refermé le dossier, puis vous confirmez.',
+        siAbsent:
+          'Ce bouton n’apparaît que sur un dossier en cours, et pour l’administration, le Vénérable Maître et le Secrétaire.',
+      },
+    ],
+  },
+  {
+    id: 'rouvrir-un-dossier',
+    titre: 'Rouvrir un dossier clôturé',
+    motsCles: ['rouvrir', 'réouvrir', 'réouverture', 'reprendre', 'annuler la clôture', 'remettre en cours'],
+    destination: `${CANDIDATS}?vue=clotures`,
+    arrivee: 2,
+    etapes: [
+      MENU_CANDIDATS,
+      {
+        ancre: 'vue:clotures',
+        ecran: CANDIDATS,
+        texte: 'La pastille « Clôturés » montre les dossiers refermés.',
+      },
+      CHOISIR_UN_CANDIDAT,
+      {
+        ancre: 'rouvrir-dossier',
+        ecran: CANDIDATS,
+        texte: '« Rouvrir le dossier » le remet dans les dossiers en cours, après confirmation.',
+        siAbsent:
+          'Ce bouton n’apparaît que sur un dossier clôturé et pas encore archivé, pour l’administration, le Vénérable Maître et le Secrétaire.',
+      },
+    ],
+  },
+  {
+    id: 'corriger-une-fiche',
+    titre: 'Corriger la fiche d’un candidat',
+    motsCles: ['corriger', 'modifier', 'changer', 'mettre à jour', 'éditer', 'téléphone', 'adresse', 'erreur', 'stylo'],
+    destination: CANDIDATS,
+    arrivee: 1,
+    etapes: [
+      MENU_CANDIDATS,
+      CHOISIR_UN_CANDIDAT,
+      {
+        ancre: 'corriger-fiche',
+        ecran: CANDIDATS,
+        texte: 'Le stylo ouvre la fiche en modification : coordonnées, recherche, parcours.',
+        siAbsent: 'Le stylo n’apparaît que pour le référent qui accompagne ce candidat.',
+      },
+    ],
+  },
+  {
+    id: 'referent-du-candidat',
+    titre: 'Prendre en charge un candidat ou changer son référent',
+    motsCles: ['prendre en charge', 'attribuer', 'affecter', 'désigner', 'changer de référent', 'confier', 'qui suit', 'accompagnement'],
+    destination: CANDIDATS,
+    arrivee: 1,
+    etapes: [
+      MENU_CANDIDATS,
+      CHOISIR_UN_CANDIDAT,
+      {
+        ancre: 'referent-du-candidat',
+        ecran: CANDIDATS,
+        texte:
+          'Sous « Accompagnement », la ligne « Référent » dit qui suit le candidat. Quand vous y avez droit, c’est un menu : choisir un nom l’enregistre aussitôt.',
+        siAbsent: `${FICHE_DABORD} Cette partie est dans l’onglet « Profil ».`,
+      },
+    ],
+  },
+  {
+    id: 'valider-le-cv-anonyme',
+    titre: 'Voir ou valider le CV anonyme d’un candidat',
+    motsCles: ['cv anonyme', 'valider', 'validation', 'anonyme', 'anonymisé', 'diffuser le cv'],
+    destination: CANDIDATS,
+    arrivee: 1,
+    etapes: [
+      MENU_CANDIDATS,
+      CHOISIR_UN_CANDIDAT,
+      {
+        ancre: 'onglet:documents',
+        ecran: CANDIDATS,
+        texte: 'Le CV anonyme est dans l’onglet « Documents ».',
+        siAbsent: FICHE_DABORD,
+      },
+      {
+        ancre: 'cv-anonyme',
+        ecran: CANDIDATS,
+        texte: '« Voir le CV anonyme » l’ouvre en PDF. « Valider » dit qu’il a été relu et peut circuler.',
+        siAbsent: 'Ce candidat n’a pas encore de CV anonyme : il se fait dès qu’un CV original est déposé.',
+      },
+    ],
+  },
+  {
+    id: 'imprimer-la-fiche',
+    titre: 'Imprimer la fiche ou produire l’affichette d’un candidat',
+    motsCles: ['imprimer', 'impression', 'affichette d’un candidat', 'papier', 'pdf de la fiche', 'sortir la fiche'],
+    destination: CANDIDATS,
+    arrivee: 1,
+    etapes: [
+      MENU_CANDIDATS,
+      CHOISIR_UN_CANDIDAT,
+      {
+        ancre: 'actions-fiche',
+        ecran: CANDIDATS,
+        texte: 'En haut de la fiche : « Imprimer » pour la fiche entière, « Affichette » pour le document à faire circuler.',
+        siAbsent: FICHE_DABORD,
+      },
+    ],
+  },
+  {
+    id: 'affichette-de-la-reunion',
+    titre: 'Choisir le dossier de l’affichette d’une réunion',
+    motsCles: ['choisir le dossier', 'dossier de l’affichette', 'affichette grisée', 'affichette éteinte', 'retenir un dossier'],
+    destination: REUNION,
+    etapes: [
+      MENU_REUNION,
+      {
+        ancre: 'choix-affichette',
+        ecran: REUNION,
+        texte: 'Choisissez ici le dossier mis en avant : le bouton « Affichette » s’allume aussitôt.',
+        siAbsent: 'Ce menu apparaît sur une feuille d’appel ouverte. Ouvrez d’abord l’appel de la réunion.',
+      },
+    ],
+  },
+  {
+    id: 'registre-des-reunions',
+    titre: 'Retrouver une réunion passée',
+    motsCles: ['registre', 'réunion passée', 'réunions passées', 'ancienne réunion', 'reprendre un appel', 'historique des réunions', 'présences passées'],
+    destination: REUNION,
+    etapes: [
+      MENU_REUNION,
+      {
+        ancre: 'registre-reunions',
+        ecran: REUNION,
+        texte: 'Le registre liste les réunions de l’exercice. Un clic sur une date rouvre sa feuille d’appel.',
+        siAbsent: 'Aucune réunion n’a encore été tenue sur cet exercice.',
+      },
+    ],
+  },
+  {
+    id: 'referents-d-une-loge',
+    titre: 'Voir les référents d’une autre loge',
+    motsCles: ['autre loge', 'toutes les loges', 'filtrer par loge', 'choisir une loge', 'référents d’une loge'],
+    destination: '/espace/referents',
+    etapes: [
+      {
+        ancre: 'menu:/espace/referents',
+        texte: 'Dans la colonne de gauche, famille « Réseau », cliquez sur « Référents ».',
+      },
+      {
+        ancre: 'filtre-loge',
+        ecran: '/espace/referents',
+        texte: 'Choisissez une loge dans ce menu, puis « Afficher ».',
+        siAbsent: 'Votre compte ne voit que les référents de sa propre loge.',
+      },
+    ],
+  },
+  {
+    id: 'qui-est-connecte',
+    titre: 'Voir qui est connecté en ce moment',
+    motsCles: ['connecté', 'connectés', 'en ligne', 'présent', 'qui est là', 'collègues en ligne'],
+    destination: null,
+    etapes: [
+      {
+        ancre: 'connectes',
+        texte: 'Sous votre nom, « Aussi en ligne » montre les collègues connectés en ce moment.',
+        siAbsent: 'Personne d’autre n’est connecté pour l’instant.',
+      },
+    ],
+  },
+  {
     id: 'mon-compte',
     titre: 'Changer mon nom, mon adresse ou mon mot de passe',
     motsCles: ['mot de passe', 'compte', 'profil', 'ma photo', 'mon adresse', 'courriel', 'email', 'mes informations'],
@@ -324,10 +570,7 @@ export const PARCOURS: readonly Parcours[] = [
     roles: ['admin'],
     destination: '/espace/parametres',
     etapes: [
-      {
-        ancre: 'menu:/espace/parametres',
-        texte: 'La roue crantée, tout en bas de la colonne, ouvre les paramètres.',
-      },
+      ROUE_DES_PARAMETRES,
     ],
   },
   {
@@ -341,8 +584,41 @@ export const PARCOURS: readonly Parcours[] = [
         ancre: 'menu:/espace/admin',
         texte: 'Dans la famille « Admin », « Invitations » permet d’envoyer une invitation et de suivre celles déjà parties.',
       },
+      {
+        ancre: 'inviter',
+        ecran: '/espace/admin',
+        texte: 'Saisissez l’adresse de la personne et son rôle : elle reçoit un lien pour créer son compte.',
+      },
     ],
   },
+  versUneRubrique(
+    'parametres-college',
+    'Modifier les titres du collège',
+    ['collège', 'titre', 'titres', 'fonction', 'vénérable', 'secrétaire', 'officier'],
+    'college',
+    '« Collège » liste les titres proposés sur les fiches des référents : on en ajoute, on en retire, on les ordonne.',
+  ),
+  versUneRubrique(
+    'parametres-exercice',
+    'Régler les dates de l’exercice',
+    ['exercice', 'année', 'période', 'dates', 'début', 'fin', 'saison'],
+    'exercice',
+    '« Exercice » fixe la période de l’année en cours : le registre des réunions et l’accueil s’y tiennent.',
+  ),
+  versUneRubrique(
+    'parametres-mise-en-page',
+    'Régler la mise en page des documents',
+    ['mise en page', 'logo', 'emblème', 'en-tête', 'modèle', 'gabarit', 'affiche', 'compte rendu'],
+    'mise-en-page',
+    '« Mise en page » règle le compte rendu, l’affiche et l’affichette : textes, images, aperçu.',
+  ),
+  versUneRubrique(
+    'parametres-archives',
+    'Consulter les archives de la loge',
+    ['archives', 'archive', 'anciens documents', 'exercices passés', 'historique'],
+    'archives',
+    '« Archives » garde ce qui a été rangé : dossiers, réunions et documents des exercices passés.',
+  ),
 ];
 
 /** Les parcours qu'un rôle peut suivre — on ne guide pas vers une porte fermée. */

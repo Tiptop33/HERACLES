@@ -15,6 +15,7 @@ import {
   retenir,
 } from '../src/lib/aide/renfort';
 import { PARAMETRES, famillesDuRole } from '../src/lib/navigation';
+import { RUBRIQUES } from '../src/lib/parametres';
 import type { Role } from '../src/lib/roles';
 
 const SRC = join(__dirname, '..', 'src');
@@ -36,7 +37,9 @@ const FICHE = readFileSync(join(SRC, 'app', 'espace', 'candidats', 'PanneauFiche
 
 /** Les adresses que la colonne de gauche offre réellement à ce rôle. */
 function adressesDuMenu(role: Role): string[] {
-  const entrees = famillesDuRole(role).flatMap((f) => f.entrees.map((e) => e.vers));
+  const entrees: (string | null)[] = famillesDuRole(role).flatMap((f) => f.entrees.map((e) => e.vers));
+  // « Accueil » est en tête de colonne, hors des familles, pour tout le monde.
+  entrees.push('/espace/accueil');
   // Les paramètres sont réservés à l'administration (layout des paramètres).
   if (role === 'admin') entrees.push(PARAMETRES.vers);
   return entrees.filter((v): v is string => v !== null);
@@ -66,6 +69,10 @@ describe('le catalogue de l’aide', () => {
           expect(FICHE, ou).toContain('data-aide={`onglet:${o.valeur}`}');
           // Un onglet encore éteint (« lot 4 ») ne porte pas d'ancre.
           expect(FICHE, ou).toMatch(new RegExp(`valeur: '${ancre.slice(7)}', libelle: '[^']+' \\}`));
+        } else if (ancre.startsWith('rubrique:')) {
+          expect(SOURCES, ou).toContain('data-aide={`rubrique:${r.vers}`}');
+          // Une rubrique encore éteinte n'a pas d'adresse, donc pas d'ancre.
+          expect(RUBRIQUES.map((r) => r.vers), ou).toContain(ancre.slice(9));
         } else {
           expect(SOURCES, ou).toContain(`data-aide="${ancre}"`);
         }
@@ -134,13 +141,25 @@ describe('la recherche de l’aide', () => {
     ['télécharger la lettre de motivation', 'documents-du-candidat'],
     ['noter un entretien dans le suivi', 'suivi-du-candidat'],
     ['dossiers archivés', 'dossiers-archives'],
-    ['rouvrir un dossier clôturé', 'dossiers-clotures'],
+    ['où sont les dossiers clôturés', 'dossiers-clotures'],
+    ['rouvrir un dossier clôturé', 'rouvrir-un-dossier'],
     ['faire l’appel de la réunion', 'faire-l-appel'],
     ['imprimer le compte rendu', 'documents-de-la-reunion'],
-    ['comment sortir l’affichette', 'documents-de-la-reunion'],
+    ['comment sortir l’affichette de la réunion', 'documents-de-la-reunion'],
+    ['l’affichette d’un candidat', 'imprimer-la-fiche'],
     ['changer mon mot de passe', 'mon-compte'],
     ['comment me déconnecter', 'se-deconnecter'],
     ['trouver un référent', 'annuaire-des-referents'],
+    ['clôturer un dossier', 'cloturer-un-dossier'],
+    ['le candidat a trouvé un emploi, comment fermer son dossier', 'cloturer-un-dossier'],
+    ['corriger le téléphone d’un candidat', 'corriger-une-fiche'],
+    ['changer le référent d’un candidat', 'referent-du-candidat'],
+    ['prendre en charge un candidat', 'referent-du-candidat'],
+    ['valider le cv anonyme', 'valider-le-cv-anonyme'],
+    ['imprimer la fiche', 'imprimer-la-fiche'],
+    ['où sont les nouvelles demandes urgentes', 'urgences'],
+    ['retrouver une réunion passée', 'registre-des-reunions'],
+    ['qui est connecté', 'qui-est-connecte'],
   ])('« %s » mène à %s', (question, attendu) => {
     expect(premier(question)).toBe(attendu);
   });
@@ -149,6 +168,15 @@ describe('la recherche de l’aide', () => {
     expect(chercherDesParcours('', duReferent)).toEqual([]);
     expect(chercherDesParcours('comment faire ?', duReferent)).toEqual([]);
     expect(chercherDesParcours('recette de la tarte tatin', duReferent)).toEqual([]);
+  });
+
+  it.each([
+    ['modifier les titres du collège', 'parametres-college'],
+    ['changer les dates de l’exercice', 'parametres-exercice'],
+    ['changer le logo de l’affiche', 'parametres-mise-en-page'],
+    ['inviter un nouveau référent', 'invitations'],
+  ])('pour l’administration, « %s » mène à %s', (question, attendu) => {
+    expect(chercherDesParcours(question, parcoursDuRole('admin'))[0]?.id).toBe(attendu);
   });
 
   it('ne répond pas à un référent par un parcours d’administration', () => {
