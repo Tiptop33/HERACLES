@@ -312,7 +312,34 @@ BUBBLE_TOKEN=xxx sudo -E /opt/heracles-essai-depot/infra/essai/reprendre-bubble.
 Elle recopie le type `provinces` dans `bubble_brut` — lui seul —, le déplie
 dans la table `province` (`deverser_provinces_bubble()`, migrations 0080 et
 0081), rattache chaque loge à sa province, rapatrie les écussons dans le
-stockage, et finit par un bilan chiffré. Sans jeton, elle refuse de tourner.
+stockage, et finit par un bilan chiffré. Sans jeton, elle refuse de tourner
+(code 3).
+
+**Rejouée à chaque mise en ligne**, comme les PDF de la commission, dès que
+le jeton est rangé sur le serveur — une ligne dans le `.env` de la pile :
+
+```bash
+sudo nano /opt/supabase-heracles-essai/.env     # ajouter : BUBBLE_TOKEN=xxx
+```
+
+`mettre-a-jour.sh` la lance alors après chaque déploiement, non bloquante et
+bornée à trois minutes. Sans la ligne, il le dit d'une phrase et passe. Une
+réinstallation (`deployer.sh --repartir-de-zero`) garde le jeton, comme les
+réglages SMTP.
+
+Ce que ce jeton est, et ce qu'il faut en faire :
+
+- c'est un jeton d'**administration** de l'API Bubble — lecture et écriture
+  sur toute l'application, pas seulement les provinces. Il ne sert qu'à la
+  reprise des provinces : les PDF et les dates continuent sans lui ;
+- il ne s'affiche nulle part — ni dans la sortie des scripts, ni dans les
+  journaux GitHub du déploiement, où la reprise dit seulement « avec jeton » ;
+- il voyage avec le `.env` dans les **sauvegardes** (`docs/sauvegarde.md`),
+  donc jusqu'au poste qui les tire ;
+- **le jour de la bascule**, après la reprise finale : retirer la ligne du
+  `.env`, et révoquer le jeton dans l'éditeur Bubble (Settings → API). Une
+  fois Bubble fermé il ne sert plus à rien, mais un jeton oublié reste une
+  porte.
 
 Deux défauts de 0080, corrigés par 0081 avant toute reprise réelle :
 
