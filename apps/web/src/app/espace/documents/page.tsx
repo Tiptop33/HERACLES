@@ -20,7 +20,8 @@ const premier = (valeur: string | string[] | undefined) =>
  * Les documents de la loge — comptes rendus, affiches et affichettes de
  * l'exercice en cours —, sur un écran à eux.
  *
- * C'est ce que l'onglet « Documents » de la barre du téléphone ouvre. Rien
+ * C'est ce qu'ouvrent l'onglet « Documents » de la barre du téléphone et
+ * l'entrée « Documents » de la colonne de gauche, famille « Réseau ». Rien
  * n'y est nouveau : le même tableau que celui de l'accueil, lu par la même
  * fonction de la base, donc avec les mêmes droits — un référent n'y voit que
  * les PDF de sa loge, et la corbeille n'y paraît que là où la base l'accorde.

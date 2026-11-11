@@ -61,6 +61,13 @@ export const FAMILLES: readonly Famille[] = [
       // déplacer aucune des entrées que les référents connaissent déjà.
       // Visible de tous : c'est un référentiel, il ne dit rien de personne.
       { libelle: 'Province', vers: '/espace/provinces' },
+      // Ajoutée le 11 novembre 2026, à la demande : les comptes rendus,
+      // affiches et affichettes de l'exercice, sur un écran à eux. L'écran est
+      // né pour l'onglet « Documents » du téléphone ; il lui fallait une porte
+      // sur ordinateur aussi. En fin de famille, après « Province », pour ne
+      // déplacer aucune entrée. Visible de tous : la base ne rend à chacun que
+      // les PDF de sa loge.
+      { libelle: 'Documents', vers: '/espace/documents' },
     ],
   },
   {

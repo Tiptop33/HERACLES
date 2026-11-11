@@ -4540,7 +4540,8 @@ a.poste-document .poste-document-type {
      « Plus » veut dire le reste. L'égalité est stricte — « Nouveau candidat »,
      dont l'adresse commence pareil, y reste. */
   .colonne [data-aide='menu:/espace/candidats'],
-  .colonne [data-aide='menu:/espace/referents'] {
+  .colonne [data-aide='menu:/espace/referents'],
+  .colonne [data-aide='menu:/espace/documents'] {
     display: none;
   }
 

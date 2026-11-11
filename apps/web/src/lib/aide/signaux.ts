@@ -33,6 +33,7 @@ export const SIGNAL_MENU = 'heracles:menu';
 export const ANCRES_DES_ONGLETS: readonly string[] = [
   'menu:/espace/referents',
   'menu:/espace/candidats',
+  'menu:/espace/documents',
 ];
 
 /** Vrai si cette ancre désigne une entrée de la colonne de navigation. */

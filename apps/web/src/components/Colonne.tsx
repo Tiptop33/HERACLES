@@ -57,8 +57,8 @@ export default function Colonne({
   // l'entrée n'est pas à l'écran et le personnage n'aurait rien à montrer.
   const [pourLAide, setPourLAide] = useState(false);
   useEffect(() => {
-    // Candidats et Référents sont dans la barre d'onglets, pas dans le
-    // panneau : l'aide les y désigne, et le panneau reste replié.
+    // Candidats, Référents et Documents sont dans la barre d'onglets, pas dans
+    // le panneau : l'aide les y désigne, et le panneau reste replié.
     const entendre = (e: Event) => {
       const ancre = (e as CustomEvent<string | null>).detail;
       setPourLAide(typeof ancre === 'string' && !ANCRES_DES_ONGLETS.includes(ancre));
