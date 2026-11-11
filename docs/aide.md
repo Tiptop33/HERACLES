@@ -154,4 +154,10 @@ se trouve le bouton « Aide ». Sa bulle, elle, est déjà à l'arrivée.
 
 ## Ce qui vient après la bascule
 
-- Le reste du catalogue, au fil des lots 4 et 5 (offres, messagerie, pilotage).
+- Les vrais parcours des offres, des entreprises et de « Relation », quand
+  leurs écrans existeront. D'ici là, l'aide répond déjà à ces questions : elle
+  montre les offres en cours sur l'accueil, et désigne les entrées grisées en
+  disant qu'elles ne sont pas encore en service. Ses ancres `eteint:` font
+  casser le test du catalogue le jour où l'écran arrive — c'est le signal pour
+  écrire le vrai parcours.
+- Le reste du catalogue pour le lot 5 (messagerie, pilotage).

@@ -13,6 +13,8 @@ import type { Role } from '../roles';
  * - `vue:<valeur>` / `onglet:<valeur>` — une pastille du volet des candidats,
  *   un onglet de la fiche ;
  * - `rubrique:<adresse>` — une rubrique du menu des paramètres ;
+ * - `eteint:<libellé>` / `onglet-eteint:<valeur>` — une entrée du menu ou un
+ *   onglet encore grisés : l'écran n'existe pas, et l'aide le dit ;
  * - un nom libre (`recherche-candidats`) — un élément marqué à la main.
  *
  * Tout ce fichier est du texte et des adresses : aucune donnée de personne n'y
@@ -541,6 +543,101 @@ export const PARCOURS: readonly Parcours[] = [
         ancre: 'connectes',
         texte: 'Sous votre nom, « Aussi en ligne » montre les collègues connectés en ce moment.',
         siAbsent: 'Personne d’autre n’est connecté pour l’instant.',
+      },
+    ],
+  },
+  // ——— Les offres et les entreprises : ce qui se lit déjà, et ce qui attend ———
+  // Les écrans des offres ne sont pas encore livrés. Plutôt que de laisser la
+  // question sans réponse, l'aide montre ce qui existe (la liste de l'accueil)
+  // et désigne les entrées grisées en disant qu'elles ne sont pas en service.
+  // Le jour où un de ces écrans arrive, le test du catalogue casse sur son
+  // ancre `eteint:` — c'est le signal pour écrire le vrai parcours.
+  {
+    id: 'offres-en-cours',
+    titre: 'Voir les offres d’emploi en cours',
+    motsCles: ['offre', 'offres', 'offres en cours', 'offres d’emploi', 'emploi', 'poste', 'annonce', 'france travail', 'voir les offres'],
+    destination: ACCUEIL,
+    etapes: [
+      MENU_ACCUEIL,
+      {
+        ancre: 'offres-en-cours',
+        ecran: ACCUEIL,
+        texte:
+          'L’accueil liste les offres d’emploi en cours : intitulé, entreprise, lieu, type de contrat. C’est pour l’instant le seul endroit où elles se lisent.',
+      },
+    ],
+  },
+  {
+    id: 'ecrans-des-offres',
+    titre: 'Chercher, ajouter ou gérer des offres',
+    motsCles: ['offres internes', 'offres externes', 'offres web', 'ajouter une offre', 'créer une offre', 'chercher une offre', 'gérer les offres', 'saisir une offre', 'publier une offre'],
+    destination: null,
+    etapes: [
+      {
+        ancre: 'eteint:Offres internes',
+        texte:
+          'Les écrans des offres — internes, externes, web — ne sont pas encore en service : leurs entrées sont grisées dans la famille « Emploi ». En attendant, l’accueil liste les offres en cours.',
+      },
+    ],
+  },
+  {
+    id: 'entreprises',
+    titre: 'Consulter les entreprises',
+    motsCles: ['entreprise', 'entreprises', 'employeur', 'employeurs', 'société', 'recruteur', 'annuaire des entreprises', 'liste des entreprises'],
+    destination: null,
+    etapes: [
+      {
+        ancre: 'eteint:Entreprises',
+        texte:
+          'L’écran « Entreprises » n’est pas encore en service : son entrée est grisée dans la famille « Emploi ». Le nom de l’entreprise figure déjà sur chaque offre de l’accueil.',
+      },
+    ],
+  },
+  {
+    id: 'relation',
+    titre: 'Ouvrir « Relation »',
+    motsCles: ['relation', 'relations', 'mise en relation', 'mettre en relation'],
+    destination: null,
+    etapes: [
+      {
+        ancre: 'eteint:Relation',
+        texte: '« Relation » n’est pas encore en service : son entrée est grisée dans la famille « Suivi ».',
+      },
+    ],
+  },
+  {
+    id: 'proposer-une-offre',
+    titre: 'Proposer une offre à un candidat',
+    motsCles: ['proposer une offre', 'envoyer une offre', 'transmettre une offre', 'suggérer une offre', 'offre pour un candidat', 'associer une offre'],
+    destination: CANDIDATS,
+    arrivee: 1,
+    etapes: [
+      MENU_CANDIDATS,
+      CHOISIR_UN_CANDIDAT,
+      {
+        ancre: 'proposer-offre',
+        ecran: CANDIDATS,
+        texte:
+          '« Proposer une offre » est à sa place, en haut de la fiche, mais grisé : ce geste n’est pas encore en service. D’ici là, notez l’offre transmise dans l’onglet « Suivi ».',
+        siAbsent: FICHE_DABORD,
+      },
+    ],
+  },
+  {
+    id: 'offres-proposees',
+    titre: 'Voir les offres déjà proposées à un candidat',
+    motsCles: ['offres proposées', 'offres déjà proposées', 'offres envoyées', 'historique des offres', 'quelles offres'],
+    destination: CANDIDATS,
+    arrivee: 1,
+    etapes: [
+      MENU_CANDIDATS,
+      CHOISIR_UN_CANDIDAT,
+      {
+        ancre: 'onglet-eteint:offres',
+        ecran: CANDIDATS,
+        texte:
+          'L’onglet « Offres proposées » est à sa place, mais grisé : il n’est pas encore en service. Ce qui a été transmis au candidat se lit pour l’instant dans l’onglet « Suivi », si quelqu’un l’y a noté.',
+        siAbsent: FICHE_DABORD,
       },
     ],
   },

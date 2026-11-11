@@ -138,7 +138,7 @@ export default function VueAccueil({
         <ColonnesDesArchives colonnes={archives} adresse="/espace/accueil" />
       </section>
 
-      <section className="bloc">
+      <section className="bloc" data-aide="offres-en-cours">
         <h2>Offres d&apos;emploi en cours</h2>
         {offres.length === 0 ? (
           <p className="vide-liste">Aucune offre en cours.</p>

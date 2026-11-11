@@ -187,7 +187,7 @@ export default function PanneauFiche({
 
           {/* Éteint, et à sa place définitive : c'est le geste que la maquette
               met ici, et le lot 4 l'apportera. */}
-          <span className="bouton bouton--eteint" title="À venir au lot 4">
+          <span className="bouton bouton--eteint" title="À venir au lot 4" data-aide="proposer-offre">
             Proposer une offre
           </span>
 
@@ -237,7 +237,12 @@ export default function PanneauFiche({
       <nav className="poste-onglets" aria-label="Parties de la fiche" data-aide="onglets-fiche">
         {ONGLETS.map((o) =>
           'lot' in o ? (
-            <span key={o.valeur} className="poste-onglet poste-onglet--eteint" title={`À venir au ${o.lot}`}>
+            <span
+              key={o.valeur}
+              className="poste-onglet poste-onglet--eteint"
+              title={`À venir au ${o.lot}`}
+              data-aide={`onglet-eteint:${o.valeur}`}
+            >
               {o.libelle}
             </span>
           ) : (
