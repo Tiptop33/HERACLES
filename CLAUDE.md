@@ -21,6 +21,17 @@ l'application Bubble. Jalons visés (détail et marges dans le cadrage, § 10) :
 
 Toute décision qui décale un lot doit être signalée : la date de bascule, elle, ne bouge pas.
 
+## Où l'on travaille : le site d'essai, jamais Bubble
+
+| Site | Adresse | Ce qu'on y fait |
+| --- | --- | --- |
+| **HERACLES, essai** | `essai.oaf-heracles.cloud` | toutes les modifications demandées |
+| **Bubble** | `oaf-heracles.fr` | **rien** — on y lit les données à reprendre, et c'est tout |
+
+Une demande de modification vise **toujours** le site d'essai. L'application Bubble ne se
+modifie en aucun cas : ni ses données, ni ses réglages, ni ses écrans. Elle reste telle
+qu'elle est jusqu'à la bascule ; HERACLES n'en fait que la lecture, pour la reprise.
+
 ## Langue
 
 **Toutes les réponses sont rédigées en français.** Cela vaut pour les messages de discussion,
