@@ -77,7 +77,7 @@ export default function VueAccueil({
         <p className="maigre">Saison {saison}</p>
       </div>
 
-      <div className="compteurs">
+      <div className="compteurs" data-aide="compteurs">
         {compteurs.map((c) => (
           <div key={c.l} className="compteur">
             <span className="compteur-n">{c.n}</span>

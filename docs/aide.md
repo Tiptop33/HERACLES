@@ -160,4 +160,8 @@ se trouve le bouton « Aide ». Sa bulle, elle, est déjà à l'arrivée.
   disant qu'elles ne sont pas encore en service. Ses ancres `eteint:` font
   casser le test du catalogue le jour où l'écran arrive — c'est le signal pour
   écrire le vrai parcours.
-- Le reste du catalogue pour le lot 5 (messagerie, pilotage).
+- De même pour la messagerie, les correspondants, le tableau de bord, le
+  bilan, les loges, les secteurs d'activité et les types de document : l'aide
+  dit aujourd'hui qu'ils ne sont pas encore en service, et montre ce qui
+  existe déjà (les chiffres de l'accueil). Les rubriques grisées des
+  paramètres ont le même garde-fou, avec des ancres `rubrique-eteinte:`.
