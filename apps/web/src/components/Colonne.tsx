@@ -115,6 +115,7 @@ export default function Colonne({
               <span
                 key={entree.libelle}
                 className="colonne-entree colonne-entree--eteinte"
+                data-aide={`eteint:${entree.libelle}`}
                 title={`À venir — ${entree.lot ?? 'plus tard'}`}
               >
                 {entree.libelle}

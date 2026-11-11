@@ -23,7 +23,7 @@ import {
   questionAutorisee,
   retenir,
 } from '../src/lib/aide/renfort';
-import { PARAMETRES, famillesDuRole } from '../src/lib/navigation';
+import { FAMILLES, PARAMETRES, famillesDuRole } from '../src/lib/navigation';
 import { RUBRIQUES } from '../src/lib/parametres';
 import type { Role } from '../src/lib/roles';
 
@@ -78,6 +78,21 @@ describe('le catalogue de l’aide', () => {
           expect(FICHE, ou).toContain('data-aide={`onglet:${o.valeur}`}');
           // Un onglet encore éteint (« lot 4 ») ne porte pas d'ancre.
           expect(FICHE, ou).toMatch(new RegExp(`valeur: '${ancre.slice(7)}', libelle: '[^']+' \\}`));
+        } else if (ancre.startsWith('eteint:')) {
+          expect(SOURCES, ou).toContain('data-aide={`eteint:${entree.libelle}`}');
+          // L'entrée doit exister, et être encore éteinte. Le jour où son
+          // écran arrive, ce test casse : le parcours « pas encore en
+          // service » est devenu faux, il faut écrire le vrai.
+          const entree = FAMILLES.flatMap((f) => f.entrees).find(
+            (e) => e.libelle === ancre.slice(7),
+          );
+          expect(entree, ou).toBeDefined();
+          expect(entree?.vers, ou).toBeNull();
+        } else if (ancre.startsWith('onglet-eteint:')) {
+          expect(FICHE, ou).toContain('data-aide={`onglet-eteint:${o.valeur}`}');
+          expect(FICHE, ou).toMatch(
+            new RegExp(`valeur: '${ancre.slice(14)}', libelle: '[^']+', lot: '`),
+          );
         } else if (ancre.startsWith('rubrique:')) {
           expect(SOURCES, ou).toContain('data-aide={`rubrique:${r.vers}`}');
           // Une rubrique encore éteinte n'a pas d'adresse, donc pas d'ancre.
@@ -171,6 +186,14 @@ describe('la recherche de l’aide', () => {
     ['où sont les nouvelles demandes urgentes', 'urgences'],
     ['retrouver une réunion passée', 'registre-des-reunions'],
     ['qui est connecté', 'qui-est-connecte'],
+    ['où sont les offres d’emploi', 'offres-en-cours'],
+    ['voir les offres', 'offres-en-cours'],
+    ['comment ajouter une offre', 'ecrans-des-offres'],
+    ['où sont les offres internes', 'ecrans-des-offres'],
+    ['liste des entreprises', 'entreprises'],
+    ['proposer une offre à un candidat', 'proposer-une-offre'],
+    ['quelles offres ont été proposées à ce candidat', 'offres-proposees'],
+    ['mise en relation', 'relation'],
     ['supprimer un dossier', 'supprimer-un-dossier'],
     ['j’ai créé un dossier par erreur', 'supprimer-un-dossier'],
     ['supprimer une réunion', 'retirer-une-reunion'],
@@ -640,5 +663,41 @@ describe('l’aide pour retirer une photo', () => {
     expect(phrase).not.toMatch(/mot de\s+passe/);
     expect(phrase).not.toMatch(/votre adresse/);
     expect(phrase).toMatch(/votre nom, votre téléphone, votre\s+photo/);
+  });
+});
+
+describe('les écrans des offres, pas encore livrés', () => {
+  const A_VENIR = ['ecrans-des-offres', 'entreprises', 'relation', 'proposer-une-offre', 'offres-proposees'];
+  const derniere = (id: string) => {
+    const p = PARCOURS.find((x) => x.id === id)!;
+    return p.etapes[p.etapes.length - 1];
+  };
+
+  it('dit franchement que ce n’est pas encore en service', () => {
+    for (const id of A_VENIR) {
+      expect(derniere(id).texte, id).toMatch(/pas encore en service/);
+      expect(derniere(id).ancre, id).toMatch(/^(eteint:|onglet-eteint:|proposer-offre$)/);
+    }
+  });
+
+  it('ne promet ni date ni lot', () => {
+    // L'aide parle à des référents : « lot 4 » ne leur dit rien, et une date
+    // écrite ici deviendrait fausse sans que personne ne la relise.
+    for (const id of A_VENIR) {
+      expect(derniere(id).texte, id).not.toMatch(/lot \d|bientôt|prochainement|\b20\d\d\b/i);
+    }
+  });
+
+  it('montre ce qui existe déjà : les offres en cours, sur l’accueil', () => {
+    const p = PARCOURS.find((x) => x.id === 'offres-en-cours')!;
+    expect(p.destination).toBe('/espace/accueil');
+    expect(derniere('offres-en-cours').ancre).toBe('offres-en-cours');
+    expect(derniere('ecrans-des-offres').texte).toMatch(/l’accueil liste les offres en cours/);
+  });
+
+  it('n’emmène nulle part quand il n’y a pas d’écran', () => {
+    for (const id of ['ecrans-des-offres', 'entreprises', 'relation']) {
+      expect(PARCOURS.find((x) => x.id === id)!.destination, id).toBeNull();
+    }
   });
 });
