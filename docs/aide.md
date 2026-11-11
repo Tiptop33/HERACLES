@@ -168,3 +168,109 @@ se trouve le bouton « Aide ». Sa bulle, elle, est déjà à l'arrivée.
   dit aujourd'hui qu'ils ne sont pas encore en service, et montre ce qui
   existe déjà (les chiffres de l'accueil). Les rubriques grisées des
   paramètres ont le même garde-fou, avec des ancres `rubrique-eteinte:`.
+
+## Récapitulatif — état au 11 novembre 2026
+
+Ce qui a été livré sur l'aide, en quatorze pull requests (115, 116, 118 à 129),
+toutes fusionnées et déployées sur l'instance d'essai. Cette section est une
+photographie datée : le reste du document décrit le fonctionnement, celle-ci
+dit où l'on en est et ce qui reste à éprouver.
+
+### Ce que fait l'aide
+
+- **Question libre** : la personne tape sa question, une recherche locale
+  propose les parcours qui y répondent. La question ne quitte pas le
+  navigateur.
+- **Deux gestes par réponse** : « Montre-moi » guide pas à pas sur l'écran
+  réel ; « Emmène-moi » ouvre directement l'écran.
+- **Personnage en volume** : construit en code, il marche d'une étape à
+  l'autre, se place à côté de l'élément et tend le bras vers lui.
+- **Claude en renfort** : dans l'espace de travail seulement, quand la
+  recherche locale ne trouve rien, un bouton « Demander à Claude » envoie la
+  question, sur ce clic et avec un avertissement.
+- **L'aide ne fait rien à la place de la personne** : elle navigue et désigne,
+  jamais elle ne clique un bouton qui modifie une donnée.
+
+### Où elle est présente
+
+| Écran | Parcours | Particularités |
+| --- | --- | --- |
+| Espace de travail (référents, administration) | 60 | Filtrés par rôle ; Claude en renfort |
+| Fiche du candidat (formulaire public) | 9 | Une étape par réponse, sans Claude, bulles courtes sur téléphone |
+| Présentation du parrain (formulaire public) | 5 | Idem |
+| Mon compte | 3 | Idem |
+
+### Ce que couvrent les 60 parcours de l'espace de travail
+
+- **Candidats** : listes, recherche, fiche, nouveau candidat, documents, suivi,
+  clôturer, rouvrir, corriger, changer de référent, CV anonyme, impression.
+- **Réunion** : appel, affiche, compte rendu, affichette, registre.
+- **Réseau et compte** : annuaire des référents, provinces, connectés, mon
+  compte, mot de passe, déconnexion.
+- **Administration** : paramètres (collège, exercice, mise en page, archives),
+  invitations.
+- **Gestes de retrait** : supprimer un dossier, retirer ou effacer une réunion,
+  retirer un référent, une note, un PDF, un titre, une photo. Chaque texte dit
+  si le geste se défait et à qui il est réservé.
+- **Écrans pas encore livrés** : offres, entreprises, « Relation », messagerie,
+  correspondants, tableau de bord, bilan, loges, secteurs, types de document.
+  L'aide dit qu'ils ne sont pas en service et montre ce qui existe déjà.
+
+### La limite des questions à Claude
+
+- **La règle** : dix questions par personne et par quart d'heure.
+- **Tenue en base** (migration 0082) : elle survit aux déploiements. Avant, le
+  compteur vivait en mémoire du serveur et repartait de zéro à chaque
+  redémarrage.
+- **Ce que la base garde** : qui a demandé et quand, jamais le texte de la
+  question. Les lignes de plus d'un jour sont effacées au passage suivant.
+- **Accès** : la table est fermée à tous ; seule une fonction y touche, pour la
+  personne connectée, et ne rend qu'un oui ou un non.
+- **En cas de panne du compteur** : l'aide refuse sans appeler Claude.
+
+C'est la seule modification de la base de toute la série.
+
+### Changements hors de l'aide, faits en chemin
+
+- Retirer une note du suivi passe par une fenêtre de confirmation.
+- Le pied de l'écran Paramètres ne promet plus de changer son adresse ni son
+  mot de passe dans « Mon compte ».
+- Les deux formulaires publics ont une marge en bas, pour que le bouton
+  « Aide » ne chevauche pas le bouton d'envoi.
+- Le registre des traitements a un § 5 ter pour la question posée à Claude.
+
+### Ce qui n'a pas été vérifié
+
+Le lint, les tests de l'application (562 à cette date) et le build passaient à
+chaque pull request, ainsi que la suite SQL, migrations rejouées comprises.
+Chaque déploiement a réussi. En revanche :
+
+- **Aucun parcours n'a été joué avec une vraie session.** Le personnage, la
+  marche, la fenêtre d'aide et la fiche du candidat ont été vus dans un
+  navigateur, sur des pages d'essai sans base.
+- **L'appel réel à Claude n'a jamais été fait**, faute de clé dans
+  l'environnement de développement ; seule une réponse simulée a été essayée.
+  La chaîne complète — route, compteur en base, Claude — n'a donc jamais tourné
+  d'un bout à l'autre.
+- **La migration 0082 sur le serveur d'essai** : le déploiement a réussi, mais
+  la présence de la table n'a pas été constatée dans la base elle-même.
+- **Jamais vus à l'écran** : la présentation du parrain, « Mon compte », la
+  fenêtre de confirmation du retrait d'une note, les parcours des gestes de
+  retrait.
+- **Aucun vrai téléphone ni iPad** : seulement une émulation d'iPhone 13.
+
+Le premier essai utile, sur l'instance d'essai et avec `ANTHROPIC_API_KEY`
+définie : en référent, poser à l'aide une question hors catalogue et cliquer
+« Demander à Claude ». Une réponse prouve d'un coup la table, le compteur et
+l'appel.
+
+### Points ouverts
+
+- **Lots 4 et 5** : leurs écrans ne sont pas dans le dépôt. Le lot 4 était
+  attendu fin octobre, le lot 5 le 14 novembre ; la bascule est le 5 décembre.
+- **Clé Anthropic** : sans `ANTHROPIC_API_KEY` sur le serveur, le bouton
+  « Demander à Claude » n'apparaît pas. Son coût, de l'ordre d'un centime par
+  question (estimation, non mesurée), est pris sur le plafond de 10 $ par mois
+  partagé avec la lecture du CV.
+- **Recherche locale** : elle fonctionne par mots-clés ; une formulation
+  inattendue peut ne rien trouver, et la liste entière s'affiche alors.
