@@ -34,6 +34,10 @@ export type Etape = {
   /**
    * La même chose en une phrase, pour un téléphone : la bulle y prend vite
    * tout l'écran, et recouvre ce qu'elle explique. Absent : `texte` sert.
+   *
+   * Elle sert aussi quand le téléphone ne montre pas la même chose : la
+   * colonne y est un menu repliable, et la fiche s'ouvre en plein écran. Une
+   * étape qui dit « colonne de gauche » ou « à droite » a donc la sienne.
    */
   court?: string;
   /**
@@ -69,12 +73,14 @@ const PARAMETRES = '/espace/parametres';
 const MENU_CANDIDATS: Etape = {
   ancre: `menu:${CANDIDATS}`,
   texte: 'Tout part d’ici : dans la colonne de gauche, cliquez sur « Candidats ».',
+  court: 'Tout part d’ici : dans le menu, touchez « Candidats ».',
 };
 
 const CHOISIR_UN_CANDIDAT: Etape = {
   ancre: 'liste-candidats',
   ecran: CANDIDATS,
   texte: 'Cliquez sur un candidat : sa fiche s’ouvre à droite, et la liste reste en place.',
+  court: 'Touchez un candidat : sa fiche s’ouvre en plein écran. « ← Candidats » ramène à la liste.',
   siAbsent: 'La liste est vide dans cette vue. Essayez « En cours », ou effacez la recherche.',
 };
 
@@ -83,11 +89,13 @@ const FICHE_DABORD = 'Choisissez d’abord un candidat dans la liste.';
 const MENU_ACCUEIL: Etape = {
   ancre: `menu:${ACCUEIL}`,
   texte: 'En haut de la colonne de gauche, cliquez sur « Accueil ».',
+  court: 'En haut du menu, touchez « Accueil ».',
 };
 
 const ROUE_DES_PARAMETRES: Etape = {
   ancre: `menu:${PARAMETRES}`,
   texte: 'La roue crantée, tout en bas de la colonne, ouvre les paramètres.',
+  court: 'La roue crantée, en bas du menu, ouvre les paramètres.',
 };
 
 /** Un parcours vers une rubrique des paramètres : la roue, puis la rubrique. */
@@ -112,6 +120,7 @@ function versUneRubrique(
 const MENU_REUNION: Etape = {
   ancre: `menu:${REUNION}`,
   texte: 'Dans la colonne de gauche, famille « Réseau », cliquez sur « Réunion ».',
+  court: 'Dans le menu, famille « Réseau », touchez « Réunion ».',
 };
 
 export const PARCOURS: readonly Parcours[] = [
@@ -131,6 +140,7 @@ export const PARCOURS: readonly Parcours[] = [
         ancre: 'liste-candidats',
         ecran: CANDIDATS,
         texte: 'Voici votre liste. Un clic sur un nom ouvre la fiche à droite.',
+        court: 'Voici votre liste. Touchez un nom : sa fiche s’ouvre en plein écran.',
         siAbsent:
           'Vous n’accompagnez encore personne. La pastille « En cours » montre les candidats de vos collègues.',
       },
@@ -322,6 +332,7 @@ export const PARCOURS: readonly Parcours[] = [
       {
         ancre: 'menu:/espace/referents',
         texte: 'Dans la colonne de gauche, famille « Réseau », cliquez sur « Référents ».',
+        court: 'Dans le menu, famille « Réseau », touchez « Référents ».',
       },
       {
         ancre: 'recherche-referents',
@@ -339,6 +350,7 @@ export const PARCOURS: readonly Parcours[] = [
       {
         ancre: 'menu:/espace/provinces',
         texte: 'Dans la colonne de gauche, famille « Réseau », cliquez sur « Province ».',
+        court: 'Dans le menu, famille « Réseau », touchez « Province ».',
       },
     ],
   },
@@ -525,6 +537,7 @@ export const PARCOURS: readonly Parcours[] = [
       {
         ancre: 'menu:/espace/referents',
         texte: 'Dans la colonne de gauche, famille « Réseau », cliquez sur « Référents ».',
+        court: 'Dans le menu, famille « Réseau », touchez « Référents ».',
       },
       {
         ancre: 'filtre-loge',
@@ -788,6 +801,7 @@ export const PARCOURS: readonly Parcours[] = [
       {
         ancre: 'menu:/espace/referents',
         texte: 'Dans la colonne de gauche, famille « Réseau », cliquez sur « Référents ».',
+        court: 'Dans le menu, famille « Réseau », touchez « Référents ».',
       },
       {
         ancre: 'retirer-referent',
@@ -953,6 +967,7 @@ export const PARCOURS: readonly Parcours[] = [
       {
         ancre: 'menu:/espace/referents',
         texte: 'Dans la colonne de gauche, famille « Réseau », cliquez sur « Référents ».',
+        court: 'Dans le menu, famille « Réseau », touchez « Référents ».',
       },
       {
         ancre: 'corriger-referent',
@@ -1090,8 +1105,16 @@ export function etapeDArrivee(parcours: Parcours): number {
   return Math.min(Math.max(voulue, 0), derniere);
 }
 
-/** En deçà de cette largeur, en pixels, l'écran est tenu pour un téléphone. */
-export const LARGEUR_DE_TELEPHONE = 600;
+/**
+ * En deçà de cette largeur, en pixels, l'écran est tenu pour un téléphone.
+ *
+ * 736, soit les 46 rem sous lesquels la feuille de style replie la colonne en
+ * menu et montre la liste OU la fiche : les versions courtes parlent de ce
+ * menu et de ce plein écran, elles doivent se dire exactement là où ils
+ * existent. À 600, une bulle parlait encore de « colonne de gauche » sur un
+ * écran de 700 px qui n'en avait plus.
+ */
+export const LARGEUR_DE_TELEPHONE = 736;
 
 /** Ce que dit le personnage sur un écran de cette largeur. */
 export function texteDeLEtape(etape: Etape, largeur: number): string {

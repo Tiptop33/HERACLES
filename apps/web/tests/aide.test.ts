@@ -502,9 +502,21 @@ describe('les bulles sur téléphone', () => {
   });
 
   it('garde le texte entier quand il n’y a pas de version courte', () => {
-    const etape = PARCOURS[0].etapes[0];
-    expect(etape.court).toBeUndefined();
+    const etape = PARCOURS.flatMap((p) => p.etapes).find((e) => !e.court)!;
+    expect(etape).toBeDefined();
     expect(texteDeLEtape(etape, 390)).toBe(etape.texte);
+  });
+
+  it('ne parle ni de colonne ni de fiche « à droite » sur un téléphone', () => {
+    // Sur un téléphone la colonne est un menu repliable, et la fiche s'ouvre
+    // en plein écran : toute étape dont le texte décrit l'écran large doit
+    // avoir sa version pour téléphone, qui ne le décrit plus.
+    for (const parcours of PARCOURS) {
+      for (const etape of parcours.etapes) {
+        const dit = texteDeLEtape(etape, 390);
+        expect(dit, parcours.id).not.toMatch(/colonne|à droite, et la liste|fiche à droite/);
+      }
+    }
   });
 
   it('ne perd pas en route ce qui protège la personne', () => {
