@@ -169,6 +169,11 @@ describe('la recherche de l’aide', () => {
     ['où sont les nouvelles demandes urgentes', 'urgences'],
     ['retrouver une réunion passée', 'registre-des-reunions'],
     ['qui est connecté', 'qui-est-connecte'],
+    ['supprimer un dossier', 'supprimer-un-dossier'],
+    ['j’ai créé un dossier par erreur', 'supprimer-un-dossier'],
+    ['supprimer une réunion', 'retirer-une-reunion'],
+    ['j’ai retiré une réunion par erreur', 'rendre-une-reunion'],
+    ['effacer définitivement une réunion', 'effacer-une-reunion'],
   ])('« %s » mène à %s', (question, attendu) => {
     expect(premier(question)).toBe(attendu);
   });
@@ -184,6 +189,8 @@ describe('la recherche de l’aide', () => {
     ['changer les dates de l’exercice', 'parametres-exercice'],
     ['changer le logo de l’affiche', 'parametres-mise-en-page'],
     ['inviter un nouveau référent', 'invitations'],
+    ['retirer un référent', 'retirer-un-referent'],
+    ['un référent quitte la loge', 'retirer-un-referent'],
   ])('pour l’administration, « %s » mène à %s', (question, attendu) => {
     expect(chercherDesParcours(question, parcoursDuRole('admin'))[0]?.id).toBe(attendu);
   });
@@ -448,5 +455,56 @@ describe('les bulles sur téléphone', () => {
     expect(court('candidature-donnees')).toMatch(/commission seule/);
     expect(court('candidature-donnees')).toMatch(/supprimable/);
     expect(court('parrainage-donnees')).toMatch(/jamais publié/);
+  });
+});
+
+describe('les gestes qui retirent ou effacent', () => {
+  const geste = (id: string) => PARCOURS.find((p) => p.id === id)!;
+  const derniere = (id: string) => geste(id).etapes[geste(id).etapes.length - 1];
+
+  const DESTRUCTEURS = [
+    'supprimer-un-dossier',
+    'retirer-un-referent',
+    'retirer-une-reunion',
+    'rendre-une-reunion',
+    'effacer-une-reunion',
+  ];
+
+  it('annonce toujours la fenêtre de confirmation', () => {
+    for (const id of DESTRUCTEURS) {
+      expect(derniere(id).texte, id).toMatch(/confirmation/);
+    }
+  });
+
+  it('dit ce qui ne se défait pas, et ce qui se défait', () => {
+    expect(derniere('supprimer-un-dossier').texte).toMatch(/ne se défait pas/);
+    expect(derniere('retirer-un-referent').texte).toMatch(/ne se défait pas/);
+    expect(derniere('effacer-une-reunion').texte).toMatch(/rien ne les ramènera/);
+    // Retirer une réunion, au contraire, se rattrape : le dire évite la peur
+    // de cliquer — et la confusion avec la croix.
+    expect(derniere('retirer-une-reunion').texte).toMatch(/rien n’est perdu/);
+  });
+
+  it('propose le geste plus doux quand il existe', () => {
+    expect(derniere('supprimer-un-dossier').texte).toMatch(/Clôturer/);
+    expect(derniere('effacer-une-reunion').texte).toMatch(/corbeille/);
+  });
+
+  it('dit à qui le bouton est réservé quand il n’est pas là', () => {
+    expect(derniere('supprimer-un-dossier').siAbsent).toMatch(/Vénérable Maître/);
+    expect(derniere('effacer-une-reunion').siAbsent).toMatch(/droit d’effacer/);
+  });
+
+  it('réserve le retrait d’un référent à l’administration', () => {
+    expect(geste('retirer-un-referent').roles).toEqual(['admin']);
+    expect(parcoursDuRole('referent').map((p) => p.id)).not.toContain('retirer-un-referent');
+  });
+
+  it('ne mène jamais droit à la fenêtre de confirmation', () => {
+    // « Emmène-moi » ouvre l'écran, pas la fenêtre : aucune adresse ne porte
+    // le paramètre qui la déclenche.
+    for (const id of DESTRUCTEURS) {
+      expect(geste(id).destination, id).not.toMatch(/supprimer=|retirer=|effacer=|rendre=/);
+    }
   });
 });

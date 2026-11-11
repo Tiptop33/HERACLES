@@ -563,7 +563,7 @@ function Registre({
 function Retirees({ lignes, adresse }: { lignes: LigneDeRegistre[]; adresse: Adresse }) {
   return (
     <details className="bloc repli" style={{ marginTop: '1rem' }}>
-      <summary>
+      <summary data-aide="reunions-retirees">
         <h2>Les réunions retirées</h2>
         <span className="compte">
           {lignes.length === 0
@@ -622,6 +622,7 @@ function Retirees({ lignes, adresse }: { lignes: LigneDeRegistre[]; adresse: Adr
                       <Link
                         href={adresse({ rendre: r.id })}
                         className="geste"
+                        data-aide="rendre-reunion"
                         aria-label={`Rendre la réunion du ${dateEnLettres(r.tenue_le)} au registre`}
                         title="Rendre au registre"
                       >
@@ -759,6 +760,7 @@ function TableauDuRegistre({
                   <Link
                     href={adresse({ retirer: r.id })}
                     className="geste geste--retirer"
+                    data-aide="retirer-reunion"
                     aria-label={`Retirer la réunion du ${dateEnLettres(r.tenue_le)}`}
                     title="Retirer cette réunion"
                   >
@@ -773,6 +775,7 @@ function TableauDuRegistre({
                     <Link
                       href={adresse({ effacer: r.id })}
                       className="geste geste--effacer"
+                      data-aide="effacer-reunion"
                       aria-label={`Effacer définitivement la réunion du ${dateEnLettres(r.tenue_le)}`}
                       title="Effacer pour de bon"
                     >

@@ -93,6 +93,19 @@ côté du texte long dans `parcours-publics.ts`. Elle garde ce qui compte — ce
 qui est obligatoire, ce qui est facultatif, où vont les données — et un test
 le vérifie. Un parcours sans version courte dit son texte entier.
 
+## Les gestes qui retirent ou effacent
+
+L'aide sait aussi montrer où supprimer un dossier, retirer un référent, retirer
+une réunion, la rendre au registre ou l'effacer pour de bon. Elle les
+**montre**, elle ne les fait pas : chaque bouton désigné ouvre la fenêtre de
+confirmation de l'écran, et c'est la personne qui confirme.
+
+Chaque texte dit, avant qu'on aille chercher le bouton : si le geste se défait
+ou non, à qui il est réservé, et le geste plus doux quand il existe (clôturer
+plutôt que supprimer, la corbeille plutôt que la croix). Un test le vérifie, et
+vérifie qu'aucun « Emmène-moi » n'ouvre directement une fenêtre de
+confirmation.
+
 ## Ajouter un parcours
 
 1. Poser une **ancre** sur l'élément à désigner : `data-aide="mon-element"`.
