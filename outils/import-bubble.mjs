@@ -32,7 +32,15 @@ const RACINE = `https://${APP}.bubbleapps.io${VERSION}/api/1.1`;
 // sept tables déjà remplies. Sert quand les deux bases de Bubble ne sont pas au
 // même niveau — on prend les tables métier dans la base en service, et les
 // référentiels dans celle de l'éditeur, sans que la seconde écrase la première.
-const SEULEMENT_BRUT = process.env.SEULEMENT_BRUT === '1';
+//
+// TYPES_BRUTS=provinces : la même chose, réduite à ces types-là (séparés par
+// des virgules). Ni les tables modélisées, ni les autres types de la réserve
+// brute ne sont touchés. Sert à `reprendre-bubble.sh --provinces`.
+const TYPES_BRUTS = (process.env.TYPES_BRUTS ?? '')
+  .split(',')
+  .map((t) => t.trim())
+  .filter(Boolean);
+const SEULEMENT_BRUT = process.env.SEULEMENT_BRUT === '1' || TYPES_BRUTS.length > 0;
 
 // SEULEMENT_TYPES=pdfs : ne reprendre que ces types Bubble (séparés par des
 // virgules), leurs rattachements, et rien d'autre — ni les autres tables, ni la
@@ -54,6 +62,10 @@ const SEULEMENT_CHAMPS = (process.env.SEULEMENT_CHAMPS ?? '')
   .split(',')
   .map((t) => t.trim())
   .filter(Boolean);
+if (TYPES_BRUTS.length && SEULEMENT_TYPES.length) {
+  console.error('TYPES_BRUTS et SEULEMENT_TYPES ne se combinent pas : la réserve brute, ou les tables ?');
+  process.exit(1);
+}
 if (SEULEMENT_CHAMPS.length && !SEULEMENT_TYPES.length) {
   console.error('SEULEMENT_CHAMPS demande SEULEMENT_TYPES : quels types mettre à jour ?');
   process.exit(1);
@@ -598,7 +610,20 @@ if (SEULEMENT_BRUT && VERSION) {
   }
 }
 
-const restants = exposes.filter((t) => !traites.has(t) && !reserves.has(t));
+const restants = exposes.filter(
+  (t) => !traites.has(t) && !reserves.has(t) && (!TYPES_BRUTS.length || TYPES_BRUTS.includes(t)),
+);
+
+// Un type demandé que la base n'expose pas : le dire et s'arrêter. Continuer
+// en vert laisserait croire à une reprise faite.
+const absents = TYPES_BRUTS.filter((t) => !restants.includes(t));
+if (absents.length) {
+  console.error(`\nTYPES_BRUTS : non exposé(s) par ${RACINE} — ${absents.join(', ')}`);
+  const voisins = exposes.filter((t) => absents.some((a) => t.toLowerCase().includes(a.toLowerCase().slice(0, 4))));
+  if (voisins.length) console.error(`  Types voisins exposés : ${voisins.join(', ')}`);
+  await client.end();
+  process.exit(1);
+}
 
 if (SEULEMENT_TYPES.length) {
   // Rien à dire : la réserve brute n'était pas demandée.
@@ -623,8 +648,17 @@ if (SEULEMENT_TYPES.length) {
       console.log(`  ${type} : ${repris}`);
     } catch (erreur) {
       console.error(`  ! ${type} : ${erreur.message}`);
+      // Une reprise complète poursuit avec le type suivant ; une reprise
+      // ciblée n'a pas de suivant, et doit échouer pour de bon.
+      if (TYPES_BRUTS.length) process.exitCode = 1;
     }
   }
+}
+
+if (process.exitCode) {
+  console.error('\nReprise interrompue : un type demandé n\'a pas été repris en entier.');
+  await client.end();
+  process.exit();
 }
 
 console.log('\nReprise terminée.');

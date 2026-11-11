@@ -27,9 +27,12 @@ const LIMITE = process.env.LIMITE ? Number(process.env.LIMITE) : Infinity;
 // rien d'autre — ni CV, ni photos, ni CV anonymes. C'est ce que la mise en
 // ligne rapatrie à chaque fois jusqu'à la bascule, pour que l'accueil les
 // ouvre depuis notre stockage (migration 0069). Le reste attend MAJBUBBLE.
+//
+// SEULEMENT=provinces : l'écusson de chaque province, et rien d'autre
+// (`reprendre-bubble.sh --provinces`, migration 0080).
 const SEULEMENT = process.env.SEULEMENT ?? '';
-if (SEULEMENT && SEULEMENT !== 'pdf-commission') {
-  console.error(`SEULEMENT=${SEULEMENT} : seule la valeur « pdf-commission » est connue.`);
+if (SEULEMENT && SEULEMENT !== 'pdf-commission' && SEULEMENT !== 'provinces') {
+  console.error(`SEULEMENT=${SEULEMENT} : seules « pdf-commission » et « provinces » sont connues.`);
   process.exit(1);
 }
 
@@ -98,7 +101,11 @@ let total = 0;
 let echecs = 0;
 let octets = 0;
 
-for (const [table, colonneUrl, colonneChemin, dossier, condition] of SEULEMENT ? PDF_COMMISSION : CIBLES) {
+const PROVINCES = [['province', 'image_url', 'image_chemin', 'province/image']];
+
+const CHOIX = { 'pdf-commission': PDF_COMMISSION, provinces: PROVINCES };
+
+for (const [table, colonneUrl, colonneChemin, dossier, condition] of SEULEMENT ? CHOIX[SEULEMENT] : CIBLES) {
   const { rows } = await client.query(
     `select id, bubble_id, ${colonneUrl} as url
        from public.${table}
