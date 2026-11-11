@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { cheminLogo } from '@/lib/logo';
+import { cheminIconeApple, cheminLogo } from '@/lib/logo';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -9,7 +9,11 @@ export const metadata: Metadata = {
   // Le même fichier sert d'icône d'onglet. Déclarée seulement s'il est là :
   // annoncer une icône absente ferait demander au navigateur une image qui
   // n'existe pas, et il en garderait l'échec en mémoire.
-  ...(cheminLogo ? { icons: { icon: cheminLogo } } : {}),
+  // `apple` : l'icône que l'iPhone et l'iPad posent sur l'écran d'accueil.
+  ...(cheminLogo ? { icons: { icon: cheminLogo, apple: cheminIconeApple ?? cheminLogo } } : {}),
+  // Ouverte depuis l'écran d'accueil, l'application prend tout l'écran — voir
+  // `manifest.ts`, que les anciens iPhone ne lisent pas pour ce réglage.
+  appleWebApp: { capable: true, title: 'HERACLES' },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

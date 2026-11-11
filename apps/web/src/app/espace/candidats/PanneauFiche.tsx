@@ -73,6 +73,7 @@ export default function PanneauFiche({
   corrige,
   retirees,
   jePeuxNoter,
+  naturePreparee,
   adresse,
   collegues,
   referentActuel,
@@ -96,6 +97,8 @@ export default function PanneauFiche({
   retirees: LigneRetiree[];
   /** Le compte a-t-il une fiche de référent ? C'est tout ce qu'écrire demande. */
   jePeuxNoter: boolean;
+  /** La nature déjà posée dans la prochaine note : « Appel », après un appel. */
+  naturePreparee: string | null;
   adresse: (ajout: Record<string, string | null>) => string;
   /**
    * Les référents de la loge, quand la personne connectée peut choisir le
@@ -126,6 +129,7 @@ export default function PanneauFiche({
 }) {
   const nom = nomDeFamilleDabord(fiche.nom, fiche.prenom);
   const metier = fiche.metier_libelle ?? fiche.emploi_recherche ?? rang?.metier ?? null;
+  const tel = telephone(fiche.telephone);
 
   return (
     <>
@@ -169,6 +173,43 @@ export default function PanneauFiche({
             {fiche.loge_nom && <span className="etiquette">{fiche.loge_nom}</span>}
           </div>
         </div>
+
+        {/* Joindre le candidat, sur un téléphone : appeler, écrire un SMS ou
+            un courriel sans descendre jusqu'au bloc « Identité et contact ».
+            Chaque bouton n'existe que si la fiche porte de quoi le faire. Ce
+            sont des liens : c'est le téléphone du référent qui appelle et qui
+            écrit, HERACLES n'envoie rien et ne garde aucune trace.
+
+            D'où le dernier lien : il ouvre le suivi sur une note dont la
+            nature est déjà « Appel » — rien ne s'enregistre avant que le
+            référent l'ait écrite et ajoutée lui-même. */}
+        {(tel || fiche.email) && (
+          <div className="poste-contacts">
+            {tel && (
+              <a className="bouton bouton--fort" href={`tel:${tel.lien}`}>
+                Appeler
+              </a>
+            )}
+            {tel && (
+              <a className="bouton" href={`sms:${tel.lien}`}>
+                SMS
+              </a>
+            )}
+            {fiche.email && (
+              <a className="bouton" href={`mailto:${fiche.email}`}>
+                E-mail
+              </a>
+            )}
+            {tel && (
+              <Link
+                className="poste-contacts-noter"
+                href={`${adresse({ onglet: 'suivi', note: null })}&nature=Appel`}
+              >
+                Noter cet appel
+              </Link>
+            )}
+          </div>
+        )}
 
         <div className="fiche-actions" data-aide="actions-fiche">
           <BoutonImprimer />
@@ -275,6 +316,7 @@ export default function PanneauFiche({
             corrige={corrige}
             retirees={retirees}
             jePeuxNoter={jePeuxNoter}
+            naturePreparee={naturePreparee}
             adresse={adresse}
             retour={adresse({ onglet: 'suivi' })}
           />
@@ -306,6 +348,7 @@ function Suivi({
   corrige,
   retirees,
   jePeuxNoter,
+  naturePreparee,
   adresse,
   retour,
 }: {
@@ -315,6 +358,7 @@ function Suivi({
   corrige: string | null;
   retirees: LigneRetiree[];
   jePeuxNoter: boolean;
+  naturePreparee: string | null;
   adresse: (ajout: Record<string, string | null>) => string;
   /** Où revenir après avoir écrit, corrigé ou retiré : cette fiche, cet onglet. */
   retour: string;
@@ -346,6 +390,9 @@ function Suivi({
             rows={2}
             placeholder="Ce qui s’est passé…"
             aria-label="Ce qui s’est passé"
+            // Venu de « Noter cet appel » : la nature est posée, il ne reste
+            // qu'à écrire — le curseur est déjà dans le champ.
+            autoFocus={naturePreparee !== null}
           />
 
           <div className="journal-ecrire-pied">
@@ -354,6 +401,10 @@ function Suivi({
                 le référentiel. */}
             <input
               name="nature"
+              defaultValue={naturePreparee ?? ''}
+              // La clé refait le champ quand la nature préparée change : un
+              // champ déjà monté garderait sa valeur d'avant.
+              key={naturePreparee ?? 'libre'}
               list="natures-du-suivi"
               maxLength={120}
               placeholder="Appel, entretien…"
@@ -494,6 +545,7 @@ function Profil({
     .join(' ');
 
   const tel = telephone(fiche.telephone);
+  const telDuParrain = telephone(fiche.parrain_telephone);
 
   // Le menu du référent remplace le nom sur sa propre ligne quand on peut
   // en changer (0063). Il ne paraît que si le référent en place est parmi
@@ -658,8 +710,23 @@ function Profil({
                 .join(' ') || null}
             </Valeur>
             <dt>Contact</dt>
+            {/* Le numéro et l'adresse du parrain se touchent, comme ceux du
+                candidat : c'est lui qu'on appelle quand le candidat ne répond
+                pas. */}
             <Valeur>
-              {[fiche.parrain_telephone, fiche.parrain_email].filter(Boolean).join(' · ') || null}
+              {(telDuParrain || fiche.parrain_email) && (
+                <span className="contacts">
+                  {telDuParrain && (
+                    <span className="ligne-telephone">
+                      {telDuParrain.francais && <DrapeauFrance />}
+                      <a href={`tel:${telDuParrain.lien}`}>{telDuParrain.affiche}</a>
+                    </span>
+                  )}
+                  {fiche.parrain_email && (
+                    <a href={`mailto:${fiche.parrain_email}`}>{fiche.parrain_email}</a>
+                  )}
+                </span>
+              )}
             </Valeur>
             <dt>Lien</dt>
             <Valeur>{fiche.lien_parente}</Valeur>

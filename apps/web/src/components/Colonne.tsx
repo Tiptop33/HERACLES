@@ -1,8 +1,10 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { PARAMETRES, estCourante, famillesDuRole } from '@/lib/navigation';
+import { SIGNAL_MENU, SIGNAL_OUVRIR_L_AIDE } from '@/lib/aide/signaux';
 import { nomAffichable } from '@/lib/format';
 import type { Connecte } from '@/lib/presence';
 import type { MaPhoto, Profil } from '@/lib/profil';
@@ -43,8 +45,33 @@ export default function Colonne({
   const visibles = familles.flatMap((f) => f.entrees);
   const nom = nomAffichable(profil.prenom, profil.nom, profil.email);
 
+  // Sur un téléphone, les entrées se replient derrière le bouton « Menu » :
+  // étalées, elles prenaient la moitié de l'écran avant le premier candidat.
+  // On retient l'adresse sur laquelle le menu a été ouvert plutôt qu'un simple
+  // oui/non : changer d'écran le referme de lui-même, sans effet à déclencher.
+  // Au-dessus de la largeur d'un téléphone, le bouton n'existe pas et cette
+  // classe ne change rien.
+  const [ouvertSur, setOuvertSur] = useState<string | null>(null);
+  // L'aide le déploie aussi, le temps de désigner une de ses entrées : replié,
+  // l'entrée n'est pas à l'écran et le personnage n'aurait rien à montrer.
+  const [pourLAide, setPourLAide] = useState(false);
+  useEffect(() => {
+    const entendre = (e: Event) => setPourLAide((e as CustomEvent<boolean>).detail === true);
+    window.addEventListener(SIGNAL_MENU, entendre);
+    return () => window.removeEventListener(SIGNAL_MENU, entendre);
+  }, []);
+  const menuOuvert = ouvertSur === chemin || pourLAide;
+
+  const basculer = () => {
+    setPourLAide(false);
+    setOuvertSur(menuOuvert ? null : chemin);
+  };
+
   return (
-    <nav className="colonne" aria-label="Navigation principale">
+    <nav
+      className={`colonne${menuOuvert ? ' colonne--ouverte' : ''}`}
+      aria-label="Navigation principale"
+    >
       <div className="colonne-marque">
         <span className={logo ? 'logo' : 'logo logo--absent'} aria-hidden="true">
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -52,6 +79,15 @@ export default function Colonne({
         </span>
         <span className="colonne-titre">HERACLES</span>
         {nom && <span className="colonne-qui">{nom}</span>}
+
+        <button
+          type="button"
+          className="colonne-bascule"
+          aria-expanded={menuOuvert}
+          onClick={basculer}
+        >
+          {menuOuvert ? 'Fermer' : 'Menu'}
+        </button>
 
         {/* Votre visage, sous votre nom — ou sous votre adresse, faute de nom.
             `alt` vide à dessein : le nom est juste au-dessus, et le faire
@@ -138,6 +174,21 @@ export default function Colonne({
         <Roue />
         {PARAMETRES.libelle}
       </Link>
+
+      {/* L'aide, sur un téléphone seulement : son bouton flottant y recouvrait
+          la fiche, elle devient une entrée du menu. Ailleurs cette entrée
+          n'est pas affichée, et le bouton flottant reste à sa place. */}
+      <button
+        type="button"
+        className="colonne-entree colonne-aide"
+        onClick={() => {
+          setPourLAide(false);
+          setOuvertSur(null);
+          window.dispatchEvent(new Event(SIGNAL_OUVRIR_L_AIDE));
+        }}
+      >
+        Aide
+      </button>
     </nav>
   );
 }

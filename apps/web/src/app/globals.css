@@ -4402,3 +4402,223 @@ a.poste-document .poste-document-type {
   margin: 0;
   font-size: 0.8rem;
 }
+
+/* ————— La version téléphone ————— */
+
+/* Deux coordonnées côte à côte — le numéro du parrain, puis son adresse —, qui
+   passent l'une sous l'autre quand la place manque. */
+.contacts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.15rem 0.9rem;
+}
+
+/* Le bouton « Menu », le retour à la liste, les boutons pour joindre le
+   candidat et l'entrée « Aide » du menu n'existent que sur un téléphone :
+   ailleurs la colonne est déployée, la liste est à côté de la fiche, le numéro
+   se lit dans la fiche et l'aide a son bouton flottant. */
+.colonne-bascule,
+.colonne-aide,
+.poste-retour,
+.poste-contacts {
+  display: none;
+}
+
+/* Sous 46 rem — le seuil où la colonne se couchait déjà en bandeau. Trois
+   choses changent, et rien au-dessus de cette largeur :
+
+     · le menu se replie derrière un bouton : étalé, il occupait la moitié de
+       l'écran avant le premier candidat ;
+     · le poste montre la liste OU la fiche : empilées, la liste tenait dans
+       une lucarne de quatre rangs, et la fiche commençait sous le pli ;
+     · ce qui se touche du doigt — un rang, un numéro, une adresse, un onglet —
+       prend la hauteur d'un doigt. */
+@media (max-width: 46rem) {
+  .colonne {
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: stretch;
+    padding: 0.45rem 0.4rem;
+  }
+
+  .colonne-marque {
+    align-items: center;
+  }
+
+  .colonne-bascule {
+    display: inline-flex;
+    align-items: center;
+    margin-left: auto;
+    min-height: 2.4rem;
+    padding: 0 0.9rem;
+    font: inherit;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--encre);
+    background: var(--surface);
+    border: 1px solid var(--bordure);
+    border-radius: 999px;
+    cursor: pointer;
+  }
+
+  /* Replié : il ne reste que la marque et son bouton. */
+  .colonne:not(.colonne--ouverte) > :not(.colonne-marque) {
+    display: none;
+  }
+
+  /* Déployé : une entrée par ligne, assez haute pour le doigt. */
+  .colonne--ouverte .colonne-marque {
+    padding-bottom: 0.45rem;
+    margin-bottom: 0.3rem;
+    border-bottom: 1px solid var(--bordure);
+  }
+
+  .colonne--ouverte .colonne-famille {
+    display: block;
+  }
+
+  .colonne--ouverte .colonne-famille-nom {
+    padding: 0.7rem 0.6rem 0.2rem;
+  }
+
+  .colonne--ouverte .colonne-entree {
+    padding: 0.65rem 0.6rem;
+    font-size: 0.95rem;
+    border-bottom: none;
+    border-left: 3px solid transparent;
+  }
+
+  .colonne--ouverte .colonne-entree--courante {
+    border-left-color: var(--marque);
+  }
+
+  /* La marque est déjà dans le bandeau juste au-dessus : la redire dans la
+     barre coûtait une ligne entière. Restent la loge, la déconnexion et la
+     pastille, sur une seule ligne. */
+  .barre .marque {
+    display: none;
+  }
+
+  /* La liste OU la fiche. */
+  .poste-volet {
+    max-height: none;
+    border-bottom: none;
+  }
+
+  .poste--fiche .poste-volet,
+  .poste:not(.poste--fiche) .poste-fiche {
+    display: none;
+  }
+
+  .poste-retour {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    align-self: flex-start;
+    min-height: 2.4rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--encre);
+    text-decoration: none;
+  }
+
+  /* Joindre le candidat : trois boutons de même largeur, sous le nom, puis
+     le lien qui prépare la note. */
+  .poste-contacts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    width: 100%;
+  }
+
+  .poste-contacts .bouton {
+    flex: 1 1 0;
+    min-height: 2.75rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+
+  .poste-contacts-noter {
+    flex: 1 0 100%;
+    padding: 0.3rem 0;
+    font-size: 0.85rem;
+    color: var(--encre-douce);
+  }
+
+  /* L'aide : une entrée du menu, plus de bouton flottant sur la fiche. Dans
+     les espaces de travail seulement — les formulaires publics n'ont pas de
+     menu, leur bouton reste. */
+  .atelier .aide-bouton {
+    display: none;
+  }
+
+  .atelier .aide-fenetre {
+    bottom: 16px;
+  }
+
+  .colonne-aide {
+    display: block;
+    width: 100%;
+    text-align: left;
+    font: inherit;
+    background: none;
+    border-top: none;
+    border-right: none;
+    cursor: pointer;
+  }
+
+  .poste-rang {
+    padding-top: 0.7rem;
+    padding-bottom: 0.7rem;
+  }
+
+  .poste .filtre--menu {
+    padding: 0.4rem 0.8rem;
+  }
+
+  /* Les gestes de la fiche passent sous le nom, et à la ligne s'il le faut. */
+  .poste-tete .fiche-actions {
+    margin-left: 0;
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .poste-onglets {
+    gap: 0.3rem 1.3rem;
+  }
+
+  .poste-onglet {
+    padding-top: 0.55rem;
+    padding-bottom: 0.6rem;
+  }
+
+  /* Un numéro ou une adresse qu'on touche pour appeler ou écrire : la zone
+     sensible déborde le texte, sans déplacer la ligne. */
+  .champs a[href^='tel:'],
+  .champs a[href^='mailto:'],
+  .fiche-annuaire a[href^='tel:'],
+  .fiche-annuaire a[href^='mailto:'] {
+    display: inline-block;
+    padding: 0.45rem 0;
+    margin: -0.45rem 0;
+  }
+
+  /* Une adresse longue se coupe plutôt que de pousser la fiche hors de
+     l'écran. */
+  .champs dd {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+}
+
+@media print {
+  .colonne-bascule,
+  .poste-retour,
+  .poste-contacts {
+    display: none;
+  }
+}
