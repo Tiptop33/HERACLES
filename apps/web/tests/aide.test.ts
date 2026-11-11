@@ -519,12 +519,22 @@ describe('les retraits plus fins', () => {
   const geste = (id: string) => PARCOURS.find((p) => p.id === id)!;
   const derniere = (id: string) => geste(id).etapes[geste(id).etapes.length - 1];
 
-  it('prévient que la note part d’un clic, sans confirmation — et qu’elle se rattrape', () => {
-    // C'est le seul retrait sans fenêtre : le dire avant, pas après.
+  it('annonce la confirmation avant de retirer une note — et que cela se rattrape', () => {
     const texte = derniere('retirer-une-note').texte;
-    expect(texte).toMatch(/sans fenêtre de confirmation/);
+    expect(texte).toMatch(/fenêtre de confirmation/);
+    expect(texte).not.toMatch(/sans fenêtre/);
     expect(texte).toMatch(/sans être effacée/);
     expect(texte).toMatch(/rendre/);
+  });
+
+  it('dit vrai : la corbeille d’une note ouvre une fenêtre, elle ne retire plus d’un clic', () => {
+    // Le texte de l'aide et l'écran doivent raconter la même chose.
+    const ligne = readFileSync(join(SRC, 'components', 'LigneDeSuivi.tsx'), 'utf8');
+    expect(ligne).toContain('href={versRetrait}');
+    expect(ligne).not.toContain('name="geste" value="retirer"');
+    const page = readFileSync(join(SRC, 'app', 'espace', 'candidats', 'page.tsx'), 'utf8');
+    expect(page).toContain('FenetreDeRetraitDeNote');
+    expect(page).toContain('name="geste" value="retirer"');
   });
 
   it('dit ce qui ne se défait pas : le PDF effacé', () => {

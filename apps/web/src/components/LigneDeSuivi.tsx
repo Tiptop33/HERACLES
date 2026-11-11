@@ -20,6 +20,7 @@ export default function LigneDeSuivi({
   enCorrection,
   versCorrection,
   versLecture,
+  versRetrait,
 }: {
   ligne: LigneDeJournal;
   /** Où revenir après un geste : l'écran d'où l'on agit, vue comprise. */
@@ -30,6 +31,8 @@ export default function LigneDeSuivi({
   versCorrection: string;
   /** L'adresse qui la referme sans rien changer. */
   versLecture: string;
+  /** L'adresse qui ouvre la fenêtre de confirmation du retrait. */
+  versRetrait: string;
 }) {
   if (enCorrection) {
     return (
@@ -117,21 +120,22 @@ export default function LigneDeSuivi({
 
             <GesteDeTache ligne={ligne} retour={retour} />
 
-            <form method="post" action={`/api/suivi/${ligne.id}/retirer`}>
-              <input type="hidden" name="geste" value="retirer" />
-              <input type="hidden" name="retour" value={retour} />
-              {/* « Retirer » et non « Supprimer » : le mot dit ce qui se passe
-                  vraiment — la ligne quitte l'écran, elle reste en base. */}
-              <button
-                type="submit"
-                className="geste geste--retirer"
-                data-aide="retirer-note"
-                aria-label="Retirer cette note"
-                title="La note quitte le journal, sans être effacée"
-              >
-                <Corbeille />
-              </button>
-            </form>
+            {/* « Retirer » et non « Supprimer » : le mot dit ce qui se passe
+                vraiment — la ligne quitte l'écran, elle reste en base.
+
+                La corbeille ne retire pas : elle ouvre la fenêtre de
+                confirmation, comme toutes les autres corbeilles de
+                l'application. Un clic à côté du stylo ne coûte plus une note. */}
+            <Link
+              href={versRetrait}
+              scroll={false}
+              className="geste geste--retirer"
+              data-aide="retirer-note"
+              aria-label="Retirer cette note"
+              title="Retirer cette note"
+            >
+              <Corbeille />
+            </Link>
           </span>
         )}
       </div>

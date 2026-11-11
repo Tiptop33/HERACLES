@@ -17,13 +17,13 @@ import {
   type LigneCandidat,
   type Vue,
 } from '@/lib/poste';
-import { initiales, nomComplet } from '@/lib/format';
+import { dateEnLettres, initiales, nomComplet } from '@/lib/format';
 import { Corbeille } from '@/components/Icones';
 // Les libellés des quatre familles vivent avec les pastilles de l'accueil : un
 // seul endroit où lire « Changement d'emploi », et donc une seule façon de
 // l'écrire.
 import { FAMILLES } from '@/components/VueAccueil';
-import { jeSuisReferent, lireJournal, lireRetirees } from '@/lib/journal';
+import { jeSuisReferent, lireJournal, lireRetirees, type LigneDeJournal } from '@/lib/journal';
 import { MOTIFS_DE_CLOTURE } from '@/lib/candidats-refermes';
 import { estArchive, estCloture, estFerme, raisonDeFermeture } from '@/lib/suivi';
 import { jourEntier } from '@/lib/documents/formats';
@@ -57,6 +57,8 @@ type Parametres = {
   cloture?: string | string[];
   /** « 1 » : la fenêtre de réouverture s'ouvre sur la fiche (0072). */
   rouvrir?: string | string[];
+  /** La note du suivi dont on demande le retrait : ouvre la confirmation. */
+  retirer?: string | string[];
   /** Ce que la route de réouverture a répondu, quand elle a refusé. */
   reouverture?: string | string[];
   cvanonyme?: string | string[];
@@ -192,6 +194,11 @@ export default async function PosteDeTravail({
   // seulement d'avoir une fiche de référent (0027). `fiche.modifiable`, lui,
   // garde son sens : corriger la fiche elle-même reste au référent.
   const jePeuxNoter = fiche && onglet === 'suivi' ? await jeSuisReferent() : false;
+  // La note à retirer : seulement si elle est dans le journal affiché, et si
+  // la personne peut agir dessus — sinon la fenêtre proposerait un geste que
+  // la base refuserait.
+  const noteARetirer =
+    journal.find((l) => l.id === premier(parametres.retirer) && l.je_peux_agir) ?? null;
   // Le CV anonyme produit par HERACLES (0073) : son état ne se lit que sous
   // l'onglet « Documents », où son bandeau s'affiche.
   const cvAnonyme = fiche && onglet === 'documents' ? await lireLEtatDuCvAnonyme(fiche.id) : null;
@@ -424,6 +431,10 @@ export default async function PosteDeTravail({
         />
       )}
 
+      {noteARetirer && (
+        <FenetreDeRetraitDeNote note={noteARetirer} fermer={adresse({ retirer: null })} />
+      )}
+
       {aSupprimer && (
         <FenetreDeSuppression
           ligne={aSupprimer}
@@ -447,6 +458,55 @@ export default async function PosteDeTravail({
  * plus tard, l'accueil du Vénérable Maître et du Secrétaire proposera de
  * l'archiver.
  */
+/**
+ * Retirer une note du suivi — la confirmation.
+ *
+ * Le retrait se défait (la note reste sous « notes retirées »), mais il se
+ * faisait d'un clic, à un doigt du stylo et de la coche : la fenêtre dit ce
+ * qui part et où le retrouver, comme les autres corbeilles de l'application.
+ */
+function FenetreDeRetraitDeNote({ note, fermer }: { note: LigneDeJournal; fermer: string }) {
+  const debut = note.texte.length > 160 ? `${note.texte.slice(0, 160).trimEnd()}…` : note.texte;
+
+  return (
+    <div className="fenetre-fond">
+      <Link
+        href={fermer}
+        scroll={false}
+        className="fenetre-voile"
+        aria-label="Fermer sans rien retirer"
+      />
+
+      <div className="fenetre" role="dialog" aria-modal="true" aria-labelledby="retrait-note-titre">
+        <h2 id="retrait-note-titre">Retirer cette note du suivi&nbsp;?</h2>
+
+        <p>
+          <time dateTime={note.fait_le}>{dateEnLettres(note.fait_le)}</time>
+          {note.auteur_nom ? `, ${note.auteur_nom}` : ''}&nbsp;: «&nbsp;{debut}&nbsp;»
+        </p>
+
+        <p className="aide">
+          La note quitte le journal sans être effacée&nbsp;: elle reste sous «&nbsp;notes
+          retirées&nbsp;», en bas du suivi, d’où on peut la rendre.
+        </p>
+
+        <div className="fenetre-gestes">
+          <Link href={fermer} scroll={false} className="bouton">
+            Annuler
+          </Link>
+          <form method="post" action={`/api/suivi/${note.id}/retirer`}>
+            <input type="hidden" name="geste" value="retirer" />
+            <input type="hidden" name="retour" value={fermer} />
+            <button className="bouton bouton--danger" type="submit">
+              Retirer la note
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function FenetreDeCloture({ id, nom, fermer }: { id: string; nom: string; fermer: string }) {
   return (
     <div className="fenetre-fond">

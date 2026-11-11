@@ -659,7 +659,7 @@ export const PARCOURS: readonly Parcours[] = [
         ancre: 'retirer-note',
         ecran: CANDIDATS,
         texte:
-          'La corbeille, sur la ligne de la note, la retire d’un clic, sans fenêtre de confirmation. La note quitte le journal sans être effacée : elle se retrouve plus bas, sous « notes retirées », d’où on peut la rendre.',
+          'La corbeille, sur la ligne de la note, ouvre une fenêtre de confirmation. La note quitte alors le journal sans être effacée : elle se retrouve plus bas, sous « notes retirées », d’où on peut la rendre.',
         siAbsent:
           'Aucune corbeille ici : soit le journal est vide, soit ces notes ne sont pas les vôtres à retirer. Seuls les référents de la loge agissent sur le suivi.',
       },
