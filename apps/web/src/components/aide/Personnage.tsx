@@ -4,12 +4,14 @@ import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 
 /**
- * Le personnage de l'aide : une petite figure en volume, dessinée en formes
- * simples, qui se tourne vers l'élément désigné et tend le bras vers lui.
+ * Le personnage de l'aide : Héraclès, le héros de l'emblème, en petite figure
+ * en volume dessinée en formes simples. Il se tourne vers l'élément désigné et
+ * tend le bras vers lui.
  *
  * Il est construit ici, en code — aucun fichier de modèle, aucune licence à
- * suivre, et sa tenue prend les couleurs de l'application (`--marque`,
- * `--encre`), thème sombre compris.
+ * suivre. Ses couleurs sont les siennes (l'ocre du lion, le lin de la
+ * tunique) et non celles de l'application : elles se lisent sur fond clair
+ * comme sur fond sombre.
  *
  * Ce fichier est le seul à tirer `three` : `Aide.tsx` ne le charge qu'à la
  * première visite guidée, pas à l'ouverture de chaque écran.
@@ -24,16 +26,6 @@ export type Direction = { x: number; y: number };
 export const LARGEUR_DU_PERSONNAGE = 120;
 export const HAUTEUR_DU_PERSONNAGE = 140;
 
-/** Une couleur lue dans la feuille de style, avec un repli si elle manque. */
-function couleur(variable: string, repli: string): THREE.Color {
-  const lue = getComputedStyle(document.documentElement).getPropertyValue(variable).trim();
-  try {
-    return new THREE.Color(lue || repli);
-  } catch {
-    return new THREE.Color(repli);
-  }
-}
-
 type Corps = {
   tout: THREE.Group;
   buste: THREE.Group;
@@ -43,27 +35,40 @@ type Corps = {
   jambeGauche: THREE.Group;
 };
 
-/** Assemble la figure : jambes, buste, tête, deux bras articulés à l'épaule. */
+/**
+ * Assemble la figure : Héraclès, tel que l'emblème le montre — la peau du lion
+ * de Némée sur la tête, la barbe, la tunique claire, la massue dans le dos.
+ *
+ * Le squelette ne change pas : deux jambes pendues aux hanches, un buste, deux
+ * bras pendus aux épaules. Tout ce qui l'habille est accroché au buste et le
+ * suit quand il se tourne ; rien n'est tenu en main, pour que les deux bras
+ * restent libres de désigner.
+ */
 function construire(): Corps {
-  const tenue = new THREE.MeshStandardMaterial({ color: couleur('--marque', '#3f9fc2'), flatShading: true });
-  const sombre = new THREE.MeshStandardMaterial({ color: couleur('--encre', '#16202e'), flatShading: true });
-  const peau = new THREE.MeshStandardMaterial({ color: '#f0c9a4', flatShading: true });
+  const plat = (color: string) => new THREE.MeshStandardMaterial({ color, flatShading: true });
+  const peau = plat('#f0c9a4');
+  const tunique = plat('#f1ead8');
+  const lion = plat('#c9973f');
+  const criniere = plat('#9a6a25');
+  const barbe = plat('#4a3524');
+  const cuir = plat('#7a5230');
   const noir = new THREE.MeshStandardMaterial({ color: '#16202e' });
 
   const tout = new THREE.Group();
 
   // Une jambe pend de sa hanche, comme un bras de son épaule : la faire
   // tourner autour de la hanche, c'est faire un pas. Les jambes ne tournent
-  // pas avec le buste : à l'arrêt, les pieds restent plantés.
+  // pas avec le buste : à l'arrêt, les pieds restent plantés. Jambes nues,
+  // sandales de cuir.
   const jambe = (cote: number) => {
     const hanche = new THREE.Group();
     hanche.position.set(cote * 0.15, 0.55, 0);
 
-    const cuisse = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.1, 0.55, 8), sombre);
+    const cuisse = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.1, 0.55, 8), peau);
     cuisse.position.y = -0.275;
     hanche.add(cuisse);
 
-    const pied = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.1, 0.32), sombre);
+    const pied = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.1, 0.32), cuir);
     pied.position.set(0, -0.5, 0.06);
     hanche.add(pied);
 
@@ -76,37 +81,82 @@ function construire(): Corps {
   const buste = new THREE.Group();
   tout.add(buste);
 
-  const torse = new THREE.Mesh(new THREE.CapsuleGeometry(0.31, 0.4, 3, 10), tenue);
-  torse.position.y = 0.98;
-  buste.add(torse);
+  /** Pose une forme sur le buste. */
+  const poser = (
+    forme: THREE.BufferGeometry,
+    matiere: THREE.Material,
+    x: number,
+    y: number,
+    z: number,
+  ) => {
+    const piece = new THREE.Mesh(forme, matiere);
+    piece.position.set(x, y, z);
+    buste.add(piece);
+    return piece;
+  };
 
-  const tete = new THREE.Mesh(new THREE.IcosahedronGeometry(0.3, 1), peau);
-  tete.position.y = 1.66;
-  buste.add(tete);
+  // Le torse, un peu plus large que celui d'un passant, et sa ceinture.
+  poser(new THREE.CapsuleGeometry(0.34, 0.4, 3, 10), tunique, 0, 0.98, 0);
+  poser(new THREE.CylinderGeometry(0.325, 0.325, 0.07, 12), cuir, 0, 0.84, 0);
 
-  // Les cheveux : une calotte posée sur le haut du crâne.
-  const cheveux = new THREE.Mesh(
-    new THREE.SphereGeometry(0.315, 10, 6, 0, Math.PI * 2, 0, Math.PI / 2.3),
-    sombre,
-  );
-  cheveux.position.y = 1.68;
-  buste.add(cheveux);
+  poser(new THREE.IcosahedronGeometry(0.3, 1), peau, 0, 1.66, 0);
 
   for (const cote of [-1, 1]) {
-    const oeil = new THREE.Mesh(new THREE.SphereGeometry(0.035, 8, 8), noir);
-    oeil.position.set(cote * 0.11, 1.67, 0.275);
-    buste.add(oeil);
+    poser(new THREE.SphereGeometry(0.035, 8, 8), noir, cote * 0.11, 1.67, 0.275);
   }
 
+  // La peau du lion : la gueule coiffe la tête, deux oreilles, la crinière sur
+  // la nuque, et la dépouille qui tombe dans le dos.
+  poser(
+    new THREE.SphereGeometry(0.335, 10, 6, 0, Math.PI * 2, 0, Math.PI / 1.9),
+    lion,
+    0,
+    1.68,
+    -0.02,
+  );
+  for (const cote of [-1, 1]) {
+    poser(new THREE.IcosahedronGeometry(0.085, 0), lion, cote * 0.2, 1.97, -0.02);
+  }
+  const TOUFFES_DE_CRINIERE = [
+    [0.3, 0.02, -0.12],
+    [-0.3, 0.02, -0.12],
+    [0.2, -0.12, -0.26],
+    [-0.2, -0.12, -0.26],
+    [0, -0.16, -0.31],
+  ];
+  for (const [x, y, z] of TOUFFES_DE_CRINIERE) {
+    poser(new THREE.IcosahedronGeometry(0.12, 0), criniere, x, 1.66 + y, z);
+  }
+  poser(new THREE.BoxGeometry(0.56, 0.75, 0.07), lion, 0, 1.0, -0.31);
+
+  // Un collier de barbe : des touffes le long de la mâchoire, la bouche
+  // dégagée. Une barbe d'un seul bloc se lisait comme un masque.
+  const TOUFFES_DE_BARBE = [
+    [-0.2, -0.13, 0.16, 0.1],
+    [0.2, -0.13, 0.16, 0.1],
+    [-0.11, -0.24, 0.2, 0.1],
+    [0.11, -0.24, 0.2, 0.1],
+    [0, -0.29, 0.21, 0.11],
+    [-0.27, -0.02, 0.06, 0.09],
+    [0.27, -0.02, 0.06, 0.09],
+  ];
+  for (const [x, y, z, rayon] of TOUFFES_DE_BARBE) {
+    poser(new THREE.IcosahedronGeometry(rayon, 0), barbe, x, 1.66 + y, z);
+  }
+
+  // La massue, en travers du dos : on la voit quand il marche de profil.
+  const massue = poser(new THREE.CylinderGeometry(0.1, 0.04, 0.85, 6), cuir, 0.12, 1.2, -0.4);
+  massue.rotation.z = 0.55;
+
   // Un bras pend de son épaule : le faire tourner autour de l'épaule suffit à
-  // le lever dans n'importe quelle direction.
+  // le lever dans n'importe quelle direction. Bras nus.
   const bras = (cote: number) => {
     const epaule = new THREE.Group();
-    epaule.position.set(cote * 0.37, 1.22, 0);
+    epaule.position.set(cote * 0.41, 1.22, 0);
 
-    const manche = new THREE.Mesh(new THREE.CylinderGeometry(0.085, 0.075, 0.5, 8), tenue);
-    manche.position.y = -0.25;
-    epaule.add(manche);
+    const avantBras = new THREE.Mesh(new THREE.CylinderGeometry(0.105, 0.095, 0.5, 8), peau);
+    avantBras.position.y = -0.25;
+    epaule.add(avantBras);
 
     const main = new THREE.Mesh(new THREE.IcosahedronGeometry(0.095, 0), peau);
     main.position.y = -0.55;

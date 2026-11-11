@@ -163,8 +163,10 @@ personnage pointerait dans le vide sans que personne ne s'en aperçoive.
 
 ## Le personnage
 
-Construit en code avec `three` (formes simples, facettes apparentes), aux
-couleurs de l'application. Aucun fichier de modèle, aucune licence à suivre. La
+C'est Héraclès, le héros de l'emblème : la peau du lion sur la tête, la barbe,
+la tunique claire, la massue dans le dos (choisi le 11 novembre 2026, parmi
+cinq propositions). Construit en code avec `three` (formes simples, facettes
+apparentes). Aucun fichier de modèle, aucune licence à suivre. La
 bibliothèque ne se charge qu'à la première visite guidée. Sans WebGL, une
 flèche prend sa place ; avec « réduire les animations », il ne bouge plus.
 
