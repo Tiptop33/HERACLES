@@ -1,7 +1,14 @@
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { PARCOURS, cheminDe, etapeDArrivee, parcoursDuRole } from '../src/lib/aide/parcours';
+import {
+  LARGEUR_DE_TELEPHONE,
+  PARCOURS,
+  cheminDe,
+  etapeDArrivee,
+  parcoursDuRole,
+  texteDeLEtape,
+} from '../src/lib/aide/parcours';
 import { PAS_MINIMAL, marcheEntre } from '../src/lib/aide/marche';
 import { CATALOGUES, EXEMPLES, parcoursDuCatalogue } from '../src/lib/aide/parcours-publics';
 import { placer } from '../src/lib/aide/placement';
@@ -403,5 +410,43 @@ describe('l’aide des formulaires publics', () => {
     for (const catalogue of CATALOGUES) {
       expect(chercherDesParcours(EXEMPLES[catalogue], parcoursDuCatalogue(catalogue))).not.toHaveLength(0);
     }
+  });
+});
+
+describe('les bulles sur téléphone', () => {
+  const publics = CATALOGUES.flatMap((c) => [...parcoursDuCatalogue(c)]);
+
+  it('donne à chaque étape d’un formulaire public une version courte', () => {
+    for (const parcours of publics) {
+      for (const etape of parcours.etapes) {
+        expect(etape.court, parcours.id).toBeTruthy();
+        expect(etape.court!.length, parcours.id).toBeLessThanOrEqual(100);
+        expect(etape.court!.length, parcours.id).toBeLessThan(etape.texte.length);
+      }
+    }
+  });
+
+  it('dit la version courte sur un téléphone, la longue ailleurs', () => {
+    const etape = parcoursDuCatalogue('candidature')[0].etapes[0];
+    expect(texteDeLEtape(etape, 390)).toBe(etape.court);
+    expect(texteDeLEtape(etape, LARGEUR_DE_TELEPHONE)).toBe(etape.texte);
+    expect(texteDeLEtape(etape, 1280)).toBe(etape.texte);
+  });
+
+  it('garde le texte entier quand il n’y a pas de version courte', () => {
+    const etape = PARCOURS[0].etapes[0];
+    expect(etape.court).toBeUndefined();
+    expect(texteDeLEtape(etape, 390)).toBe(etape.texte);
+  });
+
+  it('ne perd pas en route ce qui protège la personne', () => {
+    const court = (id: string) => publics.find((p) => p.id === id)!.etapes[0].court!;
+    // La lecture du CV reste annoncée comme facultative et confiée à un tiers.
+    expect(court('candidature-lecture')).toMatch(/facultatif/i);
+    expect(court('candidature-lecture')).toMatch(/service extérieur/);
+    // Qui lit, et le droit de faire supprimer.
+    expect(court('candidature-donnees')).toMatch(/commission seule/);
+    expect(court('candidature-donnees')).toMatch(/supprimable/);
+    expect(court('parrainage-donnees')).toMatch(/jamais publié/);
   });
 });

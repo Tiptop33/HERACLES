@@ -7,6 +7,7 @@ import {
   cheminDe,
   etapeDArrivee,
   parcoursDuRole,
+  texteDeLEtape,
   type Etape,
   type Parcours,
 } from '@/lib/aide/parcours';
@@ -535,7 +536,7 @@ export default function Aide({
                 {visite.parcours.titre}
               </p>
 
-              <p className="aide-bulle-texte">{etape.texte}</p>
+              <p className="aide-bulle-texte">{texteDeLEtape(etape, ecran.l)}</p>
 
               {cible.introuvable && !surLeBonEcran && ailleurs && (
                 <p className="aide-bulle-note">
