@@ -4300,6 +4300,16 @@ a.poste-document .poste-document-type {
   bottom: 20px;
 }
 
+/* Le personnage dans sa case : c'est elle qu'on déplace quand il marche d'une
+   étape à l'autre. Sa taille est fixe, canevas chargé ou non — on mesure sa
+   place avant même que le relief soit là. */
+.aide-marcheur {
+  width: 120px;
+  height: 140px;
+  flex: none;
+  will-change: transform;
+}
+
 .aide-personnage {
   width: 120px;
   height: 140px;

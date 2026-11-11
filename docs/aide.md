@@ -88,8 +88,13 @@ couleurs de l'application. Aucun fichier de modèle, aucune licence à suivre. L
 bibliothèque ne se charge qu'à la première visite guidée. Sans WebGL, une
 flèche prend sa place ; avec « réduire les animations », il ne bouge plus.
 
+D'une étape à l'autre, il **marche** : il reste à sa place le temps que le
+nouvel élément soit trouvé, puis s'y rend à pied, de profil, bras et jambes en
+mouvement (`apps/web/src/lib/aide/marche.ts` pour le trajet, de 0,35 à
+1,3 seconde selon la distance). Au premier pas d'une visite, il part du coin où
+se trouve le bouton « Aide ». Sa bulle, elle, est déjà à l'arrivée.
+
 ## Ce qui vient après la bascule
 
 - Le reste du catalogue, au fil des lots 4 et 5 (offres, messagerie, pilotage).
-- Un personnage plus animé (il marche d'une étape à l'autre).
 - L'aide sur les formulaires publics (candidature, parrainage).

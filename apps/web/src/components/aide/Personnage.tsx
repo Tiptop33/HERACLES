@@ -39,6 +39,8 @@ type Corps = {
   buste: THREE.Group;
   brasDroit: THREE.Group;
   brasGauche: THREE.Group;
+  jambeDroite: THREE.Group;
+  jambeGauche: THREE.Group;
 };
 
 /** Assemble la figure : jambes, buste, tête, deux bras articulés à l'épaule. */
@@ -50,16 +52,26 @@ function construire(): Corps {
 
   const tout = new THREE.Group();
 
-  // Les jambes ne tournent pas avec le buste : les pieds restent plantés.
-  for (const cote of [-1, 1]) {
-    const jambe = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.1, 0.55, 8), sombre);
-    jambe.position.set(cote * 0.15, 0.275, 0);
-    tout.add(jambe);
+  // Une jambe pend de sa hanche, comme un bras de son épaule : la faire
+  // tourner autour de la hanche, c'est faire un pas. Les jambes ne tournent
+  // pas avec le buste : à l'arrêt, les pieds restent plantés.
+  const jambe = (cote: number) => {
+    const hanche = new THREE.Group();
+    hanche.position.set(cote * 0.15, 0.55, 0);
+
+    const cuisse = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.1, 0.55, 8), sombre);
+    cuisse.position.y = -0.275;
+    hanche.add(cuisse);
 
     const pied = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.1, 0.32), sombre);
-    pied.position.set(cote * 0.15, 0.05, 0.06);
-    tout.add(pied);
-  }
+    pied.position.set(0, -0.5, 0.06);
+    hanche.add(pied);
+
+    tout.add(hanche);
+    return hanche;
+  };
+  const jambeDroite = jambe(1);
+  const jambeGauche = jambe(-1);
 
   const buste = new THREE.Group();
   tout.add(buste);
@@ -104,7 +116,7 @@ function construire(): Corps {
     return epaule;
   };
 
-  return { tout, buste, brasDroit: bras(1), brasGauche: bras(-1) };
+  return { tout, buste, brasDroit: bras(1), brasGauche: bras(-1), jambeDroite, jambeGauche };
 }
 
 /** Rapproche une valeur de sa cible, un peu à chaque image. */
@@ -112,7 +124,18 @@ function vers(actuel: number, cible: number, pas: number): number {
   return actuel + (cible - actuel) * pas;
 }
 
-export default function Personnage({ direction }: { direction: Direction | null }) {
+export default function Personnage({
+  direction,
+  marche,
+}: {
+  direction: Direction | null;
+  /**
+   * Le sens de sa marche tant qu'il se déplace, `null` à l'arrêt. Une
+   * référence, écrite par `Aide.tsx` au départ et à l'arrivée : la marche
+   * commence et finit sans rendu React.
+   */
+  marche?: React.RefObject<Direction | null>;
+}) {
   const toile = useRef<HTMLCanvasElement>(null);
   // La direction change à chaque défilement : une référence, pour ne pas
   // reconstruire la scène à chaque fois.
@@ -164,6 +187,7 @@ export default function Personnage({ direction }: { direction: Direction | null 
     const dessiner = (maintenant: number) => {
       const t = (maintenant - debut) / 1000;
       const d = cible.current;
+      const sens = marche?.current ?? null;
       const pas = immobile ? 1 : 0.12;
 
       // Au repos, les bras pendent, à peine écartés.
@@ -171,7 +195,19 @@ export default function Personnage({ direction }: { direction: Direction | null 
       let gauche = -0.12;
       let tourne = 0;
 
-      if (d) {
+      // En marche : les jambes et les bras se balancent, et tout le corps
+      // se tourne vers là où il va.
+      let foulee = 0;
+      let profil = 0;
+
+      if (sens) {
+        foulee = Math.sin(t * 11) * 0.65;
+        // Presque de profil quand il va de côté ; de face quand il monte ou
+        // descend — on ne lui voit jamais le dos.
+        profil = Math.max(-1, Math.min(1, sens.x * 1.6)) * 1.15;
+        droit = 0.12;
+        gauche = -0.12;
+      } else if (d) {
         // Le bras pend vers le bas : l'angle qui l'amène sur la direction
         // voulue est `atan2(x, y)`, `y` descendant comme à l'écran.
         let angle = Math.atan2(d.x, d.y);
@@ -191,7 +227,22 @@ export default function Personnage({ direction }: { direction: Direction | null 
       corps.brasDroit.rotation.z = vers(corps.brasDroit.rotation.z, droit, pas);
       corps.brasGauche.rotation.z = vers(corps.brasGauche.rotation.z, gauche, pas);
       corps.buste.rotation.y = vers(corps.buste.rotation.y, tourne, pas);
-      corps.tout.position.y = immobile ? 0 : Math.sin(t * 2.2) * 0.025;
+
+      // La foulée : une jambe en avant, l'autre en arrière, les bras à
+      // l'opposé des jambes. À l'arrêt, tout revient en douceur à zéro.
+      const allure = sens ? 0.5 : pas;
+      corps.jambeDroite.rotation.x = vers(corps.jambeDroite.rotation.x, foulee, allure);
+      corps.jambeGauche.rotation.x = vers(corps.jambeGauche.rotation.x, -foulee, allure);
+      corps.brasDroit.rotation.x = vers(corps.brasDroit.rotation.x, -foulee * 0.8, allure);
+      corps.brasGauche.rotation.x = vers(corps.brasGauche.rotation.x, foulee * 0.8, allure);
+      corps.tout.rotation.y = vers(corps.tout.rotation.y, profil, pas * 1.5);
+
+      // Il respire à l'arrêt ; en marche, il rebondit à chaque pas.
+      corps.tout.position.y = immobile
+        ? 0
+        : sens
+          ? Math.abs(Math.sin(t * 11)) * 0.05
+          : Math.sin(t * 2.2) * 0.025;
 
       rendu.render(scene, camera);
       image = requestAnimationFrame(dessiner);
@@ -209,7 +260,7 @@ export default function Personnage({ direction }: { direction: Direction | null 
       });
       rendu.dispose();
     };
-  }, []);
+  }, [marche]);
 
   if (sansRelief) {
     const angle = direction ? (Math.atan2(direction.y, direction.x) * 180) / Math.PI : -90;
