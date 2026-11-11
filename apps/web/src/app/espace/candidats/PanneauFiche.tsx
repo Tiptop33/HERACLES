@@ -223,7 +223,7 @@ export default function PanneauFiche({
         </div>
       </div>
 
-      <nav className="poste-onglets" aria-label="Parties de la fiche">
+      <nav className="poste-onglets" aria-label="Parties de la fiche" data-aide="onglets-fiche">
         {ONGLETS.map((o) =>
           'lot' in o ? (
             <span key={o.valeur} className="poste-onglet poste-onglet--eteint" title={`À venir au ${o.lot}`}>
@@ -235,6 +235,7 @@ export default function PanneauFiche({
               href={adresse({ onglet: o.valeur === 'profil' ? null : o.valeur })}
               className="poste-onglet"
               aria-current={onglet === o.valeur}
+              data-aide={`onglet:${o.valeur}`}
             >
               {o.libelle}
             </Link>

@@ -36,12 +36,12 @@ export default function Barre({
           {cote && <span className="maigre">{cote}</span>}
 
           <form action="/api/deconnexion" method="post">
-            <button type="submit" className="lien-nu">
+            <button type="submit" className="lien-nu" data-aide="deconnexion">
               Se déconnecter
             </button>
           </form>
 
-          <Link href="/mon-compte" className="pastille" title={`${nom} — mon compte`}>
+          <Link href="/mon-compte" className="pastille" data-aide="mon-compte" title={`${nom} — mon compte`}>
             {initiales(profil.prenom, profil.nom, profil.email)}
           </Link>
         </div>

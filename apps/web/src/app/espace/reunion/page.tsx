@@ -183,7 +183,7 @@ export default async function Reunion({
 /** Le bandeau qui ouvre la réunion du jour, ou d'un autre jour. */
 function OuvrirUneReunion({ aujourdhui }: { aujourdhui: string }) {
   return (
-    <section className="bloc reunion-ouvrir">
+    <section className="bloc reunion-ouvrir" data-aide="ouvrir-appel">
       <div>
         <h2>Faire l’appel</h2>
         <p className="maigre">
@@ -338,7 +338,7 @@ function FeuilleDAppel({
             </>
           )}
         </p>
-        <span className="appel-gestes">
+        <span className="appel-gestes" data-aide="documents-reunion">
           {/* Le compte rendu, tel que la commission le produit après chaque
               réunion : la liste des candidats et les présences. Chaque clic
               — ici comme sur l'affiche et l'affichette — en range un

@@ -273,7 +273,10 @@ export default async function PosteDeTravail({
                 qui présente le candidat. Réservé aux référents — c'est leur
                 loge qui recevra le dossier. */}
             {profil.role === 'referent' && (
-              <OuvrirNouveauCandidat className="bouton bouton--fort bouton--petit">
+              <OuvrirNouveauCandidat
+                className="bouton bouton--fort bouton--petit"
+                data-aide="nouveau-candidat"
+              >
                 Nouveau candidat
               </OuvrirNouveauCandidat>
             )}
@@ -298,6 +301,7 @@ export default async function PosteDeTravail({
               defaultValue={recherche}
               placeholder="Chercher…"
               aria-label="Chercher un candidat"
+              data-aide="recherche-candidats"
             />
           </form>
 
@@ -312,6 +316,7 @@ export default async function PosteDeTravail({
                 href={adresse({ vue: valeur === ouverture ? null : valeur })}
                 className="filtre filtre--menu"
                 aria-current={vue === valeur}
+                data-aide={`vue:${valeur}`}
               >
                 {libelle}
               </Link>
@@ -334,7 +339,10 @@ export default async function PosteDeTravail({
                 : 'Aucun dossier dans cette vue.'}
           </p>
         ) : (
-          <ul className={`poste-rangs${avecCorbeille ? ' poste-rangs--corbeille' : ''}`}>
+          <ul
+            className={`poste-rangs${avecCorbeille ? ' poste-rangs--corbeille' : ''}`}
+            data-aide="liste-candidats"
+          >
             {lignes.map((ligne) => (
               <li key={ligne.id}>
                 <Rang
