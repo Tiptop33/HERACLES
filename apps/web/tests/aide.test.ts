@@ -2,6 +2,7 @@ import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { PARCOURS, cheminDe, etapeDArrivee, parcoursDuRole } from '../src/lib/aide/parcours';
+import { PAS_MINIMAL, marcheEntre } from '../src/lib/aide/marche';
 import { placer } from '../src/lib/aide/placement';
 import { chercherDesParcours, motsUtiles, normaliser } from '../src/lib/aide/recherche';
 import {
@@ -274,5 +275,35 @@ describe('Claude en renfort de l’aide', () => {
     // Une autre personne n'est pas concernée.
     expect(questionAutorisee(passages, 'elle', t0 + 100)).toBe(true);
     expect(questionAutorisee(passages, 'moi', t0 + FENETRE_DES_QUESTIONS + 100)).toBe(true);
+  });
+});
+
+describe('la marche du personnage', () => {
+  it('ne marche pas pour un déplacement de rien', () => {
+    expect(marcheEntre({ x: 100, y: 100 }, { x: 100 + PAS_MINIMAL - 1, y: 100 })).toBeNull();
+    expect(marcheEntre({ x: 0, y: 0 }, { x: 0, y: 0 })).toBeNull();
+  });
+
+  it('part d’où il était et regarde où il va', () => {
+    const pas = marcheEntre({ x: 800, y: 600 }, { x: 200, y: 600 });
+    expect(pas).not.toBeNull();
+    // Posé à l'arrivée, il est d'abord décalé de 600 px vers la droite.
+    expect(pas?.depuis).toEqual({ x: 600, y: -0 });
+    expect(pas?.sens.x).toBe(-1);
+  });
+
+  it('met plus de temps pour aller plus loin, dans des bornes', () => {
+    const court = marcheEntre({ x: 0, y: 0 }, { x: 60, y: 0 });
+    const moyen = marcheEntre({ x: 0, y: 0 }, { x: 400, y: 0 });
+    const long = marcheEntre({ x: 0, y: 0 }, { x: 3000, y: 2000 });
+    expect(court?.duree).toBe(350);
+    expect(moyen!.duree).toBeGreaterThan(court!.duree);
+    expect(long?.duree).toBe(1300);
+  });
+
+  it('donne un sens de longueur un, en diagonale aussi', () => {
+    const pas = marcheEntre({ x: 0, y: 0 }, { x: 300, y: 400 });
+    expect(Math.hypot(pas!.sens.x, pas!.sens.y)).toBeCloseTo(1);
+    expect(pas?.sens.y).toBeGreaterThan(0);
   });
 });

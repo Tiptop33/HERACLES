@@ -2,7 +2,7 @@
 
 import dynamic from 'next/dynamic';
 import { usePathname, useRouter } from 'next/navigation';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import {
   cheminDe,
   etapeDArrivee,
@@ -10,6 +10,7 @@ import {
   type Etape,
   type Parcours,
 } from '@/lib/aide/parcours';
+import { marcheEntre, type Point } from '@/lib/aide/marche';
 import { placer, type Boite } from '@/lib/aide/placement';
 import { chercherDesParcours } from '@/lib/aide/recherche';
 import type { Role } from '@/lib/roles';
@@ -49,7 +50,17 @@ const PATIENCE_MS = 1200;
 
 type Visite = { parcours: Parcours; index: number };
 
-type Cible = { ancre: string | null; boite: Boite | null; introuvable: boolean };
+type Cible = {
+  ancre: string | null;
+  boite: Boite | null;
+  introuvable: boolean;
+  /**
+   * Vrai le temps de trouver l'élément d'une nouvelle étape : `boite` est
+   * alors celle de l'étape d'avant. Le personnage y reste, et n'en part
+   * qu'une fois sa destination connue — sans détour par le coin de l'écran.
+   */
+  enRecherche?: boolean;
+};
 
 /**
  * Ce que Claude a répondu, et à quelle question : une réponse ne vaut que
@@ -129,8 +140,11 @@ function useCible(ancre: string | null): Cible {
     return () => cancelAnimationFrame(image);
   }, [ancre]);
 
-  // L'état d'une étape précédente ne vaut rien pour celle-ci.
-  return cible.ancre === ancre ? cible : { ...AUCUNE, ancre };
+  // L'état d'une étape précédente ne dit rien de celle-ci — sauf où se tient
+  // le personnage en attendant.
+  return cible.ancre === ancre
+    ? cible
+    : { ancre, boite: cible.boite, introuvable: false, enRecherche: true };
 }
 
 /** L'écran où se trouve l'élément d'une étape, quand on le sait. */
@@ -159,6 +173,13 @@ export default function Aide({
   const [ecran, setEcran] = useState({ l: 1280, h: 800 });
 
   const champ = useRef<HTMLInputElement>(null);
+  /** Le personnage, pour mesurer d'où il part et où il arrive. */
+  const marcheur = useRef<HTMLDivElement>(null);
+  /** Le sens de sa marche, lu par `Personnage` image après image. */
+  const marche = useRef<Point | null>(null);
+  /** Où il se tenait au dernier rendu, et à quel moment de la visite. */
+  const halte = useRef<{ cle: string; ou: Point } | null>(null);
+  const trajet = useRef<Animation | null>(null);
   const bouton = useRef<HTMLButtonElement>(null);
 
   const tous = useMemo(() => parcoursDuRole(role), [role]);
@@ -287,6 +308,69 @@ export default function Aide({
     return () => document.removeEventListener('keydown', touche);
   }, [visite, ouverte, fermer]);
 
+  // La marche. À chaque rendu : où est le personnage, et est-ce un autre
+  // moment de la visite qu'au rendu d'avant ? Si oui et qu'il a changé de
+  // place, il y va à pied — on le remet d'abord d'où il vient, puis on résorbe
+  // le décalage, pendant que `Personnage` balance bras et jambes.
+  const moment = visite
+    ? `${visite.parcours.id}:${visite.index}:${
+        cible.enRecherche ? 'recherche' : cible.boite ? 'cible' : 'coin'
+      }`
+    : null;
+
+  useLayoutEffect(() => {
+    const element = marcheur.current;
+    if (!element || moment === null) {
+      trajet.current?.cancel();
+      trajet.current = null;
+      marche.current = null;
+      halte.current = null;
+      return;
+    }
+
+    // Le même moment : il suit son élément (défilement), ou il est en route.
+    if (halte.current?.cle === moment) {
+      if (!trajet.current) {
+        const r = element.getBoundingClientRect();
+        halte.current.ou = { x: r.left, y: r.top };
+      }
+      return;
+    }
+
+    // Parti avant d'être arrivé : il repart de là où il en est.
+    let depart = halte.current?.ou ?? null;
+    if (trajet.current) {
+      const enRoute = element.getBoundingClientRect();
+      depart = { x: enRoute.left, y: enRoute.top };
+      trajet.current.cancel();
+      trajet.current = null;
+      marche.current = null;
+    }
+
+    const r = element.getBoundingClientRect();
+    const arrivee = { x: r.left, y: r.top };
+    halte.current = { cle: moment, ou: arrivee };
+    if (!depart) return;
+
+    const pas = marcheEntre(depart, arrivee);
+    const sansAnimation = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (!pas || sansAnimation || typeof element.animate !== 'function') return;
+
+    marche.current = pas.sens;
+    const animation = element.animate(
+      [{ transform: `translate(${pas.depuis.x}px, ${pas.depuis.y}px)` }, { transform: 'none' }],
+      { duration: pas.duree, easing: 'linear' },
+    );
+    trajet.current = animation;
+    const arriver = () => {
+      if (trajet.current !== animation) return;
+      trajet.current = null;
+      marche.current = null;
+    };
+    animation.onfinish = arriver;
+    animation.oncancel = arriver;
+  });
+
   if (tous.length === 0) return null;
 
   const place = cible.boite
@@ -403,7 +487,7 @@ export default function Aide({
 
       {visite && etape && (
         <>
-          {cible.boite && (
+          {cible.boite && !cible.enRecherche && (
             <div
               className="aide-halo"
               aria-hidden="true"
@@ -426,7 +510,12 @@ export default function Aide({
                 : undefined
             }
           >
-            <Personnage direction={place ? place.direction : null} />
+            <div ref={marcheur} className="aide-marcheur">
+              <Personnage
+                direction={place && !cible.enRecherche ? place.direction : null}
+                marche={marche}
+              />
+            </div>
 
             <div className="aide-bulle" role="status" aria-live="polite">
               <p className="aide-bulle-etape">
