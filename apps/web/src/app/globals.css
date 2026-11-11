@@ -4370,3 +4370,15 @@ a.poste-document .poste-document-type {
     display: none;
   }
 }
+
+/* Claude en renfort : le bouton, et sous lui ce qu'il implique. */
+.aide-renfort {
+  display: grid;
+  gap: 0.35rem;
+  justify-items: start;
+}
+
+.aide-renfort .aide {
+  margin: 0;
+  font-size: 0.8rem;
+}

@@ -31,13 +31,43 @@ Elle est montée une fois, dans la coquille des espaces
 (`apps/web/src/app/espace/layout.tsx`), et ne propose que les parcours que le
 rôle a le droit d'ouvrir.
 
+## Claude en renfort
+
+Quand la recherche locale ne trouve rien, la fenêtre propose un bouton
+**« Demander à Claude »**. Sur ce clic — et jamais en tapant — la question part
+à `POST /api/aide/renfort`, qui la transmet à Claude avec le catalogue du rôle.
+Claude rend des identifiants de parcours ; il ne rédige rien.
+
+| Pièce | Fichier |
+| --- | --- |
+| La consigne, le schéma, le filtre, la limite | `apps/web/src/lib/aide/renfort.ts` |
+| L'appel à Anthropic | `apps/web/src/lib/aide/renfort-serveur.ts` |
+| La route | `apps/web/src/app/api/aide/renfort/route.ts` |
+
+- **Garde-fous** : session exigée ; dix questions par personne et par quart
+  d'heure ; 300 caractères au plus ; le serveur écarte tout identifiant hors du
+  catalogue du rôle (un référent ne reçoit jamais un parcours d'administration).
+- **Clé** : `ANTHROPIC_API_KEY`, la même que pour la lecture du CV
+  (`docs/lecture-du-cv.md`). Sans elle, le bouton n'apparaît pas.
+- **Coût** : une question pèse environ 1 500 jetons en entrée et quelques
+  dizaines en sortie, soit de l'ordre d'un centime, pris sur la limite de 10 $
+  par mois de l'espace de travail « HERACLES ». Cette limite est partagée avec
+  la lecture du CV : si elle est atteinte, les deux s'arrêtent jusqu'au mois
+  suivant.
+- **Limite connue** : le compteur de questions vit en mémoire du serveur ; il
+  repart de zéro à chaque redémarrage.
+
 ## Données personnelles
 
-La question est comprise **dans le navigateur** : elle n'est envoyée ni au
-serveur de HERACLES ni à un prestataire, et elle n'est pas enregistrée. Un nom
-de candidat tapé par mégarde ne quitte donc pas l'écran. Le catalogue ne
-contient que des libellés et des adresses d'écran. Le registre des traitements
-n'a pas à bouger pour cette version.
+Tant que la recherche locale trouve, la question est comprise **dans le
+navigateur** : elle n'est envoyée ni au serveur de HERACLES ni à un
+prestataire. Le catalogue ne contient que des libellés et des adresses d'écran.
+
+Avec « Demander à Claude », la question part chez Anthropic (États-Unis). Elle
+n'est accompagnée d'aucune donnée de la base, et HERACLES ne la conserve pas ;
+mais un nom tapé dans la question partirait avec elle. D'où l'avertissement
+sous le bouton, et le § 5 ter du registre des traitements
+(`docs/rgpd/registre-des-traitements.md`).
 
 ## Ajouter un parcours
 
@@ -60,9 +90,6 @@ flèche prend sa place ; avec « réduire les animations », il ne bouge plus.
 
 ## Ce qui vient après la bascule
 
-- **Claude en renfort** quand la recherche locale ne trouve rien. La question
-  partirait alors chez Anthropic : il faudra un avertissement près du champ et
-  une ligne au registre des traitements avant de l'activer.
 - Le reste du catalogue, au fil des lots 4 et 5 (offres, messagerie, pilotage).
 - Un personnage plus animé (il marche d'une étape à l'autre).
 - L'aide sur les formulaires publics (candidature, parrainage).
