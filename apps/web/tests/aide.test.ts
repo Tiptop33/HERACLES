@@ -293,6 +293,28 @@ describe('la place du personnage', () => {
     expect(place.x + telephone.guide.l).toBeLessThanOrEqual(390 - 8);
   });
 
+  it('se cale en bas quand c’est sous l’élément qu’il reste le plus de place', () => {
+    // Un téléphone, et la liste des candidats : haute, avec du vide dessous.
+    // Calé en haut, le guide masquait le titre et le bouton « Menu ».
+    const telephone = { ...mesures, ecran: { l: 390, h: 760 }, guide: { l: 270, h: 290 } };
+    const place = placer({ x: 0, y: 240, l: 390, h: 225 }, telephone);
+    expect(place.cote).toBe('dessous');
+    expect(place.depuisLeBas).toBe(false);
+    expect(place.y + telephone.guide.h).toBeLessThanOrEqual(760 - 8);
+    // Il ne remonte pas plus haut qu'il ne faut : le haut de la page reste libre.
+    expect(place.y).toBeGreaterThanOrEqual(240);
+    expect(place.direction.y).toBeLessThan(0);
+  });
+
+  it('se pose juste sous une entrée du menu quand sa hauteur réelle le permet', () => {
+    // « Référents », dans le menu déployé d'un téléphone. Avec les 340 px
+    // d'estimation il ne tenait pas dessous et partait en haut de l'écran.
+    const telephone = { ...mesures, ecran: { l: 390, h: 760 }, guide: { l: 270, h: 270 } };
+    const place = placer({ x: 6, y: 355, l: 378, h: 55 }, telephone);
+    expect(place.cote).toBe('dessous');
+    expect(place.y).toBe(355 + 55 + 14);
+  });
+
   it('ne sort jamais de l’écran, même sur un petit', () => {
     const petit = { ...mesures, ecran: { l: 320, h: 480 } };
     const place = placer({ x: 20, y: 20, l: 280, h: 40 }, petit);

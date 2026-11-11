@@ -45,7 +45,10 @@ import type { Role } from '@/lib/roles';
 const Personnage = dynamic(() => import('./Personnage'), { ssr: false });
 
 // Les mêmes mesures que la feuille de style et que `Personnage.tsx`.
-// La hauteur est une estimation prudente : la bulle grandit avec son texte.
+// La hauteur n'est qu'un point de départ, prudent : la bulle grandit avec son
+// texte. Dès que le guide est à l'écran, c'est sa hauteur mesurée qui sert —
+// sur un téléphone, soixante pixels comptés en trop suffisaient à l'envoyer en
+// haut de l'écran, loin de ce qu'il désigne.
 const GUIDE = { l: 270, h: 340 };
 const PERSONNAGE = { l: 120, h: 140 };
 
@@ -189,6 +192,9 @@ export default function Aide({
   const halte = useRef<{ cle: string; ou: Point } | null>(null);
   const trajet = useRef<Animation | null>(null);
   const bouton = useRef<HTMLButtonElement>(null);
+  /** Le guide entier, pour mesurer sa hauteur réelle. */
+  const guide = useRef<HTMLDivElement>(null);
+  const [hauteurDuGuide, setHauteurDuGuide] = useState<number | null>(null);
 
   const tous = useMemo(
     () => (catalogue ? parcoursDuCatalogue(catalogue) : role ? parcoursDuRole(role) : []),
@@ -398,10 +404,28 @@ export default function Aide({
     animation.oncancel = arriver;
   });
 
+  // La hauteur réelle du guide, suivie tant qu'une visite est en cours : elle
+  // change avec le texte de l'étape et avec la largeur de l'écran.
+  const enVisite = visite !== null;
+  useEffect(() => {
+    const element = guide.current;
+    if (!enVisite || !element || typeof ResizeObserver !== 'function') return;
+    const observateur = new ResizeObserver(() => {
+      const h = Math.ceil(element.getBoundingClientRect().height);
+      if (h > 0) setHauteurDuGuide((avant) => (avant === h ? avant : h));
+    });
+    observateur.observe(element);
+    return () => observateur.disconnect();
+  }, [enVisite]);
+
   if (tous.length === 0) return null;
 
   const place = cible.boite
-    ? placer(cible.boite, { ecran, guide: GUIDE, personnage: PERSONNAGE })
+    ? placer(cible.boite, {
+        ecran,
+        guide: { l: GUIDE.l, h: hauteurDuGuide ?? GUIDE.h },
+        personnage: PERSONNAGE,
+      })
     : null;
 
   const ailleurs = etape ? ecranDe(etape) : null;
@@ -528,6 +552,7 @@ export default function Aide({
           )}
 
           <div
+            ref={guide}
             className={`aide-guide aide-guide--${place ? place.cote : 'coin'}`}
             style={
               place
