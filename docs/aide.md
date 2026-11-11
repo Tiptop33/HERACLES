@@ -44,6 +44,12 @@ colonne de se déployer, et de se replier quand l'étape est passée. Les deux
 composants se parlent par deux événements du navigateur, nommés dans
 `apps/web/src/lib/aide/signaux.ts`.
 
+Les bulles ne disent pas la même chose non plus. Une étape dont le texte décrit
+l'écran large — « dans la colonne de gauche », « la fiche s'ouvre à droite » — porte
+une version `court` qui parle du menu et du plein écran. Elle se dit sous
+`LARGEUR_DE_TELEPHONE` (736 px, les mêmes 46 rem que la feuille de style). Un
+test refuse toute bulle de téléphone qui parlerait encore de « colonne ».
+
 ## Claude en renfort
 
 Quand la recherche locale ne trouve rien, la fenêtre propose un bouton

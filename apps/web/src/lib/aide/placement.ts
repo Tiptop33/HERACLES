@@ -47,10 +47,20 @@ export function placer(cible: Boite, { ecran, guide, personnage }: Mesures): Pla
   const tientAGauche = cible.x - ECART - guide.l >= BORD;
   const tientDessous = cible.y + cible.h + ECART + guide.h <= ecran.h - BORD;
 
+  const tientDessus = cible.y - ECART - guide.h >= BORD;
+  // Ni dessous ni dessus — un élément haut sur un téléphone : la liste des
+  // candidats, la case d'accord d'un formulaire. Le guide se cale alors contre
+  // le bord de l'écran où il reste le plus de place, quitte à mordre sur
+  // l'élément : mieux vaut en recouvrir un bout que sortir de l'écran, ou
+  // masquer le haut de la page quand tout le vide est en bas.
+  const placeDessus = cible.y;
+  const placeDessous = ecran.h - (cible.y + cible.h);
+  const caleEnBas = !tientDessous && !tientDessus && placeDessous > placeDessus;
+
   let cote: Cote;
   if (tientADroite) cote = 'droite';
   else if (tientAGauche) cote = 'gauche';
-  else if (tientDessous) cote = 'dessous';
+  else if (tientDessous || caleEnBas) cote = 'dessous';
   else cote = 'dessus';
 
   let x: number;
@@ -69,7 +79,8 @@ export function placer(cible: Boite, { ecran, guide, personnage }: Mesures): Pla
     x = borner(milieuX - guide.l / 2, BORD, ecran.l - guide.l - BORD);
     centreX = x + guide.l / 2;
     if (cote === 'dessous') {
-      y = cible.y + cible.h + ECART;
+      // Calé en bas, le guide remonte autant qu'il faut pour tenir à l'écran.
+      y = caleEnBas ? Math.max(BORD, ecran.h - guide.h - BORD) : cible.y + cible.h + ECART;
       centreY = y + personnage.h / 2;
     } else {
       // Au-dessus, le guide s'accroche par le bas : sa hauteur réelle dépend
@@ -78,11 +89,10 @@ export function placer(cible: Boite, { ecran, guide, personnage }: Mesures): Pla
       y = Math.max(BORD, ecran.h - cible.y + ECART);
       centreY = cible.y - ECART - personnage.h / 2;
 
-      // Pas la place au-dessus non plus — un élément haut sur un petit écran,
-      // la case d'accord d'un formulaire sur un téléphone : le guide se cale
-      // en haut de l'écran, quitte à mordre sur l'élément. Mieux vaut le
-      // recouvrir un peu que sortir de l'écran avec sa bulle.
-      if (cible.y - ECART - guide.h < BORD) {
+      // Pas la place au-dessus non plus, et c'est en haut qu'il en reste le
+      // plus : le guide se cale en haut de l'écran, quitte à mordre sur
+      // l'élément.
+      if (!tientDessus) {
         depuisLeBas = false;
         y = BORD;
         centreY = BORD + guide.h - personnage.h / 2;
