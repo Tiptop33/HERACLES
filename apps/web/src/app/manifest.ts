@@ -1,5 +1,5 @@
 import type { MetadataRoute } from 'next';
-import { cheminLogo } from '@/lib/logo';
+import { ICONES } from '@/lib/logo';
 
 /**
  * Ce qui permet de poser HERACLES sur l'écran d'accueil d'un téléphone :
@@ -23,9 +23,14 @@ export default function manifest(): MetadataRoute.Manifest {
     display: 'standalone',
     background_color: '#f2f4f7',
     theme_color: '#ffffff',
-    // Le même fichier que partout ailleurs, et seulement s'il a été déposé.
-    icons: cheminLogo?.endsWith('.png')
-      ? [{ src: cheminLogo, sizes: '320x320', type: 'image/png', purpose: 'any' }]
-      : [],
+    // Deux tailles, celles qu'Android demande pour proposer l'installation.
+    // Sur fond blanc plein : une icône transparente se retrouve sur fond noir
+    // une fois posée sur l'écran d'accueil.
+    icons: ICONES.map(({ src, cote }) => ({
+      src,
+      sizes: `${cote}x${cote}`,
+      type: 'image/png',
+      purpose: 'any',
+    })),
   };
 }
