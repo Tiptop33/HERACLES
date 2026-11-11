@@ -112,8 +112,8 @@ traitements.
 | **Destinataires** | La personne elle-même : Claude rend des identifiants de parcours d'aide, que le serveur recoupe avec le catalogue de son rôle. |
 | **Sous-traitant** | Anthropic, aux conditions du § 5 : même espace de travail, même clé, même limite de 10 $ par mois. |
 | **Transferts hors UE** | États-Unis, comme au § 5 (zone d'inférence « US », clauses contractuelles types). |
-| **Durée de conservation** | Chez HERACLES : rien. La question n'est ni enregistrée ni notée au journal. Chez Anthropic : suppression automatique sous 30 jours ; jamais utilisé pour entraîner les modèles. |
-| **Sécurité** | Session exigée ; dix questions par personne et par quart d'heure ; le journal ne note que la nature d'un échec. Tant que la recherche locale trouve, la question ne quitte pas le navigateur. Voir `docs/aide.md`. |
+| **Durée de conservation** | Chez HERACLES : la question n'est ni enregistrée ni notée au journal. Pour tenir la limite, la base garde **qui a demandé et quand** (table `aide_question`, migration 0082) — jamais le texte ; ces lignes sont effacées au-delà d'un jour, au passage suivant. Chez Anthropic : suppression automatique sous 30 jours ; jamais utilisé pour entraîner les modèles. |
+| **Sécurité** | Session exigée ; dix questions par personne et par quart d'heure, comptées en base dans une table fermée à tous (RLS sans policy) ; le journal ne note que la nature d'un échec. Tant que la recherche locale trouve, la question ne quitte pas le navigateur. Voir `docs/aide.md`. |
 
 ## 5 bis. Les documents de la commission : compte rendu, affiche, affichette, CV anonyme
 
