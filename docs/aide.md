@@ -54,8 +54,11 @@ Claude rend des identifiants de parcours ; il ne rédige rien.
   par mois de l'espace de travail « HERACLES ». Cette limite est partagée avec
   la lecture du CV : si elle est atteinte, les deux s'arrêtent jusqu'au mois
   suivant.
-- **Limite connue** : le compteur de questions vit en mémoire du serveur ; il
-  repart de zéro à chaque redémarrage.
+- **Le compteur est en base** (migration 0082, table `aide_question`,
+  fonction `compter_une_question_d_aide()`) : il tient d'un déploiement à
+  l'autre. La table garde qui a demandé et quand, jamais la question ; ses
+  lignes de plus d'un jour sont effacées au passage suivant. Si la base ne
+  répond pas, la route refuse sans appeler Claude.
 
 ## Données personnelles
 

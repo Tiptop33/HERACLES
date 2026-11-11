@@ -77,32 +77,17 @@ export function retenir(proposes: readonly string[], parcours: readonly Parcours
   return gardes;
 }
 
-/** Tant de questions par personne et par fenêtre : l'aide n'est pas une messagerie. */
-export const QUESTIONS_PAR_FENETRE = 10;
-export const FENETRE_DES_QUESTIONS = 15 * 60 * 1000;
-
 /**
- * Un compteur par personne, en mémoire. `passages` est fourni par l'appelant
- * (une `Map` qui vit avec le serveur) : la fonction reste pure et se teste.
+ * Dix questions par personne et par quart d'heure : l'aide n'est pas une
+ * messagerie, et chaque question coûte.
+ *
+ * Le compte est tenu **en base**, par la fonction SQL
+ * `compter_une_question_d_aide()` (migration 0082) : il survit aux
+ * redémarrages et vaut pour tous les processus du serveur. Ces deux nombres
+ * n'y sont pas envoyés — la fonction ne prend aucun paramètre, pour que la
+ * limite ne se choisisse pas depuis l'extérieur. Ils servent au message
+ * montré à la personne, et un test vérifie qu'ils disent la même chose que
+ * la migration.
  */
-export function questionAutorisee(
-  passages: Map<string, number[]>,
-  cle: string,
-  maintenant = Date.now(),
-): boolean {
-  const recentes = (passages.get(cle) ?? []).filter((t) => maintenant - t < FENETRE_DES_QUESTIONS);
-  if (recentes.length >= QUESTIONS_PAR_FENETRE) {
-    passages.set(cle, recentes);
-    return false;
-  }
-  recentes.push(maintenant);
-  passages.set(cle, recentes);
-
-  // Le ménage, de temps en temps : les clés dont plus rien n'est récent.
-  if (passages.size > 1000) {
-    for (const [autre, temps] of passages) {
-      if (temps.every((t) => maintenant - t >= FENETRE_DES_QUESTIONS)) passages.delete(autre);
-    }
-  }
-  return true;
-}
+export const QUESTIONS_PAR_FENETRE = 10;
+export const MINUTES_DE_LA_FENETRE = 15;

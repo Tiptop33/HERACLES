@@ -14,13 +14,12 @@ import { CATALOGUES, EXEMPLES, parcoursDuCatalogue } from '../src/lib/aide/parco
 import { placer } from '../src/lib/aide/placement';
 import { chercherDesParcours, motsUtiles, normaliser } from '../src/lib/aide/recherche';
 import {
-  FENETRE_DES_QUESTIONS,
+  MINUTES_DE_LA_FENETRE,
   PROPOSITIONS_AU_PLUS,
   QUESTIONS_PAR_FENETRE,
   QuestionDAide,
   catalogueDuRenfort,
   demandeDeRenfort,
-  questionAutorisee,
   retenir,
 } from '../src/lib/aide/renfort';
 import { FAMILLES, PARAMETRES, famillesDuRole } from '../src/lib/navigation';
@@ -337,16 +336,32 @@ describe('Claude en renfort de l’aide', () => {
     expect(retenir(tous, duReferent)).toHaveLength(PROPOSITIONS_AU_PLUS);
   });
 
-  it('limite les questions par personne, puis rouvre après la fenêtre', () => {
-    const passages = new Map<string, number[]>();
-    const t0 = 1_000_000;
-    for (let i = 0; i < QUESTIONS_PAR_FENETRE; i += 1) {
-      expect(questionAutorisee(passages, 'moi', t0 + i)).toBe(true);
-    }
-    expect(questionAutorisee(passages, 'moi', t0 + 100)).toBe(false);
-    // Une autre personne n'est pas concernée.
-    expect(questionAutorisee(passages, 'elle', t0 + 100)).toBe(true);
-    expect(questionAutorisee(passages, 'moi', t0 + FENETRE_DES_QUESTIONS + 100)).toBe(true);
+  it('tient sa limite en base, avec les mêmes nombres que la migration', () => {
+    // Le compte ne vit plus en mémoire du serveur : la migration 0082 le
+    // tient. Les deux nombres sont écrits des deux côtés — ce test les lie.
+    const migration = readFileSync(
+      join(__dirname, '..', '..', '..', 'supabase', 'migrations', '0082_limite_des_questions_d_aide.sql'),
+      'utf8',
+    );
+    expect(migration).toContain(`if recentes >= ${QUESTIONS_PAR_FENETRE} then`);
+    expect(migration).toContain(`interval '${MINUTES_DE_LA_FENETRE} minutes'`);
+    // La table ne garde pas le texte de la question.
+    expect(migration).not.toMatch(/\b(question|texte)\s+text\b/);
+  });
+
+  it('fait compter par la base, après avoir validé la question, et refuse sans compteur', () => {
+    const route = readFileSync(join(SRC, 'app', 'api', 'aide', 'renfort', 'route.ts'), 'utf8');
+    expect(route).toContain(".rpc('compter_une_question_d_aide')");
+    expect(route).not.toContain('new Map');
+    // L'ordre : la forme d'abord, le compteur ensuite, Claude en dernier.
+    const forme = route.indexOf('QuestionDAide.safeParse');
+    const compteur = route.indexOf("rpc('compter_une_question_d_aide')");
+    const claude = route.indexOf('demanderLesParcours(');
+    expect(forme).toBeGreaterThan(0);
+    expect(compteur).toBeGreaterThan(forme);
+    expect(claude).toBeGreaterThan(compteur);
+    // Une erreur du compteur arrête tout avant Claude.
+    expect(route.slice(compteur, claude)).toMatch(/if \(error\)[\s\S]*503/);
   });
 });
 
