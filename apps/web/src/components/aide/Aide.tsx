@@ -237,7 +237,9 @@ export default function Aide({
 
   const fermer = useCallback(() => {
     setOuverte(false);
-    bouton.current?.focus();
+    // Sans défilement : sur « Mon compte », au téléphone, le bouton est en
+    // haut de la page — lui rendre le clavier ne doit pas y ramener l'écran.
+    bouton.current?.focus({ preventScroll: true });
   }, []);
 
   // Sur un téléphone, c'est l'entrée « Aide » du menu qui ouvre la fenêtre.

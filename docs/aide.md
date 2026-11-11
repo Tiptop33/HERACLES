@@ -44,6 +44,10 @@ colonne de se déployer, et de se replier quand l'étape est passée. Les deux
 composants se parlent par deux événements du navigateur, nommés dans
 `apps/web/src/lib/aide/signaux.ts`.
 
+Sur « Mon compte », qui n'a pas de menu, le bouton quitte le bas de l'écran,
+où il flottait sur les champs du formulaire : il se range en haut à droite, sur
+la ligne du lien « ← Retour ».
+
 Les bulles ne disent pas la même chose non plus. Une étape dont le texte décrit
 l'écran large — « dans la colonne de gauche », « la fiche s'ouvre à droite » — porte
 une version `court` qui parle du menu et du plein écran. Elle se dit sous

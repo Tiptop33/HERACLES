@@ -4421,7 +4421,9 @@ a.poste-document .poste-document-type {
 .colonne-bascule,
 .colonne-aide,
 .poste-retour,
-.poste-contacts {
+.poste-contacts,
+.compte-retour,
+.ecran-telephone {
   display: none;
 }
 
@@ -4607,6 +4609,62 @@ a.poste-document .poste-document-type {
     margin: -0.45rem 0;
   }
 
+  /* « Mon compte », hors de la coquille des espaces : il en prend la tenue.
+     Un retour en tête, comme sur la fiche d'un candidat ; l'aide rangée en
+     haut à droite, sur la même ligne, au lieu de flotter sur les champs du
+     formulaire ; moins de marge perdue autour des cartes. */
+  .ecran-large {
+    display: none;
+  }
+
+  .ecran-telephone {
+    display: block;
+  }
+
+  .compte {
+    position: relative;
+    padding: 0.6rem 1rem 3rem;
+  }
+
+  .compte-retour {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    min-height: 2.75rem;
+    margin-bottom: 0.4rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--encre);
+    text-decoration: none;
+  }
+
+  .compte .aide-bouton {
+    position: absolute;
+    top: 0.75rem;
+    right: 1rem;
+    bottom: auto;
+    box-shadow: none;
+  }
+
+  .compte .aide-fenetre {
+    bottom: 16px;
+  }
+
+  .compte h1 {
+    font-size: 1.6rem;
+  }
+
+  .compte .carte {
+    padding: 1rem;
+  }
+
+  /* Le portrait au-dessus de son explication : côte à côte, le texte tenait
+     dans une colonne de trois mots. */
+  .compte .mon-portrait {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
   /* Une adresse longue se coupe plutôt que de pousser la fiche hors de
      l'écran. */
   .champs dd {
@@ -4618,6 +4676,7 @@ a.poste-document .poste-document-type {
 @media print {
   .colonne-bascule,
   .poste-retour,
+  .compte-retour,
   .poste-contacts {
     display: none;
   }
