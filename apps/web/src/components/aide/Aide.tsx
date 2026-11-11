@@ -30,8 +30,11 @@ import type { Role } from '@/lib/roles';
  * L'aide ne clique jamais à la place de la personne et ne modifie aucune
  * donnée : elle navigue (ce que ferait un lien) et elle désigne.
  *
- * La question ne quitte pas le navigateur : la recherche est locale
- * (`lib/aide/recherche.ts`). Le personnage, et la bibliothèque 3D qu'il tire,
+ * La recherche est locale (`lib/aide/recherche.ts`) : tant qu'elle trouve, la
+ * question ne quitte pas le navigateur. Quand elle ne trouve rien, un bouton
+ * « Demander à Claude » propose d'envoyer la question au serveur, qui la
+ * transmet à Anthropic — sur ce clic seulement, et c'est écrit à côté. Le
+ * personnage, et la bibliothèque 3D qu'il tire,
  * ne se chargent qu'à la première visite guidée.
  */
 
@@ -47,6 +50,17 @@ const PATIENCE_MS = 1200;
 type Visite = { parcours: Parcours; index: number };
 
 type Cible = { ancre: string | null; boite: Boite | null; introuvable: boolean };
+
+/**
+ * Ce que Claude a répondu, et à quelle question : une réponse ne vaut que
+ * pour la question qui l'a demandée — dès qu'on retape, elle s'efface.
+ */
+type Renfort = {
+  question: string;
+  etat: 'attente' | 'trouve' | 'rien' | 'echec';
+  ids: string[];
+  message?: string;
+};
 
 const AUCUNE: Cible = { ancre: null, boite: null, introuvable: false };
 
@@ -127,13 +141,21 @@ function ecranDe(etape: Etape): string | null {
   return null;
 }
 
-export default function Aide({ role }: { role: Role }) {
+export default function Aide({
+  role,
+  renfort: renfortOuvert = false,
+}: {
+  role: Role;
+  /** Vrai quand le serveur peut interroger Claude (clé présente). */
+  renfort?: boolean;
+}) {
   const router = useRouter();
   const chemin = usePathname() ?? '';
 
   const [ouverte, setOuverte] = useState(false);
   const [question, setQuestion] = useState('');
   const [visite, setVisite] = useState<Visite | null>(null);
+  const [reponse, setReponse] = useState<Renfort | null>(null);
   const [ecran, setEcran] = useState({ l: 1280, h: 800 });
 
   const champ = useRef<HTMLInputElement>(null);
@@ -142,7 +164,17 @@ export default function Aide({ role }: { role: Role }) {
   const tous = useMemo(() => parcoursDuRole(role), [role]);
   const trouves = useMemo(() => chercherDesParcours(question, tous), [question, tous]);
   const sansReponse = question.trim() !== '' && trouves.length === 0;
-  const proposes = trouves.length > 0 ? trouves : tous;
+
+  // La réponse de Claude, si elle porte sur la question affichée.
+  const renfort = reponse && reponse.question === question.trim() ? reponse : null;
+  const deClaude = useMemo(
+    () =>
+      renfort?.etat === 'trouve'
+        ? renfort.ids.flatMap((id) => tous.filter((p) => p.id === id))
+        : [],
+    [renfort, tous],
+  );
+  const proposes = trouves.length > 0 ? trouves : deClaude.length > 0 ? deClaude : tous;
 
   const etape = visite ? visite.parcours.etapes[visite.index] : null;
   const cible = useCible(etape?.ancre ?? null);
@@ -167,6 +199,40 @@ export default function Aide({ role }: { role: Role }) {
     setOuverte(false);
     bouton.current?.focus();
   }, []);
+
+  // Demander à Claude : seulement sur un clic, jamais en tapant. La question
+  // quitte alors le navigateur — c'est dit à côté du bouton.
+  const demander = useCallback(async () => {
+    const posee = question.trim();
+    if (!posee) return;
+    setReponse({ question: posee, etat: 'attente', ids: [] });
+    try {
+      const retour = await fetch('/api/aide/renfort', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question: posee }),
+      });
+      const corps: unknown = await retour.json().catch(() => null);
+      const lu = (corps ?? {}) as { parcours?: unknown; erreur?: unknown };
+
+      if (!retour.ok) {
+        setReponse({
+          question: posee,
+          etat: 'echec',
+          ids: [],
+          message: typeof lu.erreur === 'string' ? lu.erreur : undefined,
+        });
+        return;
+      }
+
+      const ids = Array.isArray(lu.parcours)
+        ? lu.parcours.filter((id): id is string => typeof id === 'string')
+        : [];
+      setReponse({ question: posee, etat: ids.length > 0 ? 'trouve' : 'rien', ids });
+    } catch {
+      setReponse({ question: posee, etat: 'echec', ids: [] });
+    }
+  }, [question]);
 
   const montrer = useCallback((parcours: Parcours) => {
     setVisite({ parcours, index: 0 });
@@ -273,12 +339,37 @@ export default function Aide({ role }: { role: Role }) {
               autoComplete="off"
             />
 
+            {/* Claude en renfort : proposé seulement quand la recherche locale
+                n'a rien trouvé, et jamais envoyé sans ce clic. */}
+            {sansReponse && renfortOuvert && renfort?.etat !== 'trouve' && (
+              <div className="aide-renfort">
+                <button
+                  type="button"
+                  className="bouton bouton--fort bouton--petit"
+                  onClick={demander}
+                  disabled={renfort?.etat === 'attente'}
+                >
+                  {renfort?.etat === 'attente' ? 'Claude cherche…' : 'Demander à Claude'}
+                </button>
+                <p className="aide">
+                  Votre question sera envoyée à Claude (Anthropic, États-Unis). N’y écrivez le nom
+                  de personne.
+                </p>
+              </div>
+            )}
+
             <p className="maigre aide-fenetre-note" role="status">
-              {sansReponse
-                ? 'Je n’ai pas trouvé. Voici tout ce que je sais montrer :'
-                : trouves.length > 0
-                  ? 'Voici ce qui répond à votre question :'
-                  : 'Posez votre question, ou choisissez dans la liste :'}
+              {renfort?.etat === 'trouve'
+                ? 'Claude propose :'
+                : renfort?.etat === 'rien'
+                  ? 'Claude n’a rien trouvé non plus. Voici tout ce que je sais montrer :'
+                  : renfort?.etat === 'echec'
+                    ? `${renfort.message ?? 'Claude n’a pas pu répondre.'} Voici tout ce que je sais montrer :`
+                    : sansReponse
+                      ? 'Je n’ai pas trouvé. Voici tout ce que je sais montrer :'
+                      : trouves.length > 0
+                        ? 'Voici ce qui répond à votre question :'
+                        : 'Posez votre question, ou choisissez dans la liste :'}
             </p>
 
             <ul className="aide-parcours">

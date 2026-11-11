@@ -101,6 +101,20 @@ traitements.
 | **Durée de conservation** | Chez HERACLES : rien n'est conservé de la lecture, sauf la photo que le candidat a gardée, qui suit la durée de son dossier (§ 1). Chez Anthropic : suppression automatique sous 30 jours ; jamais utilisé pour entraîner les modèles (conditions commerciales, § B). La conservation zéro se demande à leur équipe commerciale. |
 | **Sécurité** | Cinq lectures par lien et par quart d'heure ; le journal du serveur ne note jamais un contenu. Voir `docs/lecture-du-cv.md`. |
 
+## 5 ter. L'aide intégrée : la question posée à Claude
+
+| | |
+| --- | --- |
+| **Finalité** | Aider un référent ou un administrateur à trouver une fonction de l'application, quand la recherche locale de l'aide n'a rien trouvé. |
+| **Base légale** | Intérêt légitime : faciliter l'usage de l'outil. Rien ne part sans un clic sur « Demander à Claude », et l'avertissement est écrit sous le bouton. |
+| **Personnes concernées** | Les référents et les administrateurs qui posent la question. Par ricochet, toute personne dont ils taperaient le nom dans la question — ce que l'avertissement demande de ne pas faire. |
+| **Données** | Le texte de la question (300 caractères au plus) et le catalogue de l'aide (des libellés d'écran). **Aucune donnée de la base** : ni fiche, ni nom, ni identifiant de la personne qui demande. |
+| **Destinataires** | La personne elle-même : Claude rend des identifiants de parcours d'aide, que le serveur recoupe avec le catalogue de son rôle. |
+| **Sous-traitant** | Anthropic, aux conditions du § 5 : même espace de travail, même clé, même limite de 10 $ par mois. |
+| **Transferts hors UE** | États-Unis, comme au § 5 (zone d'inférence « US », clauses contractuelles types). |
+| **Durée de conservation** | Chez HERACLES : rien. La question n'est ni enregistrée ni notée au journal. Chez Anthropic : suppression automatique sous 30 jours ; jamais utilisé pour entraîner les modèles. |
+| **Sécurité** | Session exigée ; dix questions par personne et par quart d'heure ; le journal ne note que la nature d'un échec. Tant que la recherche locale trouve, la question ne quitte pas le navigateur. Voir `docs/aide.md`. |
+
 ## 5 bis. Les documents de la commission : compte rendu, affiche, affichette, CV anonyme
 
 | | |
@@ -145,7 +159,7 @@ traitements.
 | --- | --- | --- | --- |
 | Hostinger | tout : le serveur porte la base et les fichiers | ⚠️ *centre de données à relever dans hPanel* | ⚠️ *DPA d'Hostinger à archiver* |
 | Brevo | adresses électroniques, texte des courriels | Union européenne | ⚠️ *DPA de Brevo à archiver* |
-| Anthropic | le CV, si le candidat demande la lecture | États-Unis | DPA du 24 février 2025, clauses contractuelles types |
+| Anthropic | le CV, si le candidat demande la lecture ; la question posée à l'aide, si le référent clique sur « Demander à Claude » | États-Unis | DPA du 24 février 2025, clauses contractuelles types |
 | Bubble | l'ancienne application, jusqu'au 5 décembre 2026 | ⚠️ *à vérifier* | ⚠️ *à archiver* |
 
 Ne voient **aucune** donnée personnelle : GitHub (le code seul, et le dépôt n'en

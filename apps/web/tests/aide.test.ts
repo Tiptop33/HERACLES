@@ -4,6 +4,16 @@ import { describe, expect, it } from 'vitest';
 import { PARCOURS, cheminDe, etapeDArrivee, parcoursDuRole } from '../src/lib/aide/parcours';
 import { placer } from '../src/lib/aide/placement';
 import { chercherDesParcours, motsUtiles, normaliser } from '../src/lib/aide/recherche';
+import {
+  FENETRE_DES_QUESTIONS,
+  PROPOSITIONS_AU_PLUS,
+  QUESTIONS_PAR_FENETRE,
+  QuestionDAide,
+  catalogueDuRenfort,
+  demandeDeRenfort,
+  questionAutorisee,
+  retenir,
+} from '../src/lib/aide/renfort';
 import { PARAMETRES, famillesDuRole } from '../src/lib/navigation';
 import type { Role } from '../src/lib/roles';
 
@@ -188,5 +198,53 @@ describe('la place du personnage', () => {
     const place = placer({ x: 20, y: 20, l: 280, h: 40 }, petit);
     expect(place.x).toBeGreaterThanOrEqual(8);
     expect(place.x + petit.guide.l).toBeLessThanOrEqual(320 - 8);
+  });
+});
+
+describe('Claude en renfort de l’aide', () => {
+  const duReferent = parcoursDuRole('referent');
+
+  it('n’accepte qu’une question de taille raisonnable', () => {
+    expect(QuestionDAide.safeParse({ question: '  comment exporter ?  ' }).success).toBe(true);
+    expect(QuestionDAide.safeParse({ question: 'a' }).success).toBe(false);
+    expect(QuestionDAide.safeParse({ question: 'x'.repeat(301) }).success).toBe(false);
+    expect(QuestionDAide.safeParse({}).success).toBe(false);
+    expect(QuestionDAide.safeParse(null).success).toBe(false);
+  });
+
+  it('ne montre à Claude que le catalogue du rôle, sans les étapes', () => {
+    const montre = catalogueDuRenfort(duReferent);
+    expect(montre).toContain('"mes-candidats"');
+    expect(montre).not.toContain('"parametres"');
+    expect(montre).not.toContain('data-aide');
+    expect(montre).not.toContain('etapes');
+  });
+
+  it('enferme la question dans sa balise', () => {
+    const demande = demandeDeRenfort('où sont mes dossiers', duReferent);
+    expect(demande).toContain('<question>\noù sont mes dossiers\n</question>');
+  });
+
+  it('écarte les identifiants inventés, les doublons et ceux d’un autre rôle', () => {
+    expect(
+      retenir(['mes-candidats', 'inconnu', 'parametres', 'mes-candidats', 'mon-compte'], duReferent),
+    ).toEqual(['mes-candidats', 'mon-compte']);
+  });
+
+  it('ne garde pas plus de propositions que prévu', () => {
+    const tous = duReferent.map((p) => p.id);
+    expect(retenir(tous, duReferent)).toHaveLength(PROPOSITIONS_AU_PLUS);
+  });
+
+  it('limite les questions par personne, puis rouvre après la fenêtre', () => {
+    const passages = new Map<string, number[]>();
+    const t0 = 1_000_000;
+    for (let i = 0; i < QUESTIONS_PAR_FENETRE; i += 1) {
+      expect(questionAutorisee(passages, 'moi', t0 + i)).toBe(true);
+    }
+    expect(questionAutorisee(passages, 'moi', t0 + 100)).toBe(false);
+    // Une autre personne n'est pas concernée.
+    expect(questionAutorisee(passages, 'elle', t0 + 100)).toBe(true);
+    expect(questionAutorisee(passages, 'moi', t0 + FENETRE_DES_QUESTIONS + 100)).toBe(true);
   });
 });
