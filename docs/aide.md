@@ -31,6 +31,19 @@ Elle est montée une fois, dans la coquille des espaces
 (`apps/web/src/app/espace/layout.tsx`), et ne propose que les parcours que le
 rôle a le droit d'ouvrir.
 
+## Sur un téléphone
+
+Sous 46 rem de large, le bouton flottant disparaît des espaces de travail : il
+recouvrait la fiche du candidat. L'aide devient une entrée « Aide », en bas du
+menu repliable. Les formulaires publics, qui n'ont pas de menu, gardent leur
+bouton.
+
+Le menu étant replié par défaut, ses entrées ne sont pas à l'écran. Quand une
+étape désigne l'une d'elles (ancre `menu:…` ou `eteint:…`), l'aide demande à la
+colonne de se déployer, et de se replier quand l'étape est passée. Les deux
+composants se parlent par deux événements du navigateur, nommés dans
+`apps/web/src/lib/aide/signaux.ts`.
+
 ## Claude en renfort
 
 Quand la recherche locale ne trouve rien, la fenêtre propose un bouton

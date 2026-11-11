@@ -798,3 +798,13 @@ describe('les écrans de la loge et du pilotage, pas encore livrés', () => {
     expect(texte).not.toMatch(/dossiers|réunions/);
   });
 });
+
+describe('ce que l’aide et le menu se disent', () => {
+  it('reconnaît une ancre du menu, allumée ou éteinte, et rien d’autre', async () => {
+    const { ancreDuMenu } = await import('../src/lib/aide/signaux');
+    expect(ancreDuMenu('menu:/espace/candidats')).toBe(true);
+    expect(ancreDuMenu('eteint:Relation')).toBe(true);
+    expect(ancreDuMenu('liste-candidats')).toBe(false);
+    expect(ancreDuMenu(null)).toBe(false);
+  });
+});

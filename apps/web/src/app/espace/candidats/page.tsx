@@ -24,6 +24,7 @@ import { Corbeille } from '@/components/Icones';
 // l'écrire.
 import { FAMILLES } from '@/components/VueAccueil';
 import {
+  NATURES,
   jeSuisReferent,
   lireJournal,
   lireRetirees,
@@ -70,6 +71,8 @@ type Parametres = {
   /** Ce que la route de réouverture a répondu, quand elle a refusé. */
   reouverture?: string | string[];
   cvanonyme?: string | string[];
+  /** La nature préparée pour la prochaine note du suivi : « Appel », après un appel. */
+  nature?: string | string[];
 };
 
 /**
@@ -157,6 +160,9 @@ export default async function PosteDeTravail({
   // La note ouverte en correction. Elle vit dans l'adresse comme le reste :
   // un rafraîchissement ne referme pas ce qu'on était en train d'écrire.
   const corrige = premier(parametres.note) || null;
+  // La nature préparée : seulement l'une de celles que l'application propose.
+  // Une adresse fabriquée ne fait pas écrire autre chose dans le champ.
+  const naturePreparee = NATURES.find((n) => n === premier(parametres.nature)) ?? null;
 
   const tous = await listerCandidatsDeLaLoge();
 
@@ -415,6 +421,7 @@ export default async function PosteDeTravail({
             corrige={corrige}
             retirees={retirees}
             jePeuxNoter={jePeuxNoter}
+            naturePreparee={naturePreparee}
             adresse={adresse}
             collegues={collegues}
             referentActuel={referentActuel}

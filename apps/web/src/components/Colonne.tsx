@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { PARAMETRES, estCourante, famillesDuRole } from '@/lib/navigation';
+import { SIGNAL_MENU, SIGNAL_OUVRIR_L_AIDE } from '@/lib/aide/signaux';
 import { nomAffichable } from '@/lib/format';
 import type { Connecte } from '@/lib/presence';
 import type { MaPhoto, Profil } from '@/lib/profil';
@@ -51,7 +52,20 @@ export default function Colonne({
   // Au-dessus de la largeur d'un téléphone, le bouton n'existe pas et cette
   // classe ne change rien.
   const [ouvertSur, setOuvertSur] = useState<string | null>(null);
-  const menuOuvert = ouvertSur === chemin;
+  // L'aide le déploie aussi, le temps de désigner une de ses entrées : replié,
+  // l'entrée n'est pas à l'écran et le personnage n'aurait rien à montrer.
+  const [pourLAide, setPourLAide] = useState(false);
+  useEffect(() => {
+    const entendre = (e: Event) => setPourLAide((e as CustomEvent<boolean>).detail === true);
+    window.addEventListener(SIGNAL_MENU, entendre);
+    return () => window.removeEventListener(SIGNAL_MENU, entendre);
+  }, []);
+  const menuOuvert = ouvertSur === chemin || pourLAide;
+
+  const basculer = () => {
+    setPourLAide(false);
+    setOuvertSur(menuOuvert ? null : chemin);
+  };
 
   return (
     <nav
@@ -70,7 +84,7 @@ export default function Colonne({
           type="button"
           className="colonne-bascule"
           aria-expanded={menuOuvert}
-          onClick={() => setOuvertSur(menuOuvert ? null : chemin)}
+          onClick={basculer}
         >
           {menuOuvert ? 'Fermer' : 'Menu'}
         </button>
@@ -160,6 +174,21 @@ export default function Colonne({
         <Roue />
         {PARAMETRES.libelle}
       </Link>
+
+      {/* L'aide, sur un téléphone seulement : son bouton flottant y recouvrait
+          la fiche, elle devient une entrée du menu. Ailleurs cette entrée
+          n'est pas affichée, et le bouton flottant reste à sa place. */}
+      <button
+        type="button"
+        className="colonne-entree colonne-aide"
+        onClick={() => {
+          setPourLAide(false);
+          setOuvertSur(null);
+          window.dispatchEvent(new Event(SIGNAL_OUVRIR_L_AIDE));
+        }}
+      >
+        Aide
+      </button>
     </nav>
   );
 }

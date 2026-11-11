@@ -4414,10 +4414,14 @@ a.poste-document .poste-document-type {
   gap: 0.15rem 0.9rem;
 }
 
-/* Le bouton « Menu » et le retour à la liste n'existent que sur un téléphone :
-   ailleurs la colonne est déployée, et la liste est à côté de la fiche. */
+/* Le bouton « Menu », le retour à la liste, les boutons pour joindre le
+   candidat et l'entrée « Aide » du menu n'existent que sur un téléphone :
+   ailleurs la colonne est déployée, la liste est à côté de la fiche, le numéro
+   se lit dans la fiche et l'aide a son bouton flottant. */
 .colonne-bascule,
-.poste-retour {
+.colonne-aide,
+.poste-retour,
+.poste-contacts {
   display: none;
 }
 
@@ -4519,6 +4523,54 @@ a.poste-document .poste-document-type {
     text-decoration: none;
   }
 
+  /* Joindre le candidat : trois boutons de même largeur, sous le nom, puis
+     le lien qui prépare la note. */
+  .poste-contacts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    width: 100%;
+  }
+
+  .poste-contacts .bouton {
+    flex: 1 1 0;
+    min-height: 2.75rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+
+  .poste-contacts-noter {
+    flex: 1 0 100%;
+    padding: 0.3rem 0;
+    font-size: 0.85rem;
+    color: var(--encre-douce);
+  }
+
+  /* L'aide : une entrée du menu, plus de bouton flottant sur la fiche. Dans
+     les espaces de travail seulement — les formulaires publics n'ont pas de
+     menu, leur bouton reste. */
+  .atelier .aide-bouton {
+    display: none;
+  }
+
+  .atelier .aide-fenetre {
+    bottom: 16px;
+  }
+
+  .colonne-aide {
+    display: block;
+    width: 100%;
+    text-align: left;
+    font: inherit;
+    background: none;
+    border-top: none;
+    border-right: none;
+    cursor: pointer;
+  }
+
   .poste-rang {
     padding-top: 0.7rem;
     padding-bottom: 0.7rem;
@@ -4565,7 +4617,8 @@ a.poste-document .poste-document-type {
 
 @media print {
   .colonne-bascule,
-  .poste-retour {
+  .poste-retour,
+  .poste-contacts {
     display: none;
   }
 }

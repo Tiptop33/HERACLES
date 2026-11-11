@@ -3,6 +3,7 @@
 import dynamic from 'next/dynamic';
 import { usePathname, useRouter } from 'next/navigation';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { SIGNAL_MENU, SIGNAL_OUVRIR_L_AIDE, ancreDuMenu } from '@/lib/aide/signaux';
 import {
   cheminDe,
   etapeDArrivee,
@@ -233,6 +234,12 @@ export default function Aide({
     bouton.current?.focus();
   }, []);
 
+  // Sur un téléphone, c'est l'entrée « Aide » du menu qui ouvre la fenêtre.
+  useEffect(() => {
+    window.addEventListener(SIGNAL_OUVRIR_L_AIDE, ouvrir);
+    return () => window.removeEventListener(SIGNAL_OUVRIR_L_AIDE, ouvrir);
+  }, [ouvrir]);
+
   // Demander à Claude : seulement sur un clic, jamais en tapant. La question
   // quitte alors le navigateur — c'est dit à côté du bouton.
   const demander = useCallback(async () => {
@@ -298,6 +305,14 @@ export default function Aide({
   // En capture, pour l'entendre même si l'écran arrête l'événement en route.
   const ancre = etape?.ancre ?? null;
   const index = visite?.index ?? 0;
+
+  // Une entrée du menu à désigner : on demande à la colonne de se déployer.
+  // Sur un téléphone elle est repliée, et l'entrée ne serait pas à l'écran ;
+  // ailleurs la demande ne change rien, la colonne est toujours déployée.
+  const dansLeMenu = ancreDuMenu(ancre);
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent(SIGNAL_MENU, { detail: dansLeMenu }));
+  }, [dansLeMenu]);
   useEffect(() => {
     if (!ancre) return;
     const clic = (e: MouseEvent) => {
