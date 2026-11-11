@@ -36,7 +36,7 @@ rôle a le droit d'ouvrir.
 Sous 46 rem de large, le bouton flottant disparaît des espaces de travail : il
 recouvrait la fiche du candidat. L'aide devient une entrée « Aide », en bas du
 menu que déploie l'onglet « Plus » de la barre du bas (Référents, Candidats,
-Documents, Plus). Le guide se place au-dessus de cette barre, jamais dessus. Les formulaires publics, qui n'ont pas de menu, gardent leur
+Documents, Plus). Le guide se place au-dessus de cette barre, jamais dessus. Candidats et Référents ne sont que dans la barre, pas dans le panneau « Plus » : leurs onglets portent la même ancre que l'entrée de la colonne (`ANCRES_DES_ONGLETS`), et c'est là que l'aide vient les désigner, sans ouvrir le panneau. Les formulaires publics, qui n'ont pas de menu, gardent leur
 bouton.
 
 Le menu étant replié par défaut, ses entrées ne sont pas à l'écran. Quand une

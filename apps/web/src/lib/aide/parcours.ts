@@ -73,7 +73,7 @@ const PARAMETRES = '/espace/parametres';
 const MENU_CANDIDATS: Etape = {
   ancre: `menu:${CANDIDATS}`,
   texte: 'Tout part d’ici : dans la colonne de gauche, cliquez sur « Candidats ».',
-  court: 'Tout part d’ici : dans le menu, touchez « Candidats ».',
+  court: 'Tout part d’ici : dans la barre du bas, touchez « Candidats ».',
 };
 
 const CHOISIR_UN_CANDIDAT: Etape = {
@@ -332,7 +332,7 @@ export const PARCOURS: readonly Parcours[] = [
       {
         ancre: 'menu:/espace/referents',
         texte: 'Dans la colonne de gauche, famille « Réseau », cliquez sur « Référents ».',
-        court: 'Dans le menu, famille « Réseau », touchez « Référents ».',
+        court: 'Dans la barre du bas, touchez « Référents ».',
       },
       {
         ancre: 'recherche-referents',
@@ -537,7 +537,7 @@ export const PARCOURS: readonly Parcours[] = [
       {
         ancre: 'menu:/espace/referents',
         texte: 'Dans la colonne de gauche, famille « Réseau », cliquez sur « Référents ».',
-        court: 'Dans le menu, famille « Réseau », touchez « Référents ».',
+        court: 'Dans la barre du bas, touchez « Référents ».',
       },
       {
         ancre: 'filtre-loge',
@@ -801,7 +801,7 @@ export const PARCOURS: readonly Parcours[] = [
       {
         ancre: 'menu:/espace/referents',
         texte: 'Dans la colonne de gauche, famille « Réseau », cliquez sur « Référents ».',
-        court: 'Dans le menu, famille « Réseau », touchez « Référents ».',
+        court: 'Dans la barre du bas, touchez « Référents ».',
       },
       {
         ancre: 'retirer-referent',
@@ -967,7 +967,7 @@ export const PARCOURS: readonly Parcours[] = [
       {
         ancre: 'menu:/espace/referents',
         texte: 'Dans la colonne de gauche, famille « Réseau », cliquez sur « Référents ».',
-        court: 'Dans le menu, famille « Réseau », touchez « Référents ».',
+        court: 'Dans la barre du bas, touchez « Référents ».',
       },
       {
         ancre: 'corriger-referent',

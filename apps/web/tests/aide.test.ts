@@ -315,6 +315,24 @@ describe('la place du personnage', () => {
     expect(place.y).toBe(355 + 55 + 14);
   });
 
+  it('se tient au-dessus de la barre d’onglets, et sur un onglet quand il le désigne', () => {
+    const telephone = {
+      ...mesures,
+      ecran: { l: 390, h: 780 },
+      guide: { l: 270, h: 290 },
+      reserveEnBas: 56,
+    };
+    // Une liste haute : calé en bas, il s'arrête au-dessus de la barre.
+    const sousLaListe = placer({ x: 0, y: 240, l: 390, h: 225 }, telephone);
+    expect(sousLaListe.y + telephone.guide.h).toBeLessThanOrEqual(780 - 56 - 8);
+    // L'onglet « Candidats », dans la barre : le guide s'accroche par le bas,
+    // ses pieds juste au-dessus de l'onglet — compté depuis le vrai bas de l'écran.
+    const surLOnglet = placer({ x: 98, y: 724, l: 97, h: 56 }, telephone);
+    expect(surLOnglet.cote).toBe('dessus');
+    expect(surLOnglet.depuisLeBas).toBe(true);
+    expect(780 - surLOnglet.y).toBeLessThanOrEqual(724);
+  });
+
   it('ne sort jamais de l’écran, même sur un petit', () => {
     const petit = { ...mesures, ecran: { l: 320, h: 480 } };
     const place = placer({ x: 20, y: 20, l: 280, h: 40 }, petit);
@@ -840,5 +858,12 @@ describe('ce que l’aide et le menu se disent', () => {
     expect(ancreDuMenu('eteint:Relation')).toBe(true);
     expect(ancreDuMenu('liste-candidats')).toBe(false);
     expect(ancreDuMenu(null)).toBe(false);
+  });
+
+  it('ne range dans la barre d’onglets que des entrées que la colonne offre', async () => {
+    const { ANCRES_DES_ONGLETS } = await import('../src/lib/aide/signaux');
+    const { FAMILLES } = await import('../src/lib/navigation');
+    const offertes = FAMILLES.flatMap((f) => f.entrees).map((e) => `menu:${e.vers}`);
+    for (const ancre of ANCRES_DES_ONGLETS) expect(offertes).toContain(ancre);
   });
 });

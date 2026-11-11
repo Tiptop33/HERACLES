@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { PARAMETRES, estCourante, famillesDuRole } from '@/lib/navigation';
-import { SIGNAL_MENU, SIGNAL_OUVRIR_L_AIDE } from '@/lib/aide/signaux';
+import { ANCRES_DES_ONGLETS, SIGNAL_MENU, SIGNAL_OUVRIR_L_AIDE } from '@/lib/aide/signaux';
 import { nomAffichable } from '@/lib/format';
 import type { Connecte } from '@/lib/presence';
 import type { MaPhoto, Profil } from '@/lib/profil';
@@ -57,7 +57,12 @@ export default function Colonne({
   // l'entrée n'est pas à l'écran et le personnage n'aurait rien à montrer.
   const [pourLAide, setPourLAide] = useState(false);
   useEffect(() => {
-    const entendre = (e: Event) => setPourLAide((e as CustomEvent<boolean>).detail === true);
+    // Candidats et Référents sont dans la barre d'onglets, pas dans le
+    // panneau : l'aide les y désigne, et le panneau reste replié.
+    const entendre = (e: Event) => {
+      const ancre = (e as CustomEvent<string | null>).detail;
+      setPourLAide(typeof ancre === 'string' && !ANCRES_DES_ONGLETS.includes(ancre));
+    };
     window.addEventListener(SIGNAL_MENU, entendre);
     return () => window.removeEventListener(SIGNAL_MENU, entendre);
   }, []);
@@ -219,6 +224,9 @@ export default function Colonne({
           key={vers}
           href={vers}
           className="barre-onglet"
+          // La même ancre que l'entrée de la colonne, quand elle en a une : sur
+          // un téléphone c'est ici que l'aide vient la désigner.
+          data-aide={ANCRES_DES_ONGLETS.includes(`menu:${vers}`) ? `menu:${vers}` : undefined}
           aria-current={ongletCourant === vers ? 'page' : undefined}
           onClick={replier}
         >

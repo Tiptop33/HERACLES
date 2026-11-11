@@ -4536,6 +4536,14 @@ a.poste-document .poste-document-type {
     border-bottom: none;
   }
 
+  /* Ce qui est dans la barre d'onglets n'est pas redit dans le panneau :
+     « Plus » veut dire le reste. L'égalité est stricte — « Nouveau candidat »,
+     dont l'adresse commence pareil, y reste. */
+  .colonne [data-aide='menu:/espace/candidats'],
+  .colonne [data-aide='menu:/espace/referents'] {
+    display: none;
+  }
+
   /* L'aide se tient au-dessus de la barre d'onglets, pas dessous. */
   .atelier .aide-guide--coin {
     bottom: calc(var(--onglets-h) + 12px);
