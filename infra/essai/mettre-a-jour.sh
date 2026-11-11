@@ -197,4 +197,22 @@ else
   rouge "la prochaine mise en ligne reprendra."
 fi
 
+etape "Provinces — depuis Bubble"
+# Le nom et l'écusson de chaque province, pour l'écran « Province »
+# (migrations 0080, 0081). Même règle que les PDF : non bloquant, borné, à
+# retirer après la bascule.
+#
+# Bubble cache les provinces à l'API sans jeton : la reprise lit le jeton dans
+# la ligne `BUBBLE_TOKEN=` du `.env` de la pile. Sans elle, elle s'arrête sur
+# le code 3 — ce n'est pas une panne, juste une reprise qu'on n'a pas les
+# moyens de faire, et le dire en rouge à chaque mise en ligne l'userait.
+provinces=0
+timeout 180 "$DEPOT/infra/essai/reprendre-bubble.sh" --provinces || provinces=$?
+case $provinces in
+  0) vert "provinces à jour" ;;
+  3) echo "provinces : pas de jeton Bubble dans $DOSSIER/.env — reprise non faite" ;;
+  *) rouge "provinces : reprise incomplète (code $provinces) — sans effet sur l'application,"
+     rouge "la prochaine mise en ligne reprendra." ;;
+esac
+
 vert "instance d'essai à jour"

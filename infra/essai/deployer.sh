@@ -84,12 +84,14 @@ if [[ $ZERO -eq 1 ]]; then
   fi
   # Les réglages SMTP sont les seuls que le script ne sache pas refabriquer :
   # ils viennent du fournisseur de courrier. On les remet dans le `.env` neuf.
+  # Le jeton Bubble aussi, pour la même raison : il vient de l'éditeur Bubble,
+  # et la reprise des provinces le lit là à chaque mise en ligne.
   SMTP_GARDE="$(mktemp)"
   trap 'rm -f "$SMTP_GARDE"' EXIT
   if [[ -f "$DOSSIER/.env" ]]; then
-    grep -E '^SMTP_(HOST|PORT|USER|PASS|ADMIN_EMAIL)=.' "$DOSSIER/.env" > "$SMTP_GARDE" || true
+    grep -E '^(SMTP_(HOST|PORT|USER|PASS|ADMIN_EMAIL)|BUBBLE_TOKEN)=.' "$DOSSIER/.env" > "$SMTP_GARDE" || true
     if [[ -s "$SMTP_GARDE" ]]; then
-      vert "réglages SMTP mis de côté ($(wc -l < "$SMTP_GARDE") lignes)"
+      vert "réglages SMTP et jeton Bubble mis de côté ($(wc -l < "$SMTP_GARDE") lignes)"
     fi
   fi
 
@@ -235,7 +237,7 @@ if [[ ! -f "$DOSSIER/.env" ]]; then
       sed -i "/^${ligne%%=*}=/d" "$DOSSIER/.env"
       printf '%s\n' "$ligne" >> "$DOSSIER/.env"
     done < "$SMTP_GARDE"
-    vert "réglages SMTP repris de l'installation précédente"
+    vert "réglages SMTP et jeton Bubble repris de l'installation précédente"
   fi
 else
   vert ".env déjà là — on n'y touche pas (les secrets ne se régénèrent pas)"

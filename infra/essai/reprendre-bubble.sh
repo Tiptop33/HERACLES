@@ -9,8 +9,10 @@
 #
 # `--provinces` ne reprend que les provinces — nom et écusson — et rattache
 # les loges (migrations 0080, 0081). Jeton obligatoire : Bubble cache ce type
-# à l'API anonyme. Pas joué à chaque mise en ligne, faute de jeton sur la
-# chaîne de déploiement : il se lance à la main.
+# à l'API anonyme. Le jeton vient de la commande, ou à défaut de la ligne
+# `BUBBLE_TOKEN=` du `.env` de la pile. Rangé là, `mettre-a-jour.sh` le joue
+# à chaque mise en ligne, jusqu'à la bascule. Sans jeton, il s'arrête sur le
+# code 3 — « rien à faire », et non une panne.
 #
 # `--pdf-commission` ne reprend que la table des PDF de Bubble, et ne rapatrie
 # que les comptes rendus, affiches et affichettes — ni candidat, ni référent,
@@ -141,13 +143,27 @@ if [[ $PROVINCES -eq 1 ]]; then
   # jeton : chaque fiche répond, mais réduite à son identifiant — ni nom, ni
   # écusson. Sans jeton, cette reprise n'apporterait rien ; on refuse plutôt
   # que de finir en vert sur des cartes vides.
+  #
+  # Le jeton de la commande d'abord ; sinon celui rangé dans le `.env` de la
+  # pile, qui permet à chaque mise en ligne de rejouer cette reprise. Il ne
+  # sert qu'ici : les PDF et les dates se reprennent sans lui aujourd'hui, et
+  # un jeton refusé les ferait échouer.
+  if [[ -z "${BUBBLE_TOKEN:-}" ]]; then
+    BUBBLE_TOKEN="$(grep -m1 '^BUBBLE_TOKEN=' "$DOSSIER/.env" 2>/dev/null | cut -d= -f2- || true)"
+    # Ce qu'un éditeur de texte a pu ajouter autour : guillemets, retour
+    # chariot d'un fichier passé par Windows.
+    BUBBLE_TOKEN="${BUBBLE_TOKEN%$'\r'}"
+    BUBBLE_TOKEN="${BUBBLE_TOKEN#\"}"; BUBBLE_TOKEN="${BUBBLE_TOKEN%\"}"
+    BUBBLE_TOKEN="${BUBBLE_TOKEN#\'}"; BUBBLE_TOKEN="${BUBBLE_TOKEN%\'}"
+  fi
   if [[ -z "${BUBBLE_TOKEN:-}" ]]; then
     rouge "BUBBLE_TOKEN est obligatoire pour les provinces."
     echo  "Bubble les cache à l'API sans jeton (règle de confidentialité du type"
     echo  "« provinces ») : on n'obtiendrait que des identifiants. Le jeton se crée"
-    echo  "dans l'éditeur Bubble, Settings → API → API Tokens, puis :"
-    echo  "  BUBBLE_TOKEN=xxx sudo -E $0 --provinces"
-    exit 1
+    echo  "dans l'éditeur Bubble, Settings → API → API Tokens. Puis, au choix :"
+    echo  "  BUBBLE_TOKEN=xxx sudo -E $0 --provinces          # une fois"
+    echo  "  une ligne BUBBLE_TOKEN=xxx dans $DOSSIER/.env  # à chaque mise en ligne"
+    exit 3
   fi
 
   etape "Provinces — la réserve brute, depuis la base en service"
