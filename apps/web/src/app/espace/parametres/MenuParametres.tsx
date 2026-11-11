@@ -28,6 +28,7 @@ export default function MenuParametres({ rubriques }: { rubriques: readonly Rubr
           <span
             key={r.libelle}
             className="parametres-entree parametres-entree--eteinte"
+            data-aide={`rubrique-eteinte:${r.libelle}`}
             title={`À venir — ${r.lot ?? 'plus tard'}`}
           >
             {r.libelle}

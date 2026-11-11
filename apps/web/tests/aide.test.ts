@@ -88,6 +88,12 @@ describe('le catalogue de l’aide', () => {
           );
           expect(entree, ou).toBeDefined();
           expect(entree?.vers, ou).toBeNull();
+        } else if (ancre.startsWith('rubrique-eteinte:')) {
+          expect(SOURCES, ou).toContain('data-aide={`rubrique-eteinte:${r.libelle}`}');
+          // Même garde-fou : la rubrique doit exister et être encore éteinte.
+          const rubrique = RUBRIQUES.find((r) => r.libelle === ancre.slice(17));
+          expect(rubrique, ou).toBeDefined();
+          expect(rubrique?.vers, ou).toBeNull();
         } else if (ancre.startsWith('onglet-eteint:')) {
           expect(FICHE, ou).toContain('data-aide={`onglet-eteint:${o.valeur}`}');
           expect(FICHE, ou).toMatch(
@@ -194,6 +200,11 @@ describe('la recherche de l’aide', () => {
     ['proposer une offre à un candidat', 'proposer-une-offre'],
     ['quelles offres ont été proposées à ce candidat', 'offres-proposees'],
     ['mise en relation', 'relation'],
+    ['combien de candidats en attente', 'chiffres-de-l-accueil'],
+    ['où est le tableau de bord', 'tableau-de-bord'],
+    ['faire le bilan de l’exercice', 'bilan'],
+    ['envoyer un message à un candidat', 'messagerie'],
+    ['où sont les correspondants', 'correspondants'],
     ['supprimer un dossier', 'supprimer-un-dossier'],
     ['j’ai créé un dossier par erreur', 'supprimer-un-dossier'],
     ['supprimer une réunion', 'retirer-une-reunion'],
@@ -219,6 +230,9 @@ describe('la recherche de l’aide', () => {
     ['changer les dates de l’exercice', 'parametres-exercice'],
     ['changer le logo de l’affiche', 'parametres-mise-en-page'],
     ['inviter un nouveau référent', 'invitations'],
+    ['ajouter une loge', 'gerer-les-loges'],
+    ['ajouter un secteur d’activité', 'secteurs-d-activite'],
+    ['changer les types de document', 'types-de-document'],
     ['retirer un référent', 'retirer-un-referent'],
     ['un référent quitte la loge', 'retirer-un-referent'],
     ['retirer un titre du collège', 'retirer-un-titre'],
@@ -699,5 +713,61 @@ describe('les écrans des offres, pas encore livrés', () => {
     for (const id of ['ecrans-des-offres', 'entreprises', 'relation']) {
       expect(PARCOURS.find((x) => x.id === id)!.destination, id).toBeNull();
     }
+  });
+});
+
+describe('les écrans de la loge et du pilotage, pas encore livrés', () => {
+  const A_VENIR = [
+    'tableau-de-bord',
+    'bilan',
+    'messagerie',
+    'correspondants',
+    'gerer-les-loges',
+    'secteurs-d-activite',
+    'types-de-document',
+  ];
+  const parcours = (id: string) => PARCOURS.find((x) => x.id === id)!;
+  const derniere = (id: string) => parcours(id).etapes[parcours(id).etapes.length - 1];
+
+  it('dit franchement que ce n’est pas encore en service, sans date ni lot', () => {
+    for (const id of A_VENIR) {
+      expect(derniere(id).texte, id).toMatch(/pas encore en service/);
+      expect(derniere(id).ancre, id).toMatch(/^(eteint:|rubrique-eteinte:)/);
+      expect(derniere(id).texte, id).not.toMatch(/lot \d|bientôt|prochainement|\b20\d\d\b/i);
+    }
+  });
+
+  it('ne désigne à un rôle que des entrées grisées qu’il voit', () => {
+    for (const role of ['referent', 'admin'] as const) {
+      const visibles = famillesDuRole(role).flatMap((f) => f.entrees.map((e) => e.libelle));
+      for (const p of parcoursDuRole(role)) {
+        for (const etape of p.etapes) {
+          if (!etape.ancre?.startsWith('eteint:')) continue;
+          expect(visibles, `${role} · ${p.id}`).toContain(etape.ancre.slice(7));
+        }
+      }
+    }
+  });
+
+  it('réserve à l’administration ce qui est dans sa famille ou ses paramètres', () => {
+    const duReferent = parcoursDuRole('referent').map((p) => p.id);
+    for (const id of ['gerer-les-loges', 'secteurs-d-activite', 'types-de-document']) {
+      expect(parcours(id).roles, id).toEqual(['admin']);
+      expect(duReferent, id).not.toContain(id);
+    }
+  });
+
+  it('montre ce qui existe déjà : les chiffres de l’accueil', () => {
+    expect(parcours('chiffres-de-l-accueil').destination).toBe('/espace/accueil');
+    expect(derniere('chiffres-de-l-accueil').ancre).toBe('compteurs');
+    expect(derniere('tableau-de-bord').texte).toMatch(/en tête de l’accueil/);
+  });
+
+  it('décrit les archives comme l’écran les décrit', () => {
+    // Le texte d'origine parlait de dossiers et de réunions : la rubrique ne
+    // garde que les documents de la commission.
+    const texte = derniere('parametres-archives').texte;
+    expect(texte).toMatch(/comptes rendus, affiches et affichettes/);
+    expect(texte).not.toMatch(/dossiers|réunions/);
   });
 });

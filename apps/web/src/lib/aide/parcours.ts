@@ -13,8 +13,9 @@ import type { Role } from '../roles';
  * - `vue:<valeur>` / `onglet:<valeur>` — une pastille du volet des candidats,
  *   un onglet de la fiche ;
  * - `rubrique:<adresse>` — une rubrique du menu des paramètres ;
- * - `eteint:<libellé>` / `onglet-eteint:<valeur>` — une entrée du menu ou un
- *   onglet encore grisés : l'écran n'existe pas, et l'aide le dit ;
+ * - `eteint:<libellé>` / `onglet-eteint:<valeur>` / `rubrique-eteinte:<libellé>`
+ *   — une entrée du menu, un onglet ou une rubrique des paramètres encore
+ *   grisés : l'écran n'existe pas, et l'aide le dit ;
  * - un nom libre (`recherche-candidats`) — un élément marqué à la main.
  *
  * Tout ce fichier est du texte et des adresses : aucune donnée de personne n'y
@@ -641,6 +642,121 @@ export const PARCOURS: readonly Parcours[] = [
       },
     ],
   },
+  // ——— La loge et le pilotage : ce qui se lit déjà, et ce qui attend ———
+  // Même principe que pour les offres : l'aide montre ce qui existe (les
+  // compteurs de l'accueil, le filtre par loge de l'annuaire) et dit
+  // franchement ce qui n'est pas en service.
+  {
+    id: 'chiffres-de-l-accueil',
+    titre: 'Voir les chiffres du moment',
+    motsCles: ['chiffres', 'compteurs', 'combien de candidats', 'combien', 'nombre', 'statistiques', 'en attente', 'indicateurs'],
+    destination: ACCUEIL,
+    etapes: [
+      MENU_ACCUEIL,
+      {
+        ancre: 'compteurs',
+        ecran: ACCUEIL,
+        texte:
+          'En tête de l’accueil, quatre chiffres disent où l’on en est : les candidats suivis de la loge, ceux en attente de référent, les offres en cours, les référents de la loge.',
+      },
+    ],
+  },
+  {
+    id: 'tableau-de-bord',
+    titre: 'Ouvrir le tableau de bord',
+    motsCles: ['tableau de bord', 'pilotage', 'suivi global', 'vue d’ensemble', 'graphiques', 'indicateurs de la loge'],
+    destination: null,
+    etapes: [
+      {
+        ancre: 'eteint:Tableau de bord',
+        texte:
+          'Le « Tableau de bord » n’est pas encore en service : son entrée est grisée dans la famille « Pilotage ». En attendant, les chiffres du moment sont en tête de l’accueil.',
+      },
+    ],
+  },
+  {
+    id: 'bilan',
+    titre: 'Produire le bilan',
+    motsCles: ['bilan', 'bilan annuel', 'bilan de l’exercice', 'rapport', 'rapport d’activité', 'synthèse'],
+    destination: null,
+    etapes: [
+      {
+        ancre: 'eteint:Bilan',
+        texte:
+          'Le « Bilan » n’est pas encore en service : son entrée est grisée dans la famille « Pilotage ». Le registre des réunions, lui, compte déjà les présences de l’exercice.',
+      },
+    ],
+  },
+  {
+    id: 'messagerie',
+    titre: 'Écrire à un candidat ou à un collègue',
+    motsCles: ['messagerie', 'message', 'messages', 'écrire', 'envoyer un message', 'contacter', 'discussion', 'courriel à un candidat'],
+    destination: null,
+    etapes: [
+      {
+        ancre: 'eteint:Messagerie',
+        texte:
+          'La « Messagerie » n’est pas encore en service : son entrée est grisée dans la famille « Suivi ». En attendant, les coordonnées d’un candidat sont sur sa fiche, celles d’un référent dans l’annuaire.',
+      },
+    ],
+  },
+  {
+    id: 'correspondants',
+    titre: 'Consulter les correspondants',
+    motsCles: ['correspondant', 'correspondants', 'contact extérieur', 'contacts extérieurs', 'réseau extérieur', 'partenaires'],
+    destination: null,
+    etapes: [
+      {
+        ancre: 'eteint:Correspondants',
+        texte:
+          'L’écran « Correspondants » n’est pas encore en service : son entrée est grisée dans la famille « Réseau ».',
+      },
+    ],
+  },
+  {
+    id: 'gerer-les-loges',
+    titre: 'Gérer les loges',
+    motsCles: ['loges', 'gérer les loges', 'ajouter une loge', 'créer une loge', 'nom d’une loge', 'emblème', 'liste des loges'],
+    roles: ['admin'],
+    destination: null,
+    etapes: [
+      {
+        ancre: 'eteint:Loges',
+        texte:
+          'L’écran « Loges » n’est pas encore en service : son entrée est grisée dans la famille « Admin ». En attendant, l’annuaire des référents se filtre par loge.',
+      },
+    ],
+  },
+  {
+    id: 'secteurs-d-activite',
+    titre: 'Gérer les secteurs d’activité',
+    motsCles: ['secteur', 'secteurs', 'secteur d’activité', 'secteurs d’activité', 'domaine', 'branche', 'ajouter un secteur'],
+    roles: ['admin'],
+    destination: null,
+    etapes: [
+      {
+        ancre: 'eteint:Secteur d\'activité',
+        texte:
+          'L’écran « Secteur d’activité » n’est pas encore en service : son entrée est grisée dans la famille « Admin ».',
+      },
+    ],
+  },
+  {
+    id: 'types-de-document',
+    titre: 'Gérer les types de document',
+    motsCles: ['types de document', 'type de document', 'catégories de document', 'catégorie', 'classer les documents'],
+    roles: ['admin'],
+    destination: PARAMETRES,
+    etapes: [
+      ROUE_DES_PARAMETRES,
+      {
+        ancre: 'rubrique-eteinte:Types de document',
+        ecran: PARAMETRES,
+        texte:
+          'La rubrique « Types de document » n’est pas encore en service : elle est grisée dans le menu des paramètres, comme « Loges » et « Secteurs d’activité ».',
+      },
+    ],
+  },
   // ——— Les gestes qui retirent ou effacent ———
   // L'aide les montre, elle ne les fait pas : chaque bouton ouvre une fenêtre
   // de confirmation, et c'est la personne qui confirme. Chaque texte dit si
@@ -957,7 +1073,7 @@ export const PARCOURS: readonly Parcours[] = [
     'Consulter les archives de la loge',
     ['archives', 'archive', 'anciens documents', 'exercices passés', 'historique'],
     'archives',
-    '« Archives » garde ce qui a été rangé : dossiers, réunions et documents des exercices passés.',
+    '« Archives » garde les comptes rendus, affiches et affichettes des exercices précédents. Ceux de l’exercice en cours sont à l’accueil.',
   ),
 ];
 
