@@ -494,6 +494,7 @@ function Profil({
     .join(' ');
 
   const tel = telephone(fiche.telephone);
+  const telDuParrain = telephone(fiche.parrain_telephone);
 
   // Le menu du référent remplace le nom sur sa propre ligne quand on peut
   // en changer (0063). Il ne paraît que si le référent en place est parmi
@@ -658,8 +659,23 @@ function Profil({
                 .join(' ') || null}
             </Valeur>
             <dt>Contact</dt>
+            {/* Le numéro et l'adresse du parrain se touchent, comme ceux du
+                candidat : c'est lui qu'on appelle quand le candidat ne répond
+                pas. */}
             <Valeur>
-              {[fiche.parrain_telephone, fiche.parrain_email].filter(Boolean).join(' · ') || null}
+              {(telDuParrain || fiche.parrain_email) && (
+                <span className="contacts">
+                  {telDuParrain && (
+                    <span className="ligne-telephone">
+                      {telDuParrain.francais && <DrapeauFrance />}
+                      <a href={`tel:${telDuParrain.lien}`}>{telDuParrain.affiche}</a>
+                    </span>
+                  )}
+                  {fiche.parrain_email && (
+                    <a href={`mailto:${fiche.parrain_email}`}>{fiche.parrain_email}</a>
+                  )}
+                </span>
+              )}
             </Valeur>
             <dt>Lien</dt>
             <Valeur>{fiche.lien_parente}</Valeur>

@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { PARAMETRES, estCourante, famillesDuRole } from '@/lib/navigation';
@@ -43,8 +44,20 @@ export default function Colonne({
   const visibles = familles.flatMap((f) => f.entrees);
   const nom = nomAffichable(profil.prenom, profil.nom, profil.email);
 
+  // Sur un téléphone, les entrées se replient derrière le bouton « Menu » :
+  // étalées, elles prenaient la moitié de l'écran avant le premier candidat.
+  // On retient l'adresse sur laquelle le menu a été ouvert plutôt qu'un simple
+  // oui/non : changer d'écran le referme de lui-même, sans effet à déclencher.
+  // Au-dessus de la largeur d'un téléphone, le bouton n'existe pas et cette
+  // classe ne change rien.
+  const [ouvertSur, setOuvertSur] = useState<string | null>(null);
+  const menuOuvert = ouvertSur === chemin;
+
   return (
-    <nav className="colonne" aria-label="Navigation principale">
+    <nav
+      className={`colonne${menuOuvert ? ' colonne--ouverte' : ''}`}
+      aria-label="Navigation principale"
+    >
       <div className="colonne-marque">
         <span className={logo ? 'logo' : 'logo logo--absent'} aria-hidden="true">
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -52,6 +65,15 @@ export default function Colonne({
         </span>
         <span className="colonne-titre">HERACLES</span>
         {nom && <span className="colonne-qui">{nom}</span>}
+
+        <button
+          type="button"
+          className="colonne-bascule"
+          aria-expanded={menuOuvert}
+          onClick={() => setOuvertSur(menuOuvert ? null : chemin)}
+        >
+          {menuOuvert ? 'Fermer' : 'Menu'}
+        </button>
 
         {/* Votre visage, sous votre nom — ou sous votre adresse, faute de nom.
             `alt` vide à dessein : le nom est juste au-dessus, et le faire

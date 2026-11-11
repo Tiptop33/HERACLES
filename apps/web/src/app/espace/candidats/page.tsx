@@ -280,7 +280,9 @@ export default async function PosteDeTravail({
   };
 
   return (
-    <main className="poste">
+    // `poste--fiche` : une fiche est demandée. Sur un téléphone, l'écran n'a
+    // pas la place des deux — c'est la liste, ou la fiche.
+    <main className={`poste${demande ? ' poste--fiche' : ''}`}>
       <aside className="poste-volet" aria-label="Liste des candidats">
         <div className="poste-volet-tete">
           <div className="poste-volet-entete">
@@ -391,6 +393,18 @@ export default async function PosteDeTravail({
       </aside>
 
       <section className="poste-fiche" aria-label="Fiche du candidat">
+        {/* Le retour à la liste, sur un téléphone seulement : ailleurs la liste
+            est à côté, et ce lien ne mènerait qu'à fermer la fiche. La vue et
+            la recherche sont gardées — on retrouve la liste où on l'a laissée. */}
+        {demande && (
+          <Link
+            href={adresse({ fiche: null, onglet: null, note: null })}
+            className="poste-retour"
+          >
+            <span aria-hidden="true">←</span> Candidats
+          </Link>
+        )}
+
         {fiche ? (
           <PanneauFiche
             fiche={fiche}
