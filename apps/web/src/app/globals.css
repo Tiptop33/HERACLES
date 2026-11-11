@@ -4127,3 +4127,246 @@ a.poste-document .poste-document-type {
   gap: 0.5rem;
   margin-top: 0.2rem;
 }
+
+/* ————— L'aide —————
+   Trois pièces flottantes et non modales : le bouton en bas à droite, la
+   fenêtre où l'on pose sa question, et le guide — le personnage en volume et
+   sa bulle — qui vient se poser à côté de l'élément désigné. Aucun voile :
+   l'écran dessous reste lisible et cliquable, c'est lui qu'on apprend.
+
+   Le halo et le guide passent au-dessus des fenêtres (70) : ils doivent
+   pouvoir désigner un bouton qui s'y trouve. */
+
+.aide-bouton {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 50;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.5rem 0.95rem 0.5rem 0.55rem;
+  border: 1px solid var(--bordure-nette);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--encre);
+  font: inherit;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgb(0 0 0 / 0.14);
+}
+
+.aide-bouton:focus-visible {
+  outline: 2px solid var(--marque);
+  outline-offset: 2px;
+}
+
+.aide-bouton-signe {
+  display: inline-grid;
+  place-items: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  background: var(--marque);
+  color: var(--sur-marque);
+  font-weight: 700;
+}
+
+.aide-fenetre {
+  position: fixed;
+  right: 20px;
+  bottom: 72px;
+  z-index: 75;
+  display: flex;
+  flex-direction: column;
+  width: min(380px, calc(100vw - 32px));
+  max-height: min(540px, calc(100dvh - 96px));
+  background: var(--surface);
+  border: 1px solid var(--bordure-nette);
+  border-radius: 12px;
+  box-shadow: 0 12px 32px rgb(0 0 0 / 0.18), 0 2px 6px rgb(0 0 0 / 0.08);
+}
+
+.aide-fenetre-tete {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.6rem 1rem;
+  border-bottom: 1px solid var(--bordure);
+  background: var(--surface-creuse);
+  border-radius: 12px 12px 0 0;
+}
+
+.aide-fenetre-tete h2 {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.aide-fenetre-corps {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  min-height: 0;
+  padding: 0.9rem 1rem 1rem;
+}
+
+.aide-fenetre-corps .recherche {
+  width: 100%;
+}
+
+.aide-fenetre-note {
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+.aide-parcours {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.aide-parcours li {
+  display: grid;
+  gap: 0.45rem;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--bordure);
+  border-radius: 10px;
+}
+
+.aide-parcours-titre {
+  font-weight: 600;
+  font-size: 0.92rem;
+}
+
+.aide-parcours-gestes {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.aide-halo {
+  position: fixed;
+  z-index: 80;
+  border: 2px solid var(--marque);
+  border-radius: 10px;
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--marque) 28%, transparent);
+  /* Il entoure, il ne recouvre pas : le clic passe au travers. */
+  pointer-events: none;
+  animation: aide-pouls 1.6s ease-in-out infinite;
+}
+
+@keyframes aide-pouls {
+  50% {
+    box-shadow: 0 0 0 9px color-mix(in srgb, var(--marque) 10%, transparent);
+  }
+}
+
+.aide-guide {
+  position: fixed;
+  z-index: 81;
+  display: flex;
+  flex-direction: column;
+  width: 270px;
+  /* Le guide ne prend pas les clics dans ses vides : seule la bulle répond. */
+  pointer-events: none;
+}
+
+/* À droite de l'élément, le personnage se tient contre lui ; à gauche aussi,
+   donc de l'autre bord. Dessus, la bulle passe en haut : ce sont les pieds du
+   personnage qui touchent l'élément. */
+.aide-guide--droite {
+  align-items: flex-start;
+}
+
+.aide-guide--gauche {
+  align-items: flex-end;
+}
+
+.aide-guide--dessous,
+.aide-guide--coin {
+  align-items: center;
+}
+
+.aide-guide--dessus {
+  align-items: center;
+  flex-direction: column-reverse;
+}
+
+.aide-guide--coin {
+  right: 20px;
+  bottom: 20px;
+}
+
+.aide-personnage {
+  width: 120px;
+  height: 140px;
+  flex: none;
+  filter: drop-shadow(0 6px 6px rgb(0 0 0 / 0.18));
+}
+
+.aide-fleche {
+  display: grid;
+  place-items: center;
+  width: 120px;
+  height: 140px;
+  flex: none;
+  font-size: 3rem;
+  color: var(--marque);
+}
+
+.aide-bulle {
+  pointer-events: auto;
+  align-self: stretch;
+  padding: 0.75rem 0.85rem;
+  background: var(--surface);
+  border: 1px solid var(--bordure-nette);
+  border-radius: 12px;
+  box-shadow: 0 10px 26px rgb(0 0 0 / 0.18);
+}
+
+.aide-bulle p {
+  margin: 0 0 0.5rem;
+}
+
+.aide-bulle-etape {
+  font-size: 0.75rem;
+  color: var(--encre-douce);
+}
+
+.aide-bulle-texte {
+  font-size: 0.92rem;
+}
+
+.aide-bulle-note {
+  font-size: 0.85rem;
+  color: var(--attention);
+}
+
+.aide-bulle-gestes {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.aide-bulle-gestes .lien-nu {
+  margin-left: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aide-halo {
+    animation: none;
+  }
+}
+
+/* Rien de l'aide ne s'imprime. */
+@media print {
+  .aide-bouton,
+  .aide-fenetre,
+  .aide-halo,
+  .aide-guide {
+    display: none;
+  }
+}

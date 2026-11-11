@@ -1,3 +1,4 @@
+import Aide from '@/components/aide/Aide';
 import Barre from '@/components/Barre';
 import Colonne from '@/components/Colonne';
 import FenetreNouveauCandidat from '@/components/FenetreNouveauCandidat';
@@ -46,6 +47,11 @@ export default async function EspaceLayout({ children }: { children: React.React
           menu Admin et du volet des candidats l'ouvrent. Pour qui peut
           inviter un parrain, et seulement eux. */}
       {(profil.role === 'referent' || profil.role === 'admin') && <FenetreNouveauCandidat />}
+
+      {/* L'aide, montée une fois elle aussi : son bouton en bas à droite, et
+          le personnage qui vient désigner ce qu'on cherche. Elle ne propose
+          que ce que le rôle a le droit d'ouvrir. */}
+      <Aide role={profil.role} />
     </div>
   );
 }

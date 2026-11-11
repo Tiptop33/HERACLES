@@ -125,6 +125,7 @@ export default async function Referents({
             defaultValue={recherche}
             placeholder="Chercher un nom, une loge…"
             aria-label="Chercher un référent"
+            data-aide="recherche-referents"
           />
         </form>
       </div>

@@ -94,6 +94,7 @@ export default function Colonne({
             entree.vers === ADRESSE_NOUVEAU_CANDIDAT ? (
               <OuvrirNouveauCandidat
                 key={entree.libelle}
+                data-aide={`menu:${entree.vers}`}
                 aria-current={estCourante(entree, chemin, visibles) ? 'page' : undefined}
                 className={`colonne-entree${estCourante(entree, chemin, visibles) ? ' colonne-entree--courante' : ''}`}
               >
@@ -103,6 +104,7 @@ export default function Colonne({
               <Link
                 key={entree.libelle}
                 href={entree.vers}
+                data-aide={`menu:${entree.vers}`}
                 aria-current={estCourante(entree, chemin, visibles) ? 'page' : undefined}
                 className={`colonne-entree${estCourante(entree, chemin, visibles) ? ' colonne-entree--courante' : ''}`}
               >
@@ -125,6 +127,7 @@ export default function Colonne({
           parcourant les familles, on les cherche là où ils sont toujours. */}
       <Link
         href={PARAMETRES.vers}
+        data-aide={`menu:${PARAMETRES.vers}`}
         aria-current={estCourante(PARAMETRES, chemin) ? 'page' : undefined}
         className={`colonne-entree colonne-parametres${
           estCourante(PARAMETRES, chemin) ? ' colonne-entree--courante' : ''
