@@ -26,6 +26,7 @@ export default function ChoixDeLAffichette({
       method="post"
       action={`/api/reunions/${reunion}/affichette`}
       className="appel-affichette"
+      data-aide="choix-affichette"
     >
       <input type="hidden" name="retour" value={`/espace/reunion?appel=${reunion}`} />
       <label htmlFor="affichette-dossier">Dossier de l’affichette</label>

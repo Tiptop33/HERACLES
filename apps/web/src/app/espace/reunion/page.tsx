@@ -519,7 +519,7 @@ function Registre({
   }
 
   return (
-    <section className="bloc" style={{ marginTop: '1rem' }}>
+    <section className="bloc" style={{ marginTop: '1rem' }} data-aide="registre-reunions">
       <h2>Le registre de l’exercice</h2>
       <p className="maigre">
         De la réunion la plus ancienne à la plus récente. Les dates d’exercice viennent des

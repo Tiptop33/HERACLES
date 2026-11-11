@@ -170,7 +170,7 @@ export default function PanneauFiche({
           </div>
         </div>
 
-        <div className="fiche-actions">
+        <div className="fiche-actions" data-aide="actions-fiche">
           <BoutonImprimer />
 
           {/* L'affichette : ce dossier seul, mis en avant pour circuler. Elle
@@ -194,7 +194,12 @@ export default function PanneauFiche({
           {/* Clôturer n'agit pas tout de suite : le bouton ouvre la fenêtre
               où l'on dit qui a refermé le dossier (0071). */}
           {cloturable && (
-            <Link href={adresse({ cloturer: '1' })} scroll={false} className="bouton">
+            <Link
+              href={adresse({ cloturer: '1' })}
+              scroll={false}
+              className="bouton"
+              data-aide="cloturer-dossier"
+            >
               Clôturer le dossier
             </Link>
           )}
@@ -202,7 +207,12 @@ export default function PanneauFiche({
           {/* Sur un dossier clôturé, le même emplacement rouvre : la fenêtre
               dit ce que la réouverture efface avant de le faire (0072). */}
           {rouvrable && (
-            <Link href={adresse({ rouvrir: '1' })} scroll={false} className="bouton">
+            <Link
+              href={adresse({ rouvrir: '1' })}
+              scroll={false}
+              className="bouton"
+              data-aide="rouvrir-dossier"
+            >
               Rouvrir le dossier
             </Link>
           )}
@@ -214,6 +224,7 @@ export default function PanneauFiche({
             <Link
               href={`/espace/referent/candidats/${fiche.id}/modifier`}
               className="geste geste--corriger"
+              data-aide="corriger-fiche"
               aria-label={`Corriger la fiche de ${nom}`}
               title="Corriger cette fiche"
             >
@@ -317,7 +328,12 @@ function Suivi({
       {journal.length > 0 && <p className="maigre">{resumeDuJournal(journal)}</p>}
 
       {jePeuxNoter ? (
-        <form className="journal-ecrire" method="post" action={`/api/candidats/${fiche.id}/suivi`}>
+        <form
+          className="journal-ecrire"
+          method="post"
+          action={`/api/candidats/${fiche.id}/suivi`}
+          data-aide="noter-suivi"
+        >
           <textarea
             name="texte"
             required
@@ -579,7 +595,7 @@ function Profil({
         </dl>
       </section>
 
-      <section className="bloc">
+      <section className="bloc" data-aide="referent-du-candidat">
         <h2>Accompagnement</h2>
         <dl className="champs">
           <dt id="intitule-referent">Référent</dt>
@@ -899,7 +915,7 @@ function BandeauDuCvAnonyme({
         </p>
       ) : null}
 
-      <div className="cv-anonyme-gestes">
+      <div className="cv-anonyme-gestes" data-aide="cv-anonyme">
         <a
           className="bouton bouton--petit"
           href={`/api/candidats/${id}/cv-anonyme`}

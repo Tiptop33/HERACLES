@@ -18,6 +18,7 @@ export default function MenuParametres({ rubriques }: { rubriques: readonly Rubr
           <Link
             key={r.libelle}
             href={r.vers}
+            data-aide={`rubrique:${r.vers}`}
             aria-current={chemin.startsWith(r.vers) ? 'page' : undefined}
             className={`parametres-entree${chemin.startsWith(r.vers) ? ' parametres-entree--courante' : ''}`}
           >

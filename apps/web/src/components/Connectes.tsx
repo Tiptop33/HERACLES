@@ -79,7 +79,7 @@ export default function Connectes({ initiaux }: { initiaux: Connecte[] }) {
   if (connectes.length === 0) return null;
 
   return (
-    <div className="colonne-connectes">
+    <div className="colonne-connectes" data-aide="connectes">
       <p className="colonne-connectes-titre">
         {connectes.length === 1 ? 'Aussi en ligne' : `Aussi en ligne — ${connectes.length}`}
       </p>

@@ -101,6 +101,7 @@ export default async function Referents({
             <>
               <select
                 className="filtre-loge"
+                data-aide="filtre-loge"
                 name="loge"
                 defaultValue={loge}
                 aria-label="Choisir une loge"

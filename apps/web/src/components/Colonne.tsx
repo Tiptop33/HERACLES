@@ -78,6 +78,7 @@ export default function Colonne({
 
       <Link
         href="/espace/accueil"
+        data-aide="menu:/espace/accueil"
         aria-current={chemin === '/espace/accueil' ? 'page' : undefined}
         className={`colonne-entree${chemin === '/espace/accueil' ? ' colonne-entree--courante' : ''}`}
       >
