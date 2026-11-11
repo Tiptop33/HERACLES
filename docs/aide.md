@@ -87,9 +87,11 @@ Ce qui diffère de l'espace de travail :
 - **Aucune donnée.** Les textes parlent du formulaire, pas de la personne ; ils
   ne reprennent ni nom, ni loge, ni rien de ce qui est saisi.
 
-Limite connue : sur un téléphone, la bulle peut recouvrir une partie de
-l'élément qu'elle explique (la case d'accord, par exemple). Elle reste toujours
-dans l'écran, et « Terminer » la referme.
+Sur un téléphone (moins de 600 px de large), la bulle dit une **version
+courte** de chaque réponse : une phrase de cent caractères au plus, écrite à
+côté du texte long dans `parcours-publics.ts`. Elle garde ce qui compte — ce
+qui est obligatoire, ce qui est facultatif, où vont les données — et un test
+le vérifie. Un parcours sans version courte dit son texte entier.
 
 ## Ajouter un parcours
 

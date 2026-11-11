@@ -31,8 +31,40 @@ function surLaPage(
   texte: string,
   siAbsent?: string,
 ): Parcours {
-  return { id, titre, motsCles, destination: null, etapes: [{ ancre, texte, siAbsent }] };
+  return {
+    id,
+    titre,
+    motsCles,
+    destination: null,
+    etapes: [{ ancre, texte, court: COURTS[id], siAbsent }],
+  };
 }
+
+/**
+ * Les mêmes réponses en une phrase, pour un téléphone — la plupart des
+ * candidats ouvrent leur lien depuis le leur. Elles gardent ce qui compte :
+ * ce qui est obligatoire, ce qui est facultatif, et où vont les données.
+ * Un test vérifie que chaque parcours public a la sienne, et qu'elle tient en
+ * cent caractères.
+ */
+const COURTS: Record<string, string> = {
+  'candidature-cv': 'Choisissez votre CV : PDF, Word ou photo, 10 Mo au plus.',
+  'candidature-lecture':
+    'Facultatif : ce bouton fait lire votre CV par un service extérieur pour remplir le formulaire.',
+  'candidature-vous': 'Obligatoires : prénom, nom, e-mail et téléphone. Le reste est facultatif.',
+  'candidature-recherche': 'Emploi, alternance ou stage ; le métier visé ; votre mobilité.',
+  'candidature-permis': 'Pour chaque ligne, choisissez Oui ou Non.',
+  'candidature-parcours': 'Formation, expériences, compétences : quelques lignes par case.',
+  'candidature-lettre': 'Une lettre de motivation, si vous en avez une. Facultatif.',
+  'candidature-donnees':
+    'Lu par la commission seule, jamais publié, supprimable. Cochez pour donner votre accord.',
+  'candidature-envoyer': 'Ce bouton envoie votre fiche. Un champ à corriger s’affiche en rouge.',
+  'parrainage-vous': 'Vos coordonnées de parrain. Seul votre nom est obligatoire.',
+  'parrainage-candidat': 'Son nom, son prénom, son e-mail, sa recherche. Il recevra son propre lien.',
+  'parrainage-commission': 'Comment l’approcher, et l’urgence : 0, rien ne presse ; 5, très urgent.',
+  'parrainage-donnees': 'Lu par la commission de la loge seule, jamais publié.',
+  'parrainage-envoyer': 'Ce bouton envoie votre présentation. Le candidat reçoit ensuite son lien.',
+};
 
 const CANDIDATURE: readonly Parcours[] = [
   surLaPage(

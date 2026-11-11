@@ -29,6 +29,11 @@ export type Etape = {
   /** Ce que dit le personnage. */
   texte: string;
   /**
+   * La même chose en une phrase, pour un téléphone : la bulle y prend vite
+   * tout l'écran, et recouvre ce qu'elle explique. Absent : `texte` sert.
+   */
+  court?: string;
+  /**
    * L'adresse de l'écran qui porte l'élément. Quand l'élément n'est pas à
    * l'écran, l'aide propose d'y aller.
    */
@@ -632,6 +637,14 @@ export function etapeDArrivee(parcours: Parcours): number {
   const derniere = parcours.etapes.length - 1;
   const voulue = parcours.arrivee ?? derniere;
   return Math.min(Math.max(voulue, 0), derniere);
+}
+
+/** En deçà de cette largeur, en pixels, l'écran est tenu pour un téléphone. */
+export const LARGEUR_DE_TELEPHONE = 600;
+
+/** Ce que dit le personnage sur un écran de cette largeur. */
+export function texteDeLEtape(etape: Etape, largeur: number): string {
+  return largeur < LARGEUR_DE_TELEPHONE && etape.court ? etape.court : etape.texte;
 }
 
 /** Le chemin d'une adresse, sans ses paramètres. */
