@@ -19,7 +19,12 @@ export default function FenetreDEffacement({
   adresse: Adresse;
 }) {
   const nom = archive.nom ?? 'ce PDF';
-  const ou = adresse === '/espace/accueil' ? 'l’accueil' : 'les archives';
+  const ou =
+    adresse === '/espace/accueil'
+      ? 'l’accueil'
+      : adresse === '/espace/documents'
+        ? 'les documents'
+        : 'les archives';
 
   return (
     <div className="fenetre-fond">

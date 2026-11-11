@@ -35,7 +35,8 @@ rôle a le droit d'ouvrir.
 
 Sous 46 rem de large, le bouton flottant disparaît des espaces de travail : il
 recouvrait la fiche du candidat. L'aide devient une entrée « Aide », en bas du
-menu repliable. Les formulaires publics, qui n'ont pas de menu, gardent leur
+menu que déploie l'onglet « Plus » de la barre du bas (Référents, Candidats,
+Documents, Plus). Le guide se place au-dessus de cette barre, jamais dessus. Candidats et Référents ne sont que dans la barre, pas dans le panneau « Plus » : leurs onglets portent la même ancre que l'entrée de la colonne (`ANCRES_DES_ONGLETS`), et c'est là que l'aide vient les désigner, sans ouvrir le panneau. Les formulaires publics, qui n'ont pas de menu, gardent leur
 bouton.
 
 Le menu étant replié par défaut, ses entrées ne sont pas à l'écran. Quand une
@@ -43,6 +44,10 @@ Le menu étant replié par défaut, ses entrées ne sont pas à l'écran. Quand 
 colonne de se déployer, et de se replier quand l'étape est passée. Les deux
 composants se parlent par deux événements du navigateur, nommés dans
 `apps/web/src/lib/aide/signaux.ts`.
+
+Sur « Mon compte », qui n'a pas de menu, le bouton quitte le bas de l'écran,
+où il flottait sur les champs du formulaire : il se range en haut à droite, sur
+la ligne du lien « ← Retour ».
 
 Les bulles ne disent pas la même chose non plus. Une étape dont le texte décrit
 l'écran large — « dans la colonne de gauche », « la fiche s'ouvre à droite » — porte

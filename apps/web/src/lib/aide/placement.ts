@@ -30,6 +30,12 @@ export type Mesures = {
   guide: { l: number; h: number };
   /** Le personnage seul. */
   personnage: { l: number; h: number };
+  /**
+   * La hauteur prise en bas de l'écran par ce sur quoi le guide ne doit pas se
+   * poser — la barre d'onglets du téléphone. L'écran, lui, garde sa hauteur :
+   * c'est d'elle que se compte la place d'un guide accroché par le bas.
+   */
+  reserveEnBas?: number;
 };
 
 const ECART = 14;
@@ -39,13 +45,18 @@ function borner(valeur: number, min: number, max: number): number {
   return Math.min(Math.max(valeur, min), Math.max(min, max));
 }
 
-export function placer(cible: Boite, { ecran, guide, personnage }: Mesures): Place {
+export function placer(
+  cible: Boite,
+  { ecran, guide, personnage, reserveEnBas = 0 }: Mesures,
+): Place {
+  // Le bas de la place libre : celui de l'écran, moins ce qui y est réservé.
+  const fond = ecran.h - reserveEnBas;
   const milieuX = cible.x + cible.l / 2;
   const milieuY = cible.y + cible.h / 2;
 
   const tientADroite = cible.x + cible.l + ECART + guide.l <= ecran.l - BORD;
   const tientAGauche = cible.x - ECART - guide.l >= BORD;
-  const tientDessous = cible.y + cible.h + ECART + guide.h <= ecran.h - BORD;
+  const tientDessous = cible.y + cible.h + ECART + guide.h <= fond - BORD;
 
   const tientDessus = cible.y - ECART - guide.h >= BORD;
   // Ni dessous ni dessus — un élément haut sur un téléphone : la liste des
@@ -54,7 +65,7 @@ export function placer(cible: Boite, { ecran, guide, personnage }: Mesures): Pla
   // l'élément : mieux vaut en recouvrir un bout que sortir de l'écran, ou
   // masquer le haut de la page quand tout le vide est en bas.
   const placeDessus = cible.y;
-  const placeDessous = ecran.h - (cible.y + cible.h);
+  const placeDessous = fond - (cible.y + cible.h);
   const caleEnBas = !tientDessous && !tientDessus && placeDessous > placeDessus;
 
   let cote: Cote;
@@ -72,7 +83,7 @@ export function placer(cible: Boite, { ecran, guide, personnage }: Mesures): Pla
 
   if (cote === 'droite' || cote === 'gauche') {
     x = cote === 'droite' ? cible.x + cible.l + ECART : cible.x - ECART - guide.l;
-    y = borner(milieuY - personnage.h / 2, BORD, ecran.h - guide.h - BORD);
+    y = borner(milieuY - personnage.h / 2, BORD, fond - guide.h - BORD);
     centreX = cote === 'droite' ? x + personnage.l / 2 : x + guide.l - personnage.l / 2;
     centreY = y + personnage.h / 2;
   } else {
@@ -80,7 +91,7 @@ export function placer(cible: Boite, { ecran, guide, personnage }: Mesures): Pla
     centreX = x + guide.l / 2;
     if (cote === 'dessous') {
       // Calé en bas, le guide remonte autant qu'il faut pour tenir à l'écran.
-      y = caleEnBas ? Math.max(BORD, ecran.h - guide.h - BORD) : cible.y + cible.h + ECART;
+      y = caleEnBas ? Math.max(BORD, fond - guide.h - BORD) : cible.y + cible.h + ECART;
       centreY = y + personnage.h / 2;
     } else {
       // Au-dessus, le guide s'accroche par le bas : sa hauteur réelle dépend

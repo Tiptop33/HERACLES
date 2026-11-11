@@ -181,7 +181,7 @@ export default function Aide({
   const [question, setQuestion] = useState('');
   const [visite, setVisite] = useState<Visite | null>(null);
   const [reponse, setReponse] = useState<Renfort | null>(null);
-  const [ecran, setEcran] = useState({ l: 1280, h: 800 });
+  const [ecran, setEcran] = useState({ l: 1280, h: 800, bas: 0 });
 
   const champ = useRef<HTMLInputElement>(null);
   /** Le personnage, pour mesurer d'où il part et où il arrive. */
@@ -221,7 +221,14 @@ export default function Aide({
 
   // La taille de l'écran, pour placer le guide.
   useEffect(() => {
-    const mesurer = () => setEcran({ l: window.innerWidth, h: window.innerHeight });
+    // La barre d'onglets du téléphone, quand elle est là, ne fait pas partie de
+    // la place libre : le guide ne doit pas venir se poser dessus. Elle est
+    // mesurée à part — l'écran garde sa hauteur, d'où se compte la place d'un
+    // guide accroché par le bas.
+    const mesurer = () => {
+      const barre = document.querySelector('.barre-onglets')?.getBoundingClientRect().height ?? 0;
+      setEcran({ l: window.innerWidth, h: window.innerHeight, bas: barre });
+    };
     const image = requestAnimationFrame(mesurer);
     window.addEventListener('resize', mesurer);
     return () => {
@@ -237,7 +244,9 @@ export default function Aide({
 
   const fermer = useCallback(() => {
     setOuverte(false);
-    bouton.current?.focus();
+    // Sans défilement : sur « Mon compte », au téléphone, le bouton est en
+    // haut de la page — lui rendre le clavier ne doit pas y ramener l'écran.
+    bouton.current?.focus({ preventScroll: true });
   }, []);
 
   // Sur un téléphone, c'est l'entrée « Aide » du menu qui ouvre la fenêtre.
@@ -312,13 +321,13 @@ export default function Aide({
   const ancre = etape?.ancre ?? null;
   const index = visite?.index ?? 0;
 
-  // Une entrée du menu à désigner : on demande à la colonne de se déployer.
-  // Sur un téléphone elle est repliée, et l'entrée ne serait pas à l'écran ;
-  // ailleurs la demande ne change rien, la colonne est toujours déployée.
-  const dansLeMenu = ancreDuMenu(ancre);
+  // Une entrée du menu à désigner : on le dit à la colonne. Sur un téléphone
+  // elle est repliée, et se déploie si l'entrée est dans son panneau ; ailleurs
+  // cela ne change rien, la colonne est toujours déployée.
+  const entreeDuMenu = ancreDuMenu(ancre) ? ancre : null;
   useEffect(() => {
-    window.dispatchEvent(new CustomEvent(SIGNAL_MENU, { detail: dansLeMenu }));
-  }, [dansLeMenu]);
+    window.dispatchEvent(new CustomEvent(SIGNAL_MENU, { detail: entreeDuMenu }));
+  }, [entreeDuMenu]);
   useEffect(() => {
     if (!ancre) return;
     const clic = (e: MouseEvent) => {
@@ -425,6 +434,7 @@ export default function Aide({
         ecran,
         guide: { l: GUIDE.l, h: hauteurDuGuide ?? GUIDE.h },
         personnage: PERSONNAGE,
+        reserveEnBas: ecran.bas,
       })
     : null;
 

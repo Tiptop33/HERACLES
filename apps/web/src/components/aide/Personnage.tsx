@@ -47,7 +47,8 @@ type Corps = {
 function construire(): Corps {
   const plat = (color: string) => new THREE.MeshStandardMaterial({ color, flatShading: true });
   const peau = plat('#f0c9a4');
-  const tunique = plat('#f1ead8');
+  // Un lin soutenu : plus clair, la tunique se perdait sur une carte blanche.
+  const tunique = plat('#d3bf92');
   const lion = plat('#c9973f');
   const criniere = plat('#9a6a25');
   const barbe = plat('#4a3524');

@@ -227,3 +227,69 @@ export function Poignee() {
     </svg>
   );
 }
+
+/**
+ * Les quatre icônes de la barre du téléphone. Elles ont un mot sous elles :
+ * `aria-hidden`, donc, le mot suffit au lecteur d'écran.
+ */
+function IconeDOnglet({ children }: { children: React.ReactNode }) {
+  return (
+    <svg
+      className="icone icone--onglet"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      {children}
+    </svg>
+  );
+}
+
+/** Deux personnes côte à côte : ceux qui accompagnent. */
+export function OngletReferents() {
+  return (
+    <IconeDOnglet>
+      <circle cx="9" cy="8" r="3.2" />
+      <path d="M2.8 19.5c.5-3.4 3-5.3 6.2-5.3s5.7 1.9 6.2 5.3" />
+      <circle cx="17" cy="9" r="2.5" />
+      <path d="M17.2 14.300c2.2.200 3.7 1.7 4.1 4.2" />
+    </IconeDOnglet>
+  );
+}
+
+/** Une personne et sa fiche : celui qu'on accompagne. */
+export function OngletCandidats() {
+  return (
+    <IconeDOnglet>
+      <rect x="3" y="4" width="18" height="16" rx="2.5" />
+      <circle cx="9" cy="10.3" r="2.2" />
+      <path d="M5.8 16.500c.5-1.9 1.7-2.8 3.2-2.800s2.7.9 3.2 2.8" />
+      <path d="M15 9.500h3.200M15 13h3.2" />
+    </IconeDOnglet>
+  );
+}
+
+/** Un dossier : les documents de la loge. */
+export function OngletDocuments() {
+  return (
+    <IconeDOnglet>
+      <path d="M3 7.500a2 2 0 0 1 2-2h4.200l2 2.300H19a2 2 0 0 1 2 2V17.500a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z" />
+      <path d="M8 13.500h8" />
+    </IconeDOnglet>
+  );
+}
+
+/** Trois points : le reste du menu. */
+export function OngletPlus() {
+  return (
+    <IconeDOnglet>
+      <circle cx="5.5" cy="12" r="1.3" fill="currentColor" />
+      <circle cx="12" cy="12" r="1.3" fill="currentColor" />
+      <circle cx="18.5" cy="12" r="1.3" fill="currentColor" />
+    </IconeDOnglet>
+  );
+}

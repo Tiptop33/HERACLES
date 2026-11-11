@@ -88,8 +88,9 @@ describe('les exercices précédents — Paramètres › Archives', () => {
 });
 
 describe('le retour de la corbeille', () => {
-  it('ne ramène qu’aux deux pages qui montrent les colonnes', () => {
+  it('ne ramène qu’aux trois pages qui montrent les colonnes', () => {
     expect(estUneAdresse('/espace/accueil')).toBe(true);
+    expect(estUneAdresse('/espace/documents')).toBe(true);
     expect(estUneAdresse('/espace/parametres/archives')).toBe(true);
     expect(estUneAdresse('https://ailleurs.example/')).toBe(false);
     expect(estUneAdresse('/espace/accueil?x=1')).toBe(false);

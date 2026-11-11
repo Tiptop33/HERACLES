@@ -5,7 +5,8 @@ import FenetreDeRetraitDePhoto from '@/components/FenetreDeRetraitDePhoto';
 import PortraitDeposable from '@/components/PortraitDeposable';
 import { initiales } from '@/lib/format';
 import { exigerProfil, lireMaPhoto } from '@/lib/profil';
-import { libelleDuRole } from '@/lib/roles';
+import Link from 'next/link';
+import { accueilDuRole, libelleDuRole } from '@/lib/roles';
 import FormulaireProfil from './FormulaireProfil';
 
 export const metadata = { title: 'Mon compte — HERACLES' };
@@ -48,7 +49,17 @@ export default async function MonCompte({
   const grain = maj && /^\d{1,14}$/.test(maj) ? `?maj=${maj}` : '';
 
   return (
-    <div className="enveloppe">
+    // `page-compte` : sur un téléphone, la page prend la tenue des espaces de
+    // travail — un retour en tête, l'aide rangée en haut, des cartes plus
+    // serrées. Ailleurs, cette classe ne change rien.
+    <div className="enveloppe page-compte">
+      {/* Le retour vers l'espace de travail, sur un téléphone seulement : on
+          arrive ici par la pastille aux initiales, et rien ne ramenait d'où
+          l'on venait, sinon le mot « HERACLES ». */}
+      <Link href={accueilDuRole(profil.role)} className="compte-retour">
+        <span aria-hidden="true">←</span> Retour
+      </Link>
+
       <EnTete profil={profil} />
 
       <h1>Mon compte</h1>
@@ -84,11 +95,19 @@ export default async function MonCompte({
               initiales={initiales(profil.prenom, profil.nom, profil.email)}
             />
 
-            <p className="aide">
+            {/* Deux rédactions, une seule affichée : sur un téléphone on ne
+                glisse rien et on ne double-clique pas, il n'y a ni ordinateur
+                ni colonne de gauche. */}
+            <p className="aide ecran-large">
               Glissez une photo sur le portrait, ou double-cliquez dedans pour aller la
               chercher sur votre ordinateur. Votre visage s’affiche alors dans l’annuaire de
               votre loge, sur la feuille d’appel des réunions, et sous votre nom dans la
               colonne de gauche. Il ne sort jamais de l’application.
+            </p>
+            <p className="aide ecran-telephone">
+              Choisissez une photo ci-dessous, dans vos images ou avec l’appareil photo.
+              Votre visage s’affiche alors dans l’annuaire de votre loge et sur la feuille
+              d’appel des réunions. Il ne sort jamais de l’application.
             </p>
           </div>
 

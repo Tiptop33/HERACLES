@@ -4,13 +4,13 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { PARAMETRES, estCourante, famillesDuRole } from '@/lib/navigation';
-import { SIGNAL_MENU, SIGNAL_OUVRIR_L_AIDE } from '@/lib/aide/signaux';
+import { ANCRES_DES_ONGLETS, SIGNAL_MENU, SIGNAL_OUVRIR_L_AIDE } from '@/lib/aide/signaux';
 import { nomAffichable } from '@/lib/format';
 import type { Connecte } from '@/lib/presence';
 import type { MaPhoto, Profil } from '@/lib/profil';
 import Connectes from './Connectes';
 import OuvrirNouveauCandidat, { ADRESSE_NOUVEAU_CANDIDAT } from './OuvrirNouveauCandidat';
-import { Roue } from './Icones';
+import { OngletCandidats, OngletDocuments, OngletPlus, OngletReferents, Roue } from './Icones';
 
 /**
  * La colonne de gauche de la maquette `1a` : la marque, qui l'on est, puis les
@@ -45,8 +45,9 @@ export default function Colonne({
   const visibles = familles.flatMap((f) => f.entrees);
   const nom = nomAffichable(profil.prenom, profil.nom, profil.email);
 
-  // Sur un téléphone, les entrées se replient derrière le bouton « Menu » :
-  // étalées, elles prenaient la moitié de l'écran avant le premier candidat.
+  // Sur un téléphone, les entrées se replient : étalées, elles prenaient la
+  // moitié de l'écran avant le premier candidat. C'est l'onglet « Plus » de la
+  // barre du bas qui les déploie, en panneau plein écran.
   // On retient l'adresse sur laquelle le menu a été ouvert plutôt qu'un simple
   // oui/non : changer d'écran le referme de lui-même, sans effet à déclencher.
   // Au-dessus de la largeur d'un téléphone, le bouton n'existe pas et cette
@@ -56,7 +57,12 @@ export default function Colonne({
   // l'entrée n'est pas à l'écran et le personnage n'aurait rien à montrer.
   const [pourLAide, setPourLAide] = useState(false);
   useEffect(() => {
-    const entendre = (e: Event) => setPourLAide((e as CustomEvent<boolean>).detail === true);
+    // Candidats, Référents et Documents sont dans la barre d'onglets, pas dans
+    // le panneau : l'aide les y désigne, et le panneau reste replié.
+    const entendre = (e: Event) => {
+      const ancre = (e as CustomEvent<string | null>).detail;
+      setPourLAide(typeof ancre === 'string' && !ANCRES_DES_ONGLETS.includes(ancre));
+    };
     window.addEventListener(SIGNAL_MENU, entendre);
     return () => window.removeEventListener(SIGNAL_MENU, entendre);
   }, []);
@@ -67,7 +73,33 @@ export default function Colonne({
     setOuvertSur(menuOuvert ? null : chemin);
   };
 
+  /** Referme le panneau : un onglet touché sur l'écran où l'on est déjà ne change pas l'adresse. */
+  const replier = () => {
+    setPourLAide(false);
+    setOuvertSur(null);
+  };
+
+  // Les trois écrans de la barre du téléphone. Tout le reste est sous « Plus »,
+  // qui s'allume donc aussi quand on est sur l'un de ces autres écrans.
+  const ONGLETS = [
+    { libelle: 'Référents', vers: '/espace/referents', racines: ['/espace/referents'], Icone: OngletReferents },
+    {
+      libelle: 'Candidats',
+      vers: '/espace/candidats',
+      // La correction d'une fiche vit sous `/espace/referent/` : c'est encore « Candidats ».
+      racines: ['/espace/candidats', '/espace/referent'],
+      Icone: OngletCandidats,
+    },
+    { libelle: 'Documents', vers: '/espace/documents', racines: ['/espace/documents'], Icone: OngletDocuments },
+  ];
+  const sous = (racine: string) => chemin === racine || chemin.startsWith(`${racine}/`);
+  const ongletCourant = menuOuvert
+    ? null
+    : (ONGLETS.find((o) => o.racines.some(sous))?.vers ?? null);
+  const plusCourant = menuOuvert || ongletCourant === null;
+
   return (
+    <>
     <nav
       className={`colonne${menuOuvert ? ' colonne--ouverte' : ''}`}
       aria-label="Navigation principale"
@@ -79,15 +111,6 @@ export default function Colonne({
         </span>
         <span className="colonne-titre">HERACLES</span>
         {nom && <span className="colonne-qui">{nom}</span>}
-
-        <button
-          type="button"
-          className="colonne-bascule"
-          aria-expanded={menuOuvert}
-          onClick={basculer}
-        >
-          {menuOuvert ? 'Fermer' : 'Menu'}
-        </button>
 
         {/* Votre visage, sous votre nom — ou sous votre adresse, faute de nom.
             `alt` vide à dessein : le nom est juste au-dessus, et le faire
@@ -190,5 +213,38 @@ export default function Colonne({
         Aide
       </button>
     </nav>
+
+    {/* La barre du téléphone, comme dans une application : trois écrans sous le
+        pouce, et « Plus » pour le reste. Elle n'existe que sous la largeur d'un
+        téléphone ; ailleurs la colonne est là, et cette barre n'est pas
+        affichée. */}
+    <nav className="barre-onglets" aria-label="Navigation du téléphone">
+      {ONGLETS.map(({ libelle, vers, Icone }) => (
+        <Link
+          key={vers}
+          href={vers}
+          className="barre-onglet"
+          // La même ancre que l'entrée de la colonne, quand elle en a une : sur
+          // un téléphone c'est ici que l'aide vient la désigner.
+          data-aide={ANCRES_DES_ONGLETS.includes(`menu:${vers}`) ? `menu:${vers}` : undefined}
+          aria-current={ongletCourant === vers ? 'page' : undefined}
+          onClick={replier}
+        >
+          <Icone />
+          <span>{libelle}</span>
+        </Link>
+      ))}
+      <button
+        type="button"
+        className="barre-onglet"
+        aria-expanded={menuOuvert}
+        aria-current={plusCourant ? 'true' : undefined}
+        onClick={basculer}
+      >
+        <OngletPlus />
+        <span>Plus</span>
+      </button>
+    </nav>
+    </>
   );
 }
