@@ -4550,11 +4550,17 @@ a.poste-document .poste-document-type {
   }
 
   /* Un champ sous seize pixels fait zoomer l'iPhone dès qu'on le touche, et
-     l'écran reste zoomé ensuite. Seize pixels partout où l'on écrit —
+     l'écran reste zoomé ensuite. Seize pixels partout où l'on écrit : les
+     espaces de travail, « Mon compte », et tout ce qui se remplit sans compte
+     ou avant d'en avoir un — la fiche du candidat, celle du parrain,
+     l'invitation, la connexion. Ce sont justement les écrans qu'on ouvre le
+     plus souvent depuis un téléphone, par un lien reçu.
+
      `!important`, parce que c'est une contrainte de l'appareil et non un
      choix de mise en page : aucune règle d'écran ne doit pouvoir la défaire. */
-  .atelier :is(input, select, textarea),
-  .page-compte :is(input, select, textarea) {
+  input,
+  select,
+  textarea {
     font-size: 16px !important;
   }
 
