@@ -22,6 +22,13 @@ insert into public.loge (bubble_id, nom, prochain_numero_candidat) values
   ('loge-0060-metz',  'Metz — 0060',  null)
 on conflict do nothing;
 
+-- Le dernier dossier de Lille porte le 7 : le suivant doit recevoir le 8
+-- (0083 — le numéro suit le dernier dossier, et non le compteur).
+insert into public.candidat (bubble_id, numero, nom, prenom, loge_id) values
+  ('cand-0060-ancien', 7, 'ANCIEN', 'Dossier',
+   (select id from public.loge where bubble_id = 'loge-0060-lille'))
+on conflict do nothing;
+
 insert into public.referent (bubble_id, profil_id, nom, prenom, email, loge_id) values
   ('ref-0060-sacha', :'sacha', 'Sacha', 'S', 'sacha0060@example.org',
    (select id from public.loge where bubble_id = 'loge-0060-lille')),
