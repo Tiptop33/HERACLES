@@ -20,7 +20,12 @@ import type { Parcours } from './parcours';
 
 export const CATALOGUES = ['candidature', 'parrainage'] as const;
 
-export type Catalogue = (typeof CATALOGUES)[number];
+/**
+ * Le catalogue de « Mon compte » : une page connectée, mais hors de la
+ * coquille des espaces — l'aide n'y trouverait aucune de ses ancres. Elle y a
+ * donc les siennes, sur le même modèle : une étape, sur la page.
+ */
+export type Catalogue = (typeof CATALOGUES)[number] | 'compte';
 
 /** Un parcours d'une seule étape, sans écran où aller : tout est sur la page. */
 function surLaPage(
@@ -64,6 +69,9 @@ const COURTS: Record<string, string> = {
   'parrainage-commission': 'Comment l’approcher, et l’urgence : 0, rien ne presse ; 5, très urgent.',
   'parrainage-donnees': 'Lu par la commission de la loge seule, jamais publié.',
   'parrainage-envoyer': 'Ce bouton envoie votre présentation. Le candidat reçoit ensuite son lien.',
+  'compte-profil': 'Corrigez vos informations ici, puis enregistrez.',
+  'compte-photo': 'Glissez une image sur le portrait, ou touchez-le deux fois. Elle remplace l’ancienne.',
+  'compte-retirer-photo': '« Retirer » efface la photo après confirmation. Rien ne défait ce geste.',
 };
 
 const CANDIDATURE: readonly Parcours[] = [
@@ -171,15 +179,43 @@ const PARRAINAGE: readonly Parcours[] = [
   ),
 ];
 
+const COMPTE: readonly Parcours[] = [
+  surLaPage(
+    'compte-profil',
+    'Changer mon nom, mon téléphone ou ma présentation',
+    ['nom', 'prénom', 'téléphone', 'ville', 'code postal', 'présentation', 'coordonnées', 'mes informations', 'modifier mon profil'],
+    'compte-profil',
+    'Corrigez ici votre prénom, votre nom, votre téléphone, votre ville ou votre présentation, puis enregistrez.',
+  ),
+  surLaPage(
+    'compte-photo',
+    'Mettre ou changer ma photo',
+    ['photo', 'portrait', 'visage', 'image', 'changer ma photo', 'ajouter une photo', 'déposer'],
+    'portrait',
+    'Glissez une image sur votre portrait, ou double-cliquez dedans pour la choisir. Une nouvelle photo remplace l’ancienne : inutile de retirer d’abord.',
+    'Votre compte n’est rattaché à aucune fiche de référent : il n’y a pas de portrait où déposer une photo.',
+  ),
+  surLaPage(
+    'compte-retirer-photo',
+    'Retirer ma photo',
+    ['retirer ma photo', 'supprimer ma photo', 'enlever ma photo', 'effacer ma photo', 'plus de photo', 'sans photo'],
+    'retirer-photo',
+    '« Retirer », sous votre portrait, ouvre une fenêtre de confirmation. Le fichier est alors effacé et votre fiche n’a plus de visage : rien ne défait ce geste. Pour changer de photo sans la perdre, déposez-en simplement une autre.',
+    'Pas de bouton « Retirer » : votre fiche n’a pas de photo en ce moment.',
+  ),
+];
+
 const PAR_CATALOGUE: Record<Catalogue, readonly Parcours[]> = {
   candidature: CANDIDATURE,
   parrainage: PARRAINAGE,
+  compte: COMPTE,
 };
 
 /** L'exemple montré dans le champ de question, pour dire quoi demander. */
 export const EXEMPLES: Record<Catalogue, string> = {
   candidature: 'comment joindre mon CV',
   parrainage: 'que veut dire le degré d’urgence',
+  compte: 'comment changer ma photo',
 };
 
 export function parcoursDuCatalogue(catalogue: Catalogue): readonly Parcours[] {

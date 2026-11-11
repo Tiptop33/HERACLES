@@ -156,7 +156,9 @@ describe('la recherche de l’aide', () => {
     ['imprimer le compte rendu', 'documents-de-la-reunion'],
     ['comment sortir l’affichette de la réunion', 'documents-de-la-reunion'],
     ['l’affichette d’un candidat', 'imprimer-la-fiche'],
-    ['changer mon mot de passe', 'mon-compte'],
+    ['changer mon mot de passe', 'mot-de-passe'],
+    ['changer mon numéro de téléphone', 'mon-compte'],
+    ['retirer ma photo', 'retirer-ma-photo'],
     ['comment me déconnecter', 'se-deconnecter'],
     ['trouver un référent', 'annuaire-des-referents'],
     ['clôturer un dossier', 'cloturer-un-dossier'],
@@ -197,6 +199,7 @@ describe('la recherche de l’aide', () => {
     ['retirer un référent', 'retirer-un-referent'],
     ['un référent quitte la loge', 'retirer-un-referent'],
     ['retirer un titre du collège', 'retirer-un-titre'],
+    ['retirer la photo d’un référent', 'retirer-la-photo-d-un-referent'],
   ])('pour l’administration, « %s » mène à %s', (question, attendu) => {
     expect(chercherDesParcours(question, parcoursDuRole('admin'))[0]?.id).toBe(attendu);
   });
@@ -560,5 +563,72 @@ describe('les retraits plus fins', () => {
     for (const id of ['retirer-une-note', 'rendre-une-note', 'effacer-un-pdf', 'retirer-un-titre']) {
       expect(geste(id).destination, id).not.toMatch(/supprimer=|retirer=|effacer=|rendre=/);
     }
+  });
+});
+
+describe('l’aide pour retirer une photo', () => {
+  const compte = parcoursDuCatalogue('compte');
+  const etape = (id: string) => compte.find((p) => p.id === id)!.etapes[0];
+
+  it('est montée sur « Mon compte », avec son propre catalogue et sans Claude', () => {
+    const page = readFileSync(join(SRC, 'app', 'mon-compte', 'page.tsx'), 'utf8');
+    expect(page).toContain('<Aide catalogue="compte" />');
+    expect(page).not.toContain('renfort');
+  });
+
+  it('ne cite, sur « Mon compte », que des ancres posées sur cette page', () => {
+    const sources = [
+      readFileSync(join(SRC, 'app', 'mon-compte', 'FormulaireProfil.tsx'), 'utf8'),
+      readFileSync(join(SRC, 'components', 'PortraitDeposable.tsx'), 'utf8'),
+    ].join('\n');
+    for (const parcours of compte) {
+      expect(parcours.destination, parcours.id).toBeNull();
+      for (const e of parcours.etapes) {
+        expect(sources, parcours.id).toContain(`data-aide="${e.ancre}"`);
+        expect(e.court, parcours.id).toBeTruthy();
+        expect(e.court!.length, parcours.id).toBeLessThanOrEqual(100);
+      }
+    }
+  });
+
+  it('dit que retirer une photo ne se défait pas — et comment en changer sans la perdre', () => {
+    for (const texte of [
+      etape('compte-retirer-photo').texte,
+      PARCOURS.find((p) => p.id === 'retirer-la-photo-d-un-referent')!.etapes[2].texte,
+    ]) {
+      expect(texte).toMatch(/fenêtre de confirmation/);
+      expect(texte).toMatch(/rien ne défait ce geste/);
+      expect(texte).toMatch(/déposez-en simplement une autre/);
+    }
+    expect(etape('compte-retirer-photo').court).toMatch(/Rien ne défait/);
+  });
+
+  it('dit pourquoi le bouton manque quand il n’y a pas de photo', () => {
+    expect(etape('compte-retirer-photo').siAbsent).toMatch(/pas de photo/);
+    expect(etape('compte-photo').siAbsent).toMatch(/aucune fiche de référent/);
+  });
+
+  it.each([
+    ['comment changer ma photo', 'compte-photo'],
+    ['retirer ma photo', 'compte-retirer-photo'],
+    ['changer mon numéro de téléphone', 'compte-profil'],
+  ])('sur « Mon compte », « %s » mène à %s', (question, attendu) => {
+    expect(chercherDesParcours(question, compte)[0]?.id).toBe(attendu);
+  });
+
+  it('réserve la photo d’un autre à l’administration', () => {
+    const geste = PARCOURS.find((p) => p.id === 'retirer-la-photo-d-un-referent')!;
+    expect(geste.roles).toEqual(['admin']);
+    expect(parcoursDuRole('referent').map((p) => p.id)).not.toContain(geste.id);
+    expect(parcoursDuRole('referent').map((p) => p.id)).toContain('retirer-ma-photo');
+  });
+
+  it('ne promet plus de changer le mot de passe dans « Mon compte »', () => {
+    // La page n'a pas de champ pour cela : le mot de passe passe par le
+    // courriel de réinitialisation.
+    const formulaire = readFileSync(join(SRC, 'app', 'mon-compte', 'FormulaireProfil.tsx'), 'utf8');
+    expect(formulaire).not.toMatch(/password/i);
+    expect(PARCOURS.find((p) => p.id === 'mon-compte')!.titre).not.toMatch(/mot de passe/);
+    expect(PARCOURS.find((p) => p.id === 'mot-de-passe')!.etapes[0].texte).toMatch(/Mot de passe oublié/);
   });
 });

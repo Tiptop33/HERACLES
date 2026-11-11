@@ -110,6 +110,23 @@ Les retraits plus fins y sont aussi : retirer une note du suivi et la rendre,
 effacer un PDF archivé, retirer un titre du collège. La note retirée n'est pas
 effacée : elle se rend depuis « notes retirées ».
 
+## Sur « Mon compte »
+
+`/mon-compte` est une page connectée, mais hors de la coquille des espaces :
+l'aide y a son propre catalogue (`compte`, dans `parcours-publics.ts`), sur le
+modèle des formulaires publics — une étape par réponse, sur la page, sans
+Claude. Trois parcours : changer ses informations, mettre ou changer sa photo,
+retirer sa photo.
+
+Depuis l'espace de travail, « retirer ma photo » mène à la pastille « Mon
+compte » ; l'aide de la page prend le relais. Pour la photo d'un autre
+référent — administration seulement — le parcours passe par le stylo de sa
+ligne dans l'annuaire.
+
+Le mot de passe ne se change pas dans « Mon compte » : la page n'a pas de champ
+pour cela. Le parcours « Changer mon mot de passe » renvoie vers « Mot de passe
+oublié ? », sur l'écran de connexion.
+
 ## Ajouter un parcours
 
 1. Poser une **ancre** sur l'élément à désigner : `data-aide="mon-element"`.

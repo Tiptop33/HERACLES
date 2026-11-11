@@ -81,6 +81,7 @@ export default function PortraitDeposable({
     <div className="portrait-depot">
       <div
         className="portrait-cible"
+        data-aide="portrait"
         data-survol={survol || undefined}
         data-envoi={envoi || undefined}
         title="Glissez une photo ici, ou double-cliquez pour la chercher sur votre ordinateur"
@@ -126,6 +127,7 @@ export default function PortraitDeposable({
         <Link
           href={`${retour}?photo=retirer`}
           className="bouton bouton--danger portrait-retirer"
+          data-aide="retirer-photo"
         >
           Retirer
         </Link>

@@ -52,7 +52,7 @@ export default function FormulaireProfil({ profil }: { profil: Profil }) {
     // envoi parti avant l'hydratation ne recopie pas nom, téléphone et ville
     // dans l'adresse — le corps d'un POST, lui, ne s'écrit ni dans
     // l'historique ni dans les journaux.
-    <form onSubmit={soumettre} method="post">
+    <form onSubmit={soumettre} method="post" data-aide="compte-profil">
       {erreur && <p className="erreur">{erreur}</p>}
       {enregistre && <p className="discret">Enregistré.</p>}
 

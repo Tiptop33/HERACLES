@@ -1,3 +1,4 @@
+import Aide from '@/components/aide/Aide';
 import DepotDePhoto from '@/components/DepotDePhoto';
 import EnTete from '@/components/EnTete';
 import FenetreDeRetraitDePhoto from '@/components/FenetreDeRetraitDePhoto';
@@ -108,6 +109,11 @@ export default async function MonCompte({
           sienne
         />
       )}
+
+      {/* L'aide de cette page : elle n'est pas dans la coquille des espaces,
+          et a donc son propre catalogue — le profil, le portrait, son retrait.
+          Sans Claude : trois réponses ne valent pas un appel. */}
+      <Aide catalogue="compte" />
     </div>
   );
 }
