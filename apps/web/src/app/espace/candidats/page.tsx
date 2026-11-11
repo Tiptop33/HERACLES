@@ -358,6 +358,7 @@ export default async function PosteDeTravail({
                   <Link
                     href={adresse({ supprimer: ligne.id })}
                     className="geste geste--retirer poste-rang-corbeille"
+                    data-aide="supprimer-dossier"
                     aria-label={`Supprimer le dossier de ${nomDeFamilleDabord(ligne.nom, ligne.prenom)}`}
                     title="Supprimer ce dossier"
                   >

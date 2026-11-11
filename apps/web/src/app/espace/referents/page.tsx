@@ -206,6 +206,7 @@ export default async function Referents({
                       <Link
                         href={adresse({ supprimer: f.id })}
                         className="geste geste--retirer"
+                        data-aide="retirer-referent"
                         aria-label={`Retirer la fiche de ${nom}`}
                         title="Retirer cette fiche"
                       >

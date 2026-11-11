@@ -544,6 +544,101 @@ export const PARCOURS: readonly Parcours[] = [
       },
     ],
   },
+  // ——— Les gestes qui retirent ou effacent ———
+  // L'aide les montre, elle ne les fait pas : chaque bouton ouvre une fenêtre
+  // de confirmation, et c'est la personne qui confirme. Chaque texte dit si
+  // le geste se défait, et qui y a droit — avant qu'on aille le chercher.
+  {
+    id: 'supprimer-un-dossier',
+    titre: 'Supprimer le dossier d’un candidat',
+    motsCles: ['supprimer', 'suppression', 'effacer un dossier', 'corbeille', 'dossier créé par erreur', 'doublon', 'enlever un candidat'],
+    destination: CANDIDATS,
+    etapes: [
+      MENU_CANDIDATS,
+      {
+        ancre: 'supprimer-dossier',
+        ecran: CANDIDATS,
+        texte:
+          'La corbeille, au bout de la ligne, ouvre une fenêtre de confirmation. Le dossier disparaît alors avec son suivi, son CV, sa lettre et sa photo : cela ne se défait pas. Pour un dossier simplement terminé, préférez « Clôturer ».',
+        siAbsent:
+          'Aucune corbeille dans cette liste. Elle n’apparaît que pour l’administration, le Vénérable Maître et le Secrétaire, et jamais sur un dossier repris de Bubble ou dont le candidat a un compte.',
+      },
+    ],
+  },
+  {
+    id: 'retirer-un-referent',
+    titre: 'Retirer un référent de l’annuaire',
+    motsCles: ['retirer un référent', 'supprimer un référent', 'enlever un référent', 'référent parti', 'quitte la loge', 'corbeille'],
+    roles: ['admin'],
+    destination: '/espace/referents',
+    etapes: [
+      {
+        ancre: 'menu:/espace/referents',
+        texte: 'Dans la colonne de gauche, famille « Réseau », cliquez sur « Référents ».',
+      },
+      {
+        ancre: 'retirer-referent',
+        ecran: '/espace/referents',
+        texte:
+          'La corbeille, sur la ligne du référent, ouvre une fenêtre de confirmation. La fiche quitte l’annuaire, et cela ne se défait pas. C’est refusé tant qu’il accompagne des candidats : confiez-les d’abord à quelqu’un d’autre.',
+        siAbsent: 'Aucun référent dans cette liste : changez de loge ou effacez la recherche.',
+      },
+    ],
+  },
+  {
+    id: 'retirer-une-reunion',
+    titre: 'Retirer une réunion du registre',
+    motsCles: ['retirer une réunion', 'supprimer une réunion', 'enlever une réunion', 'réunion en trop', 'annuler une réunion', 'corbeille'],
+    destination: REUNION,
+    etapes: [
+      MENU_REUNION,
+      {
+        ancre: 'retirer-reunion',
+        ecran: REUNION,
+        texte:
+          'La corbeille, sur la ligne de la réunion, ouvre une fenêtre de confirmation. La réunion et ses présences quittent le registre et les compteurs — mais rien n’est perdu : elle se retrouve dans « Les réunions retirées », d’où on peut la rendre.',
+        siAbsent: 'Aucune réunion au registre de cet exercice.',
+      },
+    ],
+  },
+  {
+    id: 'rendre-une-reunion',
+    titre: 'Remettre au registre une réunion retirée',
+    motsCles: ['rendre', 'remettre', 'récupérer', 'restaurer', 'réunion retirée', 'réunions retirées', 'retirée par erreur', 'retiré une réunion par erreur', 'annuler le retrait'],
+    destination: REUNION,
+    arrivee: 1,
+    etapes: [
+      MENU_REUNION,
+      {
+        ancre: 'reunions-retirees',
+        ecran: REUNION,
+        texte: 'Cliquez sur « Les réunions retirées » pour déplier la liste.',
+      },
+      {
+        ancre: 'rendre-reunion',
+        ecran: REUNION,
+        texte: 'La flèche, sur la ligne de la réunion, la rend au registre après confirmation : ses présences comptent de nouveau.',
+        siAbsent: 'La liste est repliée ou vide : dépliez « Les réunions retirées ».',
+      },
+    ],
+  },
+  {
+    id: 'effacer-une-reunion',
+    titre: 'Effacer définitivement une réunion',
+    motsCles: ['effacer', 'définitivement', 'pour de bon', 'effacer une réunion', 'détruire', 'croix'],
+    destination: REUNION,
+    etapes: [
+      MENU_REUNION,
+      {
+        ancre: 'effacer-reunion',
+        ecran: REUNION,
+        texte:
+          'La croix, à côté de la corbeille, efface la réunion et ses présences pour de bon, après confirmation : rien ne les ramènera. Dans le doute, préférez la corbeille, qui se défait.',
+        siAbsent:
+          'Aucune croix ici : elle n’apparaît que si vous avez le droit d’effacer, et jamais sur une réunion reprise de Bubble. La corbeille, elle, retire sans effacer.',
+      },
+    ],
+  },
   {
     id: 'mon-compte',
     titre: 'Changer mon nom, mon adresse ou mon mot de passe',
