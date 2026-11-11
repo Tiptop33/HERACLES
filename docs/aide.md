@@ -171,8 +171,8 @@ se trouve le bouton « Aide ». Sa bulle, elle, est déjà à l'arrivée.
 
 ## Récapitulatif — état au 11 novembre 2026
 
-Ce qui a été livré sur l'aide, en quatorze pull requests (115, 116, 118 à 129),
-toutes fusionnées et déployées sur l'instance d'essai. Cette section est une
+Ce qui a été livré sur l'aide, en quinze pull requests de code (115, 116, 118 à
+129, 131), toutes fusionnées et déployées sur l'instance d'essai. Cette section est une
 photographie datée : le reste du document décrit le fonctionnement, celle-ci
 dit où l'on en est et ce qui reste à éprouver.
 
@@ -232,7 +232,8 @@ C'est la seule modification de la base de toute la série.
 
 ### Changements hors de l'aide, faits en chemin
 
-- Retirer une note du suivi passe par une fenêtre de confirmation.
+- Retirer une note du suivi passe par une fenêtre de confirmation, et la
+  rendre au journal aussi : les deux gestes se font de la même manière.
 - Le pied de l'écran Paramètres ne promet plus de changer son adresse ni son
   mot de passe dans « Mon compte ».
 - Les deux formulaires publics ont une marge en bas, pour que le bouton
@@ -241,7 +242,7 @@ C'est la seule modification de la base de toute la série.
 
 ### Ce qui n'a pas été vérifié
 
-Le lint, les tests de l'application (562 à cette date) et le build passaient à
+Le lint, les tests de l'application (563 à cette date) et le build passaient à
 chaque pull request, ainsi que la suite SQL, migrations rejouées comprises.
 Chaque déploiement a réussi. En revanche :
 
@@ -254,9 +255,9 @@ Chaque déploiement a réussi. En revanche :
   d'un bout à l'autre.
 - **La migration 0082 sur le serveur d'essai** : le déploiement a réussi, mais
   la présence de la table n'a pas été constatée dans la base elle-même.
-- **Jamais vus à l'écran** : la présentation du parrain, « Mon compte », la
-  fenêtre de confirmation du retrait d'une note, les parcours des gestes de
-  retrait.
+- **Jamais vus à l'écran** : la présentation du parrain, « Mon compte », les
+  deux fenêtres de confirmation du suivi (retirer une note, la rendre), les
+  parcours des gestes de retrait.
 - **Aucun vrai téléphone ni iPad** : seulement une émulation d'iPhone 13.
 
 Le premier essai utile, sur l'instance d'essai et avec `ANTHROPIC_API_KEY`
