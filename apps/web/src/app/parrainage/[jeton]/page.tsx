@@ -1,3 +1,4 @@
+import Aide from '@/components/aide/Aide';
 import Logo from '@/components/Logo';
 import { lireParrainage } from '@/lib/parrainage-serveur';
 import FormulaireParrain from './FormulaireParrain';
@@ -84,6 +85,10 @@ export default async function PageDuParrain({
           candidatEmail={parrainage.candidat_email}
         />
       </div>
+
+      {/* L'aide du formulaire, comme sur la fiche du candidat : sans Claude,
+          la question ne quitte pas le navigateur. */}
+      <Aide catalogue="parrainage" />
     </main>
   );
 }

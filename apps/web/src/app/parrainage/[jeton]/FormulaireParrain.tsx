@@ -80,7 +80,7 @@ export default function FormulaireParrain({
       )}
 
       <fieldset>
-        <legend>Vous</legend>
+        <legend data-aide="parrainage-vous">Vous</legend>
         <div className="ligne-edition">
           <div className="champ">
             <label htmlFor="p-parrain_nom">Nom *</label>
@@ -113,7 +113,7 @@ export default function FormulaireParrain({
       </fieldset>
 
       <fieldset>
-        <legend>Le candidat</legend>
+        <legend data-aide="parrainage-candidat">Le candidat</legend>
         <div className="ligne-edition">
           <div className="champ">
             <label htmlFor="p-candidat_nom">Nom *</label>
@@ -153,7 +153,7 @@ export default function FormulaireParrain({
       </fieldset>
 
       <fieldset>
-        <legend>Pour la commission</legend>
+        <legend data-aide="parrainage-commission">Pour la commission</legend>
 
         <ChoixEnLigne
           nom="connait_appartenance"
@@ -180,12 +180,17 @@ export default function FormulaireParrain({
         </div>
       </fieldset>
 
-      <p className="aide">
+      <p className="aide" data-aide="parrainage-confidentialite">
         Ces informations ne sont lues que par les membres de la commission de la loge, et ne sont
         jamais publiées.
       </p>
 
-      <button type="submit" className="bouton bouton--marque bouton--pleine-largeur" disabled={envoi}>
+      <button
+        type="submit"
+        className="bouton bouton--marque bouton--pleine-largeur"
+        disabled={envoi}
+        data-aide="parrainage-envoyer"
+      >
         {envoi ? 'Envoi…' : 'Présenter le candidat'}
       </button>
     </form>

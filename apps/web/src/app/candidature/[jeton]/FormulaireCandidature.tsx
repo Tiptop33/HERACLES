@@ -179,7 +179,7 @@ export default function FormulaireCandidature({
       )}
 
       <fieldset>
-        <legend>Votre CV</legend>
+        <legend data-aide="candidature-cv">Votre CV</legend>
         <div className="champ">
           <label htmlFor="c-cv">CV</label>
           <input {...champ('cv')} type="file" accept={ACCEPTES} onChange={choisirLeCv} />
@@ -192,6 +192,7 @@ export default function FormulaireCandidature({
             <button
               type="button"
               className="bouton"
+              data-aide="candidature-lecture"
               onClick={lireLeCv}
               disabled={!cv || lecture.etat === 'en_cours'}
             >
@@ -229,7 +230,7 @@ export default function FormulaireCandidature({
       </fieldset>
 
       <fieldset>
-        <legend>Vous</legend>
+        <legend data-aide="candidature-vous">Vous</legend>
         <div className="ligne-edition">
           <div className="champ">
             <label htmlFor="c-prenom">Prénom *</label>
@@ -282,7 +283,7 @@ export default function FormulaireCandidature({
       </fieldset>
 
       <fieldset>
-        <legend>Votre recherche</legend>
+        <legend data-aide="candidature-recherche">Votre recherche</legend>
         <div className="ligne-edition">
           <div className="champ">
             <label htmlFor="c-type_emploi">Type de recherche</label>
@@ -347,7 +348,7 @@ export default function FormulaireCandidature({
       </fieldset>
 
       <fieldset>
-        <legend>Permis et véhicule</legend>
+        <legend data-aide="candidature-permis">Permis et véhicule</legend>
         <div className="ligne-edition">
           {(
             [
@@ -375,7 +376,7 @@ export default function FormulaireCandidature({
       </fieldset>
 
       <fieldset>
-        <legend>Votre parcours</legend>
+        <legend data-aide="candidature-parcours">Votre parcours</legend>
         {(
           [
             ['formations', 'Formation'],
@@ -394,7 +395,7 @@ export default function FormulaireCandidature({
       </fieldset>
 
       <fieldset>
-        <legend>Vos documents</legend>
+        <legend data-aide="candidature-documents">Vos documents</legend>
         <div className="champ">
           <label htmlFor="c-lettre">Lettre de motivation</label>
           <input {...champ('lettre')} type="file" accept={ACCEPTES} />
@@ -402,7 +403,11 @@ export default function FormulaireCandidature({
         <p className="aide">PDF, Word, OpenDocument, RTF ou photo (JPEG, PNG, WebP), 10 Mo au plus.</p>
       </fieldset>
 
-      <label className="consentement" aria-invalid={erreur?.champ === 'consentement' || undefined}>
+      <label
+        className="consentement"
+        aria-invalid={erreur?.champ === 'consentement' || undefined}
+        data-aide="candidature-consentement"
+      >
         <input type="checkbox" name="consentement" value="oui" required />
         <span>
           J’accepte que la commission conserve ces informations et mes documents pour m’accompagner
@@ -413,7 +418,12 @@ export default function FormulaireCandidature({
         </span>
       </label>
 
-      <button type="submit" className="bouton bouton--marque bouton--pleine-largeur" disabled={envoi}>
+      <button
+        type="submit"
+        className="bouton bouton--marque bouton--pleine-largeur"
+        disabled={envoi}
+        data-aide="candidature-envoyer"
+      >
         {envoi ? 'Envoi…' : 'Envoyer ma fiche'}
       </button>
     </form>

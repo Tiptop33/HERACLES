@@ -77,6 +77,16 @@ export function placer(cible: Boite, { ecran, guide, personnage }: Mesures): Pla
       depuisLeBas = true;
       y = Math.max(BORD, ecran.h - cible.y + ECART);
       centreY = cible.y - ECART - personnage.h / 2;
+
+      // Pas la place au-dessus non plus — un élément haut sur un petit écran,
+      // la case d'accord d'un formulaire sur un téléphone : le guide se cale
+      // en haut de l'écran, quitte à mordre sur l'élément. Mieux vaut le
+      // recouvrir un peu que sortir de l'écran avec sa bulle.
+      if (cible.y - ECART - guide.h < BORD) {
+        depuisLeBas = false;
+        y = BORD;
+        centreY = BORD + guide.h - personnage.h / 2;
+      }
     }
   }
 
