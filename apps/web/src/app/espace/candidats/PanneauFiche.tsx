@@ -404,6 +404,7 @@ function Suivi({
               enCorrection={ligne.id === corrige}
               versCorrection={adresse({ note: ligne.id })}
               versLecture={adresse({ note: null })}
+              versRetrait={adresse({ retirer: ligne.id })}
             />
           ))}
         </ol>
