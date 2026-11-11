@@ -4414,11 +4414,11 @@ a.poste-document .poste-document-type {
   gap: 0.15rem 0.9rem;
 }
 
-/* Le bouton « Menu », le retour à la liste, les boutons pour joindre le
+/* La barre d'onglets, le retour à la liste, les boutons pour joindre le
    candidat et l'entrée « Aide » du menu n'existent que sur un téléphone :
    ailleurs la colonne est déployée, la liste est à côté de la fiche, le numéro
    se lit dans la fiche et l'aide a son bouton flottant. */
-.colonne-bascule,
+.barre-onglets,
 .colonne-aide,
 .poste-retour,
 .poste-contacts,
@@ -4448,25 +4448,106 @@ a.poste-document .poste-document-type {
     align-items: center;
   }
 
-  .colonne-bascule {
-    display: inline-flex;
-    align-items: center;
-    margin-left: auto;
-    min-height: 2.4rem;
-    padding: 0 0.9rem;
-    font: inherit;
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: var(--encre);
-    background: var(--surface);
-    border: 1px solid var(--bordure);
-    border-radius: 999px;
-    cursor: pointer;
-  }
-
-  /* Replié : il ne reste que la marque et son bouton. */
+  /* Replié : il ne reste que la marque. */
   .colonne:not(.colonne--ouverte) > :not(.colonne-marque) {
     display: none;
+  }
+
+  /* ——— La barre d'onglets, comme dans une application iPhone ———
+
+     Trois écrans sous le pouce — Référents, Candidats, Documents — et « Plus »
+     pour le reste du menu. Elle colle au bas de l'écran et se réserve la place
+     de la barre d'accueil de l'iPhone (`env(safe-area-inset-bottom)`, que
+     `viewportFit: cover` rend disponible). Cinquante-six pixels de haut : les
+     quarante-neuf de la barre d'iOS, et de quoi toucher sans viser. */
+  :root {
+    --onglets-h: calc(3.5rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* Ce que la barre recouvre, la page le rend en marge : le dernier rang
+     d'une liste doit pouvoir monter au-dessus d'elle. */
+  .atelier {
+    padding-bottom: var(--onglets-h);
+  }
+
+  .barre-onglets {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 40;
+    display: flex;
+    padding: 0 env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px)
+      env(safe-area-inset-left, 0px);
+    background: color-mix(in srgb, var(--surface) 90%, transparent);
+    -webkit-backdrop-filter: saturate(1.6) blur(14px);
+    backdrop-filter: saturate(1.6) blur(14px);
+    border-top: 1px solid var(--bordure);
+  }
+
+  .barre-onglet {
+    flex: 1 1 0;
+    min-width: 0;
+    min-height: 3.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.15rem;
+    padding: 0;
+    font: inherit;
+    font-size: 0.68rem;
+    font-weight: 500;
+    color: var(--encre-douce);
+    text-decoration: none;
+    background: none;
+    border: 0;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .barre-onglet .icone--onglet {
+    width: 1.6rem;
+    height: 1.6rem;
+  }
+
+  /* L'onglet où l'on est : le mot passe à l'encre et au gras, l'icône prend
+     la couleur de la marque et un trait plus épais. Le mot ne prend pas le
+     cyan : en si petit corps il ne se lirait plus sur du blanc. */
+  .barre-onglet[aria-current] {
+    color: var(--encre);
+    font-weight: 700;
+  }
+
+  .barre-onglet[aria-current] .icone--onglet {
+    color: var(--marque);
+    stroke-width: 2.3;
+  }
+
+  /* « Plus » déploie le menu en panneau plein écran, au-dessus de tout sauf
+     de la barre d'onglets : on y défile, et la page dessous ne bouge pas. */
+  .colonne--ouverte {
+    position: fixed;
+    inset: 0 0 var(--onglets-h) 0;
+    z-index: 35;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    background: var(--surface);
+    border-bottom: none;
+  }
+
+  /* L'aide se tient au-dessus de la barre d'onglets, pas dessous. */
+  .atelier .aide-guide--coin {
+    bottom: calc(var(--onglets-h) + 12px);
+  }
+
+  /* Un champ sous seize pixels fait zoomer l'iPhone dès qu'on le touche, et
+     l'écran reste zoomé ensuite. Seize pixels partout où l'on écrit —
+     `!important`, parce que c'est une contrainte de l'appareil et non un
+     choix de mise en page : aucune règle d'écran ne doit pouvoir la défaire. */
+  .atelier :is(input, select, textarea),
+  .page-compte :is(input, select, textarea) {
+    font-size: 16px !important;
   }
 
   /* Déployé : une entrée par ligne, assez haute pour le doigt. */
@@ -4559,7 +4640,8 @@ a.poste-document .poste-document-type {
   }
 
   .atelier .aide-fenetre {
-    bottom: 16px;
+    bottom: calc(var(--onglets-h) + 8px);
+    max-height: calc(100dvh - var(--onglets-h) - 24px);
   }
 
   .colonne-aide {
@@ -4621,7 +4703,7 @@ a.poste-document .poste-document-type {
     display: block;
   }
 
-  .compte {
+  .page-compte {
     position: relative;
     padding: 0.6rem 1rem 3rem;
   }
@@ -4638,7 +4720,7 @@ a.poste-document .poste-document-type {
     text-decoration: none;
   }
 
-  .compte .aide-bouton {
+  .page-compte .aide-bouton {
     position: absolute;
     top: 0.75rem;
     right: 1rem;
@@ -4646,21 +4728,21 @@ a.poste-document .poste-document-type {
     box-shadow: none;
   }
 
-  .compte .aide-fenetre {
+  .page-compte .aide-fenetre {
     bottom: 16px;
   }
 
-  .compte h1 {
+  .page-compte h1 {
     font-size: 1.6rem;
   }
 
-  .compte .carte {
+  .page-compte .carte {
     padding: 1rem;
   }
 
   /* Le portrait au-dessus de son explication : côte à côte, le texte tenait
      dans une colonne de trois mots. */
-  .compte .mon-portrait {
+  .page-compte .mon-portrait {
     flex-direction: column;
     align-items: flex-start;
   }
@@ -4674,7 +4756,7 @@ a.poste-document .poste-document-type {
 }
 
 @media print {
-  .colonne-bascule,
+  .barre-onglets,
   .poste-retour,
   .compte-retour,
   .poste-contacts {

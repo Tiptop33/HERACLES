@@ -221,7 +221,12 @@ export default function Aide({
 
   // La taille de l'écran, pour placer le guide.
   useEffect(() => {
-    const mesurer = () => setEcran({ l: window.innerWidth, h: window.innerHeight });
+    // La barre d'onglets du téléphone, quand elle est là, ne fait pas partie de
+    // la place libre : le guide ne doit pas venir se poser dessus.
+    const mesurer = () => {
+      const barre = document.querySelector('.barre-onglets')?.getBoundingClientRect().height ?? 0;
+      setEcran({ l: window.innerWidth, h: window.innerHeight - barre });
+    };
     const image = requestAnimationFrame(mesurer);
     window.addEventListener('resize', mesurer);
     return () => {

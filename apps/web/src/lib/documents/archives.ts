@@ -40,7 +40,11 @@ export const COLONNES: Record<Sorte, { titre: string; vide: string; videAvant: s
 };
 
 /** Où l'on regarde les PDF : l'accueil, ou l'onglet des exercices précédents. */
-export const ADRESSES = ['/espace/accueil', '/espace/parametres/archives'] as const;
+export const ADRESSES = [
+  '/espace/accueil',
+  '/espace/documents',
+  '/espace/parametres/archives',
+] as const;
 export type Adresse = (typeof ADRESSES)[number];
 
 export function estUneAdresse(valeur: unknown): valeur is Adresse {

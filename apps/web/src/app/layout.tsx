@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { cheminIconeApple, cheminLogo } from '@/lib/logo';
 import './globals.css';
 
@@ -14,6 +14,18 @@ export const metadata: Metadata = {
   // Ouverte depuis l'écran d'accueil, l'application prend tout l'écran — voir
   // `manifest.ts`, que les anciens iPhone ne lisent pas pour ce réglage.
   appleWebApp: { capable: true, title: 'HERACLES' },
+};
+
+/**
+ * `viewportFit: 'cover'` : la page s'étend jusqu'aux bords de l'iPhone, et la
+ * barre d'onglets du bas se réserve elle-même la place de la barre d'accueil
+ * (`env(safe-area-inset-bottom)`). Sans lui, cette valeur reste à zéro et la
+ * barre se retrouverait sous le trait du bas de l'écran.
+ */
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

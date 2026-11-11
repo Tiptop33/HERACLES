@@ -35,7 +35,8 @@ rôle a le droit d'ouvrir.
 
 Sous 46 rem de large, le bouton flottant disparaît des espaces de travail : il
 recouvrait la fiche du candidat. L'aide devient une entrée « Aide », en bas du
-menu repliable. Les formulaires publics, qui n'ont pas de menu, gardent leur
+menu que déploie l'onglet « Plus » de la barre du bas (Référents, Candidats,
+Documents, Plus). Le guide se place au-dessus de cette barre, jamais dessus. Les formulaires publics, qui n'ont pas de menu, gardent leur
 bouton.
 
 Le menu étant replié par défaut, ses entrées ne sont pas à l'écran. Quand une

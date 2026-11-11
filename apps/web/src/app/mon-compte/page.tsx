@@ -49,10 +49,10 @@ export default async function MonCompte({
   const grain = maj && /^\d{1,14}$/.test(maj) ? `?maj=${maj}` : '';
 
   return (
-    // `compte` : sur un téléphone, la page prend la tenue des espaces de
+    // `page-compte` : sur un téléphone, la page prend la tenue des espaces de
     // travail — un retour en tête, l'aide rangée en haut, des cartes plus
     // serrées. Ailleurs, cette classe ne change rien.
-    <div className="enveloppe compte">
+    <div className="enveloppe page-compte">
       {/* Le retour vers l'espace de travail, sur un téléphone seulement : on
           arrive ici par la pastille aux initiales, et rien ne ramenait d'où
           l'on venait, sinon le mot « HERACLES ». */}
