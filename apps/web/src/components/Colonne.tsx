@@ -186,17 +186,23 @@ export default function Colonne({
 
       {/* En bas de la colonne, et à part : on ne cherche pas ses réglages en
           parcourant les familles, on les cherche là où ils sont toujours. */}
-      <Link
-        href={PARAMETRES.vers}
-        data-aide={`menu:${PARAMETRES.vers}`}
-        aria-current={estCourante(PARAMETRES, chemin) ? 'page' : undefined}
-        className={`colonne-entree colonne-parametres${
-          estCourante(PARAMETRES, chemin) ? ' colonne-entree--courante' : ''
-        }`}
-      >
-        <Roue />
-        {PARAMETRES.libelle}
-      </Link>
+{/* Pour l'administration seulement : l'écran lui est réservé (layout des
+          paramètres), et un référent qui touchait cette entrée était renvoyé
+          à l'accueil sans un mot. Une porte qui ne s'ouvre pas n'a pas à être
+          montrée — c'est la règle de la famille « Admin ». */}
+      {profil.role === 'admin' && (
+        <Link
+          href={PARAMETRES.vers}
+          data-aide={`menu:${PARAMETRES.vers}`}
+          aria-current={estCourante(PARAMETRES, chemin) ? 'page' : undefined}
+          className={`colonne-entree colonne-parametres${
+            estCourante(PARAMETRES, chemin) ? ' colonne-entree--courante' : ''
+          }`}
+        >
+          <Roue />
+          {PARAMETRES.libelle}
+        </Link>
+      )}
 
       {/* L'aide, sur un téléphone seulement : son bouton flottant y recouvrait
           la fiche, elle devient une entrée du menu. Ailleurs cette entrée
