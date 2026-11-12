@@ -36,8 +36,9 @@ export type Etape = {
    * tout l'écran, et recouvre ce qu'elle explique. Absent : `texte` sert.
    *
    * Elle sert aussi quand le téléphone ne montre pas la même chose : la
-   * colonne y est un menu repliable, et la fiche s'ouvre en plein écran. Une
-   * étape qui dit « colonne de gauche » ou « à droite » a donc la sienne.
+   * colonne y est un panneau sous l'onglet « Plus », et la fiche s'ouvre en
+   * plein écran. Une étape qui dit « colonne de gauche » ou « à droite » a
+   * donc la sienne.
    */
   court?: string;
   /**
@@ -89,13 +90,13 @@ const FICHE_DABORD = 'Choisissez d’abord un candidat dans la liste.';
 const MENU_ACCUEIL: Etape = {
   ancre: `menu:${ACCUEIL}`,
   texte: 'En haut de la colonne de gauche, cliquez sur « Accueil ».',
-  court: 'En haut du menu, touchez « Accueil ».',
+  court: 'Touchez « Plus », en bas à droite, puis « Accueil ».',
 };
 
 const ROUE_DES_PARAMETRES: Etape = {
   ancre: `menu:${PARAMETRES}`,
   texte: 'La roue crantée, tout en bas de la colonne, ouvre les paramètres.',
-  court: 'La roue crantée, en bas du menu, ouvre les paramètres.',
+  court: 'Sous « Plus », la roue crantée ouvre les paramètres.',
 };
 
 /** Un parcours vers une rubrique des paramètres : la roue, puis la rubrique. */
@@ -120,7 +121,7 @@ function versUneRubrique(
 const MENU_REUNION: Etape = {
   ancre: `menu:${REUNION}`,
   texte: 'Dans la colonne de gauche, famille « Réseau », cliquez sur « Réunion ».',
-  court: 'Dans le menu, famille « Réseau », touchez « Réunion ».',
+  court: 'Sous « Plus », famille « Réseau », touchez « Réunion ».',
 };
 
 export const PARCOURS: readonly Parcours[] = [
@@ -350,7 +351,7 @@ export const PARCOURS: readonly Parcours[] = [
       {
         ancre: 'menu:/espace/provinces',
         texte: 'Dans la colonne de gauche, famille « Réseau », cliquez sur « Province ».',
-        court: 'Dans le menu, famille « Réseau », touchez « Province ».',
+        court: 'Sous « Plus », famille « Réseau », touchez « Province ».',
       },
     ],
   },

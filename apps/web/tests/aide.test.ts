@@ -860,6 +860,24 @@ describe('ce que l’aide et le menu se disent', () => {
     expect(ancreDuMenu(null)).toBe(false);
   });
 
+  it('n’envoie plus « dans le menu » sur un téléphone : le bouton s’appelle « Plus »', () => {
+    // « Menu » reste un mot permis — une liste déroulante en est un, et les
+    // paramètres ont le leur. Ce qui ne doit plus se dire, c'est le menu de
+    // navigation, qui n'a plus ce nom.
+    for (const parcours of PARCOURS) {
+      for (const etape of parcours.etapes) {
+        expect(texteDeLEtape(etape, 390), parcours.id).not.toMatch(
+          /(dans le|en haut du|en bas du) menu\b(?! des paramètres)/i,
+        );
+      }
+    }
+  });
+
+  it('ne montre « Paramètres » qu’à l’administration', () => {
+    const colonne = readFileSync(join(SRC, 'components', 'Colonne.tsx'), 'utf8');
+    expect(colonne).toMatch(/profil\.role === 'admin' && \(\s*<Link\s+href=\{PARAMETRES\.vers\}/);
+  });
+
   it('ne range dans la barre d’onglets que des entrées que la colonne offre', async () => {
     const { ANCRES_DES_ONGLETS } = await import('../src/lib/aide/signaux');
     const { FAMILLES } = await import('../src/lib/navigation');
