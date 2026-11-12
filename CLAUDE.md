@@ -189,6 +189,9 @@ sert**, pas la liste des fichiers touchés.
 - **Sauvegarde** — `docs/sauvegarde.md`. Le serveur porte des données réelles :
   base, fichiers, et la copie qui doit en sortir. À lire avant toute opération
   qui touche à la base.
+- **Secteurs d'activité** — `docs/secteurs-d-activite.md` : la nomenclature NAF
+  qui range candidats, loges et offres, les dix décisions qui la fondent, et ce
+  qui reste à faire.
 - **Aide intégrée** — `docs/aide.md` : le bouton « Aide », le catalogue des
   parcours, les ancres `data-aide` et le personnage qui désigne. Tout écran qui
   porte une ancre la garde, ou le test de l'aide casse.

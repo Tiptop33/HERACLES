@@ -26,7 +26,7 @@ traitements.
 | Représentant légal | ⚠️ *nom, qualité (président…)* |
 | Délégué à la protection des données | ⚠️ *aucun désigné, ou nom et contact* |
 | Contact pour exercer ses droits | ⚠️ *adresse électronique à afficher aux candidats* |
-| Dernière mise à jour du registre | 9 novembre 2026 |
+| Dernière mise à jour du registre | 12 novembre 2026 |
 
 ---
 
@@ -37,7 +37,7 @@ traitements.
 | **Finalité** | Accompagner une personne dans sa recherche d'emploi, d'alternance ou de stage : tenir sa fiche, la suivre dans la durée, lui proposer des offres. |
 | **Base légale** | Consentement : le candidat coche la case de consentement en envoyant sa fiche (`/candidature/<jeton>`). ⚖️ *Pour les 107 fiches reprises de Bubble, la base légale de l'époque est à retrouver.* |
 | **Personnes concernées** | Les candidats. |
-| **Données** | Identité (nom, prénom, âge, situation familiale, photo) ; coordonnées (adresse électronique, téléphone, adresse postale) ; recherche (type, métier visé, mobilité, dates de stage) ; permis et véhicule ; parcours (formation, expériences, compétences, informatique, savoir-être, centres d'intérêt) ; CV et lettre de motivation ; suivi écrit par les référents. |
+| **Données** | Identité (nom, prénom, âge, situation familiale, photo) ; coordonnées (adresse électronique, téléphone, adresse postale) ; recherche (type, métier visé, mobilité, dates de stage, jusqu'à trois secteurs d'activité classés dans la nomenclature NAF — proposés par le candidat, confirmés par un référent, migration 0088) ; permis et véhicule ; parcours (formation, expériences, compétences, informatique, savoir-être, centres d'intérêt) ; CV et lettre de motivation ; suivi écrit par les référents. |
 | **Données sensibles** | Aucune n'est demandée. Mais les champs libres — parcours, suivi, motif d'urgence — peuvent en recevoir (santé, situation financière). ⚖️ *Une consigne aux référents est à prévoir : n'y écrire que ce qui sert l'accompagnement.* |
 | **Destinataires** | Les référents de la loge du candidat : un référent ne voit que les dossiers de sa loge, et la base l'impose (RLS). Les administrateurs — qui retrouvent aussi les dossiers refermés, toutes loges, dans Paramètres › Archives (« Candidat Clôturé », « Candidat Archivé ») : photo, nom, prénom, métier, ville, numéro de fiche, rien de plus que la liste de l'écran Candidats. Avec, depuis la migration 0071, la date de création, et celle de la clôture ou de l'archivage. ⚠️ *Ces dossiers refermés restent en base sans limite : c'est la durée de conservation ci-dessous qui doit y mettre fin.* |
 | **Sous-traitants** | Hostinger (hébergement), Brevo (courriels), Anthropic (lecture du CV, si le candidat la demande). Voir § 8. |
@@ -69,6 +69,7 @@ traitements.
 | **Base légale** | ⚖️ *Intérêt légitime de l'association, ou exécution de l'adhésion : à trancher.* |
 | **Personnes concernées** | Les référents, les parrains qui ont un compte, les administrateurs. |
 | **Données** | Identité, adresse électronique, téléphone, photo, loge, fonction (Vénérable Maître, Secrétaire…), présences aux réunions, empreintes des derniers mots de passe (pour en interdire la réutilisation). |
+| **Décompte des secteurs de la loge** | Combien de membres de la loge travaillent dans chaque secteur d'activité (division NAF, migration 0089), tenu par le Secrétaire. **Sans aucun nom** : ce n'est pas, en soi, une donnée personnelle. ⚖️ *Un décompte de 1 dans une petite loge peut toutefois désigner quelqu'un pour qui connaît la loge. Il ne sera montré qu'aux référents et administrateurs, jamais aux candidats ; ses droits d'accès arriveront avec l'écran.* |
 | **Données sensibles** | ⚖️ *Même remarque qu'au § 2 : l'appartenance à une loge.* |
 | **Destinataires** | Les membres de la loge, selon leur fonction ; les administrateurs. |
 | **Sous-traitants** | Hostinger, Brevo (courriels de connexion et de réinitialisation). |
