@@ -48,6 +48,7 @@ export default function ChoixDeLaProchaineReunion({
       method="post"
       action={`/api/reunions/${reunion}/prochaine`}
       className="appel-affichette appel-prochaine"
+      data-aide="prochaine-reunion"
     >
       <input type="hidden" name="retour" value={`/espace/reunion?appel=${reunion}`} />
       <label htmlFor="prochaine-reunion">Prochaine réunion</label>
