@@ -12,6 +12,11 @@
  * dupliquée (`on conflict (bubble_id)`).
  *
  * Il n'affiche JAMAIS de donnée personnelle — seulement des compteurs.
+ *
+ * Codes de sortie : 0 tout est repris ; 1 la reprise a échoué ; 4 le jeton est
+ * refusé par la base lue, et rien n'a été écrit. Le 4 est à part parce qu'il
+ * appelle une autre réponse qu'une panne : `reprendre-bubble.sh --provinces`
+ * se replie alors sur la base de test.
  */
 
 import pg from 'pg';
@@ -370,7 +375,9 @@ async function verifierLeJeton() {
   if (reponse.status === 401 || reponse.status === 403) {
     console.error(`Le jeton est refusé par ${RACINE} (HTTP ${reponse.status}).`);
     console.error(JETON_REFUSE);
-    process.exit(1);
+    // Code à part (voir l'en-tête) : rien n'est encore écrit à ce stade.
+    await client.end();
+    process.exit(4);
   }
 }
 
@@ -628,8 +635,13 @@ try {
 // Aujourd'hui la base en service n'expose que les sept types du PLAN, déjà
 // écartés : cette liste est vide et rien ne change. Elle prendra son sens le
 // jour où l'on exposera `tache` côté production, comme le demande MAJBUBBLE.
+//
+// Sauf avec TYPES_BRUTS : qui nomme les types ET la base les a choisis l'un
+// pour l'autre. C'est le repli de `reprendre-bubble.sh --provinces` quand la
+// base en service refuse le jeton — écarter les provinces le ferait échouer
+// sur un « non exposé » trompeur.
 const reserves = new Set();
-if (SEULEMENT_BRUT && VERSION) {
+if (SEULEMENT_BRUT && VERSION && !TYPES_BRUTS.length) {
   try {
     for (const type of await typesExposes(`https://${APP}.bubbleapps.io/api/1.1`)) {
       if (!traites.has(type)) reserves.add(type);

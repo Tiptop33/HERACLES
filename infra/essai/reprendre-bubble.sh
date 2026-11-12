@@ -12,7 +12,8 @@
 # à l'API anonyme. Le jeton vient de la commande, ou à défaut de la ligne
 # `BUBBLE_TOKEN=` du `.env` de la pile. Rangé là, `mettre-a-jour.sh` le joue
 # à chaque mise en ligne, jusqu'à la bascule. Sans jeton, il s'arrête sur le
-# code 3 — « rien à faire », et non une panne.
+# code 3 — « rien à faire », et non une panne. Si la base en service refuse
+# le jeton, il lit la base de test à la place, et le dit.
 #
 # `--pdf-commission` ne reprend que la table des PDF de Bubble, et ne rapatrie
 # que les comptes rendus, affiches et affichettes — ni candidat, ni référent,
@@ -147,15 +148,18 @@ if [[ $PROVINCES -eq 1 ]]; then
   # Le jeton de la commande d'abord ; sinon celui rangé dans le `.env` de la
   # pile, qui permet à chaque mise en ligne de rejouer cette reprise. Il ne
   # sert qu'ici : les PDF et les dates se reprennent sans lui aujourd'hui, et
-  # un jeton refusé les ferait échouer.
+  # un jeton refusé les ferait échouer — `mettre-a-jour.sh` les lance donc
+  # sans (`env -u BUBBLE_TOKEN`), bien qu'il charge tout le `.env`.
   if [[ -z "${BUBBLE_TOKEN:-}" ]]; then
     BUBBLE_TOKEN="$(grep -m1 '^BUBBLE_TOKEN=' "$DOSSIER/.env" 2>/dev/null | cut -d= -f2- || true)"
-    # Ce qu'un éditeur de texte a pu ajouter autour : guillemets, retour
-    # chariot d'un fichier passé par Windows.
-    BUBBLE_TOKEN="${BUBBLE_TOKEN%$'\r'}"
-    BUBBLE_TOKEN="${BUBBLE_TOKEN#\"}"; BUBBLE_TOKEN="${BUBBLE_TOKEN%\"}"
-    BUBBLE_TOKEN="${BUBBLE_TOKEN#\'}"; BUBBLE_TOKEN="${BUBBLE_TOKEN%\'}"
   fi
+  # Ce qu'un éditeur de texte a pu ajouter autour : guillemets, retour chariot
+  # d'un fichier passé par Windows. Aussi quand le jeton arrive déjà chargé
+  # par `mettre-a-jour.sh`, qui lit le `.env` sans ce nettoyage.
+  BUBBLE_TOKEN="${BUBBLE_TOKEN:-}"
+  BUBBLE_TOKEN="${BUBBLE_TOKEN%$'\r'}"
+  BUBBLE_TOKEN="${BUBBLE_TOKEN#\"}"; BUBBLE_TOKEN="${BUBBLE_TOKEN%\"}"
+  BUBBLE_TOKEN="${BUBBLE_TOKEN#\'}"; BUBBLE_TOKEN="${BUBBLE_TOKEN%\'}"
   if [[ -z "${BUBBLE_TOKEN:-}" ]]; then
     rouge "BUBBLE_TOKEN est obligatoire pour les provinces."
     echo  "Bubble les cache à l'API sans jeton (règle de confidentialité du type"
@@ -169,7 +173,27 @@ if [[ $PROVINCES -eq 1 ]]; then
   etape "Provinces — la réserve brute, depuis la base en service"
   # Le type `provinces`, seul, recopié dans bubble_brut. Les tables métier et
   # les autres types de la réserve ne sont pas touchés.
-  outil -e TYPES_BRUTS=provinces "$IMAGE" node import-bubble.mjs
+  #
+  # Les réglages d'API de Bubble sont versionnés : un jeton créé dans l'éditeur
+  # n'est reconnu par la base en service qu'une fois Bubble déployé en Live.
+  # Déployer Bubble pousserait aussi en Live tout ce qui attend dans l'éditeur ;
+  # on ne le fait pas pour deux fiches (décision du 12 novembre 2026). Si la
+  # base en service refuse le jeton — code 4, rien d'écrit —, on lit donc les
+  # provinces dans la base de test, où le jeton vaut tout de suite. Ce sont les
+  # mêmes provinces, aux mêmes identifiants : les loges en service les
+  # désignent. Le bilan dit d'où elles viennent. Le jour où la base en service
+  # accepte le jeton, c'est elle qui fait foi, sans rien changer ici.
+  SOURCE="base en service"
+  code=0
+  outil -e TYPES_BRUTS=provinces "$IMAGE" node import-bubble.mjs || code=$?
+  if [[ $code -eq 4 ]]; then
+    rouge "La base en service refuse le jeton (Bubble pas déployé depuis sa création, ou jeton mal recopié)."
+    etape "Provinces — la réserve brute, depuis la base de TEST (repli)"
+    SOURCE="base de test (version-test) — repli, jeton refusé par la base en service"
+    outil -e TYPES_BRUTS=provinces -e BUBBLE_VERSION=version-test "$IMAGE" node import-bubble.mjs
+  elif [[ $code -ne 0 ]]; then
+    exit "$code"
+  fi
 
   etape "Provinces — dépliées dans leur table, loges rattachées"
   docker exec -i "$PREFIXE-db" psql -U postgres -d postgres -v ON_ERROR_STOP=1 -c "
@@ -185,6 +209,7 @@ if [[ $PROVINCES -eq 1 ]]; then
 
   etape "Provinces — bilan"
   # Une carte sans nom ou sans écusson se voit ici, avant de se voir à l'écran.
+  echo "Lues dans : $SOURCE"
   docker exec -i "$PREFIXE-db" psql -U postgres -d postgres -c "
     select count(*)            as provinces,
            count(nom)          as avec_nom,

@@ -179,7 +179,12 @@ etape "PDF de la commission — depuis Bubble"
 # ce qui est passé reste passé, la mise en ligne suivante reprend le reste.
 #
 # À retirer après la bascule du 5 décembre 2026 : Bubble ne répondra plus.
-if timeout 300 "$DEPOT/infra/essai/reprendre-bubble.sh" --pdf-commission; then
+#
+# **Sans le jeton Bubble** (`env -u`). Le `.env` chargé plus haut l'exporte
+# dès que la ligne `BUBBLE_TOKEN=` y est, pour les provinces. Les PDF et les
+# dates n'en ont pas besoin, et un jeton que la base en service ne reconnaît
+# pas encore les ferait échouer à chaque mise en ligne.
+if env -u BUBBLE_TOKEN timeout 300 "$DEPOT/infra/essai/reprendre-bubble.sh" --pdf-commission; then
   vert "PDF de la commission à jour"
 else
   rouge "PDF de la commission : reprise incomplète — sans effet sur l'application,"
@@ -189,8 +194,8 @@ fi
 etape "Dates de modification des candidats — depuis Bubble"
 # La date approchée de clôture ou d'archivage des dossiers repris (migration
 # 0071) : une colonne seule, recopiée de Bubble. Même règle que les PDF : non
-# bloquant, borné, à retirer après la bascule.
-if timeout 120 "$DEPOT/infra/essai/reprendre-bubble.sh" --dates-candidats; then
+# bloquant, borné, sans jeton, à retirer après la bascule.
+if env -u BUBBLE_TOKEN timeout 120 "$DEPOT/infra/essai/reprendre-bubble.sh" --dates-candidats; then
   vert "dates des candidats à jour"
 else
   rouge "dates des candidats : reprise incomplète — sans effet sur l'application,"
@@ -211,6 +216,8 @@ timeout 180 "$DEPOT/infra/essai/reprendre-bubble.sh" --provinces || provinces=$?
 case $provinces in
   0) vert "provinces à jour" ;;
   3) echo "provinces : pas de jeton Bubble dans $DOSSIER/.env — reprise non faite" ;;
+  4) rouge "provinces : le jeton Bubble est refusé, même par la base de test — vérifier"
+     rouge "qu'il a été recopié en entier dans $DOSSIER/.env, et qu'il n'a pas été régénéré." ;;
   *) rouge "provinces : reprise incomplète (code $provinces) — sans effet sur l'application,"
      rouge "la prochaine mise en ligne reprendra." ;;
 esac

@@ -366,7 +366,28 @@ sudo nano /opt/supabase-heracles-essai/.env     # ajouter : BUBBLE_TOKEN=xxx
 `mettre-a-jour.sh` la lance alors après chaque déploiement, non bloquante et
 bornée à trois minutes. Sans la ligne, il le dit d'une phrase et passe. Une
 réinstallation (`deployer.sh --repartir-de-zero`) garde le jeton, comme les
-réglages SMTP.
+réglages SMTP. Les reprises des PDF et des dates tournent, elles, **sans** le
+jeton (`env -u BUBBLE_TOKEN`), bien que `mettre-a-jour.sh` charge tout le
+`.env` : un jeton que la base en service ne reconnaît pas les ferait échouer.
+
+**Si la base en service refuse le jeton.** Les réglages d'API de Bubble sont
+versionnés : un jeton créé dans l'éditeur n'est reconnu par la base en service
+qu'une fois Bubble déployé en Live. Déployer Bubble pousserait aussi en Live
+tout ce qui attend dans l'éditeur ; décision du 12 novembre 2026 : on ne le
+fait pas pour deux fiches. La reprise lit alors les provinces dans la **base
+de test** (`version-test`), où le jeton vaut tout de suite — mêmes provinces,
+mêmes identifiants, puisque les loges en service les désignent. Le bilan le
+dit, sur une ligne au-dessus du tableau :
+
+```
+Lues dans : base de test (version-test) — repli, jeton refusé par la base en service
+```
+
+Le nom ou l'écusson peuvent y différer de ceux en service : les comparer à
+l'écran Province avant la bascule. Le jour où la base en service accepte le
+jeton, c'est elle qui fait foi, sans rien changer. Si la base de test le
+refuse aussi, la mise en ligne affiche « le jeton Bubble est refusé, même par
+la base de test » : il a été mal recopié, ou régénéré depuis.
 
 Ce que ce jeton est, et ce qu'il faut en faire :
 
@@ -393,6 +414,7 @@ Deux défauts de 0080, corrigés par 0081 avant toute reprise réelle :
 
 **À vérifier après chaque reprise des provinces**, sur le bilan :
 
+- la ligne « Lues dans » : base en service, ou base de test en repli ;
 - `provinces` = 2, `avec_nom` = 2, `avec_ecusson` = 2 ;
 - `ecusson_dans_le_stockage` = 2 — sinon relancer : le rapatriement reprend
   où il s'est arrêté ;
