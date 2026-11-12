@@ -4787,3 +4787,352 @@ a.poste-document .poste-document-type {
     display: none;
   }
 }
+
+/* ---------------------------------------------------------------------------
+ * Les secteurs d'activité — le bloc « Secteurs représentés » de la page
+ * Référents (maquette validée le 12 novembre 2026,
+ * docs/maquettes/secteurs-d-activite.html, écran 3). Une loge y coche les
+ * secteurs présents chez elle ; chaque geste s'enregistre aussitôt.
+ * ------------------------------------------------------------------------- */
+
+.decompte-section {
+  display: grid;
+  gap: 0.8rem;
+  margin-bottom: 1.5rem;
+}
+
+.decompte-section summary {
+  cursor: pointer;
+  list-style: none;
+}
+
+.decompte-section summary::-webkit-details-marker {
+  display: none;
+}
+
+.decompte-section[open] summary {
+  margin-bottom: -0.4rem;
+}
+
+.decompte-tete {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.3rem 1rem;
+}
+
+.decompte-tete h2 {
+  margin: 0;
+}
+
+.decompte-date {
+  font-size: 0.8rem;
+  color: var(--encre-douce);
+}
+
+/* Plus de six mois sans mise à jour : la date se signale, en ambre — la
+   couleur de ce qui attend. */
+.decompte-date--ancienne {
+  color: var(--attention);
+  font-weight: 600;
+}
+
+.decompte-total {
+  font-size: 0.85rem;
+  color: var(--encre-douce);
+  margin: 0;
+}
+
+.secteurs {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.secteurs-aide {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--encre-douce);
+}
+
+.secteurs-vide {
+  margin: 0;
+  color: var(--encre-tres-douce);
+  font-style: italic;
+  font-size: 0.88rem;
+}
+
+.secteur-code {
+  display: inline-block;
+  font: 600 0.78rem/1.4 var(--mono);
+  padding: 0 0.35rem;
+  margin-right: 0.35rem;
+  border-radius: 4px;
+  background: var(--candidat-clair);
+  color: var(--encre);
+}
+
+.secteur-texte {
+  min-width: 0;
+}
+
+.secteur-texte strong {
+  display: block;
+  font-weight: 600;
+}
+
+.secteur-texte small {
+  display: block;
+  color: var(--encre-tres-douce);
+  font-size: 0.78rem;
+}
+
+.secteur-geste {
+  width: 1.9rem;
+  height: 1.9rem;
+  border-radius: 6px;
+  border: 1px solid var(--bordure);
+  background: var(--surface);
+  color: var(--encre-douce);
+  cursor: pointer;
+  font: 600 0.9rem/1 var(--corps);
+}
+
+.secteur-geste:hover:not(:disabled) {
+  border-color: var(--marque);
+  color: var(--marque);
+}
+
+.secteur-geste:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.coches-section {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.coches-section-titre {
+  margin: 0.3rem 0 0;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--encre-douce);
+}
+
+.coches {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.3rem;
+  grid-template-columns: repeat(auto-fill, minmax(19rem, 1fr));
+}
+
+.coche {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.5rem;
+  align-items: center;
+  padding: 0.45rem 0.6rem;
+  background: var(--surface);
+  border: 1px solid var(--bordure);
+  border-radius: 8px;
+}
+
+.secteurs-ajout {
+  position: relative;
+}
+
+.secteurs-ajout input[type='search'] {
+  width: 100%;
+  box-sizing: border-box;
+  font: inherit;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid var(--bordure-nette);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--encre);
+}
+
+.secteurs-ajout input[type='search']:focus-visible {
+  outline: 2px solid var(--marque);
+  outline-offset: 1px;
+}
+
+/* Les propositions flottent sous le champ, sans rien bloquer : un clic
+   ailleurs les referme. */
+.secteurs-resultats {
+  position: absolute;
+  z-index: 20;
+  left: 0;
+  right: 0;
+  top: calc(100% + 4px);
+  margin: 0;
+  padding: 0.3rem;
+  list-style: none;
+  background: var(--surface);
+  border: 1px solid var(--bordure-nette);
+  border-radius: 8px;
+  box-shadow: 0 10px 24px rgb(22 32 46 / 0.14);
+  max-height: 20rem;
+  overflow: auto;
+}
+
+.secteurs-resultats li {
+  display: flex;
+  gap: 0.5rem;
+  align-items: baseline;
+  padding: 0.45rem 0.55rem;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.secteurs-resultats li[aria-selected='true'],
+.secteurs-resultats li:hover {
+  background: var(--candidat-clair);
+}
+
+.secteurs-resultats li.deja {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.secteurs-resultats li.rien {
+  display: block;
+  cursor: default;
+  color: var(--encre-douce);
+  font-size: 0.85rem;
+}
+
+.secteurs-resultats li.rien:hover {
+  background: none;
+}
+
+.secteurs-liens {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  font-size: 0.82rem;
+}
+
+.secteurs-liens button {
+  font: inherit;
+  color: var(--marque);
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* L'arborescence à cocher : du grand secteur à la sous-classe. */
+.arbre,
+.arbre ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.arbre {
+  border: 1px solid var(--bordure);
+  border-radius: 8px;
+  padding: 0.4rem;
+  max-height: 26rem;
+  overflow: auto;
+  background: var(--surface);
+}
+
+.arbre ul {
+  padding-left: 1.3rem;
+  border-left: 1px dashed var(--bordure);
+  margin-left: 0.75rem;
+}
+
+.arbre-ligne {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.15rem 0;
+  font-size: 0.86rem;
+}
+
+.arbre-ligne label {
+  display: flex;
+  align-items: baseline;
+  gap: 0.35rem;
+  cursor: pointer;
+}
+
+.arbre-ligne input {
+  margin: 0;
+  accent-color: var(--marque);
+  transform: translateY(1px);
+}
+
+.arbre-ligne--n1 {
+  font-weight: 600;
+}
+
+.arbre-bascule {
+  width: 1.4rem;
+  height: 1.4rem;
+  flex: none;
+  border: 0;
+  background: none;
+  color: var(--encre-douce);
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 0.8rem;
+}
+
+.arbre-bascule:hover {
+  background: var(--candidat-clair);
+}
+
+.arbre-compte {
+  font-size: 0.72rem;
+  color: var(--marque);
+  font-weight: 600;
+  margin-left: 0.3rem;
+  white-space: nowrap;
+}
+
+/* « Enregistré » : flottant, discret, sans rien bloquer. */
+.secteurs-enregistre {
+  position: fixed;
+  left: 50%;
+  bottom: 1.2rem;
+  transform: translate(-50%, 1rem);
+  opacity: 0;
+  z-index: 60;
+  background: var(--referent);
+  color: #fff;
+  font: 600 0.85rem/1 var(--corps);
+  padding: 0.6rem 1rem;
+  border-radius: 999px;
+  transition:
+    opacity 0.2s,
+    transform 0.2s;
+  pointer-events: none;
+}
+
+.secteurs-enregistre--visible {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+.secteurs-enregistre:empty {
+  padding: 0;
+}
+
+@media print {
+  .secteurs-ajout,
+  .secteurs-liens,
+  .arbre,
+  .secteur-geste,
+  .secteurs-enregistre {
+    display: none;
+  }
+}

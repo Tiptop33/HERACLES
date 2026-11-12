@@ -80,7 +80,7 @@ recopiés à l'identique.
 | Étape | Contenu | Quand |
 | --- | --- | --- |
 | 2 | ~~Maquettes des trois écrans~~ — **validées le 12 novembre** | fait |
-| 2 bis | Construire les trois écrans, avec leurs droits d'accès (RLS) | avant la bascule |
+| 2 bis | Construire les trois écrans, avec leurs droits d'accès. **Fait : le bloc « Secteurs représentés » de la page Référents** (migration 0091). Restent le formulaire de candidature et la fiche candidat | avant la bascule |
 | 2 ter | Le bandeau du Secrétaire et le suivi des 73 loges — emplacement à montrer d'abord | avant la bascule |
 | 3 | Table de correspondance des secteurs Bubble → NAF, à valider | avant la bascule |
 | 4 | Fiche candidat : « Loges qui peuvent aider » | décembre |
