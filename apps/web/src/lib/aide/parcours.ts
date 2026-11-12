@@ -515,6 +515,30 @@ export const PARCOURS: readonly Parcours[] = [
     ],
   },
   {
+    id: 'prochaine-reunion',
+    titre: 'Indiquer la date de la prochaine réunion',
+    motsCles: [
+      'prochaine réunion',
+      'date de la prochaine réunion',
+      'réunion suivante',
+      'modifier la prochaine réunion',
+      'jour férié',
+      'reporter la réunion',
+      'date du compte rendu',
+    ],
+    destination: REUNION,
+    etapes: [
+      MENU_REUNION,
+      {
+        ancre: 'prochaine-reunion',
+        ecran: REUNION,
+        texte:
+          'La date proposée est le 2e ou le 4e mercredi suivant, reportée au jeudi si le mercredi est férié. Corrigez-la si besoin, avant « Compte rendu » : elle s’enregistre aussitôt et s’imprime sur le compte rendu.',
+        siAbsent: 'Ce champ apparaît sur une feuille d’appel ouverte. Ouvrez d’abord l’appel de la réunion.',
+      },
+    ],
+  },
+  {
     id: 'registre-des-reunions',
     titre: 'Retrouver une réunion passée',
     motsCles: ['registre', 'réunion passée', 'réunions passées', 'ancienne réunion', 'reprendre un appel', 'historique des réunions', 'présences passées'],

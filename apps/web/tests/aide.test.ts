@@ -214,6 +214,8 @@ describe('la recherche de l’aide', () => {
     ['j’ai retiré une note par erreur', 'rendre-une-note'],
     ['supprimer une affiche', 'effacer-un-pdf'],
     ['effacer un compte rendu', 'effacer-un-pdf'],
+    ['quelle est la date de la prochaine réunion', 'prochaine-reunion'],
+    ['la prochaine réunion tombe un jour férié', 'prochaine-reunion'],
   ])('« %s » mène à %s', (question, attendu) => {
     expect(premier(question)).toBe(attendu);
   });
