@@ -3852,6 +3852,15 @@ a.poste-document .poste-document-type {
   background: var(--surface-creuse); color: inherit;
 }
 
+/* La prochaine réunion (0085), juste sous l'affichette : même ligne, sans
+   second filet. */
+.appel-affichette.appel-prochaine { margin-top: .5rem; padding-top: 0; border-top: 0; }
+.appel-prochaine input[type="date"] {
+  font: inherit; font-size: .88rem;
+  padding: .4rem .6rem; border: 1px solid var(--bordure); border-radius: 9px;
+  background: var(--surface-creuse); color: inherit;
+}
+
 /* Les deux gestes du pied de feuille, côte à côte : demander le compte rendu,
    et fermer l'appel. Ils restent groupés quand la phrase passe à la ligne. */
 .appel-gestes { display: flex; align-items: center; gap: .5rem; flex: 0 0 auto; }

@@ -201,6 +201,7 @@ const REFUS: Record<string, string> = {
     'Cette réunion vient de Bubble : elle reviendrait à la prochaine reprise. Retirez-la du registre plutôt que de l’effacer.',
   dossier: 'Ce dossier ne peut pas être choisi pour l’affichette : il est refermé, ou d’une autre loge.',
   affichette: 'Aucun dossier n’est encore choisi pour l’affichette de cette réunion.',
+  prochaine: 'La prochaine réunion doit tomber après celle-ci.',
 };
 
 export function phraseDeRefusReunion(code: string | null | undefined): string | null {
