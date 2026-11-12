@@ -69,7 +69,7 @@ traitements.
 | **Base légale** | ⚖️ *Intérêt légitime de l'association, ou exécution de l'adhésion : à trancher.* |
 | **Personnes concernées** | Les référents, les parrains qui ont un compte, les administrateurs. |
 | **Données** | Identité, adresse électronique, téléphone, photo, loge, fonction (Vénérable Maître, Secrétaire…), présences aux réunions, empreintes des derniers mots de passe (pour en interdire la réutilisation). |
-| **Décompte des secteurs de la loge** | Combien de membres de la loge travaillent dans chaque secteur d'activité (division NAF, migration 0089), tenu par le Secrétaire. **Sans aucun nom** : ce n'est pas, en soi, une donnée personnelle. ⚖️ *Un décompte de 1 dans une petite loge peut toutefois désigner quelqu'un pour qui connaît la loge. Il ne sera montré qu'aux référents et administrateurs, jamais aux candidats ; ses droits d'accès arriveront avec l'écran.* |
+| **Secteurs présents dans la loge** | Les secteurs d'activité où travaillent des membres de la loge, cochés par le Secrétaire (NAF, de la division à la sous-classe, migration 0089). **Ni nom ni nombre** : ce n'est pas, en soi, une donnée personnelle. ⚖️ *Un secteur rare et très précis, coché dans une petite loge, peut toutefois désigner quelqu'un pour qui connaît la loge. La liste ne sera montrée qu'aux référents et administrateurs, jamais aux candidats ; ses droits d'accès arriveront avec l'écran.* |
 | **Données sensibles** | ⚖️ *Même remarque qu'au § 2 : l'appartenance à une loge.* |
 | **Destinataires** | Les membres de la loge, selon leur fonction ; les administrateurs. |
 | **Sous-traitants** | Hostinger, Brevo (courriels de connexion et de réinitialisation). |

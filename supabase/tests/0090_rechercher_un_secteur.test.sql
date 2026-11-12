@@ -68,6 +68,34 @@ select public.verifier(
      from public.rechercher_secteur('construction') r),
   'chaque réponse porte sa section');
 
+\echo '— pour une loge : aussi précis qu''on veut'
+select public.verifier(
+  (select code from public.rechercher_secteur('boulangerie', true) where rang = 1) = '10.71C',
+  'boulangerie, en mode précis → 10.71C Boulangerie et boulangerie-pâtisserie, telle quelle');
+select public.verifier(
+  (select code from public.rechercher_secteur('installation électrique', true) where rang = 1) = '43.21'
+    and exists (select 1 from public.rechercher_secteur('installation électrique', true) where code = '43.21A'),
+  'installation électrique → 43.21 en tête, 43.21A parmi les réponses');
+select public.verifier(
+  not exists (select 1 from public.rechercher_secteur('électricien', true) where code like '43%'),
+  'électricien, un nom de métier, ne trouve pas l''installation électrique — la limite connue');
+select public.verifier(
+  (select section from public.rechercher_secteur('installation électrique', true) where code = '43.21A') = 'F'
+    and (select section_intitule from public.rechercher_secteur('installation électrique', true) where code = '43.21A') = 'Construction',
+  'une sous-classe porte sa section : 43.21A est dans F — Construction');
+select public.verifier(
+  not exists (select 1 from public.rechercher_secteur('électricité', true) where code = '35.11Z')
+    and exists (select 1 from public.rechercher_secteur('électricité', true) where code = '35.11'),
+  'une sous-classe qui répète sa classe ne s''affiche pas deux fois');
+select public.verifier(
+  not exists (select 1 from public.rechercher_secteur('électricien')
+               where niveau not in ('section', 'division')),
+  'sans le mode précis, rien sous la division');
+select public.verifier(
+  (select array_agg(code order by rang) from public.rechercher_secteur('43.21', true))
+  = array['43.21', '43.21A', '43.21B'],
+  'un code en mode précis : la classe, puis ses deux sous-classes');
+
 \echo '— rien pour rien'
 select public.verifier(
   not exists (select 1 from public.rechercher_secteur(''))

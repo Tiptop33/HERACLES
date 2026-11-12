@@ -32,8 +32,8 @@
 
 -- 1. Un code NAF du bon niveau ---------------------------------------------
 -- Réutilisée par 0089 : un candidat choisit une section ou une division, une
--- loge compte par division. Les niveaux admis sont passés en arguments du
--- déclencheur.
+-- loge coche de la division à la sous-classe. Les niveaux admis sont passés
+-- en arguments du déclencheur.
 --
 -- `security definer` : la ligne est écrite par la personne connectée, qui
 -- n'aura pas forcément le droit de lire `code_naf` ; le contrôle, lui, doit

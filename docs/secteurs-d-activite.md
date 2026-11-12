@@ -11,20 +11,22 @@ offres du bâtiment.
 | --- | --- | --- |
 | 1 | Ranger par métier (ROME) ou par secteur (NAF) ? | **Par secteur** : la nomenclature d'activités française de l'INSEE (NAF rév. 2) |
 | 2 | Jusqu'à quel niveau ? | **Deux niveaux** : 21 sections › 88 divisions |
-| 3 | Les secteurs d'une loge, ce sont ceux de qui ? | **Un décompte sans nom** : « 43 — Travaux de construction spécialisés : 3 membres » |
+| 3 | Les secteurs d'une loge, ce sont ceux de qui ? | **Sans aucun nom** : la loge dit quels secteurs sont présents chez elle. Précisé le 12 novembre : elle **coche les secteurs présents**, sans nombre de membres |
 | 4 | Que produit le rapprochement, et dans quel ordre ? | **D'abord les loges qui peuvent aider le candidat, ensuite les offres** de son secteur |
 | 5 | Quand ? | **Le socle avant la bascule** du 5 décembre, les écrans de rapprochement en décembre |
 | 6 | Combien de secteurs par candidat ? | **Jusqu'à trois, classés** : le premier est le principal |
 | 7 | Les secteurs saisis dans Bubble ? | **Une table de correspondance** Bubble → NAF, validée une fois, appliquée à chaque reprise |
 | 8 | Qui choisit les secteurs d'un candidat ? | **Le candidat propose** (formulaire de candidature), **le référent confirme** (fiche) |
 | 9 | Comment trouver son secteur ? | **Une recherche par mot**, et deux listes successives |
-| 10 | Qui tient le décompte d'une loge ? | **Le Secrétaire**, les administrateurs en secours, avec la date de mise à jour |
+| 10 | Qui tient la liste d'une loge ? | **Le Secrétaire**, les administrateurs en secours, avec la date de mise à jour |
+| 11 | Jusqu'où une loge précise-t-elle ? | **Au moins la division, puis aussi fin qu'elle le veut**, jusqu'à la sous-classe (« 43.21A ») — proposition retenue faute d'autre réponse, à confirmer |
+
+Chaque loge sera **sollicitée** pour remplir sa liste (« on interrogera chaque loge »).
 
 Choix faits en chemin, sans question :
 
 - un candidat qui hésite peut **s'arrêter au grand secteur** (« F — Construction ») ;
-- une loge compte **par division** ;
-- les décomptes seront visibles des **référents et administrateurs de toutes les
+- les listes des loges seront visibles des **référents et administrateurs de toutes les
   loges** — c'est nécessaire pour montrer les *autres* loges qui peuvent aider — et
   **jamais des candidats**.
 
@@ -51,11 +53,12 @@ code_naf            la nomenclature, ses 5 niveaux, 1 728 lignes
 candidat_secteur    jusqu'à 3 par candidat (section ou division)
   candidat_id · rang 1..3 · code · propose_par · confirme_par · confirme_le
 
-loge_secteur        le décompte sans nom (division)
-  loge_id · code · nombre 1..999 · maj_le · maj_par
-  + loge.secteurs_maj_le : la date du décompte de la loge
+loge_secteur        les secteurs cochés par la loge (de la division à la sous-classe)
+  loge_id · code · coche_le · coche_par
+  + loge.secteurs_maj_le : la date de la liste de la loge
 
-rechercher_secteur(mot)  « boulangerie » → 10 — Industries alimentaires
+rechercher_secteur(mot)        « boulangerie » → 10 — Industries alimentaires
+rechercher_secteur(mot, true)  « installation électrique » → 43.21, 43.21A… pour la loge qui précise
 ```
 
 Tout est **fermé** : RLS active, aucune policy, aucun droit pour `anon` ni
@@ -70,7 +73,7 @@ recopiés à l'identique.
 
 | Étape | Contenu | Quand |
 | --- | --- | --- |
-| 2 | Maquettes des trois écrans — formulaire de candidature, fiche candidat, fiche de la loge —, à valider avant d'y toucher | avant la bascule |
+| 2 | Maquettes des trois écrans — formulaire de candidature, fiche candidat, bloc « Secteurs représentés » de la page Référents —, à valider avant d'y toucher | avant la bascule |
 | 3 | Table de correspondance des secteurs Bubble → NAF, à valider | avant la bascule |
 | 4 | Fiche candidat : « Loges qui peuvent aider » | décembre |
 | 5 | Fiche candidat : « Offres de son secteur » | décembre |
@@ -79,7 +82,8 @@ recopiés à l'identique.
 
 - **La recherche trouve des activités, pas des métiers.** « boulangerie »,
   « maçon », « plombier », « comptable » trouvent leur division ; « vendeur »,
-  « secrétaire », « aide-soignant » ne trouvent rien, et « cuisinier » mène à
+  « secrétaire », « aide-soignant » ne trouvent rien, « électricien » trouve la
+  production d'électricité mais pas l'installation électrique, et « cuisinier » mène à
   « 31 — Fabrication de meubles » (par « meubles de cuisine »). Une liste de
   synonymes (« cuisinier » → « 56 — Restauration ») corrigerait ces cas.
 - **Les offres d'intérim** portent le code de l'agence (`78.20Z`), pas celui de

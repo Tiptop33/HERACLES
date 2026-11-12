@@ -1,43 +1,49 @@
 -- ---------------------------------------------------------------------------
--- 0089 — les secteurs représentés dans une loge
+-- 0089 — les secteurs présents dans une loge
 --
--- Ce que ça change : chaque loge peut dire combien de ses membres travaillent
--- dans chaque secteur — « 43 — Travaux de construction spécialisés : 3 ». Un
--- décompte, sans aucun nom (décision du 12 novembre 2026) : la loge sait où
--- elle peut aider un candidat, et l'application n'enregistre rien sur une
--- personne qui ne l'a pas fourni.
+-- Ce que ça change : chaque loge coche les secteurs d'activité où travaillent
+-- ses membres. Ni nombre, ni nom (décisions du 12 novembre 2026) : la loge
+-- dit « il y a chez nous du 43 — Travaux de construction spécialisés », et
+-- c'est tout. L'application sait où la loge peut aider un candidat, sans rien
+-- enregistrer sur une personne.
 --
--- Le niveau est la division NAF (88 choix) : le Secrétaire connaît l'activité
--- précise de ses membres. Le rapprochement avec un candidat qui s'est arrêté à
--- la section se fera en remontant de la division à sa section.
+-- Le niveau : au moins la division (88 choix), puis aussi précis que la loge
+-- le veut — groupe, classe, jusqu'à la sous-classe (« 43.21A — Travaux
+-- d'installation électrique dans tous locaux »). Pas la section seule : « F —
+-- Construction » ne dirait rien d'utile d'une loge. Le rapprochement avec un
+-- candidat remontera du code coché à sa division puis à sa section : une loge
+-- qui a coché 43.21A répond à un candidat qui cherche dans le 43 comme à
+-- celui qui cherche dans tout le bâtiment.
 --
--- Qui le tient : le Secrétaire de la loge, et les administrateurs en secours.
--- Leurs droits arriveront avec l'écran de la fiche de la loge ; d'ici là, la
--- table est fermée (RLS active, aucune policy, aucun GRANT).
+-- Cocher 43 et 43.21A ensemble est permis : la loge peut savoir qu'elle a de
+-- l'électricité, et aussi d'autres travaux du 43 sans les détailler.
 --
--- La date de mise à jour : `loge.secteurs_maj_le` dit quand le décompte de la
--- loge a changé pour la dernière fois — ajout, correction ou retrait d'une
--- ligne. Elle s'affichera à côté du décompte : un décompte vieux d'un an doit
--- se voir. Elle est sur la loge et non sur chaque ligne, parce qu'un retrait
--- ne laisse pas de ligne pour porter sa date.
+-- Qui coche : le Secrétaire de la loge, et les administrateurs en secours.
+-- Leurs droits arriveront avec l'écran ; d'ici là, la table est fermée (RLS
+-- active, aucune policy, aucun GRANT).
+--
+-- La date : `loge.secteurs_maj_le` dit quand la liste de la loge a changé pour
+-- la dernière fois — un secteur coché ou décoché. Elle s'affichera à côté de
+-- la liste : une liste vieille d'un an doit se voir. Elle est sur la loge et
+-- non sur chaque ligne, parce qu'un secteur décoché ne laisse pas de ligne
+-- pour porter sa date.
 -- ---------------------------------------------------------------------------
 
 -- 1. La table ----------------------------------------------------------------
 create table if not exists public.loge_secteur (
   loge_id   uuid not null references public.loge (id) on delete cascade,
   code      text not null references public.code_naf (code),
-  -- Zéro membre, c'est l'absence de ligne. Mille et plus, une faute de frappe.
-  nombre    integer not null,
-  maj_le    timestamptz not null default now(),
-  maj_par   uuid references public.referent (id) on delete set null,
+  coche_le  timestamptz not null default now(),
+  coche_par uuid references public.referent (id) on delete set null,
 
-  primary key (loge_id, code),
-  constraint loge_secteur_nombre check (nombre between 1 and 999)
+  primary key (loge_id, code)
 );
 
 comment on table public.loge_secteur is
-  'Combien de membres d''une loge travaillent dans chaque division NAF. Un '
-  'décompte sans nom, tenu par le Secrétaire de la loge.';
+  'Les secteurs d''activité présents dans une loge, cochés par son Secrétaire : '
+  'de la division à la sous-classe NAF. Ni nombre, ni nom.';
+comment on column public.loge_secteur.coche_par is
+  'Le référent qui a coché ce secteur. Vide s''il a quitté l''application.';
 
 -- Retrouver les loges d'un secteur : c'est la question du rapprochement.
 create index if not exists loge_secteur_code_idx on public.loge_secteur (code);
@@ -45,23 +51,18 @@ create index if not exists loge_secteur_code_idx on public.loge_secteur (code);
 drop trigger if exists loge_secteur_niveau on public.loge_secteur;
 create trigger loge_secteur_niveau
   before insert or update of code on public.loge_secteur
-  for each row execute function public.exiger_niveau_naf('division');
+  for each row execute function public.exiger_niveau_naf('division', 'groupe', 'classe', 'sous-classe');
 
-drop trigger if exists loge_secteur_maj_le on public.loge_secteur;
-create trigger loge_secteur_maj_le
-  before update on public.loge_secteur
-  for each row execute function public.toucher_maj_le();
-
--- 2. La date du décompte, sur la loge --------------------------------------
+-- 2. La date de la liste, sur la loge ----------------------------------------
 alter table public.loge
   add column if not exists secteurs_maj_le timestamptz;
 
 comment on column public.loge.secteurs_maj_le is
-  'Dernière modification du décompte des secteurs de la loge (loge_secteur). '
-  'Vide = décompte jamais rempli.';
+  'Dernière modification de la liste des secteurs de la loge (loge_secteur). '
+  'Vide = liste jamais remplie.';
 
--- `security definer` : la personne qui tient le décompte n'a pas, elle, le
--- droit de modifier la fiche de la loge.
+-- `security definer` : la personne qui coche n'a pas, elle, le droit de
+-- modifier la fiche de la loge.
 create or replace function public.dater_secteurs_de_la_loge()
 returns trigger
 language plpgsql
@@ -72,7 +73,7 @@ begin
   if tg_op in ('INSERT', 'UPDATE') then
     update public.loge set secteurs_maj_le = now() where id = new.loge_id;
   end if;
-  -- Une ligne retirée, ou passée d'une loge à une autre : l'ancienne loge a
+  -- Un secteur décoché, ou passé d'une loge à une autre : l'ancienne loge a
   -- changé elle aussi.
   if tg_op = 'DELETE' or (tg_op = 'UPDATE' and old.loge_id is distinct from new.loge_id) then
     update public.loge set secteurs_maj_le = now() where id = old.loge_id;
