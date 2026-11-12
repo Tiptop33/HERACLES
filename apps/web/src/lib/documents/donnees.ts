@@ -5,7 +5,8 @@ import type { DonneesCompteRendu, DossierCompteRendu, LignePresence } from './co
 import { COMMISSION_VIDE, type Commission } from './formats';
 import type { DocumentCle, Reglages } from './gabarits';
 import type { ImageDeposee } from './moteur';
-import { nettoyer } from './reglages';
+import { prochaineReunion, type Report } from './calendrier';
+import { lecteur, nettoyer } from './reglages';
 
 /**
  * Ce que les documents lisent en base — toujours sous la session de qui les
@@ -92,6 +93,21 @@ async function commissionDeLaReunion(reunion: string): Promise<CommissionDeReuni
   const { data } = await supabase.rpc('commission_de_la_reunion', { reunion_choisie: reunion });
   const ligne = (data as CommissionDeReunion[] | null)?.[0];
   return ligne ?? { ...COMMISSION_VIDE, lieu_reunions: null, nombre_dossiers: null, prochaine_reunion: null };
+}
+
+/**
+ * La date de la prochaine réunion, telle que le compte rendu l'imprimera :
+ * celle dite sur la feuille d'appel (0085), sinon la réunion suivante inscrite
+ * au registre, sinon le 2e ou 4e mercredi qui suit, reporté selon Paramètres ›
+ * Mise en page. La feuille d'appel la propose avant qu'on tire le document.
+ */
+export async function laProchaineReunion(reunion: { id: string; tenue_le: string }): Promise<string | null> {
+  const [commission, { ecarts }] = await Promise.all([
+    commissionDeLaReunion(reunion.id),
+    lireLaMiseEnPage('compte_rendu'),
+  ]);
+  const report = lecteur('compte_rendu', ecarts).choix('prochaine.report') as Report;
+  return commission.prochaine_reunion ?? prochaineReunion(reunion.tenue_le, report);
 }
 
 async function offres(): Promise<Offre[]> {

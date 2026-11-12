@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { Corbeille, Croix, FlecheRetour, Stylo } from '@/components/Icones';
 import { referentCourant } from '@/lib/candidat';
+import { laProchaineReunion } from '@/lib/documents/donnees';
 import { dateEnLettres, initiales, nomAffichable } from '@/lib/format';
 import { lireLesConnectes } from '@/lib/presence';
 import { exigerProfil } from '@/lib/profil';
@@ -27,6 +28,7 @@ import {
 } from '@/lib/reunion';
 import { accueilDuRole } from '@/lib/roles';
 import ChoixDeLAffichette from './ChoixDeLAffichette';
+import ChoixDeLaProchaineReunion from './ChoixDeLaProchaineReunion';
 
 export const metadata = { title: 'Réunion — HERACLES' };
 
@@ -83,6 +85,10 @@ export default async function Reunion({
       ouverte ? lireLesDossiersProposables(ouverte) : Promise.resolve([]),
       ouverte ? lireLAffichette(ouverte) : Promise.resolve(null),
     ]);
+
+  // La date que le compte rendu imprimera (0085) : dite sur la feuille, sinon
+  // proposée par le calendrier. Elle part du jour de la réunion, lu ci-dessus.
+  const prochaine = laReunion ? await laProchaineReunion(laReunion) : null;
 
   // Ceux dont la session est ouverte. Depuis 0053, ouvrir l'appel les a déjà
   // marqués présents : la plupart portent donc un état en base, et leur ligne
@@ -155,6 +161,7 @@ export default async function Reunion({
           connectes={enLigne}
           dossiers={dossiers}
           affichette={affichette?.candidat_id ?? null}
+          prochaine={prochaine}
         />
       ) : (
         <OuvrirUneReunion aujourdhui={aujourdhui} />
@@ -223,6 +230,7 @@ function FeuilleDAppel({
   connectes,
   dossiers,
   affichette,
+  prochaine,
 }: {
   reunion: LigneDeRegistre;
   lignes: LigneDAppel[];
@@ -232,6 +240,8 @@ function FeuilleDAppel({
   dossiers: DossierProposable[];
   /** Le dossier déjà choisi pour l'affichette, s'il y en a un. */
   affichette: string | null;
+  /** La date de la prochaine réunion : dite sur la feuille, sinon proposée. */
+  prochaine: string | null;
 }) {
   const n = compter(lignes);
   const retour = `/espace/reunion?appel=${reunion.id}`;
@@ -319,6 +329,9 @@ function FeuilleDAppel({
         choisi={affichette}
         options={dossiers.map((d) => ({ valeur: d.candidat_id, libelle: libelleDuDossier(d) }))}
       />
+
+      {/* La prochaine réunion, dite avant de tirer le compte rendu (0085). */}
+      <ChoixDeLaProchaineReunion reunion={reunion.id} tenueLe={reunion.tenue_le} dite={prochaine} />
 
       {/* Fermer la feuille n'est pas un simple retour : c'est la fin de
           l'appel. Ceux que personne n'a nommés sont marqués absents à cet

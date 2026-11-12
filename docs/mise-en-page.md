@@ -58,9 +58,14 @@ première page d'un PDF en cadre. Ne pas assouplir `X-Frame-Options` pour cela.
   titres « Vénérable Maître » et « Secrétaire » au collège.
 - **Liste de diffusion** du compte rendu : à saisir dans les réglages de chaque
   installation (vide par défaut).
-- **Prochaine réunion** : celle déjà inscrite au registre ; à défaut, le 2e ou
-  4e mercredi suivant, reporté s'il tombe un jour férié (au lendemain par
-  défaut, réglable).
+- **Prochaine réunion** (migration 0085) : se dit sur la feuille d'appel,
+  champ « Prochaine réunion » sous le dossier de l'affichette, avant de tirer
+  le compte rendu. Le champ arrive rempli de la date proposée et s'enregistre
+  dès qu'on le change (`reunion.prochaine_le`). Le compte rendu imprime, dans
+  l'ordre : la date dite sur la feuille ; à défaut, la réunion suivante déjà
+  inscrite au registre ; à défaut, le 2e ou 4e mercredi suivant, reporté s'il
+  tombe un jour férié (au lendemain par défaut, réglable). Vider le champ rend
+  la main au calcul. Une date qui ne vient pas après la réunion est refusée.
 
 ## L'affichette se choisit en réunion
 

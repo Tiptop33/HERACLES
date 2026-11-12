@@ -466,7 +466,7 @@ const COMPTE_RENDU: Gabarit = {
     {
       titre: 'Prochaine réunion',
       aide:
-        'Les réunions se tiennent le 2e et le 4e mercredi du mois. La prochaine est celle déjà inscrite au registre ; ' +
+        'Les réunions se tiennent le 2e et le 4e mercredi du mois. La prochaine est celle dite sur la feuille d’appel, sinon celle déjà inscrite au registre ; ' +
         'à défaut, elle se calcule, et une date qui tombe un jour férié est reportée.',
       lignes: [
         {
