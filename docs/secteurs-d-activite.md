@@ -19,7 +19,7 @@ offres du bâtiment.
 | 8 | Qui choisit les secteurs d'un candidat ? | **Le candidat propose** (formulaire de candidature), **le référent confirme** (fiche) |
 | 9 | Comment trouver son secteur ? | **Une recherche par mot**, et deux listes successives |
 | 10 | Qui tient la liste d'une loge ? | **Le Secrétaire**, les administrateurs en secours, avec la date de mise à jour |
-| 11 | Jusqu'où une loge précise-t-elle ? | **Au moins la division, puis aussi fin qu'elle le veut**, jusqu'à la sous-classe (« 43.21A ») — proposition retenue faute d'autre réponse, à confirmer |
+| 11 | Jusqu'où une loge précise-t-elle ? | **Au moins la division, puis aussi fin qu'elle le veut**, jusqu'à la sous-classe (« 43.21A ») — confirmé |
 
 Chaque loge sera **sollicitée** pour remplir sa liste (« on interrogera chaque loge »).
 
