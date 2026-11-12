@@ -20,8 +20,14 @@ offres du bâtiment.
 | 9 | Comment trouver son secteur ? | **Une recherche par mot**, et deux listes successives |
 | 10 | Qui tient la liste d'une loge ? | **Le Secrétaire**, les administrateurs en secours, avec la date de mise à jour |
 | 11 | Jusqu'où une loge précise-t-elle ? | **Au moins la division, puis aussi fin qu'elle le veut**, jusqu'à la sous-classe (« 43.21A ») — confirmé |
+| 12 | Le formulaire de candidature, tel que maquetté ? | **Validé tel quel** |
+| 13 | Où le référent modifie-t-il les secteurs d'un candidat ? | **Directement dans la fiche**, chaque geste enregistré aussitôt |
+| 14 | La ligne « Repris de Bubble : « … » » ? | **Affichée tant que le référent n'a pas confirmé** les secteurs, puis retirée |
+| 15 | Où la loge coche-t-elle ses secteurs ? | **Sur la page Référents**, bloc repliable au-dessus des fiches |
+| 16 | Comment interroger chaque loge ? | **Un bandeau** pour le Secrétaire tant que sa loge n'a rien coché, et **le suivi des 73 loges** pour l'administration ; pas de courriel pour l'instant |
 
-Chaque loge sera **sollicitée** pour remplir sa liste (« on interrogera chaque loge »).
+Les écrans sont décrits par la maquette validée : `docs/maquettes/secteurs-d-activite.html`,
+et ce qui en est retenu dans `docs/maquettes/secteurs-d-activite-notes.md`.
 
 Choix faits en chemin, sans question :
 
@@ -73,7 +79,9 @@ recopiés à l'identique.
 
 | Étape | Contenu | Quand |
 | --- | --- | --- |
-| 2 | Maquettes des trois écrans — formulaire de candidature, fiche candidat, bloc « Secteurs représentés » de la page Référents —, à valider avant d'y toucher | avant la bascule |
+| 2 | ~~Maquettes des trois écrans~~ — **validées le 12 novembre** | fait |
+| 2 bis | Construire les trois écrans, avec leurs droits d'accès (RLS) | avant la bascule |
+| 2 ter | Le bandeau du Secrétaire et le suivi des 73 loges — emplacement à montrer d'abord | avant la bascule |
 | 3 | Table de correspondance des secteurs Bubble → NAF, à valider | avant la bascule |
 | 4 | Fiche candidat : « Loges qui peuvent aider » | décembre |
 | 5 | Fiche candidat : « Offres de son secteur » | décembre |
