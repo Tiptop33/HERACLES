@@ -39,7 +39,7 @@ export async function ouvrir(): Promise<
     return {
       ok: false,
       reponse: NextResponse.json(
-        { erreur: 'Les loges du réseau se gèrent par l’administration.' },
+        { erreur: 'Les loges de Guyenne et Gascogne se gèrent par l’administration.' },
         { status: 403 },
       ),
     };
@@ -74,13 +74,13 @@ export async function lister(supabase: Client): Promise<LogeDuReseau[] | null> {
 export function refus(etiquette: string, error: { code?: string }) {
   switch (error.code) {
     case '42501':
-      return NextResponse.json({ erreur: 'Les loges du réseau se gèrent par l’administration.' }, { status: 403 });
+      return NextResponse.json({ erreur: 'Les loges de Guyenne et Gascogne se gèrent par l’administration.' }, { status: 403 });
     case '23505':
-      return NextResponse.json({ erreur: 'Ce numéro est déjà pris par une autre loge du réseau.' }, { status: 409 });
+      return NextResponse.json({ erreur: 'Ce numéro est déjà pris par une autre loge de Guyenne et Gascogne.' }, { status: 409 });
     case '23514':
       return NextResponse.json({ erreur: 'Une valeur n’est pas acceptée : vérifiez le nom et l’adresse.' }, { status: 400 });
     case 'P0002':
-      return NextResponse.json({ erreur: 'Cette loge du réseau n’existe plus.' }, { status: 404 });
+      return NextResponse.json({ erreur: 'Cette loge de Guyenne et Gascogne n’existe plus.' }, { status: 404 });
     default:
       console.error(`[loges du réseau] ${etiquette}`, error.code);
       return indisponible();

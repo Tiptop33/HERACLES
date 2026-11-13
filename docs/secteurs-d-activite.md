@@ -76,6 +76,7 @@ loges à la loge HERACLES par le champ `LOGE-LOGEREF` — une seule province,
 | --- | --- | --- |
 | 39 | Quelles loges reprendre dans Loges du réseau ? | **Les 73 rattachées à HERACLES** — pas les 6 rattachées à PYTHAGORE |
 | 40 | L'adresse électronique de la loge (36 loges sur 73) ? | Elle devient **l'adresse du Secrétaire**, à corriger dans HERACLES au besoin |
+| 41 | Le nom à l'écran ? | **« Loges de Guyenne et Gascogne »** — menu, titre, textes, messages et courriel au Secrétaire. Le code, les tables et les adresses gardent `loge_du_reseau` : les liens déjà envoyés restent valables (migration 0095) |
 
 La reprise (migration 0094, `reprendre-bubble.sh --loges-du-reseau`, jouée à
 chaque mise en ligne jusqu'à la bascule) prend le nom, le numéro, la province,
@@ -192,7 +193,8 @@ la clé de service — comme les liens du parrain et du candidat.
   arrivent « repris de Bubble · à confirmer » et le référent les confirme sur
   la fiche. Le code NAF de Bubble donne sa division d'office. Ordre sur une
   fiche : code NAF, liste ROME, texte ;
-- **Paramètres › Loges du réseau** — l'administration saisit les loges, envoie
+- **Paramètres › Loges de Guyenne et Gascogne** (« Loges du réseau » jusqu'à la
+  décision 41) — l'administration saisit les loges, envoie
   les liens (groupé ou loge par loge, par Brevo), suit les réponses et règle le
   courriel. Le lien n'est enregistré qu'une fois le courriel parti : si l'envoi
   échoue, l'ancien lien vaut encore.

@@ -24,7 +24,7 @@ export async function POST(requete: Request, { params }: { params: Promise<{ id:
   try {
     const { id } = await params;
     if (!z.uuid().safeParse(id).success) {
-      return NextResponse.json({ erreur: 'Cette loge du réseau n’existe plus.' }, { status: 404 });
+      return NextResponse.json({ erreur: 'Cette loge de Guyenne et Gascogne n’existe plus.' }, { status: 404 });
     }
 
     const acces = await ouvrir();
@@ -67,7 +67,7 @@ export async function POST(requete: Request, { params }: { params: Promise<{ id:
     if (error) {
       await stockage.remove([chemin]).catch(() => undefined);
       if (error.code === 'P0002') {
-        return NextResponse.json({ erreur: 'Cette loge du réseau n’existe plus.' }, { status: 404 });
+        return NextResponse.json({ erreur: 'Cette loge de Guyenne et Gascogne n’existe plus.' }, { status: 404 });
       }
       console.error('[loges du réseau] écusson : enregistrement refusé', error.code);
       return NextResponse.json({ erreur: 'L’écusson n’a pas pu être enregistré.' }, { status: 403 });

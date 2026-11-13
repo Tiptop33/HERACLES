@@ -11,7 +11,7 @@ export async function POST(requete: Request, { params }: { params: Promise<{ id:
   try {
     const { id } = await params;
     if (!z.uuid().safeParse(id).success) {
-      return NextResponse.json({ erreur: 'Cette loge du réseau n’existe plus.' }, { status: 404 });
+      return NextResponse.json({ erreur: 'Cette loge de Guyenne et Gascogne n’existe plus.' }, { status: 404 });
     }
     const acces = await ouvrir();
     if (!acces.ok) return acces.reponse;
@@ -19,7 +19,7 @@ export async function POST(requete: Request, { params }: { params: Promise<{ id:
     const loges = await lister(acces.supabase);
     if (!loges) return indisponible();
     const loge = loges.find((l) => l.id === id);
-    if (!loge) return NextResponse.json({ erreur: 'Cette loge du réseau n’existe plus.' }, { status: 404 });
+    if (!loge) return NextResponse.json({ erreur: 'Cette loge de Guyenne et Gascogne n’existe plus.' }, { status: 404 });
 
     const issue = await envoyerLeLien(requete, acces.supabase, loge, acces.adresse);
     if (!issue.envoye) return NextResponse.json({ erreur: issue.message }, { status: 502 });

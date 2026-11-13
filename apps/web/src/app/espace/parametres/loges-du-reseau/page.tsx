@@ -4,7 +4,7 @@ import { rangerProvinces } from '@/lib/provinces';
 import { supabaseServer } from '@/lib/supabase-server';
 import GestionDesLogesDuReseau from './GestionDesLogesDuReseau';
 
-export const metadata = { title: 'Loges du réseau — Paramètres — HERACLES' };
+export const metadata = { title: 'Loges de Guyenne et Gascogne — Paramètres — HERACLES' };
 
 /**
  * Paramètres › Loges du réseau (maquette validée le 13 novembre 2026,
@@ -24,17 +24,17 @@ export default async function LogesDuReseau() {
     supabase.rpc('courriel_des_loges_du_reseau'),
   ]);
 
-  const propos = RUBRIQUES.find((r) => r.libelle === 'Loges du réseau')?.propos ?? '';
+  const propos = RUBRIQUES.find((r) => r.libelle === 'Loges de Guyenne et Gascogne')?.propos ?? '';
   const modele = courriel.data as { objet?: string; texte?: string } | null;
 
   return (
     <>
-      <h2>Loges du réseau</h2>
+      <h2>Loges de Guyenne et Gascogne</h2>
       <p className="aide">{propos}</p>
 
       {loges.error ? (
         <p className="erreur" role="alert">
-          La liste des loges du réseau n’a pas pu être lue. Réessayez dans un instant.
+          La liste des loges de Guyenne et Gascogne n’a pas pu être lue. Réessayez dans un instant.
         </p>
       ) : (
         <GestionDesLogesDuReseau

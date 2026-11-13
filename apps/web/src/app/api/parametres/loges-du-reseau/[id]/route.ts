@@ -16,7 +16,7 @@ export async function PATCH(requete: Request, { params }: Parametres) {
   try {
     const { id } = await params;
     if (!z.uuid().safeParse(id).success) {
-      return NextResponse.json({ erreur: 'Cette loge du réseau n’existe plus.' }, { status: 404 });
+      return NextResponse.json({ erreur: 'Cette loge de Guyenne et Gascogne n’existe plus.' }, { status: 404 });
     }
     const acces = await ouvrir();
     if (!acces.ok) return acces.reponse;
@@ -48,7 +48,7 @@ export async function DELETE(_requete: Request, { params }: Parametres) {
   try {
     const { id } = await params;
     if (!z.uuid().safeParse(id).success) {
-      return NextResponse.json({ erreur: 'Cette loge du réseau n’existe plus.' }, { status: 404 });
+      return NextResponse.json({ erreur: 'Cette loge de Guyenne et Gascogne n’existe plus.' }, { status: 404 });
     }
     const acces = await ouvrir();
     if (!acces.ok) return acces.reponse;

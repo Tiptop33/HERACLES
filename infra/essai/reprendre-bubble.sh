@@ -9,7 +9,7 @@
 #   sudo ./infra/essai/reprendre-bubble.sh --loges-du-reseau  # les 73 loges du réseau
 #
 # `--loges-du-reseau` ne reprend que le type Bubble `loges`, en réserve brute,
-# puis pose dans Paramètres › Loges du réseau celles que Bubble rattache à la
+# puis pose dans Paramètres › Loges de Guyenne et Gascogne celles que Bubble rattache à la
 # loge HERACLES — nom, numéro, province, adresse, écusson (migration 0094).
 # Rien de ce que l'administration a saisi n'est remplacé, et une loge qu'elle
 # a retirée ne revient pas. Sans jeton : Bubble montre ce type à l'API
@@ -240,7 +240,7 @@ if [[ $LOGES_DU_RESEAU -eq 1 ]]; then
   # que 39 des 73 loges du réseau (relevé du 13 novembre 2026).
   outil -e TYPES_BRUTS=loges "$IMAGE" node import-bubble.mjs
 
-  etape "Loges du réseau — posées dans Paramètres › Loges du réseau"
+  etape "Loges du réseau — posées dans Paramètres › Loges de Guyenne et Gascogne"
   # Celles que Bubble rattache à la loge HERACLES. Créées, rattachées à une
   # loge saisie au même numéro, ou complétées là où une case est vide ; jamais
   # remplacées. « laissees » : sans nom, retirées par l'administration, ou un
@@ -359,7 +359,7 @@ docker exec -i "$PREFIXE-db" psql -U postgres -d postgres -v ON_ERROR_STOP=1 -c 
   select public.appliquer_les_secteurs_bubble() as fiches_changees"
 
 # ————— Passe 7 : les loges du réseau —————
-etape "Loges du réseau — de la réserve brute vers Paramètres › Loges du réseau"
+etape "Loges du réseau — de la réserve brute vers Paramètres › Loges de Guyenne et Gascogne"
 echo "Les loges que Bubble rattache à la loge HERACLES (migration 0094) : créées,"
 echo "ou complétées là où une case est vide. Ce que l'administration a saisi"
 echo "reste ; une loge qu'elle a retirée ne revient pas. Leurs écussons suivent"
