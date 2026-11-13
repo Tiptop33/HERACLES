@@ -765,20 +765,25 @@ export const PARCOURS: readonly Parcours[] = [
       },
     ],
   },
-  {
-    id: 'secteurs-d-activite',
-    titre: 'Gérer les secteurs d’activité',
-    motsCles: ['secteur', 'secteurs', 'secteur d’activité', 'secteurs d’activité', 'domaine', 'branche', 'ajouter un secteur'],
-    roles: ['admin'],
-    destination: null,
-    etapes: [
-      {
-        ancre: 'eteint:Secteur d\'activité',
-        texte:
-          'L’écran « Secteur d’activité » n’est pas encore en service : son entrée est grisée dans la famille « Admin ».',
-      },
+  versUneRubrique(
+    'secteurs-d-activite',
+    'Gérer les secteurs d’activité',
+    [
+      'secteur',
+      'secteurs',
+      'secteur d’activité',
+      'secteurs d’activité',
+      'domaine',
+      'branche',
+      'ajouter un secteur',
+      'secteurs bubble',
+      'correspondance des secteurs',
     ],
-  },
+    'secteurs-d-activite',
+    'Dans le menu des paramètres, « Secteurs d’activité » : chaque secteur saisi dans Bubble, et celui ' +
+      'de la nomenclature qui lui correspond. « Valider » retient la proposition, « Changer » en choisit ' +
+      'un autre ; les fiches suivent aussitôt.',
+  ),
   {
     id: 'types-de-document',
     titre: 'Gérer les types de document',
@@ -791,7 +796,7 @@ export const PARCOURS: readonly Parcours[] = [
         ancre: 'rubrique-eteinte:Types de document',
         ecran: PARAMETRES,
         texte:
-          'La rubrique « Types de document » n’est pas encore en service : elle est grisée dans le menu des paramètres, comme « Loges » et « Secteurs d’activité ».',
+          'La rubrique « Types de document » n’est pas encore en service : elle est grisée dans le menu des paramètres, comme « Loges ».',
       },
     ],
   },

@@ -56,6 +56,27 @@ puis les offres du bâtiment.
 | 33 | Où se dépose-t-il ? | **Dans le formulaire d'ajout et dans la loge ouverte** |
 | 34 | Sans écusson ? | **L'initiale de la loge dans un rond**, comme une province sans image |
 
+## Les décisions du 13 novembre 2026 — les secteurs repris de Bubble
+
+| # | Question | Décision |
+| --- | --- | --- |
+| 35 | Où valider la correspondance Bubble → NAF (décision 7) ? | Dans **Paramètres › Secteurs d'activité**, la rubrique jusque-là grisée : chaque secteur Bubble, son nombre de fiches, le secteur proposé, à valider ou à changer |
+| 36 | Cet écran, tel que maquetté ? | **Validé tel quel** (`docs/maquettes/secteurs-repris-de-bubble.html`) |
+| 37 | Quels champs Bubble ? | ~~`SECTEUR-ACTIVITE-CAND`~~, rempli sur **aucune** des 122 fiches. Retenus : la **liste ROME** (`SECTEUR ACTIVITE ROME`) et le **texte libre** (`Candidat_SA`), chaque ligne de l'écran disant de quel champ elle vient ; le **code NAF** de Bubble (`Code_NAF_Candidats`) passe **d'office**, sans validation |
+
+Relevé du 13 novembre sur la base Bubble en service (des comptes, aucune donnée
+relevée) :
+
+| Champ Bubble | Fiches | Valeurs différentes |
+| --- | ---: | ---: |
+| `SECTEUR-ACTIVITE-CAND` | 0 | 0 |
+| `SECTEUR ACTIVITE ROME` (liste de 14 domaines) | 21 | 8 |
+| `Candidat_SA` (texte libre, fiches toutes archivées) | 15 | 8 |
+| `Code_NAF_Candidats` | 5 | 5 |
+
+Aucune fiche n'a à la fois la liste ROME et le texte libre ; 40 fiches ont au
+moins l'un des trois.
+
 Les écrans des loges du réseau sont décrits par `docs/maquettes/loges-du-reseau.html`,
 et ce qui en est retenu dans `docs/maquettes/loges-du-reseau-notes.md`.
 
@@ -86,7 +107,7 @@ Une loge ouvre des portes dans des **entreprises** : le secteur est l'axe qui lu
 parle. Les offres France Travail portent les deux codes (`offre_emploi.rome_code`,
 `offre_emploi.code_naf`).
 
-## Ce qui est en place (migrations 0086 à 0091)
+## Ce qui est en place (migrations 0086 à 0093)
 
 ```
 code_naf            la nomenclature, ses 5 niveaux, 1 728 lignes
@@ -105,12 +126,16 @@ loge_du_reseau      les 73 loges du réseau, saisies par l'administration
 loge_du_reseau_secteur   les secteurs cochés par le Secrétaire (de la division à la sous-classe)
   loge_du_reseau_id · code · coche_le
 
+secteur_bubble      la correspondance validée, une ligne par secteur Bubble
+  source (rome | texte) · valeur · code (vide = aucun ne convient)
+  valide_par · valide_le
+
 rechercher_secteur(mot)        « boulangerie » → 10 — Industries alimentaires
 rechercher_secteur(mot, true)  « installation électrique » → 43.21, 43.21A… pour la loge qui précise
 ```
 
 Tout est **fermé** : RLS active, aucune policy, aucun droit de table pour
-`anon` ni `authenticated`. Les écrans passent par des fonctions (0091) :
+`anon` ni `authenticated`. Les écrans passent par des fonctions (0091 à 0093) :
 l'administration seule gère les loges du réseau ; le Secrétaire n'atteint que
 sa loge, par son lien, que la route web hache avant de le passer à la base avec
 la clé de service — comme les liens du parrain et du candidat.
@@ -132,6 +157,16 @@ la clé de service — comme les liens du parrain et du candidat.
   PNG, WebP, GIF ou AVIF, 5 Mo au plus, reconnu à ses octets), rangé dans le
   seau « documents » à un chemin déduit de la loge, servi par des routes qui
   vérifient l'administration ou le lien ;
+- **Paramètres › Secteurs d'activité** — chaque secteur que portaient les
+  fiches Bubble (liste ROME, texte libre), son nombre de fiches et le secteur
+  que HERACLES propose (la recherche de la fiche sur l'intitulé, sinon mot par
+  mot). L'administration valide, change, ou écarte (« Aucun ne convient ») ;
+  la correspondance s'applique aussitôt (0093), puis à chaque reprise
+  (`reprendre-bubble.sh`, passe 6). Elle ne touche qu'aux fiches sans secteur
+  ou dont les secteurs sont encore ceux de la reprise, non confirmés : ceux-là
+  arrivent « repris de Bubble · à confirmer » et le référent les confirme sur
+  la fiche. Le code NAF de Bubble donne sa division d'office. Ordre sur une
+  fiche : code NAF, liste ROME, texte ;
 - **Paramètres › Loges du réseau** — l'administration saisit les loges, envoie
   les liens (groupé ou loge par loge, par Brevo), suit les réponses et règle le
   courriel. Le lien n'est enregistré qu'une fois le courriel parti : si l'envoi
@@ -149,11 +184,17 @@ recopiés à l'identique.
 | 2 bis | Les loges du réseau : la page du Secrétaire et Paramètres › Loges du réseau | **fait** (0089, 0091) |
 | 2 ter | Le formulaire de candidature et la fiche candidat (écrans 1 et 2 de `secteurs-d-activite.html`) | **fait** (0092) |
 | 2 quater | Saisir les 73 loges du réseau et envoyer les liens — sur le site d'essai, par l'administration | avant la bascule |
-| 3 | Table de correspondance des secteurs Bubble → NAF, à valider | avant la bascule |
+| 3 | ~~Table de correspondance des secteurs Bubble → NAF~~ — Paramètres › Secteurs d'activité | **fait** (0093) |
+| 3 bis | Valider chaque secteur Bubble — sur le site d'essai, par l'administration | avant la bascule |
 | 4 | Fiche candidat : « Loges qui peuvent aider » | décembre |
 | 5 | Fiche candidat : « Offres de son secteur » | décembre |
 
 ## Limites connues
+
+- **Un secteur repris retiré revient.** Si le référent retire l'un des secteurs
+  repris de Bubble sans confirmer les autres, la reprise suivante le remet :
+  rien ne garde la trace d'un retrait. Confirmer ce qui reste fige la fiche.
+  Reclasser, en revanche, est respecté.
 
 - **La recherche trouve des activités, pas des métiers.** « boulangerie »,
   « maçon », « plombier », « comptable » trouvent leur division ; « vendeur »,

@@ -5771,3 +5771,163 @@ a.poste-document .poste-document-type {
 .secteurs-du-candidat {
   margin: 0.9rem 0 0.8rem;
 }
+
+/* ===== Paramètres › Secteurs d'activité : les secteurs repris de Bubble =====
+   (maquette validée le 13 novembre 2026, docs/maquettes/secteurs-repris-de-bubble.html) */
+.corr-filtres {
+  margin-bottom: 0.8rem;
+}
+
+.corr-liste {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.4rem;
+}
+
+.corr-ligne {
+  background: var(--surface);
+  border: 1px solid var(--bordure);
+  border-radius: 10px;
+  padding: 0.65rem 0.8rem;
+  display: grid;
+  grid-template-columns: minmax(10rem, 1fr) auto minmax(14rem, 1.6fr) auto;
+  gap: 0.4rem 0.8rem;
+  align-items: center;
+}
+
+.corr-bubble strong {
+  display: block;
+}
+
+.corr-bubble .corr-sans-intitule {
+  font-weight: 500;
+  font-style: italic;
+  color: var(--encre-douce);
+}
+
+.corr-bubble small,
+.corr-cible small {
+  display: block;
+  color: var(--encre-tres-douce);
+  font-size: 0.78rem;
+}
+
+.corr-fleche {
+  color: var(--encre-tres-douce);
+  font-size: 1.1rem;
+}
+
+.corr-cible .aucun {
+  color: var(--encre-douce);
+  font-style: italic;
+}
+
+.corr-etat {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  align-items: center;
+  justify-content: flex-end;
+  font-size: 0.78rem;
+}
+
+.corr-etat .a-valider {
+  background: var(--attention-clair);
+  color: var(--attention);
+  border-radius: 999px;
+  padding: 0.1rem 0.55rem;
+  font-weight: 600;
+}
+
+.corr-etat .valide {
+  color: var(--referent);
+  font-weight: 600;
+}
+
+.corr-etat .sans {
+  background: var(--surface-creuse);
+  color: var(--encre-douce);
+  border-radius: 999px;
+  padding: 0.1rem 0.55rem;
+  font-weight: 600;
+}
+
+.corr-etat button {
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  line-height: 1;
+  border-radius: 999px;
+  padding: 0.3rem 0.7rem;
+  cursor: pointer;
+}
+
+.corr-etat .valider {
+  border: 1px solid var(--marque);
+  color: #fff;
+  background: var(--marque);
+}
+
+.corr-etat .changer {
+  border: 1px solid var(--bordure-nette);
+  color: var(--encre-douce);
+  background: var(--surface);
+}
+
+.corr-etat button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.corr-erreur,
+.corr-changer {
+  grid-column: 1 / -1;
+}
+
+.corr-changer {
+  display: grid;
+  gap: 0.4rem;
+  border-top: 1px dashed var(--bordure);
+  padding-top: 0.6rem;
+}
+
+.corr-changer > p {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--encre-douce);
+}
+
+/* Le choix des secteurs vient du formulaire de candidature : ses phrases au
+   candidat n'ont rien à faire ici. */
+.corr-changer .secteurs-aide,
+.corr-changer .secteurs-vide {
+  display: none;
+}
+
+.corr-changer .aucun-convient {
+  font: inherit;
+  font-size: 0.8rem;
+  color: var(--encre-douce);
+  background: none;
+  border: 0;
+  padding: 0;
+  text-decoration: underline;
+  cursor: pointer;
+  justify-self: start;
+}
+
+@media (max-width: 50rem) {
+  .corr-ligne {
+    grid-template-columns: 1fr;
+  }
+
+  .corr-fleche {
+    display: none;
+  }
+
+  .corr-etat {
+    justify-content: flex-start;
+  }
+}

@@ -804,7 +804,6 @@ describe('les écrans de la loge et du pilotage, pas encore livrés', () => {
     'messagerie',
     'correspondants',
     'gerer-les-loges',
-    'secteurs-d-activite',
     'types-de-document',
   ];
   const parcours = (id: string) => PARCOURS.find((x) => x.id === id)!;
