@@ -120,6 +120,7 @@ begin
              'province',         p.nom,
              'secretaire_nom',   l.secretaire_nom,
              'secretaire_email', l.secretaire_email,
+             'a_un_ecusson',     l.ecusson_chemin is not null,
              'lien_envoye_le',   l.lien_envoye_le,
              'lien_expire_le',   l.lien_expire_le,
              'secteurs_maj_le',  l.secteurs_maj_le,
@@ -194,19 +195,24 @@ comment on function public.enregistrer_loge_du_reseau(uuid, text, text, uuid, te
 revoke all on function public.enregistrer_loge_du_reseau(uuid, text, text, uuid, text, text) from public, anon;
 grant execute on function public.enregistrer_loge_du_reseau(uuid, text, text, uuid, text, text) to authenticated, service_role;
 
--- Retirer une loge du réseau : ses secteurs partent avec elle (0089).
+-- Retirer une loge du réseau : ses secteurs partent avec elle (0089). Rend le
+-- chemin de son écusson, que la route efface du seau — SQL n'atteint pas le
+-- stockage.
 create or replace function public.retirer_loge_du_reseau(la_loge uuid)
-returns void
+returns text
 language plpgsql
 security definer
 set search_path = public
 as $$
+declare
+  ecusson text;
 begin
   if not public.est_admin() then
     raise exception 'Les loges du réseau se gèrent par l''administration'
       using errcode = 'insufficient_privilege';
   end if;
-  delete from public.loge_du_reseau where id = la_loge;
+  delete from public.loge_du_reseau where id = la_loge returning ecusson_chemin into ecusson;
+  return ecusson;
 end
 $$;
 
@@ -250,6 +256,56 @@ comment on function public.poser_le_lien_de_la_loge_du_reseau(uuid, text) is
 
 revoke all on function public.poser_le_lien_de_la_loge_du_reseau(uuid, text) from public, anon;
 grant execute on function public.poser_le_lien_de_la_loge_du_reseau(uuid, text) to authenticated, service_role;
+
+-- L'écusson : le poser, le lire. Le fichier est déposé dans le seau par la
+-- route web ; la base garde son chemin, que la contrainte de 0089 oblige à se
+-- déduire de la loge. Poser rend l'ancien chemin, pour que la route efface
+-- l'ancien fichier s'il portait un autre nom.
+create or replace function public.poser_l_ecusson_de_la_loge_du_reseau(la_loge uuid, chemin text)
+returns text
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  ancien text;
+  trouve boolean;
+begin
+  if not public.est_admin() then
+    raise exception 'Les écussons se déposent par l''administration'
+      using errcode = 'insufficient_privilege';
+  end if;
+  select l.ecusson_chemin, true into ancien, trouve
+    from public.loge_du_reseau l where l.id = la_loge for update;
+  if not coalesce(trouve, false) then
+    raise exception 'Cette loge du réseau n''existe plus' using errcode = 'no_data_found';
+  end if;
+  update public.loge_du_reseau set ecusson_chemin = chemin where id = la_loge;
+  return ancien;
+end
+$$;
+
+revoke all on function public.poser_l_ecusson_de_la_loge_du_reseau(uuid, text) from public, anon;
+grant execute on function public.poser_l_ecusson_de_la_loge_du_reseau(uuid, text) to authenticated, service_role;
+
+create or replace function public.ecusson_de_la_loge_du_reseau(la_loge uuid)
+returns text
+language plpgsql
+stable
+security definer
+set search_path = public
+as $$
+begin
+  if not public.est_admin() then
+    raise exception 'Les loges du réseau se gèrent par l''administration'
+      using errcode = 'insufficient_privilege';
+  end if;
+  return (select l.ecusson_chemin from public.loge_du_reseau l where l.id = la_loge);
+end
+$$;
+
+revoke all on function public.ecusson_de_la_loge_du_reseau(uuid) from public, anon;
+grant execute on function public.ecusson_de_la_loge_du_reseau(uuid) to authenticated, service_role;
 
 -- Le courriel : le lire, le régler.
 create or replace function public.courriel_des_loges_du_reseau()
@@ -356,6 +412,7 @@ begin
       'numero',         l.numero,
       'province',       p.nom,
       'secretaire_nom', l.secretaire_nom,
+      'a_un_ecusson',   l.ecusson_chemin is not null,
       'expire_le',      l.lien_expire_le,
       'liste', jsonb_build_object(
         'maj_le',     l.secteurs_maj_le,
@@ -469,3 +526,25 @@ $$;
 
 revoke all on function public.nomenclature_par_le_lien(text) from public, anon, authenticated;
 grant execute on function public.nomenclature_par_le_lien(text) to service_role;
+
+-- L'écusson de la loge, par le lien : son chemin dans le seau, pour que la
+-- route en serve les octets en tête de la page du Secrétaire.
+create or replace function public.ecusson_par_le_lien(empreinte text)
+returns text
+language plpgsql
+stable
+security definer
+set search_path = public
+as $$
+declare
+  la_loge uuid := public.loge_du_reseau_du_lien(empreinte);
+begin
+  if la_loge is null then
+    raise exception 'Ce lien ne vaut plus' using errcode = 'invalid_authorization_specification';
+  end if;
+  return (select l.ecusson_chemin from public.loge_du_reseau l where l.id = la_loge);
+end
+$$;
+
+revoke all on function public.ecusson_par_le_lien(text) from public, anon, authenticated;
+grant execute on function public.ecusson_par_le_lien(text) to service_role;

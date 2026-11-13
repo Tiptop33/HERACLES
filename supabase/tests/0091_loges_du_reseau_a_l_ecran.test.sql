@@ -66,6 +66,22 @@ begin;
        from jsonb_array_elements(public.lister_loges_du_reseau()) e where e ->> 'id' = :'b'),
     'une correction s''enregistre');
 
+  \echo '— l''écusson'
+  select public.verifier(
+    public.poser_l_ecusson_de_la_loge_du_reseau(:'a'::uuid, 'loge-du-reseau/ecusson/' || :'a' || '.png') is null,
+    'poser un premier écusson ne rend aucun ancien chemin');
+  select public.verifier(
+    public.poser_l_ecusson_de_la_loge_du_reseau(:'a'::uuid, 'loge-du-reseau/ecusson/' || :'a' || '.webp')
+      = 'loge-du-reseau/ecusson/' || :'a' || '.png',
+    'le remplacer rend l''ancien, pour l''effacer du seau');
+  select public.verifier(
+    public.ecusson_de_la_loge_du_reseau(:'a'::uuid) = 'loge-du-reseau/ecusson/' || :'a' || '.webp'
+      and (select (e ->> 'a_un_ecusson')::boolean
+             from jsonb_array_elements(public.lister_loges_du_reseau()) e where e ->> 'id' = :'a')
+      and not (select (e ->> 'a_un_ecusson')::boolean
+                 from jsonb_array_elements(public.lister_loges_du_reseau()) e where e ->> 'id' = :'b'),
+    'la liste dit quelle loge a un écusson');
+
   \echo '— le courriel'
   select public.verifier(
     public.courriel_des_loges_du_reseau() ->> 'objet' = 'HERACLES — les secteurs d''activité de votre loge'
@@ -168,6 +184,13 @@ begin
     end;
 
     begin
+      perform public.poser_l_ecusson_de_la_loge_du_reseau(a, null);
+      raise exception 'ÉCHEC — % pose un écusson', qui;
+    exception when insufficient_privilege then
+      raise notice '  ok — refusé : poser un écusson';
+    end;
+
+    begin
       perform public.courriel_des_loges_du_reseau();
       raise exception 'ÉCHEC — % lit le courriel', qui;
     exception when insufficient_privilege then
@@ -214,6 +237,10 @@ begin;
       and public.page_de_la_loge_du_reseau(:'e_a') ->> 'secretaire_nom' = 'Dominique Modèle'
       and public.page_de_la_loge_du_reseau(:'e_a') ->> 'province' = 'Province d''essai 0091',
     'la page dit la loge, son numéro, sa province, et le nom du Secrétaire');
+  select public.verifier(
+    (public.page_de_la_loge_du_reseau(:'e_a') ->> 'a_un_ecusson')::boolean
+      and public.ecusson_par_le_lien(:'e_a') = 'loge-du-reseau/ecusson/' || :'a' || '.webp',
+    'la page sait que la loge a un écusson, et le lien le sert');
   select public.verifier(
     not (public.page_de_la_loge_du_reseau(:'e_a') ? 'secretaire_email')
       and not (public.page_de_la_loge_du_reseau(:'e_a')::text like '%@example.org%'),
@@ -298,6 +325,12 @@ begin
     raise notice '  ok — refusé : cocher par un lien expiré';
   end;
   begin
+    perform public.ecusson_par_le_lien(encode(sha256('jeton-0091-b'::bytea), 'hex'));
+    raise exception 'ÉCHEC — un lien expiré a servi l''écusson';
+  exception when invalid_authorization_specification then
+    raise notice '  ok — refusé : l''écusson par un lien expiré';
+  end;
+  begin
     perform 1 from public.rechercher_secteur_par_le_lien(encode(sha256('jeton-0091-b'::bytea), 'hex'), 'restauration');
     raise exception 'ÉCHEC — un lien expiré a cherché';
   exception when invalid_authorization_specification then
@@ -327,7 +360,8 @@ commit;
 begin;
   set local role authenticated;
   select set_config('request.jwt.claims', '{"sub":"' || :'ada' || '"}', true);
-  select public.retirer_loge_du_reseau(:'b'::uuid);
+  select public.verifier(public.retirer_loge_du_reseau(:'b'::uuid) is null,
+    'retirer une loge sans écusson ne rend aucun chemin');
   select public.verifier(
     not exists (select 1 from jsonb_array_elements(public.lister_loges_du_reseau()) e where e ->> 'id' = :'b'),
     'la loge retirée quitte la liste');

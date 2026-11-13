@@ -51,6 +51,10 @@ puis les offres du bâtiment.
 | 28 | La page du Secrétaire, telle que maquettée ? | **Validée telle quelle** |
 | 29 | La page du lien expiré ? | **Validée telle quelle** |
 | 30 | Paramètres › Loges du réseau ? | **Validée telle quelle** |
+| 31 | Faut-il un écusson ? | **Un écusson propre à chaque loge du réseau**, déposé par l'administration |
+| 32 | Où s'affiche-t-il ? | **En tête de la page du Secrétaire, et sur la ligne de la loge** dans Paramètres |
+| 33 | Où se dépose-t-il ? | **Dans le formulaire d'ajout et dans la loge ouverte** |
+| 34 | Sans écusson ? | **L'initiale de la loge dans un rond**, comme une province sans image |
 
 Les écrans des loges du réseau sont décrits par `docs/maquettes/loges-du-reseau.html`,
 et ce qui en est retenu dans `docs/maquettes/loges-du-reseau-notes.md`.
@@ -116,6 +120,10 @@ la clé de service — comme les liens du parrain et du candidat.
 - **la page du Secrétaire** — `/loge-du-reseau/<jeton>` : il coche les secteurs
   de sa loge, sans compte ; un lien expiré ou remplacé donne « Ce lien n'est
   plus valable » ;
+- **l'écusson** de chaque loge du réseau, déposé par l'administration (JPEG,
+  PNG, WebP, GIF ou AVIF, 5 Mo au plus, reconnu à ses octets), rangé dans le
+  seau « documents » à un chemin déduit de la loge, servi par des routes qui
+  vérifient l'administration ou le lien ;
 - **Paramètres › Loges du réseau** — l'administration saisit les loges, envoie
   les liens (groupé ou loge par loge, par Brevo), suit les réponses et règle le
   courriel. Le lien n'est enregistré qu'une fois le courriel parti : si l'envoi

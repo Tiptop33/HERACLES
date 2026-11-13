@@ -1,9 +1,14 @@
 import Logo from '@/components/Logo';
 import ChoixDesSecteurs from '@/components/ChoixDesSecteurs';
+import Ecusson from '@/components/Ecusson';
 import { dateEnLettres } from '@/lib/loges-du-reseau';
 import { lirePageDuLien } from '@/lib/loges-du-reseau-serveur';
 
-export const metadata = { title: 'Les secteurs d’activité de votre loge — HERACLES' };
+export const metadata = {
+  title: 'Les secteurs d’activité de votre loge — HERACLES',
+  // L'adresse porte le jeton du Secrétaire : qu'elle ne parte vers aucun autre site.
+  referrer: 'no-referrer' as const,
+};
 
 /**
  * La page du Secrétaire d'une loge du réseau (maquette validée le 13 novembre
@@ -48,12 +53,18 @@ export default async function PageDuSecretaire({ params }: { params: Promise<{ j
           <Logo />
         </div>
 
-        <h1 className="entree-titre">Les secteurs d’activité de votre loge</h1>
-        <p className="loge-reseau-titre">
-          Loge <strong>{page.nom}</strong>
-          {page.numero ? ` · n° ${page.numero}` : ''}
-          {page.province ? ` · ${page.province}` : ''}
-        </p>
+        <div className="loge-reseau-tete">
+          {/* L'écusson de la loge, ou son initiale tant qu'il n'est pas déposé. */}
+          <Ecusson src={page.a_un_ecusson ? `/loge-du-reseau/${jeton}/ecusson` : null} nom={page.nom} taille="grand" />
+          <div>
+            <h1 className="entree-titre">Les secteurs d’activité de votre loge</h1>
+            <p className="loge-reseau-titre">
+              Loge <strong>{page.nom}</strong>
+              {page.numero ? ` · n° ${page.numero}` : ''}
+              {page.province ? ` · ${page.province}` : ''}
+            </p>
+          </div>
+        </div>
         <p className="entree-chapo">
           Bonjour{page.secretaire_nom ? ` ${page.secretaire_nom}` : ''}. HERACLES accompagne des
           candidats en recherche d’emploi, d’alternance ou de stage. Pour orienter chacun vers les

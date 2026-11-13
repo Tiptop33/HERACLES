@@ -1,12 +1,13 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
+import { supabaseAdmin } from '@/lib/supabase-admin';
 import { ChampsDeLaLoge, indisponible, lister, ouvrir, refus } from '../acces';
 
 /**
  * Corriger (PATCH) ou retirer (DELETE) une loge du réseau — Paramètres ›
  * Loges du réseau. Chaque correction s'enregistre aussitôt ; changer
  * l'adresse du Secrétaire n'envoie rien. Retirer la loge emporte ses
- * secteurs (0089).
+ * secteurs (0089) et son écusson.
  */
 
 type Parametres = { params: Promise<{ id: string }> };
@@ -52,8 +53,15 @@ export async function DELETE(_requete: Request, { params }: Parametres) {
     const acces = await ouvrir();
     if (!acces.ok) return acces.reponse;
 
-    const { error } = await acces.supabase.rpc('retirer_loge_du_reseau', { la_loge: id });
+    const { data: ecusson, error } = await acces.supabase.rpc('retirer_loge_du_reseau', { la_loge: id });
     if (error) return refus('retrait', error);
+
+    // L'écusson quitte le seau avec la loge. Un orphelin n'empêche pas de dire
+    // que la loge est retirée : elle l'est.
+    if (typeof ecusson === 'string') {
+      const { error: souciMenage } = await supabaseAdmin().storage.from('documents').remove([ecusson]);
+      if (souciMenage) console.error('[loges du réseau] écusson non effacé', souciMenage);
+    }
 
     const loges = await lister(acces.supabase);
     return loges ? NextResponse.json({ loges }) : indisponible();

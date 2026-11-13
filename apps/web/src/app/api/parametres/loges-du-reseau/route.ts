@@ -16,7 +16,7 @@ export async function POST(requete: Request) {
       return NextResponse.json({ erreur: lu.error.issues[0]?.message ?? 'Demande illisible.' }, { status: 400 });
     }
 
-    const { error } = await acces.supabase.rpc('enregistrer_loge_du_reseau', {
+    const { data: id, error } = await acces.supabase.rpc('enregistrer_loge_du_reseau', {
       la_loge: null,
       le_nom: lu.data.nom,
       le_numero: lu.data.numero,
@@ -26,8 +26,9 @@ export async function POST(requete: Request) {
     });
     if (error) return refus('ajout', error);
 
+    // L'identifiant de la loge créée : l'écran y dépose ensuite l'écusson, s'il en a choisi un.
     const loges = await lister(acces.supabase);
-    return loges ? NextResponse.json({ loges }) : indisponible();
+    return loges ? NextResponse.json({ loges, id }) : indisponible();
   } catch (souci) {
     console.error('[loges du réseau] ajout : échec inattendu', souci);
     return indisponible();

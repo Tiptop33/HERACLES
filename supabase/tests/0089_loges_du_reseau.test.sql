@@ -30,9 +30,9 @@ select public.verifier(
   (select array_agg(column_name::text order by ordinal_position)
      from information_schema.columns
     where table_schema = 'public' and table_name = 'loge_du_reseau')
-  = array['id', 'nom', 'numero', 'province_id', 'secretaire_nom', 'secretaire_email',
+  = array['id', 'nom', 'numero', 'province_id', 'secretaire_nom', 'secretaire_email', 'ecusson_chemin',
           'lien_empreinte', 'lien_envoye_le', 'lien_expire_le', 'secteurs_maj_le', 'cree_le', 'maj_le'],
-  'nom, numéro, province, Secrétaire et adresse, le lien, la date de la liste');
+  'nom, numéro, province, Secrétaire et adresse, écusson, le lien, la date de la liste');
 
 do $$
 begin
@@ -58,6 +58,13 @@ begin
   end;
 
   begin
+    insert into public.loge_du_reseau (nom, ecusson_chemin) values ('Loge 0089 G', 'ailleurs/ecusson.png');
+    raise exception 'ÉCHEC — un écusson rangé ailleurs est entré';
+  exception when check_violation then
+    raise notice '  ok — refusé : un écusson dont le chemin ne se déduit pas de la loge';
+  end;
+
+  begin
     insert into public.loge_du_reseau (nom, lien_empreinte, lien_expire_le)
     values ('Loge 0089 E', 'pas-une-empreinte', now());
     raise exception 'ÉCHEC — une empreinte mal formée est entrée';
@@ -74,6 +81,13 @@ begin
   end;
 end
 $$;
+
+update public.loge_du_reseau
+   set ecusson_chemin = 'loge-du-reseau/ecusson/' || id::text || '.png'
+ where id = :'a';
+select public.verifier(
+  (select ecusson_chemin like 'loge-du-reseau/ecusson/%.png' from public.loge_du_reseau where id = :'a'),
+  'un écusson rangé au chemin de sa loge est accepté');
 
 \echo '— les secteurs, de la division à la sous-classe'
 select public.verifier(

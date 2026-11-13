@@ -19,6 +19,11 @@
 -- Le numéro est du texte : un numéro de loge ne sert pas à compter, et peut
 -- commencer par un zéro. Deux loges du réseau ne partagent pas un numéro.
 --
+-- L'écusson (décisions du 13 novembre) : une image déposée par
+-- l'administration dans le seau « documents », à un chemin qui se déduit de
+-- la loge — rien de ce que le navigateur envoie n'entre dans son nom. Sans
+-- écusson, l'écran montre l'initiale de la loge.
+--
 -- LE LIEN PERSONNEL
 --
 -- Seule son empreinte est gardée, jamais le lien lui-même : la base ne peut
@@ -53,6 +58,8 @@ create table if not exists public.loge_du_reseau (
   province_id       uuid references public.province (id) on delete set null,
   secretaire_nom    text,
   secretaire_email  text,
+  -- L'écusson, dans le seau « documents ». Vide = pas d'écusson.
+  ecusson_chemin    text,
 
   -- Le lien personnel du Secrétaire : son empreinte (SHA-256, en hexadécimal),
   -- quand il est parti et jusqu'à quand il vaut.
@@ -68,6 +75,9 @@ create table if not exists public.loge_du_reseau (
   constraint loge_du_reseau_numero check (numero is null or btrim(numero) <> ''),
   constraint loge_du_reseau_email
     check (secretaire_email is null or secretaire_email ~ '^[^@[:space:]]+@[^@[:space:]]+\.[^@[:space:]]+$'),
+  constraint loge_du_reseau_ecusson
+    check (ecusson_chemin is null
+           or ecusson_chemin ~ ('^loge-du-reseau/ecusson/' || id::text || '\.(jpg|png|webp|gif|avif)$')),
   constraint loge_du_reseau_empreinte
     check (lien_empreinte is null or lien_empreinte ~ '^[0-9a-f]{64}$'),
   -- Un lien sans date de fin n'existe pas.

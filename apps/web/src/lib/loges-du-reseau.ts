@@ -26,6 +26,7 @@ export type PageDeLaLogeDuReseau = {
   numero: string | null;
   province: string | null;
   secretaire_nom: string | null;
+  a_un_ecusson: boolean;
   expire_le: string;
   liste: ListeDeLaLoge;
 };
@@ -39,6 +40,7 @@ const Page = z.object({
   numero: z.string().nullable(),
   province: z.string().nullable(),
   secretaire_nom: z.string().nullable(),
+  a_un_ecusson: z.boolean(),
   expire_le: z.string(),
   liste: z.unknown(),
 });
@@ -69,6 +71,24 @@ export function dateEnLettres(iso: string | Date): string {
   });
 }
 
+/**
+ * La lettre qui tient la place de l'écusson tant qu'il n'est pas déposé —
+ * comme l'initiale d'une province sans image. Le mot « Loge » et l'article
+ * qui ouvre le nom sont sautés : « Les Bâtisseurs » donne B, pas L.
+ */
+export function initialeDeLoge(nom: string | null | undefined): string {
+  const propre = (nom ?? '')
+    .trim()
+    .replace(/^loge\s+/i, '')
+    .replace(/^(?:(?:les|le|la)\s+|l['’]\s*)/i, '')
+    .trim();
+  const premiere = propre.match(/\p{L}|\p{N}/u)?.[0];
+  return premiere ? premiere.toLocaleUpperCase('fr') : '?';
+}
+
+/** Un écusson se dépose en image : JPEG, PNG, WebP, GIF ou AVIF, 5 Mo au plus. */
+export const TAILLE_MAXIMALE_ECUSSON = 5 * 1024 * 1024;
+
 // --- L'administration -----------------------------------------------------
 
 /** Une loge du réseau, telle que la rubrique de Paramètres la reçoit. */
@@ -80,6 +100,7 @@ export type LogeDuReseau = {
   province: string | null;
   secretaire_nom: string | null;
   secretaire_email: string | null;
+  a_un_ecusson: boolean;
   lien_envoye_le: string | null;
   lien_expire_le: string | null;
   secteurs_maj_le: string | null;
@@ -94,6 +115,7 @@ const Loge = z.object({
   province: z.string().nullable(),
   secretaire_nom: z.string().nullable(),
   secretaire_email: z.string().nullable(),
+  a_un_ecusson: z.boolean(),
   lien_envoye_le: z.string().nullable(),
   lien_expire_le: z.string().nullable(),
   secteurs_maj_le: z.string().nullable(),

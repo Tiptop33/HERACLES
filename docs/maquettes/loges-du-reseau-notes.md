@@ -11,6 +11,16 @@ Les **loges du réseau** sont les 73 loges extérieures à l'application ; elles
 sont pas les « loges » de HERACLES (voir le vocabulaire du CLAUDE.md et
 `docs/secteurs-d-activite.md`, décisions 17 à 27).
 
+## Ajouté après validation : l'écusson (décisions 31 à 34)
+
+- Un écusson propre à chaque loge du réseau, déposé par l'administration — dans
+  le formulaire d'ajout (« Écusson (facultatif) ») et dans la loge ouverte
+  (« Déposer un écusson » / « Remplacer l'écusson »).
+- Il s'affiche en tête de la page du Secrétaire, à gauche du titre, et en tête
+  de la ligne de la loge dans Paramètres.
+- Sans écusson : l'initiale de la loge dans un rond, comme une province sans
+  image (« Loge » et l'article sont sautés : « Les Bâtisseurs » donne B).
+
 ## 1. La page du Secrétaire — validée telle quelle
 
 - Ouverte par le lien personnel reçu par courriel, **sans compte ni connexion**.

@@ -8,6 +8,7 @@ import {
   filtrerLoges,
   libelleDeLEnvoiGroupe,
   libelleDeLEtat,
+  initialeDeLoge,
   lienDeLaLogeDuReseau,
   lireLoges,
   lirePage,
@@ -25,6 +26,7 @@ const loge = (p: Partial<LogeDuReseau>): LogeDuReseau => ({
   province: p.province ?? null,
   secretaire_nom: p.secretaire_nom ?? null,
   secretaire_email: p.secretaire_email ?? null,
+  a_un_ecusson: p.a_un_ecusson ?? false,
   lien_envoye_le: p.lien_envoye_le ?? null,
   lien_expire_le: p.lien_expire_le ?? null,
   secteurs_maj_le: p.secteurs_maj_le ?? null,
@@ -132,6 +134,25 @@ describe('le courriel', () => {
   });
 });
 
+describe('l’initiale qui tient lieu d’écusson', () => {
+  it('saute « Loge » et l’article', () => {
+    expect(initialeDeLoge('Les Bâtisseurs')).toBe('B');
+    expect(initialeDeLoge('L’Essai fraternel')).toBe('E');
+    expect(initialeDeLoge("l'équerre")).toBe('É');
+    expect(initialeDeLoge('Loge La Concorde')).toBe('C');
+  });
+
+  it('ne prend pas un nom pour un article', () => {
+    expect(initialeDeLoge('Lebrun')).toBe('L');
+    expect(initialeDeLoge('Lumière')).toBe('L');
+  });
+
+  it('un nom vide donne un point d’interrogation', () => {
+    expect(initialeDeLoge('  ')).toBe('?');
+    expect(initialeDeLoge(null)).toBe('?');
+  });
+});
+
 describe('ce que la base rend', () => {
   it('la page d’un lien valable', () => {
     const page = lirePage({
@@ -140,6 +161,7 @@ describe('ce que la base rend', () => {
       numero: '512',
       province: null,
       secretaire_nom: 'Dominique Modèle',
+      a_un_ecusson: false,
       expire_le: '2027-02-11T10:00:00Z',
       liste: { maj_le: null, modifiable: true, secteurs: [] },
     });

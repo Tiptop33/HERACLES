@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import Ecusson from '@/components/Ecusson';
 import {
   DUREE_DU_LIEN_JOURS,
   aEnvoyerEnGroupe,
@@ -12,6 +13,7 @@ import {
   libelleDeLEnvoiGroupe,
   libelleDeLEtat,
   nomDansLeCourriel,
+  TAILLE_MAXIMALE_ECUSSON,
   type EtatDeLaLoge,
   type LogeDuReseau,
   type ModeleDuCourriel,
@@ -42,7 +44,17 @@ const FILTRES: [Filtre, string][] = [
 const API = '/api/parametres/loges-du-reseau';
 const DELAI_COURRIEL = 600;
 
-type Reponse = { loges?: LogeDuReseau[]; envoyes?: number; echecs?: number; erreur?: string | null };
+type Reponse = {
+  loges?: LogeDuReseau[];
+  id?: string;
+  envoyes?: number;
+  echecs?: number;
+  erreur?: string | null;
+};
+
+/** L'adresse de l'écusson d'une loge, avec sa version : un écusson remplacé se recharge. */
+const adresseDeLEcusson = (loge: LogeDuReseau, version: number) =>
+  loge.a_un_ecusson ? `/espace/parametres/loges-du-reseau/${loge.id}/ecusson?v=${version}` : null;
 
 export default function GestionDesLogesDuReseau({
   initiales,
@@ -62,6 +74,9 @@ export default function GestionDesLogesDuReseau({
   const [occupe, setOccupe] = useState(false);
   const [erreur, setErreur] = useState<string | null>(null);
   const [mot, setMot] = useState<string | null>(null);
+  // Une version par loge : après un dépôt, l'adresse de l'écusson change, et
+  // le navigateur ne ressert pas l'ancien.
+  const [versions, setVersions] = useState<Record<string, number>>({});
   const minuteur = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const dire = (texte: string) => {
@@ -78,10 +93,11 @@ export default function GestionDesLogesDuReseau({
     setOccupe(true);
     setErreur(null);
     try {
+      const fichier = corps instanceof FormData;
       const reponse = await fetch(adresse, {
         method: methode,
-        headers: corps === undefined ? undefined : { 'Content-Type': 'application/json' },
-        body: corps === undefined ? undefined : JSON.stringify(corps),
+        headers: corps === undefined || fichier ? undefined : { 'Content-Type': 'application/json' },
+        body: corps === undefined ? undefined : fichier ? corps : JSON.stringify(corps),
       });
       const lu = (await reponse.json().catch(() => null)) as Reponse | null;
       if (lu?.loges) setLoges(lu.loges);
@@ -99,10 +115,24 @@ export default function GestionDesLogesDuReseau({
   }
 
   // --- Les gestes -------------------------------------------------------------
+  /** Déposer un écusson ; rend vrai s'il est en place. */
+  const deposerLEcusson = async (id: string, fichier: File): Promise<boolean> => {
+    if (fichier.size > TAILLE_MAXIMALE_ECUSSON) {
+      setErreur('Cette image dépasse 5 Mo.');
+      return false;
+    }
+    const corps = new FormData();
+    corps.append('ecusson', fichier);
+    if (!(await appeler(`${API}/${id}/ecusson`, 'POST', corps))) return false;
+    setVersions((v) => ({ ...v, [id]: (v[id] ?? 0) + 1 }));
+    return true;
+  };
+
   const ajouter = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formulaire = e.currentTarget;
     const champs = new FormData(formulaire);
+    const ecusson = champs.get('ecusson');
     const lu = await appeler(API, 'POST', {
       nom: String(champs.get('nom') ?? ''),
       numero: String(champs.get('numero') ?? ''),
@@ -110,10 +140,14 @@ export default function GestionDesLogesDuReseau({
       secretaire_nom: String(champs.get('secretaire_nom') ?? ''),
       secretaire_email: String(champs.get('secretaire_email') ?? ''),
     });
-    if (lu) {
-      formulaire.reset();
-      dire('Loge ajoutée');
+    if (!lu) return;
+    formulaire.reset();
+    // L'écusson, s'il a été choisi, se dépose une fois la loge créée.
+    if (lu.id && ecusson instanceof File && ecusson.size > 0) {
+      if (await deposerLEcusson(lu.id, ecusson)) dire('Loge ajoutée, avec son écusson');
+      return;
     }
+    dire('Loge ajoutée');
   };
 
   const envoyerA = async (id: string) => {
@@ -221,6 +255,10 @@ export default function GestionDesLogesDuReseau({
         <button className="bouton bouton--fort" type="submit" disabled={occupe}>
           Ajouter
         </button>
+        <label className="reseau-ajout-ecusson">
+          Écusson <span className="maigre">(facultatif)</span>
+          <input name="ecusson" type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/avif" />
+        </label>
         <div className="reseau-ajout-pied">
           <small>Le lien ne part pas tout seul : envoyez-le quand la fiche est complète.</small>
         </div>
@@ -236,6 +274,8 @@ export default function GestionDesLogesDuReseau({
             <LigneDeLaLoge
               key={l.id}
               loge={l}
+              ecusson={adresseDeLEcusson(l, versions[l.id] ?? 0)}
+              deposer={(fichier) => void deposerLEcusson(l.id, fichier).then((ok) => ok && dire('Écusson déposé'))}
               provinces={provinces}
               ouverte={ouverte === l.id}
               basculer={() => setOuverte(ouverte === l.id ? null : l.id)}
@@ -278,6 +318,8 @@ const champsDe = (l: LogeDuReseau): ChampsSaisis => ({
 /** Une loge du réseau : sa ligne, et — ouverte — ses champs, son lien, ses secteurs. */
 function LigneDeLaLoge({
   loge,
+  ecusson,
+  deposer,
   provinces,
   ouverte,
   basculer,
@@ -287,6 +329,9 @@ function LigneDeLaLoge({
   occupe,
 }: {
   loge: LogeDuReseau;
+  /** L'adresse de l'écusson, ou `null` : l'initiale le remplace. */
+  ecusson: string | null;
+  deposer: (fichier: File) => void;
   provinces: Province[];
   ouverte: boolean;
   basculer: () => void;
@@ -309,6 +354,7 @@ function LigneDeLaLoge({
   return (
     <li className="reseau-ligne">
       <div className="reseau-ligne-tete">
+        <Ecusson src={ecusson} nom={loge.nom} />
         <span className="reseau-numero">{loge.numero ?? '—'}</span>
         <span className="reseau-nom">
           <strong>{loge.nom}</strong>
@@ -388,6 +434,24 @@ function LigneDeLaLoge({
                 maxLength={254}
               />
             </label>
+          </div>
+
+          <div className="reseau-ecusson">
+            <Ecusson src={ecusson} nom={loge.nom} taille="grand" />
+            <label>
+              {loge.a_un_ecusson ? 'Remplacer l’écusson' : 'Déposer un écusson'}
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/gif,image/avif"
+                disabled={occupe}
+                onChange={(e) => {
+                  const fichier = e.target.files?.[0];
+                  if (fichier) deposer(fichier);
+                  e.target.value = '';
+                }}
+              />
+            </label>
+            <small className="maigre">JPEG, PNG, WebP, GIF ou AVIF, 5 Mo au plus.</small>
           </div>
 
           <p className="reseau-historique">
