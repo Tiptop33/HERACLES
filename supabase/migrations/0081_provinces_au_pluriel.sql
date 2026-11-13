@@ -35,6 +35,10 @@
 -- voit et se retire, une image perdue après la fermeture ne se retrouve pas.
 --
 -- `reprendre-bubble.sh --provinces`, lui, refuse de tourner sans jeton.
+--
+-- Depuis le 13 novembre 2026, la table s'appelle `provinces` et ses champs
+-- `nom_de_la_province` et `ecusson_provincial` (voir l'en-tête de 0080) ; et la
+-- règle de ce dépliage a changé : HERACLES fait foi (voir 0096).
 -- ---------------------------------------------------------------------------
 
 create or replace function public.deverser_provinces_bubble()
@@ -88,22 +92,22 @@ begin
       from brut
   ),
   posee as (
-    insert into public.province as p
-      (bubble_id, nom, image_url, cree_par_bubble_id, cree_le, maj_le)
+    insert into public.provinces as p
+      (bubble_id, nom_de_la_province, ecusson_provincial_url, cree_par_bubble_id, cree_le, maj_le)
     select bubble_id, nom, image_url, cree_par, coalesce(cree, now()), coalesce(maj, now())
       from lue
     on conflict (bubble_id) do update set
       -- Ce que Bubble ne dit pas n'efface pas ce qu'on sait : voir l'en-tête.
-      nom                = coalesce(excluded.nom, p.nom),
-      image_url          = coalesce(excluded.image_url, p.image_url),
-      image_chemin       = case when excluded.image_url is not null
-                                 and p.image_url is distinct from excluded.image_url
-                                then null else p.image_chemin end,
+      nom_de_la_province     = coalesce(excluded.nom_de_la_province, p.nom_de_la_province),
+      ecusson_provincial_url = coalesce(excluded.ecusson_provincial_url, p.ecusson_provincial_url),
+      ecusson_provincial     = case when excluded.ecusson_provincial_url is not null
+                                     and p.ecusson_provincial_url is distinct from excluded.ecusson_provincial_url
+                                    then null else p.ecusson_provincial end,
       cree_par_bubble_id = coalesce(excluded.cree_par_bubble_id, p.cree_par_bubble_id),
       -- Une fiche réduite à son `_id` n'a pas de dates : on garde les nôtres.
-      cree_le            = case when excluded.nom is null and excluded.image_url is null
+      cree_le            = case when excluded.nom_de_la_province is null and excluded.ecusson_provincial_url is null
                                 then p.cree_le else excluded.cree_le end,
-      maj_le             = case when excluded.nom is null and excluded.image_url is null
+      maj_le             = case when excluded.nom_de_la_province is null and excluded.ecusson_provincial_url is null
                                 then p.maj_le else excluded.maj_le end
     returning (xmax = 0) as creee
   )
@@ -115,7 +119,7 @@ begin
   -- écrites : rejouer ne touche rien.
   update public.loge l
      set province_id = p.id
-    from public.province p
+    from public.provinces p
    where p.bubble_id = l.province_bubble_id
      and l.province_id is distinct from p.id;
 
@@ -123,8 +127,8 @@ begin
     select
       ecrites,
       neuves,
-      (select count(*) from public.province where bubble_id is not null and nom is null),
-      (select count(*) from public.province where bubble_id is not null and image_url is null),
+      (select count(*) from public.provinces where bubble_id is not null and nom_de_la_province is null),
+      (select count(*) from public.provinces where bubble_id is not null and ecusson_provincial_url is null),
       (select count(*) from public.loge where province_id is not null),
       (select count(*) from public.loge
         where province_bubble_id is not null and province_id is null);
@@ -133,7 +137,7 @@ $$;
 
 comment on function public.deverser_provinces_bubble() is
   'Déplie les provinces Bubble (type `provinces`) de `bubble_brut` dans '
-  '`province`, puis rattache les loges. Rejouable ; une valeur absente côté '
+  '`provinces`, puis rattache les loges. Rejouable ; une valeur absente côté '
   'Bubble n''efface pas une valeur connue. Réservée à l''exploitation.';
 
 -- Mêmes droits qu'en 0080 : `create or replace` les garde, on les redit pour

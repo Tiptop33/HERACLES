@@ -20,7 +20,7 @@ export default async function LogesDuReseau() {
   const supabase = await supabaseServer();
   const [loges, provinces, courriel] = await Promise.all([
     supabase.rpc('lister_loges_du_reseau'),
-    supabase.from('province').select('id, nom'),
+    supabase.from('provinces').select('id, nom_de_la_province'),
     supabase.rpc('courriel_des_loges_du_reseau'),
   ]);
 
@@ -40,8 +40,10 @@ export default async function LogesDuReseau() {
         <GestionDesLogesDuReseau
           initiales={lireLoges(loges.data)}
           provinces={rangerProvinces(
-            ((provinces.data ?? []) as { id: string; nom: string | null }[]).filter((p) => p.nom),
-          ).map((p) => ({ id: p.id, nom: p.nom as string }))}
+            ((provinces.data ?? []) as { id: string; nom_de_la_province: string | null }[]).filter(
+              (p) => p.nom_de_la_province,
+            ),
+          ).map((p) => ({ id: p.id, nom_de_la_province: p.nom_de_la_province as string }))}
           courriel={{ objet: modele?.objet ?? '', texte: modele?.texte ?? '' }}
           // L'adresse du site, pour l'aperçu du lien : celle que le courriel portera.
           origine={(process.env.NEXT_PUBLIC_APP_URL ?? '').replace(/\/+$/, '')}

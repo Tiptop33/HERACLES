@@ -25,8 +25,8 @@ insert into auth.users (id, email, raw_user_meta_data) values
 on conflict (id) do nothing;
 update public.profil set role = 'admin' where id = :'ada';
 
-insert into public.province (nom) values ('Province d''essai 0091');
-select id as province from public.province where nom = 'Province d''essai 0091' \gset
+insert into public.provinces (nom_de_la_province) values ('Province d''essai 0091');
+select id as province from public.provinces where nom_de_la_province = 'Province d''essai 0091' \gset
 
 -- Les empreintes de trois liens, calculées comme la route web le fait.
 select encode(sha256('jeton-0091-a'::bytea), 'hex') as e_a \gset
@@ -376,7 +376,7 @@ select public.verifier(
 
 -- --- Ménage ----------------------------------------------------------------
 delete from public.loge_du_reseau where nom like '%0091%';
-delete from public.province where nom = 'Province d''essai 0091';
+delete from public.provinces where nom_de_la_province = 'Province d''essai 0091';
 update public.parametre
    set objet_loge_du_reseau = default, mot_loge_du_reseau = default
  where id;

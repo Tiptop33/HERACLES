@@ -119,9 +119,9 @@ begin
 
     -- La province : par son identifiant Bubble, sinon par son nom.
     select p.id into la_province
-      from public.province p
+      from public.provinces p
      where p.bubble_id = b.province
-        or lower(btrim(p.nom)) = lower(b.province)
+        or lower(btrim(p.nom_de_la_province)) = lower(b.province)
      order by (p.bubble_id = b.province) desc nulls last
      limit 1;
     if la_province is null then

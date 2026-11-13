@@ -29,7 +29,7 @@ const LIMITE = process.env.LIMITE ? Number(process.env.LIMITE) : Infinity;
 // ouvre depuis notre stockage (migration 0069). Le reste attend MAJBUBBLE.
 //
 // SEULEMENT=provinces : l'écusson de chaque province, et rien d'autre
-// (`reprendre-bubble.sh --provinces`, migration 0080).
+// (`reprendre-bubble.sh --provinces`, migrations 0080 et 0096).
 //
 // SEULEMENT=loges-du-reseau : l'écusson de chaque loge du réseau reprise de
 // Bubble, et rien d'autre (`reprendre-bubble.sh --loges-du-reseau`,
@@ -60,8 +60,6 @@ const CIBLES = [
   ['candidat', 'photo_url', 'photo_chemin', 'candidat/photo'],
   ['referent', 'photo_url', 'photo_chemin', 'referent/photo'],
   ['loge', 'logo_url', 'logo_chemin', 'loge/logo'],
-  // L'image de chaque province (migration 0080), affichée sur sa carte.
-  ['province', 'image_url', 'image_chemin', 'province/image'],
   ['document', 'lien_url', 'chemin', 'document', 'efface_le is null'],
 ];
 
@@ -106,11 +104,10 @@ let total = 0;
 let echecs = 0;
 let octets = 0;
 
-const PROVINCES = [['province', 'image_url', 'image_chemin', 'province/image']];
-
-// Les écussons des loges du réseau ont leur propre passe, plus bas : leur
-// chemin est imposé par la table, et leur format se lit dans leurs octets.
-const CHOIX = { 'pdf-commission': PDF_COMMISSION, provinces: PROVINCES, 'loges-du-reseau': [] };
+// Les écussons — des loges du réseau et des provinces — ont leur propre
+// passe, plus bas : leur chemin est imposé par la table, et leur format se lit
+// dans leurs octets.
+const CHOIX = { 'pdf-commission': PDF_COMMISSION, provinces: [], 'loges-du-reseau': [] };
 
 for (const [table, colonneUrl, colonneChemin, dossier, condition] of SEULEMENT ? CHOIX[SEULEMENT] : CIBLES) {
   const { rows } = await client.query(
@@ -160,8 +157,9 @@ for (const [table, colonneUrl, colonneChemin, dossier, condition] of SEULEMENT ?
         throw new Error(`dépôt HTTP ${depot.status} — ${(await depot.text()).slice(0, 120)}`);
       }
 
+      // Un fichier posé entre-temps l'emporte : on ne remplit que le vide.
       await client.query(
-        `update public.${table} set ${colonneChemin} = $1 where id = $2`,
+        `update public.${table} set ${colonneChemin} = $1 where id = $2 and ${colonneChemin} is null`,
         [chemin, ligne.id],
       );
 
@@ -180,12 +178,13 @@ for (const [table, colonneUrl, colonneChemin, dossier, condition] of SEULEMENT ?
   console.log(`${table}.${colonneUrl} : ${faits} rapatriés${rates ? `, ${rates} en échec` : ''}`);
 }
 
-// ————— Les écussons des loges du réseau (migration 0094) —————
-// Pas le chemin des autres fichiers : la table impose
-// `loge-du-reseau/ecusson/<id de la loge>.<format>`, celui que l'écran de
-// l'administration produit, et le format se lit dans les octets — comme
-// lorsque l'administration dépose un écusson (`formatDImage`, lib/fichiers.ts).
-// Une loge qui a déjà son écusson le garde.
+// ————— Les écussons : loges du réseau (migration 0094), provinces (0096) —————
+// Pas le chemin des autres fichiers : chaque table impose
+// `<dossier>/<id de la ligne>.<format>`, celui que l'écran de l'administration
+// produit, et le format se lit dans les octets — comme lorsque
+// l'administration dépose un écusson (`formatDImage`, lib/fichiers.ts).
+// Une ligne qui a déjà son écusson le garde : celui que l'administration a
+// déposé l'emporte sur celui de Bubble.
 const FORMATS = { jpg: 'image/jpeg', png: 'image/png', webp: 'image/webp', gif: 'image/gif', avif: 'image/avif' };
 const TAILLE_MAXIMALE_ECUSSON = 5 * 1024 * 1024;
 
@@ -201,12 +200,18 @@ function formatDImage(octets) {
   return null;
 }
 
-if (!SEULEMENT || SEULEMENT === 'loges-du-reseau') {
+const ECUSSONS = [
+  { genre: 'loges-du-reseau', table: 'loge_du_reseau', url: 'ecusson_url', chemin: 'ecusson_chemin', dossier: 'loge-du-reseau/ecusson', ordre: 'numero' },
+  { genre: 'provinces', table: 'provinces', url: 'ecusson_provincial_url', chemin: 'ecusson_provincial', dossier: 'provinces/ecusson', ordre: 'nom_de_la_province' },
+];
+
+for (const e of ECUSSONS) {
+  if (SEULEMENT && SEULEMENT !== e.genre) continue;
   const { rows } = await client.query(
-    `select id, bubble_id, ecusson_url as url
-       from public.loge_du_reseau
-      where ecusson_url is not null and ecusson_chemin is null
-      order by numero`,
+    `select id, bubble_id, ${e.url} as url
+       from public.${e.table}
+      where ${e.url} is not null and ${e.chemin} is null
+      order by ${e.ordre}`,
   );
   let faits = 0;
   let rates = 0;
@@ -221,7 +226,7 @@ if (!SEULEMENT || SEULEMENT === 'loges-du-reseau') {
       const format = formatDImage(new Uint8Array(contenu));
       if (!format) throw new Error('ce n’est pas une image reconnue');
 
-      const chemin = `loge-du-reseau/ecusson/${ligne.id}.${format}`;
+      const chemin = `${e.dossier}/${ligne.id}.${format}`;
       const depot = await fetch(`${SUPABASE_URL}/storage/v1/object/${SEAU}/${chemin}`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${SERVICE_KEY}`, 'Content-Type': FORMATS[format], 'x-upsert': 'true' },
@@ -231,22 +236,22 @@ if (!SEULEMENT || SEULEMENT === 'loges-du-reseau') {
 
       // Un écusson déposé entre-temps par l'administration l'emporte.
       await client.query(
-        'update public.loge_du_reseau set ecusson_chemin = $1 where id = $2 and ecusson_chemin is null',
+        `update public.${e.table} set ${e.chemin} = $1 where id = $2 and ${e.chemin} is null`,
         [chemin, ligne.id],
       );
       faits++;
       octets += contenu.length;
     } catch (erreur) {
       rates++;
-      if (rates <= 3) console.error(`  ! loge_du_reseau ${ligne.bubble_id ?? ligne.id} : ${erreur.message}`);
+      if (rates <= 3) console.error(`  ! ${e.table} ${ligne.bubble_id ?? ligne.id} : ${erreur.message}`);
     }
   }
   total += faits;
   echecs += rates;
   console.log(
     rows.length
-      ? `loge_du_reseau.ecusson_url : ${faits} rapatriés${rates ? `, ${rates} en échec` : ''}`
-      : 'loge_du_reseau.ecusson_url : rien à faire',
+      ? `${e.table}.${e.url} : ${faits} rapatriés${rates ? `, ${rates} en échec` : ''}`
+      : `${e.table}.${e.url} : rien à faire`,
   );
 }
 

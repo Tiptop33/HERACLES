@@ -17,7 +17,8 @@
 # bascule.
 #
 # `--provinces` ne reprend que les provinces — nom et écusson — et rattache
-# les loges (migrations 0080, 0081). Jeton obligatoire : Bubble cache ce type
+# les loges (migrations 0080, 0081, 0096 : HERACLES fait foi, rien de ce que
+# l'administration a corrigé n'est remplacé). Jeton obligatoire : Bubble cache ce type
 # à l'API anonyme. Le jeton vient de la commande, ou à défaut de la ligne
 # `BUBBLE_TOKEN=` du `.env` de la pile. Rangé là, `mettre-a-jour.sh` le joue
 # à chaque mise en ligne, jusqu'à la bascule. Sans jeton, il s'arrête sur le
@@ -220,14 +221,19 @@ if [[ $PROVINCES -eq 1 ]]; then
 
   etape "Provinces — bilan"
   # Une carte sans nom ou sans écusson se voit ici, avant de se voir à l'écran.
+  # HERACLES fait foi (migration 0096) : une province retirée par
+  # l'administration ne revient pas, et n'est plus comptée ici.
   echo "Lues dans : $SOURCE"
   docker exec -i "$PREFIXE-db" psql -U postgres -d postgres -c "
-    select count(*)            as provinces,
-           count(nom)          as avec_nom,
-           count(image_url)    as avec_ecusson,
-           count(image_chemin) as ecusson_dans_le_stockage,
-           (select count(*) from public.loge where province_id is not null) as loges_rattachees
-      from public.province
+    select count(*)                      as provinces,
+           count(nom_de_la_province)     as avec_nom,
+           count(ecusson_provincial_url) as avec_ecusson,
+           count(ecusson_provincial)     as ecusson_dans_le_stockage,
+           (select count(*) from public.loge where province_id is not null) as loges_rattachees,
+           (select count(*) from public.provinces_bubble m
+             where not exists (select 1 from public.provinces p where p.bubble_id = m.bubble_id))
+                                         as retirees_par_l_administration
+      from public.provinces
      where bubble_id is not null"
   exit 0
 fi
@@ -339,11 +345,12 @@ docker exec -i "$PREFIXE-db" psql -U postgres -d postgres -c "
 
 # ————— Passe 5 : les provinces, et le rattachement des loges —————
 etape "Provinces — de la réserve brute vers leur table"
-echo "Même cas encore : le type « PROVINCE » n'est exposé que par la base de"
-echo "l'éditeur, il arrive en JSON dans bubble_brut. La migration 0080 le déplie"
-echo "— un nom, une image — puis rattache chaque loge à sa province."
+echo "Même cas encore : le type « provinces » arrive en JSON dans bubble_brut."
+echo "La migration 0096 le déplie dans la table « provinces » — le nom de la"
+echo "province, son écusson — puis rattache chaque loge à sa province. HERACLES"
+echo "fait foi : rien de ce que l'administration a corrigé n'est remplacé."
 echo "« sans_nom » ou « sans_image » non nuls : un champ n'a pas été reconnu,"
-echo "sa clé exacte se lit dans bubble_brut (type_bubble = 'province')."
+echo "sa clé exacte se lit dans bubble_brut (type_bubble = 'provinces')."
 docker exec -i "$PREFIXE-db" psql -U postgres -d postgres -c "
   select * from public.deverser_provinces_bubble()"
 
@@ -395,7 +402,7 @@ docker exec -i "$PREFIXE-db" psql -U postgres -d postgres -c "
   union all select 'suivi', count(*) from public.suivi
   union all select 'reunion', count(*) from public.reunion
   union all select 'appel', count(*) from public.appel
-  union all select 'province', count(*) from public.province
+  union all select 'provinces', count(*) from public.provinces
   union all select 'candidat_secteur', count(*) from public.candidat_secteur
   union all select 'loge_du_reseau', count(*) from public.loge_du_reseau
   union all select 'bubble_brut', count(*) from public.bubble_brut
