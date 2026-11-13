@@ -49,6 +49,7 @@ l'interface, dans le code, dans les noms de tables et de colonnes.
 | **référent** | celui qui suit le candidat dans la durée |
 | **parrain** | celui qui présente le candidat et l'introduit |
 | **loge** | le groupe local auquel se rattachent référents, candidats et documents |
+| **loge du réseau** | l'une des 73 loges extérieures à l'application, dont le Secrétaire coche les secteurs d'activité par un lien personnel — ce n'est **pas** une « loge » |
 | **offre** | une offre d'emploi, alimentée depuis France Travail |
 
 Ne jamais écrire « chercheur », « demandeur d'emploi » ou « utilisateur » à la place de
@@ -189,6 +190,9 @@ sert**, pas la liste des fichiers touchés.
 - **Sauvegarde** — `docs/sauvegarde.md`. Le serveur porte des données réelles :
   base, fichiers, et la copie qui doit en sortir. À lire avant toute opération
   qui touche à la base.
+- **Secteurs d'activité** — `docs/secteurs-d-activite.md` : la nomenclature NAF
+  qui range candidats, loges et offres, les dix décisions qui la fondent, et ce
+  qui reste à faire.
 - **Aide intégrée** — `docs/aide.md` : le bouton « Aide », le catalogue des
   parcours, les ancres `data-aide` et le personnage qui désigne. Tout écran qui
   porte une ancre la garde, ou le test de l'aide casse.

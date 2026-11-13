@@ -48,6 +48,13 @@ export const RUBRIQUES: readonly Rubrique[] = [
     lot: 'lot 5',
   },
   {
+    libelle: 'Loges du réseau',
+    vers: '/espace/parametres/loges-du-reseau',
+    propos:
+      'Les 73 loges du réseau, leur Secrétaire, et le lien qui lui permet de cocher les secteurs ' +
+      'd’activité de sa loge. Chaque changement s’enregistre aussitôt.',
+  },
+  {
     libelle: "Secteurs d'activité",
     vers: null,
     propos: 'Les secteurs proposés sur la fiche d’un candidat.',

@@ -10,6 +10,7 @@ import {
   premiereErreur,
 } from '@/lib/parrainage';
 import { lireCandidature } from '@/lib/parrainage-serveur';
+import { lireCodesDuCandidat } from '@/lib/secteurs';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 
 /**
@@ -71,6 +72,11 @@ async function traiter(requete: Request, jeton: string) {
     const { champ, message } = premiereErreur(lu.error);
     return refuser('saisie', message, champ);
   }
+
+  // Les secteurs d'activité (0092) : trois codes au plus, en JSON, dans un
+  // champ caché. Ils ne font pas partie de la fiche : ils ont leur table.
+  const secteurs = lireCodesDuCandidat(texte.secteurs);
+  if (!secteurs) return refuser('saisie', 'Les secteurs choisis ne sont pas lisibles. Choisissez-les de nouveau.', 'secteurs');
 
   // … puis les fichiers.
   const depots: Depot[] = [];
@@ -134,7 +140,24 @@ async function traiter(requete: Request, jeton: string) {
     chemins[depot.genre] = chemin;
   }
 
-  // 4. La base tranche.
+  // 4. La base tranche. Les secteurs d'abord : la fiche envoyée, le lien ne
+  //    vaut plus, et ils ne pourraient plus être proposés.
+  if (secteurs.length > 0) {
+    const { error: refusSecteurs } = await admin.rpc('proposer_les_secteurs_de_la_candidature', {
+      empreinte: empreinte(jeton),
+      codes: secteurs,
+    });
+    if (refusSecteurs) {
+      await stockage.remove(Object.values(chemins)).catch(() => undefined);
+      if (refusSecteurs.code === '28000') return refuser('lien', 'Ce lien ne vaut plus.', null, 410);
+      if (refusSecteurs.code === '23514' || refusSecteurs.code === '23503') {
+        return refuser('saisie', 'Un secteur choisi n’est pas reconnu. Choisissez-le de nouveau.', 'secteurs');
+      }
+      console.error('[candidature] secteurs refusés', refusSecteurs.code);
+      return refuser('echec', 'Votre fiche n’a pas pu être enregistrée. Réessayez.');
+    }
+  }
+
   const { error } = await admin.rpc('completer_sa_candidature', {
     empreinte: empreinte(jeton),
     // L'âge est facultatif : absent, il part vide, et non en « undefined ».

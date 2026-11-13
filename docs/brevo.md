@@ -31,7 +31,7 @@ l'erreur la plus fréquente.
 | Canal | Ce qu'il envoie | Qui envoie | Par où | Ce qu'il lit |
 | --- | --- | --- | --- | --- |
 | **Authentification** | invitations, réinitialisation de mot de passe | GoTrue, dans la pile Supabase | SMTP | `SMTP_*` dans `/opt/supabase-heracles[-essai]/.env` |
-| **Application** | lien au parrain, lien au candidat | Next.js — `apps/web/src/lib/courriel.ts` | API HTTPS | `BREVO_API_KEY`, `COURRIEL_EXPEDITEUR`, `COURRIEL_NOM_EXPEDITEUR` |
+| **Application** | lien au parrain, lien au candidat, lien au Secrétaire d'une loge du réseau | Next.js — `apps/web/src/lib/courriel.ts` | API HTTPS | `BREVO_API_KEY`, `COURRIEL_EXPEDITEUR`, `COURRIEL_NOM_EXPEDITEUR` |
 
 Sans le premier, **personne n'entre** : on n'entre qu'invité. Sans le second,
 le parcours « nouveau candidat » fonctionne encore — le lien s'affiche au

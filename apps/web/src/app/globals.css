@@ -4787,3 +4787,987 @@ a.poste-document .poste-document-type {
     display: none;
   }
 }
+
+/* ---------------------------------------------------------------------------
+ * Les secteurs d'activité — la page du Secrétaire d'une loge du réseau
+ * (maquette validée le 13 novembre 2026, docs/maquettes/loges-du-reseau.html,
+ * écrans 1 et 1 bis), et son encadré « Secteurs de la loge », repris de
+ * l'écran 3 de docs/maquettes/secteurs-d-activite.html. Chaque case
+ * s'enregistre aussitôt.
+ * ------------------------------------------------------------------------- */
+
+.page-secretaire .entree-carte {
+  max-width: 56rem;
+}
+
+.loge-reseau-titre {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--encre-douce);
+}
+
+.loge-reseau-titre strong {
+  color: var(--encre);
+}
+
+.lien-validite {
+  margin: 1.2rem 0 0;
+  font-size: 0.8rem;
+  color: var(--encre-tres-douce);
+}
+
+.lien-mort {
+  text-align: center;
+}
+
+.decompte-section {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.decompte-tete {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.3rem 1rem;
+}
+
+.decompte-tete h2 {
+  margin: 0;
+}
+
+.decompte-date {
+  font-size: 0.8rem;
+  color: var(--encre-douce);
+}
+
+/* Plus de six mois sans mise à jour : la date se signale, en ambre — la
+   couleur de ce qui attend. */
+.decompte-date--ancienne {
+  color: var(--attention);
+  font-weight: 600;
+}
+
+.decompte-total {
+  font-size: 0.85rem;
+  color: var(--encre-douce);
+  margin: 0;
+}
+
+.secteurs {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.secteurs-aide {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--encre-douce);
+}
+
+.secteurs-vide {
+  margin: 0;
+  color: var(--encre-tres-douce);
+  font-style: italic;
+  font-size: 0.88rem;
+}
+
+.secteur-code {
+  display: inline-block;
+  font: 600 0.78rem/1.4 var(--mono);
+  padding: 0 0.35rem;
+  margin-right: 0.35rem;
+  border-radius: 4px;
+  background: var(--candidat-clair);
+  color: var(--encre);
+}
+
+.secteur-texte {
+  min-width: 0;
+}
+
+.secteur-texte strong {
+  display: block;
+  font-weight: 600;
+}
+
+.secteur-texte small {
+  display: block;
+  color: var(--encre-tres-douce);
+  font-size: 0.78rem;
+}
+
+.secteur-geste {
+  width: 1.9rem;
+  height: 1.9rem;
+  border-radius: 6px;
+  border: 1px solid var(--bordure);
+  background: var(--surface);
+  color: var(--encre-douce);
+  cursor: pointer;
+  font: 600 0.9rem/1 var(--corps);
+}
+
+.secteur-geste:hover:not(:disabled) {
+  border-color: var(--marque);
+  color: var(--marque);
+}
+
+.secteur-geste:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.coches-section {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.coches-section-titre {
+  margin: 0.3rem 0 0;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--encre-douce);
+}
+
+.coches {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.3rem;
+  grid-template-columns: repeat(auto-fill, minmax(19rem, 1fr));
+}
+
+.coche {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.5rem;
+  align-items: center;
+  padding: 0.45rem 0.6rem;
+  background: var(--surface);
+  border: 1px solid var(--bordure);
+  border-radius: 8px;
+}
+
+.secteurs-ajout {
+  position: relative;
+}
+
+.secteurs-ajout input[type='search'] {
+  width: 100%;
+  box-sizing: border-box;
+  font: inherit;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid var(--bordure-nette);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--encre);
+}
+
+.secteurs-ajout input[type='search']:focus-visible {
+  outline: 2px solid var(--marque);
+  outline-offset: 1px;
+}
+
+/* Les propositions flottent sous le champ, sans rien bloquer : un clic
+   ailleurs les referme. */
+.secteurs-resultats {
+  position: absolute;
+  z-index: 20;
+  left: 0;
+  right: 0;
+  top: calc(100% + 4px);
+  margin: 0;
+  padding: 0.3rem;
+  list-style: none;
+  background: var(--surface);
+  border: 1px solid var(--bordure-nette);
+  border-radius: 8px;
+  box-shadow: 0 10px 24px rgb(22 32 46 / 0.14);
+  max-height: 20rem;
+  overflow: auto;
+}
+
+.secteurs-resultats li {
+  display: flex;
+  gap: 0.5rem;
+  align-items: baseline;
+  padding: 0.45rem 0.55rem;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.secteurs-resultats li[aria-selected='true'],
+.secteurs-resultats li:hover {
+  background: var(--candidat-clair);
+}
+
+.secteurs-resultats li.deja {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.secteurs-resultats li.rien {
+  display: block;
+  cursor: default;
+  color: var(--encre-douce);
+  font-size: 0.85rem;
+}
+
+.secteurs-resultats li.rien:hover {
+  background: none;
+}
+
+.secteurs-liens {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  font-size: 0.82rem;
+}
+
+.secteurs-liens button {
+  font: inherit;
+  color: var(--marque);
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* L'arborescence à cocher : du grand secteur à la sous-classe. */
+.arbre,
+.arbre ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.arbre {
+  border: 1px solid var(--bordure);
+  border-radius: 8px;
+  padding: 0.4rem;
+  max-height: 26rem;
+  overflow: auto;
+  background: var(--surface);
+}
+
+.arbre ul {
+  padding-left: 1.3rem;
+  border-left: 1px dashed var(--bordure);
+  margin-left: 0.75rem;
+}
+
+.arbre-ligne {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.15rem 0;
+  font-size: 0.86rem;
+}
+
+.arbre-ligne label {
+  display: flex;
+  align-items: baseline;
+  gap: 0.35rem;
+  cursor: pointer;
+}
+
+.arbre-ligne input {
+  margin: 0;
+  accent-color: var(--marque);
+  transform: translateY(1px);
+}
+
+.arbre-ligne--n1 {
+  font-weight: 600;
+}
+
+.arbre-bascule {
+  width: 1.4rem;
+  height: 1.4rem;
+  flex: none;
+  border: 0;
+  background: none;
+  color: var(--encre-douce);
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 0.8rem;
+}
+
+.arbre-bascule:hover {
+  background: var(--candidat-clair);
+}
+
+.arbre-compte {
+  font-size: 0.72rem;
+  color: var(--marque);
+  font-weight: 600;
+  margin-left: 0.3rem;
+  white-space: nowrap;
+}
+
+/* « Enregistré » : flottant, discret, sans rien bloquer. */
+.secteurs-enregistre {
+  position: fixed;
+  left: 50%;
+  bottom: 1.2rem;
+  transform: translate(-50%, 1rem);
+  opacity: 0;
+  z-index: 60;
+  background: var(--referent);
+  color: #fff;
+  font: 600 0.85rem/1 var(--corps);
+  padding: 0.6rem 1rem;
+  border-radius: 999px;
+  transition:
+    opacity 0.2s,
+    transform 0.2s;
+  pointer-events: none;
+}
+
+.secteurs-enregistre--visible {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+.secteurs-enregistre:empty {
+  padding: 0;
+}
+
+@media print {
+  .secteurs-ajout,
+  .secteurs-liens,
+  .arbre,
+  .secteur-geste,
+  .secteurs-enregistre {
+    display: none;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+ * Paramètres › Loges du réseau (maquette validée le 13 novembre 2026,
+ * docs/maquettes/loges-du-reseau.html, écran 2) : compteurs, envoi groupé,
+ * filtres, ajout, une ligne par loge, le courriel et son aperçu.
+ * ------------------------------------------------------------------------- */
+
+.reseau-compteurs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0.4rem 0 1rem;
+}
+
+.reseau-compteur {
+  background: var(--surface);
+  border: 1px solid var(--bordure);
+  border-radius: 10px;
+  padding: 0.55rem 0.8rem;
+  min-width: 7rem;
+}
+
+.reseau-compteur strong {
+  display: block;
+  font-size: 1.35rem;
+  line-height: 1.1;
+}
+
+.reseau-compteur span {
+  font-size: 0.78rem;
+  color: var(--encre-douce);
+}
+
+.reseau-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  align-items: center;
+  margin-bottom: 0.8rem;
+}
+
+.reseau-chercher {
+  margin-left: auto;
+}
+
+.reseau-filtres {
+  display: flex;
+  gap: 0.3rem;
+  flex-wrap: wrap;
+}
+
+.reseau-filtres button {
+  font: inherit;
+  font-size: 0.8rem;
+  border: 1px solid var(--bordure-nette);
+  background: var(--surface);
+  color: var(--encre-douce);
+  border-radius: 999px;
+  padding: 0.25rem 0.7rem;
+  cursor: pointer;
+}
+
+.reseau-filtres button[aria-pressed='true'] {
+  background: var(--encre);
+  border-color: var(--encre);
+  color: var(--surface);
+}
+
+.reseau-ajout {
+  display: grid;
+  grid-template-columns: 1fr 6rem 1fr auto;
+  gap: 0.5rem;
+  background: var(--surface);
+  border: 1px solid var(--bordure);
+  border-radius: 10px;
+  padding: 0.8rem;
+  margin-bottom: 0.8rem;
+}
+
+.reseau-ajout [name='nom'] {
+  grid-column: 1;
+}
+
+.reseau-ajout [name='numero'] {
+  grid-column: 2;
+}
+
+.reseau-ajout [name='province_id'] {
+  grid-column: 3 / 5;
+}
+
+.reseau-ajout [name='secretaire_nom'] {
+  grid-column: 1;
+}
+
+.reseau-ajout [name='secretaire_email'] {
+  grid-column: 2 / 4;
+}
+
+.reseau-ajout button {
+  grid-column: 4;
+}
+
+.reseau-ajout-pied {
+  grid-column: 1 / -1;
+}
+
+.reseau-ajout-pied small {
+  color: var(--encre-tres-douce);
+}
+
+@media (max-width: 40rem) {
+  .reseau-ajout {
+    grid-template-columns: 1fr;
+  }
+
+  .reseau-ajout > * {
+    grid-column: 1 !important;
+  }
+}
+
+.reseau-ajout input,
+.reseau-ajout select,
+.reseau-champs input,
+.reseau-champs select {
+  font: inherit;
+  font-size: 0.88rem;
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--bordure-nette);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--encre);
+  min-width: 0;
+}
+
+.reseau-liste {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.4rem;
+}
+
+.reseau-vide {
+  padding: 0.5rem;
+}
+
+.reseau-ligne {
+  background: var(--surface);
+  border: 1px solid var(--bordure);
+  border-radius: 10px;
+}
+
+.reseau-ligne-tete {
+  display: grid;
+  grid-template-columns: 2.6rem 3.5rem 1fr auto;
+  gap: 0.3rem 0.8rem;
+  align-items: center;
+  padding: 0.6rem 0.8rem;
+}
+
+.reseau-numero {
+  font: 700 0.95rem/1 var(--mono);
+  color: var(--encre-douce);
+}
+
+.reseau-nom strong {
+  display: block;
+}
+
+.reseau-nom small {
+  color: var(--encre-tres-douce);
+  font-size: 0.8rem;
+}
+
+.reseau-gestes {
+  display: flex;
+  gap: 0.3rem;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.reseau-manque {
+  font-size: 0.78rem;
+  color: var(--encre-douce);
+}
+
+/* L'état d'une loge : les couleurs disent un état, jamais une action. */
+.reseau-etat {
+  font-size: 0.76rem;
+  font-weight: 600;
+  border-radius: 999px;
+  padding: 0.15rem 0.6rem;
+  white-space: nowrap;
+}
+
+.reseau-etat--sans {
+  background: var(--surface-creuse);
+  color: var(--encre-douce);
+}
+
+.reseau-etat--envoye {
+  background: var(--attention-clair);
+  color: var(--attention);
+}
+
+.reseau-etat--repondu {
+  background: var(--referent-clair);
+  color: var(--referent);
+}
+
+.reseau-etat--expire {
+  background: var(--alerte-clair);
+  color: var(--alerte);
+}
+
+.reseau-detail {
+  border-top: 1px solid var(--bordure);
+  padding: 0.7rem 0.8rem 0.8rem;
+  display: grid;
+  gap: 0.7rem;
+}
+
+.reseau-champs {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  gap: 0.5rem;
+}
+
+.reseau-champs label {
+  display: grid;
+  gap: 0.2rem;
+  font-size: 0.75rem;
+  color: var(--encre-douce);
+}
+
+.reseau-historique {
+  font-size: 0.8rem;
+  color: var(--encre-douce);
+  margin: 0;
+}
+
+.reseau-secteurs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+
+.reseau-secteurs span {
+  font-size: 0.78rem;
+  background: var(--surface-creuse);
+  border-radius: 4px;
+  padding: 0.1rem 0.45rem;
+}
+
+.reseau-retirer {
+  font: inherit;
+  font-size: 0.8rem;
+  color: var(--alerte);
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  text-decoration: underline;
+  justify-self: start;
+}
+
+.courriel {
+  display: grid;
+  gap: 0.6rem;
+  margin-top: 1.8rem;
+}
+
+.courriel-chapo {
+  margin: 0;
+}
+
+.courriel label {
+  display: grid;
+  gap: 0.25rem;
+  font-size: 0.8rem;
+  color: var(--encre-douce);
+}
+
+.courriel input,
+.courriel textarea {
+  font: inherit;
+  font-size: 0.9rem;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid var(--bordure-nette);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--encre);
+}
+
+.courriel textarea {
+  min-height: 14rem;
+  line-height: 1.45;
+}
+
+.courriel-variables {
+  font-size: 0.78rem;
+  color: var(--encre-douce);
+  margin: 0;
+}
+
+.courriel-variables--titre {
+  margin-bottom: 0.3rem;
+}
+
+.courriel-variables code {
+  background: var(--surface-creuse);
+  border-radius: 3px;
+  padding: 0 0.3rem;
+}
+
+.courriel-apercu {
+  background: var(--surface-creuse);
+  border-radius: 10px;
+  padding: 0.8rem 1rem;
+  font-size: 0.88rem;
+  white-space: pre-line;
+}
+
+.courriel-apercu strong {
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+/* L'écusson d'une loge du réseau : l'image entière, jamais rognée — un blason
+   coupé n'est plus tout à fait le même —, ou l'initiale dans la pastille des
+   provinces sans image (décisions du 13 novembre 2026). */
+.ecusson {
+  display: grid;
+  place-items: center;
+  flex: none;
+  overflow: hidden;
+}
+
+.ecusson img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.ecusson--petit {
+  width: 2.6rem;
+  height: 2.6rem;
+}
+
+.ecusson--grand {
+  width: 4.2rem;
+  height: 4.2rem;
+}
+
+.ecusson--initiale {
+  border-radius: 50%;
+  background: var(--candidat-clair);
+  color: var(--candidat);
+  font-weight: 700;
+}
+
+.ecusson--petit.ecusson--initiale {
+  font-size: 1rem;
+}
+
+.ecusson--grand.ecusson--initiale {
+  font-size: 1.3rem;
+}
+
+/* En tête de la page du Secrétaire : l'écusson, puis le titre et la loge. */
+.loge-reseau-tete {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.loge-reseau-tete .entree-titre {
+  margin-bottom: 0.2rem;
+}
+
+/* Dans Paramètres : déposer l'écusson, à l'ajout et dans la loge ouverte. */
+.reseau-ajout-ecusson {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  color: var(--encre-douce);
+}
+
+.reseau-ecusson {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem 0.9rem;
+  font-size: 0.8rem;
+  color: var(--encre-douce);
+}
+
+.reseau-ecusson label {
+  display: grid;
+  gap: 0.25rem;
+}
+
+/* ---------------------------------------------------------------------------
+ * Les secteurs d'un candidat — le formulaire de candidature et le bloc « Sa
+ * recherche » de la fiche (maquette validée le 12 novembre 2026,
+ * docs/maquettes/secteurs-d-activite.html, écrans 1 et 2). Trois au plus,
+ * classés ; le premier est le principal.
+ * ------------------------------------------------------------------------- */
+
+.secteurs {
+  container-type: inline-size;
+}
+
+.secteurs-choisis {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.4rem;
+}
+
+.secteur-choisi {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 0.2rem 0.7rem;
+  align-items: center;
+  padding: 0.55rem 0.7rem;
+  background: var(--surface);
+  border: 1px solid var(--bordure);
+  border-radius: 8px;
+}
+
+.secteur-rang {
+  align-self: start;
+  margin-top: 0.1rem;
+  width: 1.7rem;
+  height: 1.7rem;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font: 700 0.85rem/1 var(--corps);
+  background: var(--surface-creuse);
+  color: var(--encre-douce);
+}
+
+/* Le secteur principal porte la couleur d'action : c'est lui qui compte d'abord. */
+.secteur-choisi:first-child .secteur-rang {
+  background: var(--marque);
+  color: var(--sur-marque);
+}
+
+.secteur-principal {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--marque);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-left: 0.35rem;
+}
+
+.secteur-gestes {
+  display: flex;
+  gap: 0.2rem;
+}
+
+.secteur-etat {
+  grid-column: 2 / 4;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  align-items: center;
+  font-size: 0.78rem;
+}
+
+.secteur-etat .a-confirmer {
+  background: var(--attention-clair);
+  color: var(--attention);
+  border-radius: 999px;
+  padding: 0.1rem 0.55rem;
+  font-weight: 600;
+}
+
+.secteur-etat .confirme {
+  color: var(--referent);
+  font-weight: 600;
+}
+
+.secteur-etat .confirmer {
+  font: 600 0.78rem/1 var(--corps);
+  border: 1px solid var(--marque);
+  color: var(--marque);
+  background: transparent;
+  border-radius: 999px;
+  padding: 0.3rem 0.7rem;
+  cursor: pointer;
+}
+
+.secteur-etat .confirmer:hover:not(:disabled) {
+  background: var(--marque);
+  color: var(--sur-marque);
+}
+
+.secteurs-plein {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--attention);
+}
+
+.secteurs-parcourir {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr);
+  gap: 0.6rem;
+  border: 1px solid var(--bordure);
+  border-radius: 8px;
+  background: var(--surface);
+  padding: 0.5rem;
+  max-height: 22rem;
+}
+
+.secteurs-parcourir ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  overflow: auto;
+}
+
+.secteurs-parcourir li button {
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  font-size: 0.85rem;
+  background: none;
+  border: 0;
+  border-radius: 6px;
+  padding: 0.35rem 0.5rem;
+  cursor: pointer;
+  color: var(--encre);
+  display: flex;
+  gap: 0.4rem;
+  align-items: baseline;
+}
+
+.secteurs-parcourir li button:hover:not(:disabled) {
+  background: var(--candidat-clair);
+}
+
+.secteurs-parcourir li button[aria-current='true'] {
+  background: var(--marque);
+  color: var(--sur-marque);
+}
+
+.secteurs-parcourir li button[aria-current='true'] .secteur-code {
+  background: rgb(255 255 255 / 0.25);
+  color: var(--sur-marque);
+}
+
+.secteurs-parcourir li button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.secteurs-parcourir .tout {
+  font-weight: 600;
+  color: var(--marque);
+}
+
+.secteurs-parcourir-indice {
+  padding: 0.5rem;
+  color: var(--encre-tres-douce);
+  font-size: 0.85rem;
+}
+
+.secteurs-resultats .secteur-texte small em {
+  font-style: normal;
+  color: var(--encre-douce);
+}
+
+/* Dans un bloc étroit — celui de la fiche —, les gestes passent sous
+   l'intitulé : sinon l'intitulé s'écrase mot par mot. */
+@container (max-width: 30rem) {
+  .secteur-choisi {
+    grid-template-columns: auto 1fr;
+  }
+
+  .secteur-etat {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  .secteur-gestes {
+    grid-column: 2;
+    grid-row: 3;
+  }
+
+  .secteurs-parcourir {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* La ligne grise « Repris de Bubble », tant que les secteurs ne sont pas tous
+   confirmés (décision 14). */
+.repris-bubble {
+  font-size: 0.78rem;
+  color: var(--encre-tres-douce);
+  margin: 0.35rem 0 0;
+}
+
+.champs-intitule {
+  margin: 0 0 0.45rem;
+  color: var(--encre-tres-douce);
+  font-size: 0.92rem;
+}
+
+/* Dans le bloc « Sa recherche » de la fiche : les secteurs entre les champs
+   qui les précèdent et le permis qui les suit. */
+.secteurs-du-candidat {
+  margin: 0.9rem 0 0.8rem;
+}
