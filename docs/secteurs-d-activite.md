@@ -48,6 +48,12 @@ puis les offres du bâtiment.
 | 25 | Le cadre « Secteurs représentés » de la page Référents ? | **Retiré** : la page Référents reste telle qu'elle était |
 | 26 | Le Secrétaire signale-t-il qu'il a terminé ? | **Non** : une loge « a répondu » dès son premier secteur coché ; l'administration voit la date de sa dernière modification |
 | 27 | Le texte du courriel ? | **Réglable dans Paramètres** ; une première version est proposée |
+| 28 | La page du Secrétaire, telle que maquettée ? | **Validée telle quelle** |
+| 29 | La page du lien expiré ? | **Validée telle quelle** |
+| 30 | Paramètres › Loges du réseau ? | **Validée telle quelle** |
+
+Les écrans des loges du réseau sont décrits par `docs/maquettes/loges-du-reseau.html`,
+et ce qui en est retenu dans `docs/maquettes/loges-du-reseau-notes.md`.
 
 Ce qui ne change pas : la loge du réseau coche au moins la division, puis aussi
 précis qu'elle le veut (décision 11), sans nom ni nombre (décision 3). Le nom et
