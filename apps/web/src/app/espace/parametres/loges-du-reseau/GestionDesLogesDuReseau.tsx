@@ -88,6 +88,31 @@ export default function GestionDesLogesDuReseau({
     if (minuteur.current) clearTimeout(minuteur.current);
   }, []);
 
+  // Tout ce qui est au-dessus de la liste reste en place : seule la liste des
+  // loges défile, dans son cadre. Sa hauteur est ce qui reste à l'écran sous
+  // son haut — comme les listes de Paramètres › Archives. Remesurée quand la
+  // fenêtre ou la mise en page change (un message d'erreur qui s'affiche,
+  // l'iPad qu'on tourne). Sur un écran étroit, la feuille de style rend la
+  // main à la page (`.reseau-liste--defile`).
+  const liste = useRef<HTMLUListElement>(null);
+  useEffect(() => {
+    const ul = liste.current;
+    if (!ul) return;
+    const ajuster = () => {
+      const haut = ul.getBoundingClientRect().top + window.scrollY;
+      const valeur = `${Math.max(240, Math.floor(window.innerHeight - haut - 16))}px`;
+      if (ul.style.getPropertyValue('--reseau-hauteur') !== valeur) ul.style.setProperty('--reseau-hauteur', valeur);
+    };
+    ajuster();
+    window.addEventListener('resize', ajuster);
+    const observateur = new ResizeObserver(ajuster);
+    observateur.observe(document.body);
+    return () => {
+      window.removeEventListener('resize', ajuster);
+      observateur.disconnect();
+    };
+  }, []);
+
   /** Un appel au serveur ; rend la réponse lue, ou null après avoir dit l'erreur. */
   async function appeler(adresse: string, methode: string, corps?: unknown): Promise<Reponse | null> {
     setOccupe(true);
@@ -264,7 +289,7 @@ export default function GestionDesLogesDuReseau({
         </div>
       </form>
 
-      <ul className="reseau-liste">
+      <ul className="reseau-liste reseau-liste--defile" ref={liste}>
         {visibles.length === 0 ? (
           <li className="secteurs-vide reseau-vide">
             {loges.length === 0 ? 'Aucune loge de Guyenne et Gascogne saisie pour l’instant.' : 'Aucune loge ne correspond.'}

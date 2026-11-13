@@ -2319,6 +2319,16 @@ tbody tr:focus-within {
   padding-right: 0.6rem;
 }
 
+/* Le menu reste en vue quand la rubrique défile, juste sous la barre du haut.
+   Sur un écran étroit, il redevient le bandeau du dessus (plus bas) et défile
+   avec la page. */
+@media (min-width: 721px) {
+  .parametres-menu {
+    position: sticky;
+    top: calc(var(--barre-h) + 0.8rem);
+  }
+}
+
 .parametres-entree {
   display: block;
   padding: 0.4rem 0.7rem;
@@ -5288,6 +5298,29 @@ a.poste-document .poste-document-type {
   padding: 0;
   display: grid;
   gap: 0.4rem;
+}
+
+/* Paramètres › Loges de Guyenne et Gascogne : les compteurs, les filtres et le
+   formulaire d'ajout restent en place, seule la liste défile. Sa hauteur,
+   mesurée dans le navigateur, est ce qui reste à l'écran
+   (`--reseau-hauteur`). `overscroll-behavior` : arrivé au bout de la liste,
+   le geste ne fait pas défiler la page. `align-content` : la grille ne
+   s'étire pas pour remplir le cadre quand il reste peu de loges. */
+.reseau-liste--defile {
+  max-height: var(--reseau-hauteur, 60vh);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  align-content: start;
+  padding-right: 0.25rem;
+}
+
+/* Sur un écran étroit, le menu passe au-dessus et la place manque : la page
+   défile comme avant. */
+@media (max-width: 720px) {
+  .reseau-liste--defile {
+    max-height: none;
+    overflow-y: visible;
+  }
 }
 
 .reseau-vide {
