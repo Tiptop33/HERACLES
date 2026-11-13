@@ -17,8 +17,8 @@
 # bascule.
 #
 # `--provinces` ne reprend que les provinces — nom et écusson — et rattache
-# les loges (migrations 0080, 0081, 0096 : HERACLES fait foi, rien de ce que
-# l'administration a corrigé n'est remplacé). Jeton obligatoire : Bubble cache ce type
+# les loges (migrations 0080, 0081, 0096 : HERACLES fait foi, une province
+# présente n'est plus touchée). Jeton obligatoire : Bubble cache ce type
 # à l'API anonyme. Le jeton vient de la commande, ou à défaut de la ligne
 # `BUBBLE_TOKEN=` du `.env` de la pile. Rangé là, `mettre-a-jour.sh` le joue
 # à chaque mise en ligne, jusqu'à la bascule. Sans jeton, il s'arrête sur le
@@ -348,7 +348,7 @@ etape "Provinces — de la réserve brute vers leur table"
 echo "Même cas encore : le type « provinces » arrive en JSON dans bubble_brut."
 echo "La migration 0096 le déplie dans la table « provinces » — le nom de la"
 echo "province, son écusson — puis rattache chaque loge à sa province. HERACLES"
-echo "fait foi : rien de ce que l'administration a corrigé n'est remplacé."
+echo "fait foi : seules les provinces absentes sont créées, les autres restent."
 echo "« sans_nom » ou « sans_image » non nuls : un champ n'a pas été reconnu,"
 echo "sa clé exacte se lit dans bubble_brut (type_bubble = 'provinces')."
 docker exec -i "$PREFIXE-db" psql -U postgres -d postgres -c "

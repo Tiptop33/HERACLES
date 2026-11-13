@@ -10,23 +10,36 @@
 -- 2026 :
 --
 --   * l'administration seule modifie ; les référents consultent ;
---   * HERACLES fait foi, Bubble n'apporte que ce qui manque — jusqu'à la
---     bascule, la reprise se rejoue à chaque mise en ligne, et elle ne doit
---     plus défaire ce que l'administration a corrigé ;
+--   * HERACLES fait foi, et strictement : Bubble n'apporte que les provinces
+--     absentes, et ne touche plus du tout à celles qui existent, pas même pour
+--     remplir une case vide — un nom ou un écusson manquant se saisit dans
+--     HERACLES. Jusqu'à la bascule, la reprise se rejoue à chaque mise en
+--     ligne ; elle ne doit rien défaire de ce que l'administration a fait ;
 --   * retirer une province qui regroupe encore des loges est permis, après une
 --     confirmation qui dit combien ; ces loges n'ont alors plus de province.
 --
 -- CE QUE LA REPRISE FAIT DÉSORMAIS — et ne fait plus
 --
--- Le même contrat que les loges du réseau (0094) :
---   * une province absente est créée ;
---   * une province présente n'est que complétée : un nom ou une adresse
---     d'écusson encore vides sont remplis, rien de ce qu'on sait n'est
---     remplacé. Un écusson changé chez Bubble ne remplace plus le nôtre ;
+--   * une province absente est créée, avec son nom et l'adresse de son
+--     écusson ;
+--   * une province présente n'est pas touchée : ni son nom, ni son écusson,
+--     même vides. Un nom ou un écusson changé chez Bubble ne remplace plus le
+--     nôtre ;
 --   * une province retirée par l'administration ne revient pas : chaque
 --     province Bubble prise une fois est notée (`provinces_bubble`) ;
---   * une province saisie à la main sous le même nom que celle de Bubble lui
---     est rattachée, au lieu d'être doublée.
+--   * une province saisie à la main sous le même nom que celle de Bubble
+--     n'est pas doublée : elle reçoit seulement l'identifiant Bubble, pour que
+--     les loges qui la désignent la retrouvent. Son nom et son écusson
+--     restent ceux de HERACLES ;
+--   * une fiche réduite à son identifiant — ce que Bubble rend sans jeton
+--     (0081) — ne crée rien. Créée ainsi, la province resterait sans nom pour
+--     de bon, puisque plus rien ne la complète ; la reprise suivante, avec
+--     jeton, la créera entière.
+--
+-- Le rapatriement de l'écusson (`rapatrier-fichiers.mjs`) n'est pas une
+-- complétion : il copie dans notre stockage le fichier dont l'adresse a été
+-- prise à la création, avant que le CDN de Bubble ne ferme. Il ne remplace
+-- jamais un écusson déposé par l'administration.
 --
 -- L'ÉCUSSON
 --
@@ -90,10 +103,10 @@ $$;
 -- Même signature qu'en 0080 et 0081 : le serveur rejoue toutes les migrations,
 -- et `create or replace` refuse de changer le type de retour d'une fonction
 -- (l'incident du 7 août 2026). Les colonnes gardent leur nom ; `deversees`
--- compte désormais les provinces créées, rattachées ou complétées.
+-- compte désormais les provinces créées ou rattachées.
 create or replace function public.deverser_provinces_bubble()
 returns table (
-  /** Provinces écrites — créées, rattachées ou complétées. */
+  /** Provinces écrites — créées, ou rattachées à une province saisie à la main. */
   deversees        bigint,
   /** Parmi elles, celles qui n'y étaient pas. */
   creees           bigint,
@@ -113,8 +126,6 @@ as $$
 declare
   b         record;
   trouvee   uuid;
-  rattachee boolean;
-  touchees  integer;
   ecrites   bigint := 0;
   neuves    bigint := 0;
 begin
@@ -143,56 +154,54 @@ begin
         limit 1) as ecusson_url,
       nullif(btrim(brut.d->>'Created By'), '') as cree_par,
       (brut.d->>'Created Date')::timestamptz  as cree,
-      (brut.d->>'Modified Date')::timestamptz as maj
+      (brut.d->>'Modified Date')::timestamptz as maj,
+      -- Aucune clé hors de l'identifiant et des champs système : la fiche
+      -- que Bubble rend sans jeton.
+      not exists (select 1 from jsonb_object_keys(brut.d) k
+                   where k not in ('_id', '_type', 'Created By', 'Created Date', 'Modified Date')) as vide
       from brut
      order by 1
   loop
-    rattachee := false;
-    select p.id into trouvee from public.provinces p where p.bubble_id = b.bubble_id;
-
-    if trouvee is null then
-      -- Retirée par l'administration : elle ne revient pas.
-      if exists (select 1 from public.provinces_bubble m where m.bubble_id = b.bubble_id) then
-        continue;
-      end if;
-      -- Déjà saisie à la main, sous le même nom : on la rattache.
-      if b.nom is not null then
-        select p.id into trouvee
-          from public.provinces p
-         where p.bubble_id is null
-           and lower(btrim(p.nom_de_la_province)) = lower(b.nom)
-         order by p.cree_le, p.id
-         limit 1;
-        if trouvee is not null then
-          update public.provinces set bubble_id = b.bubble_id where id = trouvee;
-          rattachee := true;
-        end if;
-      end if;
+    -- Présente : HERACLES fait foi, on n'y touche pas.
+    if exists (select 1 from public.provinces p where p.bubble_id = b.bubble_id) then
+      insert into public.provinces_bubble (bubble_id) values (b.bubble_id) on conflict do nothing;
+      continue;
     end if;
 
-    if trouvee is null then
+    -- Retirée par l'administration : elle ne revient pas.
+    if exists (select 1 from public.provinces_bubble m where m.bubble_id = b.bubble_id) then
+      continue;
+    end if;
+
+    -- Réduite à son identifiant (reprise sans jeton) : rien à créer, et rien
+    -- à noter — sinon la reprise suivante la prendrait pour une province
+    -- retirée, et ne la créerait jamais.
+    if b.vide then
+      continue;
+    end if;
+
+    -- Déjà saisie à la main, sous le même nom : elle reçoit l'identifiant
+    -- Bubble, et rien d'autre.
+    trouvee := null;
+    if b.nom is not null then
+      select p.id into trouvee
+        from public.provinces p
+       where p.bubble_id is null
+         and lower(btrim(p.nom_de_la_province)) = lower(b.nom)
+       order by p.cree_le, p.id
+       limit 1;
+    end if;
+
+    if trouvee is not null then
+      update public.provinces set bubble_id = b.bubble_id where id = trouvee;
+    else
       insert into public.provinces
         (bubble_id, nom_de_la_province, ecusson_provincial_url, cree_par_bubble_id, cree_le, maj_le)
       values
         (b.bubble_id, b.nom, b.ecusson_url, b.cree_par, coalesce(b.cree, now()), coalesce(b.maj, now()));
-      neuves  := neuves + 1;
-      ecrites := ecrites + 1;
-    else
-      -- Ce que HERACLES sait reste : on ne remplit que le vide. L'écusson
-      -- déposé ou rapatrié (`ecusson_provincial`) n'est jamais touché ici.
-      update public.provinces p
-         set nom_de_la_province     = coalesce(p.nom_de_la_province, b.nom),
-             ecusson_provincial_url = coalesce(p.ecusson_provincial_url, b.ecusson_url),
-             cree_par_bubble_id     = coalesce(p.cree_par_bubble_id, b.cree_par)
-       where p.id = trouvee
-         and ((p.nom_de_la_province is null and b.nom is not null)
-              or (p.ecusson_provincial_url is null and b.ecusson_url is not null)
-              or (p.cree_par_bubble_id is null and b.cree_par is not null));
-      get diagnostics touchees = row_count;
-      if rattachee or touchees > 0 then
-        ecrites := ecrites + 1;
-      end if;
+      neuves := neuves + 1;
     end if;
+    ecrites := ecrites + 1;
 
     insert into public.provinces_bubble (bubble_id) values (b.bubble_id) on conflict do nothing;
   end loop;
@@ -221,7 +230,8 @@ $$;
 comment on function public.deverser_provinces_bubble() is
   'Déplie les provinces Bubble (type `provinces`) de `bubble_brut` dans '
   '`provinces`, puis rattache les loges. HERACLES fait foi : crée ce qui '
-  'manque, ne remplit que le vide, ne recrée pas une province retirée. '
+  'manque, ne touche pas à une province présente, ne recrée pas une '
+  'province retirée, ne crée rien d''une fiche réduite à son identifiant. '
   'Rejouable. Réservée à l''exploitation.';
 
 revoke all on function public.deverser_provinces_bubble() from public, anon, authenticated;

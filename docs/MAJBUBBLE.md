@@ -445,16 +445,22 @@ Deux défauts de 0080, corrigés par 0081 avant toute reprise réelle :
 **HERACLES fait foi (migration 0096, 13 novembre 2026).** L'administration
 tient les provinces depuis l'écran Province : elle en ajoute, les renomme,
 dépose leur écusson, en retire. La reprise, rejouée à chaque mise en ligne, ne
-défait rien de tout cela :
+défait rien de tout cela — règle stricte, décidée le 13 novembre 2026 :
 
-- une province absente de HERACLES est créée ;
-- une province présente n'est que **complétée** : un nom ou une adresse
-  d'écusson encore vides sont remplis, rien de connu n'est remplacé — ni un
-  nom corrigé, ni un écusson déposé ;
+- une province absente de HERACLES est créée, avec son nom et son écusson ;
+- une province présente **n'est plus touchée**, pas même pour remplir une
+  case vide : un nom ou un écusson manquant se saisit dans l'écran Province ;
 - une province **retirée** par l'administration ne revient pas : chaque
   province Bubble prise une fois est notée dans `provinces_bubble` ;
-- une province saisie à la main sous le même nom que celle de Bubble lui est
-  rattachée, au lieu d'être doublée.
+- une province saisie à la main sous le même nom que celle de Bubble n'est
+  pas doublée : elle reçoit seulement l'identifiant Bubble, pour que ses
+  loges la retrouvent ;
+- une fiche réduite à son identifiant — ce que Bubble rend sans jeton — ne
+  crée rien : la reprise suivante, avec jeton, créera la province entière.
+
+Le rapatriement de l'écusson n'est pas une complétion : il copie dans notre
+stockage le fichier dont l'adresse a été prise à la création, avant la
+fermeture du CDN de Bubble, et ne remplace jamais un écusson déposé.
 
 Table et champs portent leurs noms depuis le même jour : `provinces`,
 `nom_de_la_province`, `ecusson_provincial` (le chemin dans le stockage) et
@@ -472,8 +478,10 @@ l'ancienne table `province` est renommée au premier déploiement, sans perte
   où il s'est arrêté ;
 - `loges_rattachees` = le nombre de loges reprises.
 
-Un `avec_nom` inférieur à `provinces` veut dire que le jeton n'a pas été pris
-— ou que Bubble a renommé un champ. Les clés se lisent ainsi, les clés seules :
+Un `avec_nom` inférieur à `provinces` veut dire que Bubble a renommé un champ,
+ou qu'une province a été créée avant le 13 novembre sans son nom. Depuis la
+règle stricte, une reprise ne le remplira plus : le saisir dans l'écran
+Province. Les clés se lisent ainsi, les clés seules :
 
 ```sql
 select distinct jsonb_object_keys(donnees) from public.bubble_brut

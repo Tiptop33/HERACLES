@@ -6,9 +6,11 @@
 --   · Camille compte candidat — ni l'un ni l'autre
 --
 -- Ce qu'on éprouve :
---   * la reprise crée ce qui manque, ne remplit que le vide, rattache une
---     province saisie à la main sous le même nom, et ne recrée pas une
---     province retirée — HERACLES fait foi ;
+--   * la reprise crée ce qui manque et ne touche plus du tout à une province
+--     présente, pas même pour remplir une case vide ; elle rattache une
+--     province saisie à la main sous le même nom (l'identifiant Bubble, rien
+--     d'autre), ne crée rien d'une fiche réduite à son identifiant, et ne
+--     recrée pas une province retirée — HERACLES fait foi ;
 --   * l'administration ajoute et renomme (nom nettoyé, obligatoire, unique,
 --     120 caractères au plus), dépose un écusson au seul chemin permis, et
 --     retire une province : ses loges n'ont plus de province ;
@@ -34,11 +36,13 @@ on conflict (id) do nothing;
 update public.profil set role = 'admin' where id = :'ada';
 
 -- --- Fixtures --------------------------------------------------------------
--- Trois provinces Bubble :
+-- Quatre provinces Bubble :
 --   a : complète ;
 --   b : son nom est déjà saisi à la main, en minuscules — elle doit s'y
 --       rattacher, pas se doubler ;
---   c : réduite à son `_id`, comme une reprise faite sans jeton.
+--   c : réduite à son `_id`, comme une reprise faite sans jeton ;
+--   d : déjà là, sans nom ni écusson — une reprise d'avant 0096 l'a laissée
+--       ainsi ; Bubble les donne maintenant, la règle stricte ne les prend pas.
 insert into public.bubble_brut (type_bubble, bubble_id, donnees) values
   ('provinces', 'prov-0096-a', $j${
      "_id": "prov-0096-a",
@@ -52,17 +56,23 @@ insert into public.bubble_brut (type_bubble, bubble_id, donnees) values
      "Nom": "Province Beta 0096",
      "Ecusson": "//essai0096.cdn.bubble.io/b/beta.png"
    }$j$::jsonb),
-  ('provinces', 'prov-0096-c', '{"_id": "prov-0096-c"}'::jsonb)
+  ('provinces', 'prov-0096-c', '{"_id": "prov-0096-c"}'::jsonb),
+  ('provinces', 'prov-0096-d', $j${
+     "_id": "prov-0096-d",
+     "Nom": "Province Delta Bubble 0096",
+     "Ecusson": "//essai0096.cdn.bubble.io/d/delta.png"
+   }$j$::jsonb)
 on conflict (type_bubble, bubble_id) do update set donnees = excluded.donnees;
 
 insert into public.provinces (nom_de_la_province) values ('province beta 0096');
+insert into public.provinces (bubble_id) values ('prov-0096-d');
 
 insert into public.loge (bubble_id, nom, province_bubble_id) values
   ('loge-0096', 'Loge d''essai 0096', 'prov-0096-a')
 on conflict (bubble_id) do nothing;
 
 -- ===========================================================================
-\echo '— la reprise crée ce qui manque, et rattache au lieu de doubler'
+\echo '— la reprise crée ce qui manque, rattache au lieu de doubler, ne crée rien d''une fiche vide'
 create temporary table passage_0096 as select * from public.deverser_provinces_bubble();
 
 select id as alpha from public.provinces where bubble_id = 'prov-0096-a' \gset
@@ -81,18 +91,24 @@ select public.verifier(
   'b : une seule province à ce nom — celle saisie à la main a reçu son identifiant Bubble');
 select public.verifier(
   (select nom_de_la_province = 'province beta 0096'
-      and ecusson_provincial_url = '//essai0096.cdn.bubble.io/b/beta.png'
+      and ecusson_provincial_url is null
      from public.provinces where id = :'beta'),
-  'b : le nom saisi reste tel quel, l''adresse de l''écusson, vide, est remplie');
+  'b : elle reçoit l''identifiant Bubble, et rien d''autre — ni nom, ni adresse d''écusson');
 
 select public.verifier(
-  (select nom_de_la_province is null from public.provinces where bubble_id = 'prov-0096-c'),
-  'c : créée sans nom — Bubble ne l''a pas donné');
+  not exists (select 1 from public.provinces where bubble_id = 'prov-0096-c')
+    and not exists (select 1 from public.provinces_bubble where bubble_id = 'prov-0096-c'),
+  'c : réduite à son identifiant, elle ne crée rien, et n''est pas notée comme reprise');
+
+select public.verifier(
+  (select nom_de_la_province is null and ecusson_provincial_url is null
+     from public.provinces where bubble_id = 'prov-0096-d'),
+  'd : présente, elle n''est pas touchée — même ses cases vides restent vides');
 
 select public.verifier(
   (select count(*) from public.provinces_bubble
-    where bubble_id in ('prov-0096-a', 'prov-0096-b', 'prov-0096-c')) = 3,
-  'les trois sont notées dans la mémoire de la reprise');
+    where bubble_id in ('prov-0096-a', 'prov-0096-b', 'prov-0096-d')) = 3,
+  'a, b et d sont notées dans la mémoire de la reprise');
 
 select public.verifier(
   (select province_id = :'alpha'::uuid from public.loge where bubble_id = 'loge-0096'),
@@ -110,8 +126,8 @@ update public.bubble_brut set donnees = '{"_id": "prov-0096-c", "Nom": "Province
  where type_bubble = 'provinces' and bubble_id = 'prov-0096-c';
 
 select public.verifier(
-  (select creees = 0 from public.deverser_provinces_bubble()),
-  'second passage : rien de créé');
+  (select creees = 1 from public.deverser_provinces_bubble()),
+  'second passage : seule c, maintenant lue en entier, est créée');
 
 select public.verifier(
   (select nom_de_la_province = 'Province Alpha 0096'
@@ -121,7 +137,10 @@ select public.verifier(
 select public.verifier(
   (select nom_de_la_province = 'Province Gamma 0096'
      from public.provinces where bubble_id = 'prov-0096-c'),
-  'c : le nom, qui manquait, est rempli');
+  'c : créée avec son nom, maintenant que Bubble le donne');
+select public.verifier(
+  (select nom_de_la_province is null from public.provinces where bubble_id = 'prov-0096-d'),
+  'd : toujours pas touchée — son nom se saisit dans HERACLES');
 
 -- ===========================================================================
 \echo '— Ada, administratrice : ajouter, renommer, compter'
