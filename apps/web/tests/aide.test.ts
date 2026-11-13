@@ -752,8 +752,9 @@ describe('l’aide pour retirer une photo', () => {
 
   it('et l’écran des paramètres non plus', () => {
     // Le pied des paramètres décrit « Mon compte » : il doit en dire ce qui
-    // s'y trouve, comme l'aide.
-    const pied = readFileSync(join(SRC, 'app', 'espace', 'parametres', 'layout.tsx'), 'utf8');
+    // s'y trouve, comme l'aide. Le texte vit dans son composant, que le layout
+    // et la rubrique des loges de Guyenne et Gascogne reprennent.
+    const pied = readFileSync(join(SRC, 'app', 'espace', 'parametres', 'RenvoiMonCompte.tsx'), 'utf8');
     const phrase = pied.slice(pied.indexOf('<Link href="/mon-compte">'));
     expect(phrase).not.toMatch(/mot de\s+passe/);
     expect(phrase).not.toMatch(/votre adresse/);

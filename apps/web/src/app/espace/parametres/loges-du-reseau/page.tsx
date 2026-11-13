@@ -2,6 +2,7 @@ import { RUBRIQUES } from '@/lib/parametres';
 import { lireLoges } from '@/lib/loges-du-reseau';
 import { rangerProvinces } from '@/lib/provinces';
 import { supabaseServer } from '@/lib/supabase-server';
+import RenvoiMonCompte from '../RenvoiMonCompte';
 import GestionDesLogesDuReseau from './GestionDesLogesDuReseau';
 
 export const metadata = { title: 'Loges de Guyenne et Gascogne — Paramètres — HERACLES' };
@@ -27,28 +28,40 @@ export default async function LogesDuReseau() {
   const propos = RUBRIQUES.find((r) => r.libelle === 'Loges de Guyenne et Gascogne')?.propos ?? '';
   const modele = courriel.data as { objet?: string; texte?: string } | null;
 
-  return (
+  // Le titre et le propos ouvrent la colonne de gauche : sur un écran large,
+  // le courriel se range à leur droite, en face d'eux et de la liste.
+  const entete = (
     <>
       <h2>Loges de Guyenne et Gascogne</h2>
       <p className="aide">{propos}</p>
+    </>
+  );
 
-      {loges.error ? (
+  if (loges.error) {
+    return (
+      <>
+        {entete}
         <p className="erreur" role="alert">
           La liste des loges de Guyenne et Gascogne n’a pas pu être lue. Réessayez dans un instant.
         </p>
-      ) : (
-        <GestionDesLogesDuReseau
-          initiales={lireLoges(loges.data)}
-          provinces={rangerProvinces(
-            ((provinces.data ?? []) as { id: string; nom_de_la_province: string | null }[]).filter(
-              (p) => p.nom_de_la_province,
-            ),
-          ).map((p) => ({ id: p.id, nom_de_la_province: p.nom_de_la_province as string }))}
-          courriel={{ objet: modele?.objet ?? '', texte: modele?.texte ?? '' }}
-          // L'adresse du site, pour l'aperçu du lien : celle que le courriel portera.
-          origine={(process.env.NEXT_PUBLIC_APP_URL ?? '').replace(/\/+$/, '')}
-        />
-      )}
-    </>
+      </>
+    );
+  }
+
+  return (
+    <GestionDesLogesDuReseau
+      entete={entete}
+      // Repris sous l'aperçu du courriel, en bas de la colonne de droite.
+      pied={<RenvoiMonCompte />}
+      initiales={lireLoges(loges.data)}
+      provinces={rangerProvinces(
+        ((provinces.data ?? []) as { id: string; nom_de_la_province: string | null }[]).filter(
+          (p) => p.nom_de_la_province,
+        ),
+      ).map((p) => ({ id: p.id, nom_de_la_province: p.nom_de_la_province as string }))}
+      courriel={{ objet: modele?.objet ?? '', texte: modele?.texte ?? '' }}
+      // L'adresse du site, pour l'aperçu du lien : celle que le courriel portera.
+      origine={(process.env.NEXT_PUBLIC_APP_URL ?? '').replace(/\/+$/, '')}
+    />
   );
 }

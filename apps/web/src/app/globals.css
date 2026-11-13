@@ -5616,6 +5616,86 @@ a.poste-document .poste-document-type {
   margin-bottom: 0.5rem;
 }
 
+/* Le titre et le propos de la rubrique ouvrent la colonne de gauche : ils y
+   gardent l'écart que `.parametres-contenu > .aide` leur donnait. */
+.reseau-principal > .aide {
+  margin: 0 0 1.1rem;
+}
+
+/* Le renvoi vers « Mon compte » repris dans la colonne de droite (demande du
+   13 novembre 2026) : il ne s'y montre que sur deux colonnes, ci-dessous. Sur
+   une seule, c'est celui du pied de page qui reste, comme dans les autres
+   rubriques. */
+.reseau-cote > .parametres-pied {
+  display: none;
+}
+
+/* Paramètres › Loges de Guyenne et Gascogne sur un écran large (demande du
+   13 novembre 2026) : le courriel passe à droite, en face du titre et de la
+   liste, au lieu d'attendre sous elle. La colonne de gauche garde ses 42 rem,
+   la liste ne change pas d'allure ; celle du courriel prend de 21 à 36 rem. La
+   page de cette rubrique s'élargit pour cela, comme celle d'Archives.
+   Le seuil compte tout ce qui est à gauche : la colonne de navigation
+   (13,5 rem), le menu de Paramètres (12 + 1,2 rem), les marges et une barre de
+   défilement — 96 rem d'écran, 1 536 px. En dessous, il faudrait serrer la
+   liste à moins de 35 rem pour faire place au courriel (un iPad 12,9 pouces en
+   paysage) : les noms des loges s'y cassent mot à mot. Le courriel y reste
+   donc sous la liste, comme avant. */
+@media (min-width: 96rem) {
+  .corps.parametres:has(.reseau) {
+    max-width: 96rem;
+  }
+
+  .parametres-contenu:has(.reseau) {
+    max-width: none;
+  }
+
+  .reseau {
+    display: flex;
+    gap: 1.6rem;
+    align-items: flex-start;
+  }
+
+  .reseau-principal {
+    flex: 0 0 42rem;
+    min-width: 0;
+  }
+
+  /* Elle s'arrête à la même ligne que la liste (`--reseau-cote-hauteur`,
+     mesurée dans le navigateur) et défile dans son cadre si la fenêtre est
+     trop basse : la page, elle, ne bouge pas. Un peu d'air sur les côtés, sans
+     quoi le cadre rogne le contour d'un champ qui a la main. */
+  .reseau-cote {
+    flex: 1 0 21rem;
+    max-width: 36rem;
+    max-height: var(--reseau-cote-hauteur, 80vh);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 0 0.3rem 0 0.2rem;
+  }
+
+  .reseau-cote > .courriel {
+    margin-top: 0;
+  }
+
+  /* Le renvoi vers « Mon compte » passe sous le dernier cadre de droite,
+     l'aperçu du courriel ; celui du pied de page s'efface. */
+  .corps.parametres:has(.reseau) > .parametres-pied {
+    display: none;
+  }
+
+  .reseau-cote > .parametres-pied {
+    display: block;
+    margin: 1rem 0 0;
+  }
+
+  /* Le lien de l'aperçu, d'un seul tenant, déborderait de la colonne quand
+     elle est à son plus étroit : il passe à la ligne. */
+  .reseau-cote .courriel-apercu {
+    overflow-wrap: anywhere;
+  }
+}
+
 /* L'écusson d'une loge du réseau : l'image entière, jamais rognée — un blason
    coupé n'est plus tout à fait le même —, ou l'initiale dans la pastille des
    provinces sans image (décisions du 13 novembre 2026). */
