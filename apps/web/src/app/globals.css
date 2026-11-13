@@ -5564,8 +5564,8 @@ a.poste-document .poste-document-type {
     margin-top: 0;
   }
 
-  /* Le lien de l'aperçu, d'un seul tenant, déborderait d'une colonne de
-     22 rem : il passe à la ligne. */
+  /* Le lien de l'aperçu, d'un seul tenant, déborderait de la colonne quand
+     elle est à son plus étroit : il passe à la ligne. */
   .reseau-cote .courriel-apercu {
     overflow-wrap: anywhere;
   }
