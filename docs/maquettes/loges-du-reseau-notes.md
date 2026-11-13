@@ -31,6 +31,11 @@ sont pas les « loges » de HERACLES (voir le vocabulaire du CLAUDE.md et
 - Il faut 1 536 px d'écran pour les deux colonnes. En dessous (un iPad, même
   12,9 pouces en paysage), le courriel reste sous la liste : lui faire place
   aurait serré la liste au point de casser les noms des loges mot à mot.
+- Sur deux colonnes, le renvoi « Mon compte — votre nom, votre téléphone,
+  votre photo… » passe sous l'aperçu du courriel, en bas de la colonne de
+  droite ; sur une seule, il reste au pied de la page.
+- Un Secrétaire sans nom est salué « Bonjour mon frère, » — et non plus
+  « Bonjour Madame, Monsieur, » —, dans l'aperçu comme dans le courriel envoyé.
 
 ## 1. La page du Secrétaire — validée telle quelle
 

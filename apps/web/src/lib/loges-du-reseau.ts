@@ -221,13 +221,17 @@ export function nomDansLeCourriel(loge: Pick<LogeDuReseau, 'nom' | 'numero'>): s
  * Le courriel d'une loge, variables remplacées : {secretaire}, {loge},
  * {lien}, {expiration}. Une variable inconnue reste écrite telle quelle — elle
  * se voit dans l'aperçu (`substituer`).
+ *
+ * Un Secrétaire dont le nom n'est pas saisi est salué « mon frère » — et non
+ * plus « Madame, Monsieur » (demande du 13 novembre 2026). L'aperçu et le
+ * courriel envoyé passent tous deux par ici : ils disent la même chose.
  */
 export function composerLeCourriel(
   modele: ModeleDuCourriel,
   valeurs: { secretaire: string | null; loge: string; lien: string; expiration: string },
 ): { sujet: string; texte: string } {
   const variables = {
-    secretaire: valeurs.secretaire?.trim() || 'Madame, Monsieur',
+    secretaire: valeurs.secretaire?.trim() || 'mon frère',
     loge: valeurs.loge,
     lien: valeurs.lien,
     expiration: valeurs.expiration,
