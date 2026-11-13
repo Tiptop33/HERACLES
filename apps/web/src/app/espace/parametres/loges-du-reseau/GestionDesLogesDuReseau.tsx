@@ -210,7 +210,7 @@ export default function GestionDesLogesDuReseau({
         >
           {libelleDeLEnvoiGroupe(aEnvoyer)}
         </button>
-        <div className="reseau-filtres" role="group" aria-label="Filtrer les loges du réseau">
+        <div className="reseau-filtres" role="group" aria-label="Filtrer les loges de Guyenne et Gascogne">
           {FILTRES.map(([cle, texte]) => (
             <button key={cle} type="button" aria-pressed={filtre === cle} onClick={() => setFiltre(cle)}>
               {texte}
@@ -223,7 +223,7 @@ export default function GestionDesLogesDuReseau({
           value={recherche}
           onChange={(e) => setRecherche(e.target.value)}
           placeholder="Chercher une loge, un numéro, un Secrétaire…"
-          aria-label="Chercher une loge du réseau"
+          aria-label="Chercher une loge de Guyenne et Gascogne"
         />
       </div>
 
@@ -267,7 +267,7 @@ export default function GestionDesLogesDuReseau({
       <ul className="reseau-liste">
         {visibles.length === 0 ? (
           <li className="secteurs-vide reseau-vide">
-            {loges.length === 0 ? 'Aucune loge du réseau saisie pour l’instant.' : 'Aucune loge ne correspond.'}
+            {loges.length === 0 ? 'Aucune loge de Guyenne et Gascogne saisie pour l’instant.' : 'Aucune loge ne correspond.'}
           </li>
         ) : (
           visibles.map((l) => (
@@ -478,7 +478,7 @@ function LigneDeLaLoge({
             L’ancien lien cesse alors de valoir.
           </p>
           <button type="button" className="reseau-retirer" onClick={retirer} disabled={occupe}>
-            Retirer cette loge du réseau
+            Retirer cette loge de Guyenne et Gascogne
           </button>
         </div>
       )}

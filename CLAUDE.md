@@ -49,7 +49,7 @@ l'interface, dans le code, dans les noms de tables et de colonnes.
 | **référent** | celui qui suit le candidat dans la durée |
 | **parrain** | celui qui présente le candidat et l'introduit |
 | **loge** | le groupe local auquel se rattachent référents, candidats et documents |
-| **loge du réseau** | l'une des 73 loges extérieures à l'application, dont le Secrétaire coche les secteurs d'activité par un lien personnel — ce n'est **pas** une « loge » |
+| **loge du réseau** | l'une des 73 loges extérieures à l'application, dont le Secrétaire coche les secteurs d'activité par un lien personnel — ce n'est **pas** une « loge ». **À l'écran : « Loges de Guyenne et Gascogne »** (« une loge de Guyenne et Gascogne ») ; le code, les tables et les adresses gardent `loge_du_reseau`, pour que les liens déjà envoyés restent valables |
 | **offre** | une offre d'emploi, alimentée depuis France Travail |
 
 Ne jamais écrire « chercheur », « demandeur d'emploi » ou « utilisateur » à la place de

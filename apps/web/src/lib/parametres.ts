@@ -48,10 +48,10 @@ export const RUBRIQUES: readonly Rubrique[] = [
     lot: 'lot 5',
   },
   {
-    libelle: 'Loges du réseau',
+    libelle: 'Loges de Guyenne et Gascogne',
     vers: '/espace/parametres/loges-du-reseau',
     propos:
-      'Les 73 loges du réseau, leur Secrétaire, et le lien qui lui permet de cocher les secteurs ' +
+      'Les 73 loges de Guyenne et Gascogne, leur Secrétaire, et le lien qui lui permet de cocher les secteurs ' +
       'd’activité de sa loge. Chaque changement s’enregistre aussitôt.',
   },
   {
