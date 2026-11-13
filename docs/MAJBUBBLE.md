@@ -68,6 +68,22 @@ select count(*) as en_reserve from public.bubble_brut where type_bubble = 'tache
 select count(*) as dans_le_journal from public.suivi where bubble_id is not null;
 ```
 
+**Vérifier les secteurs repris.** La commande applique aux fiches la
+correspondance des secteurs Bubble (migration 0093, passe 6) : le code NAF
+de Bubble d'office, la liste ROME et le texte libre selon ce que
+l'administration a validé dans **Paramètres › Secteurs d'activité**. Une ligne
+encore « à valider » le jour de MAJBUBBLE laisse ses fiches sans secteur : les
+valider **avant**, ou juste après — l'écran applique aussitôt, sans attendre une
+reprise. Les champs Bubble restent en place après la fermeture : la
+correspondance continue de s'appliquer à chaque validation.
+
+```sql
+select count(*) as secteurs_a_valider
+  from public.secteurs_bubble_des_fiches() f
+  left join public.secteur_bubble sb on sb.source = f.source and sb.valeur = f.valeur
+ where sb.valide_le is null;
+```
+
 **Rattacher les comptes.** Les fiches arrivent de Bubble ; les comptes de
 connexion, eux, existent déjà. Rien ne les lie tant qu'on ne le demande pas :
 

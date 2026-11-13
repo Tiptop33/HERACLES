@@ -298,6 +298,17 @@ echo "sa clé exacte se lit dans bubble_brut (type_bubble = 'province')."
 docker exec -i "$PREFIXE-db" psql -U postgres -d postgres -c "
   select * from public.deverser_provinces_bubble()"
 
+# ————— Passe 6 : les secteurs repris de Bubble —————
+etape "Secteurs — la correspondance Bubble → nomenclature, appliquée aux fiches"
+echo "Les fiches gardent leurs champs Bubble (liste ROME, texte libre, code NAF) ;"
+echo "la migration 0093 en tire leurs secteurs : le code NAF d'office, la liste"
+echo "ROME et le texte selon les correspondances validées dans Paramètres ›"
+echo "Secteurs d'activité. Une fiche dont un référent a confirmé ou corrigé les"
+echo "secteurs n'est pas touchée. Rejouable : le nombre rendu est celui des"
+echo "fiches qui ont changé."
+docker exec -i "$PREFIXE-db" psql -U postgres -d postgres -v ON_ERROR_STOP=1 -c "
+  select public.appliquer_les_secteurs_bubble() as fiches_changees"
+
 # ————— Les fichiers, si on les a demandés —————
 if [[ $FICHIERS -eq 1 ]]; then
   etape "Fichiers — du CDN de Bubble vers le stockage"
@@ -327,6 +338,7 @@ docker exec -i "$PREFIXE-db" psql -U postgres -d postgres -c "
   union all select 'reunion', count(*) from public.reunion
   union all select 'appel', count(*) from public.appel
   union all select 'province', count(*) from public.province
+  union all select 'candidat_secteur', count(*) from public.candidat_secteur
   union all select 'bubble_brut', count(*) from public.bubble_brut
   order by 1"
 

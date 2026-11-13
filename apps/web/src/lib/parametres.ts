@@ -56,9 +56,11 @@ export const RUBRIQUES: readonly Rubrique[] = [
   },
   {
     libelle: "Secteurs d'activité",
-    vers: null,
-    propos: 'Les secteurs proposés sur la fiche d’un candidat.',
-    lot: 'lot 5',
+    vers: '/espace/parametres/secteurs-d-activite',
+    propos:
+      'Les secteurs de l’ancienne application Bubble, et le secteur de la nomenclature qui leur ' +
+      'correspond. Une correspondance validée s’applique aussitôt aux fiches qui n’ont pas encore ' +
+      'de secteur, puis à chaque reprise jusqu’au 5 décembre ; le référent confirme ensuite sur la fiche.',
   },
   {
     libelle: 'Types de document',

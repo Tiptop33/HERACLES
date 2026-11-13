@@ -190,7 +190,7 @@ se trouve le bouton « Aide ». Sa bulle, elle, est déjà à l'arrivée.
   casser le test du catalogue le jour où l'écran arrive — c'est le signal pour
   écrire le vrai parcours.
 - De même pour la messagerie, les correspondants, le tableau de bord, le
-  bilan, les loges, les secteurs d'activité et les types de document : l'aide
+  bilan, les loges et les types de document : l'aide
   dit aujourd'hui qu'ils ne sont pas encore en service, et montre ce qui
   existe déjà (les chiffres de l'accueil). Les rubriques grisées des
   paramètres ont le même garde-fou, avec des ancres `rubrique-eteinte:`.
@@ -233,13 +233,16 @@ dit où l'on en est et ce qui reste à éprouver.
 - **Réunion** : appel, affiche, compte rendu, affichette, registre.
 - **Réseau et compte** : annuaire des référents, provinces, connectés, mon
   compte, mot de passe, déconnexion.
-- **Administration** : paramètres (collège, exercice, mise en page, archives),
+- **Administration** : paramètres (collège, exercice, mise en page, archives,
+  secteurs d'activité — la correspondance des secteurs repris de Bubble),
   invitations.
 - **Gestes de retrait** : supprimer un dossier, retirer ou effacer une réunion,
   retirer un référent, une note, un PDF, un titre, une photo. Chaque texte dit
   si le geste se défait et à qui il est réservé.
 - **Écrans pas encore livrés** : offres, entreprises, « Relation », messagerie,
-  correspondants, tableau de bord, bilan, loges, secteurs, types de document.
+  correspondants, tableau de bord, bilan, loges, types de document. L'entrée
+  « Secteur d'activité » de la famille « Admin » reste grisée : le parcours
+  « Gérer les secteurs d'activité » mène à la rubrique des paramètres.
   L'aide dit qu'ils ne sont pas en service et montre ce qui existe déjà.
 
 ### La limite des questions à Claude
