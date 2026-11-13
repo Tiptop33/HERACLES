@@ -27,26 +27,36 @@ export default async function LogesDuReseau() {
   const propos = RUBRIQUES.find((r) => r.libelle === 'Loges de Guyenne et Gascogne')?.propos ?? '';
   const modele = courriel.data as { objet?: string; texte?: string } | null;
 
-  return (
+  // Le titre et le propos ouvrent la colonne de gauche : sur un écran large,
+  // le courriel se range à leur droite, en face d'eux et de la liste.
+  const entete = (
     <>
       <h2>Loges de Guyenne et Gascogne</h2>
       <p className="aide">{propos}</p>
+    </>
+  );
 
-      {loges.error ? (
+  if (loges.error) {
+    return (
+      <>
+        {entete}
         <p className="erreur" role="alert">
           La liste des loges de Guyenne et Gascogne n’a pas pu être lue. Réessayez dans un instant.
         </p>
-      ) : (
-        <GestionDesLogesDuReseau
-          initiales={lireLoges(loges.data)}
-          provinces={rangerProvinces(
-            ((provinces.data ?? []) as { id: string; nom: string | null }[]).filter((p) => p.nom),
-          ).map((p) => ({ id: p.id, nom: p.nom as string }))}
-          courriel={{ objet: modele?.objet ?? '', texte: modele?.texte ?? '' }}
-          // L'adresse du site, pour l'aperçu du lien : celle que le courriel portera.
-          origine={(process.env.NEXT_PUBLIC_APP_URL ?? '').replace(/\/+$/, '')}
-        />
-      )}
-    </>
+      </>
+    );
+  }
+
+  return (
+    <GestionDesLogesDuReseau
+      entete={entete}
+      initiales={lireLoges(loges.data)}
+      provinces={rangerProvinces(
+        ((provinces.data ?? []) as { id: string; nom: string | null }[]).filter((p) => p.nom),
+      ).map((p) => ({ id: p.id, nom: p.nom as string }))}
+      courriel={{ objet: modele?.objet ?? '', texte: modele?.texte ?? '' }}
+      // L'adresse du site, pour l'aperçu du lien : celle que le courriel portera.
+      origine={(process.env.NEXT_PUBLIC_APP_URL ?? '').replace(/\/+$/, '')}
+    />
   );
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import Ecusson from '@/components/Ecusson';
 import {
   DUREE_DU_LIEN_JOURS,
@@ -24,6 +24,10 @@ import {
  * 13 novembre 2026 la dessine (docs/maquettes/loges-du-reseau.html, écran 2) :
  * compteurs, envoi groupé, filtres, ajout, une ligne par loge qui s'ouvre pour
  * la corriger, et le courriel avec son aperçu.
+ *
+ * Deux colonnes sur un écran large (demande du 13 novembre 2026) : à gauche le
+ * titre, les compteurs, les filtres, l'ajout et la liste ; à droite, en face,
+ * le courriel. Sur un écran plus étroit, le courriel repasse sous la liste.
  *
  * Chaque changement s'enregistre aussitôt. Chaque réponse du serveur rend la
  * liste entière, que l'écran affiche telle quelle : il ne garde jamais pour
@@ -57,11 +61,14 @@ const adresseDeLEcusson = (loge: LogeDuReseau, version: number) =>
   loge.a_un_ecusson ? `/espace/parametres/loges-du-reseau/${loge.id}/ecusson?v=${version}` : null;
 
 export default function GestionDesLogesDuReseau({
+  entete,
   initiales,
   provinces,
   courriel,
   origine,
 }: {
+  /** Le titre et le propos de la rubrique, en tête de la colonne de gauche. */
+  entete: ReactNode;
   initiales: LogeDuReseau[];
   provinces: Province[];
   courriel: ModeleDuCourriel;
@@ -94,14 +101,24 @@ export default function GestionDesLogesDuReseau({
   // fenêtre ou la mise en page change (un message d'erreur qui s'affiche,
   // l'iPad qu'on tourne). Sur un écran étroit, la feuille de style rend la
   // main à la page (`.reseau-liste--defile`).
+  // La colonne du courriel, à droite sur un écran large, reçoit la même
+  // mesure : elle s'arrête à la même ligne que la liste, et défile dans son
+  // propre cadre si la fenêtre est trop basse. Hors des deux colonnes, la
+  // feuille de style ignore sa mesure.
   const liste = useRef<HTMLUListElement>(null);
+  const cote = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    const ul = liste.current;
-    if (!ul) return;
+    const cadres = [
+      [liste.current, '--reseau-hauteur'],
+      [cote.current, '--reseau-cote-hauteur'],
+    ] as const;
     const ajuster = () => {
-      const haut = ul.getBoundingClientRect().top + window.scrollY;
-      const valeur = `${Math.max(240, Math.floor(window.innerHeight - haut - 16))}px`;
-      if (ul.style.getPropertyValue('--reseau-hauteur') !== valeur) ul.style.setProperty('--reseau-hauteur', valeur);
+      for (const [cadre, variable] of cadres) {
+        if (!cadre) continue;
+        const haut = cadre.getBoundingClientRect().top + window.scrollY;
+        const valeur = `${Math.max(240, Math.floor(window.innerHeight - haut - 16))}px`;
+        if (cadre.style.getPropertyValue(variable) !== valeur) cadre.style.setProperty(variable, valeur);
+      }
     };
     ajuster();
     window.addEventListener('resize', ajuster);
@@ -209,111 +226,117 @@ export default function GestionDesLogesDuReseau({
 
   return (
     <div className="reseau">
-      <div className="reseau-compteurs">
-        {(
-          [
-            [n.total, 'loges saisies'],
-            [n.repondu, 'ont répondu'],
-            [n.envoye, 'lien envoyé, sans réponse'],
-            [n.expire, 'lien expiré'],
-            [n.sans, 'sans lien'],
-          ] as const
-        ).map(([k, texte]) => (
-          <div className="reseau-compteur" key={texte}>
-            <strong>{k}</strong>
-            <span>{texte}</span>
+      <div className="reseau-principal">
+        {entete}
+
+        <div className="reseau-compteurs">
+          {(
+            [
+              [n.total, 'loges saisies'],
+              [n.repondu, 'ont répondu'],
+              [n.envoye, 'lien envoyé, sans réponse'],
+              [n.expire, 'lien expiré'],
+              [n.sans, 'sans lien'],
+            ] as const
+          ).map(([k, texte]) => (
+            <div className="reseau-compteur" key={texte}>
+              <strong>{k}</strong>
+              <span>{texte}</span>
+            </div>
+          ))}
+        </div>
+
+        <div className="reseau-actions">
+          <button
+            type="button"
+            className="bouton bouton--fort"
+            onClick={() => void envoyerEnGroupe()}
+            disabled={aEnvoyer === 0 || occupe}
+          >
+            {libelleDeLEnvoiGroupe(aEnvoyer)}
+          </button>
+          <div className="reseau-filtres" role="group" aria-label="Filtrer les loges de Guyenne et Gascogne">
+            {FILTRES.map(([cle, texte]) => (
+              <button key={cle} type="button" aria-pressed={filtre === cle} onClick={() => setFiltre(cle)}>
+                {texte}
+              </button>
+            ))}
           </div>
-        ))}
-      </div>
-
-      <div className="reseau-actions">
-        <button
-          type="button"
-          className="bouton bouton--fort"
-          onClick={() => void envoyerEnGroupe()}
-          disabled={aEnvoyer === 0 || occupe}
-        >
-          {libelleDeLEnvoiGroupe(aEnvoyer)}
-        </button>
-        <div className="reseau-filtres" role="group" aria-label="Filtrer les loges de Guyenne et Gascogne">
-          {FILTRES.map(([cle, texte]) => (
-            <button key={cle} type="button" aria-pressed={filtre === cle} onClick={() => setFiltre(cle)}>
-              {texte}
-            </button>
-          ))}
+          <input
+            className="recherche reseau-chercher"
+            type="search"
+            value={recherche}
+            onChange={(e) => setRecherche(e.target.value)}
+            placeholder="Chercher une loge, un numéro, un Secrétaire…"
+            aria-label="Chercher une loge de Guyenne et Gascogne"
+          />
         </div>
-        <input
-          className="recherche reseau-chercher"
-          type="search"
-          value={recherche}
-          onChange={(e) => setRecherche(e.target.value)}
-          placeholder="Chercher une loge, un numéro, un Secrétaire…"
-          aria-label="Chercher une loge de Guyenne et Gascogne"
-        />
-      </div>
 
-      {erreur && (
-        <p className="erreur" role="alert">
-          {erreur}
-        </p>
-      )}
-
-      <form className="reseau-ajout" onSubmit={(e) => void ajouter(e)}>
-        <input name="nom" placeholder="Nom de la loge" aria-label="Nom de la loge" required maxLength={160} />
-        <input name="numero" placeholder="N°" aria-label="Numéro" maxLength={20} />
-        <select name="province_id" aria-label="Province" defaultValue="">
-          <option value="">Province…</option>
-          {provinces.map((p) => (
-            <option key={p.id} value={p.id}>
-              {p.nom}
-            </option>
-          ))}
-        </select>
-        <input name="secretaire_nom" placeholder="Nom du Secrétaire" aria-label="Nom du Secrétaire" maxLength={160} />
-        <input
-          name="secretaire_email"
-          type="email"
-          placeholder="Adresse du Secrétaire"
-          aria-label="Adresse électronique du Secrétaire"
-          maxLength={254}
-        />
-        <button className="bouton bouton--fort" type="submit" disabled={occupe}>
-          Ajouter
-        </button>
-        <label className="reseau-ajout-ecusson">
-          Écusson <span className="maigre">(facultatif)</span>
-          <input name="ecusson" type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/avif" />
-        </label>
-        <div className="reseau-ajout-pied">
-          <small>Le lien ne part pas tout seul : envoyez-le quand la fiche est complète.</small>
-        </div>
-      </form>
-
-      <ul className="reseau-liste reseau-liste--defile" ref={liste}>
-        {visibles.length === 0 ? (
-          <li className="secteurs-vide reseau-vide">
-            {loges.length === 0 ? 'Aucune loge de Guyenne et Gascogne saisie pour l’instant.' : 'Aucune loge ne correspond.'}
-          </li>
-        ) : (
-          visibles.map((l) => (
-            <LigneDeLaLoge
-              key={l.id}
-              loge={l}
-              ecusson={adresseDeLEcusson(l, versions[l.id] ?? 0)}
-              deposer={(fichier) => void deposerLEcusson(l.id, fichier).then((ok) => ok && dire('Écusson déposé'))}
-              provinces={provinces}
-              ouverte={ouverte === l.id}
-              basculer={() => setOuverte(ouverte === l.id ? null : l.id)}
-              envoyer={() => void envoyerA(l.id)}
-              corriger={(champs) => void corriger(l.id, champs)}
-              retirer={() => void retirer(l.id)}
-              occupe={occupe}
-            />
-          ))
+        {erreur && (
+          <p className="erreur" role="alert">
+            {erreur}
+          </p>
         )}
-      </ul>
 
-      <ReglageDuCourriel initial={courriel} premiere={loges[0] ?? null} origine={origine} dire={dire} />
+        <form className="reseau-ajout" onSubmit={(e) => void ajouter(e)}>
+          <input name="nom" placeholder="Nom de la loge" aria-label="Nom de la loge" required maxLength={160} />
+          <input name="numero" placeholder="N°" aria-label="Numéro" maxLength={20} />
+          <select name="province_id" aria-label="Province" defaultValue="">
+            <option value="">Province…</option>
+            {provinces.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.nom}
+              </option>
+            ))}
+          </select>
+          <input name="secretaire_nom" placeholder="Nom du Secrétaire" aria-label="Nom du Secrétaire" maxLength={160} />
+          <input
+            name="secretaire_email"
+            type="email"
+            placeholder="Adresse du Secrétaire"
+            aria-label="Adresse électronique du Secrétaire"
+            maxLength={254}
+          />
+          <button className="bouton bouton--fort" type="submit" disabled={occupe}>
+            Ajouter
+          </button>
+          <label className="reseau-ajout-ecusson">
+            Écusson <span className="maigre">(facultatif)</span>
+            <input name="ecusson" type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/avif" />
+          </label>
+          <div className="reseau-ajout-pied">
+            <small>Le lien ne part pas tout seul : envoyez-le quand la fiche est complète.</small>
+          </div>
+        </form>
+
+        <ul className="reseau-liste reseau-liste--defile" ref={liste}>
+          {visibles.length === 0 ? (
+            <li className="secteurs-vide reseau-vide">
+              {loges.length === 0 ? 'Aucune loge de Guyenne et Gascogne saisie pour l’instant.' : 'Aucune loge ne correspond.'}
+            </li>
+          ) : (
+            visibles.map((l) => (
+              <LigneDeLaLoge
+                key={l.id}
+                loge={l}
+                ecusson={adresseDeLEcusson(l, versions[l.id] ?? 0)}
+                deposer={(fichier) => void deposerLEcusson(l.id, fichier).then((ok) => ok && dire('Écusson déposé'))}
+                provinces={provinces}
+                ouverte={ouverte === l.id}
+                basculer={() => setOuverte(ouverte === l.id ? null : l.id)}
+                envoyer={() => void envoyerA(l.id)}
+                corriger={(champs) => void corriger(l.id, champs)}
+                retirer={() => void retirer(l.id)}
+                occupe={occupe}
+              />
+            ))
+          )}
+        </ul>
+      </div>
+
+      <div className="reseau-cote" ref={cote}>
+        <ReglageDuCourriel initial={courriel} premiere={loges[0] ?? null} origine={origine} dire={dire} />
+      </div>
 
       <div className={`secteurs-enregistre${mot ? ' secteurs-enregistre--visible' : ''}`} role="status" aria-live="polite">
         {mot ?? ''}
