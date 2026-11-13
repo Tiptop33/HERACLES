@@ -49,6 +49,7 @@ l'interface, dans le code, dans les noms de tables et de colonnes.
 | **référent** | celui qui suit le candidat dans la durée |
 | **parrain** | celui qui présente le candidat et l'introduit |
 | **loge** | le groupe local auquel se rattachent référents, candidats et documents |
+| **loge du réseau** | l'une des 73 loges extérieures à l'application, dont le Secrétaire coche les secteurs d'activité par un lien personnel — ce n'est **pas** une « loge » |
 | **offre** | une offre d'emploi, alimentée depuis France Travail |
 
 Ne jamais écrire « chercheur », « demandeur d'emploi » ou « utilisateur » à la place de

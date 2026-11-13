@@ -1,9 +1,16 @@
 # Les secteurs d'activité
 
 Une seule façon de ranger les activités, partagée par les **candidats**, les
-**73 loges** et les **offres**, pour pouvoir les rapprocher : un candidat qui
-cherche dans le bâtiment trouve les loges qui y comptent des membres, puis les
-offres du bâtiment.
+**73 loges du réseau** et les **offres**, pour pouvoir les rapprocher : un candidat
+qui cherche dans le bâtiment trouve les loges du réseau qui y comptent des membres,
+puis les offres du bâtiment.
+
+> **Les loges du réseau ne sont pas les loges de HERACLES.** Les « loges » de
+> l'application sont les 3 loges auxquelles se rattachent référents, candidats et
+> documents (les `loges_referents` de Bubble). Les **73 loges du réseau** sont
+> extérieures à l'application : leur Secrétaire n'a pas de compte HERACLES. Les
+> décisions 10, 15 et 16 du 12 novembre reposaient sur une confusion entre les
+> deux ; celles du 13 novembre les remplacent.
 
 ## Les décisions du 12 novembre 2026
 
@@ -18,13 +25,34 @@ offres du bâtiment.
 | 7 | Les secteurs saisis dans Bubble ? | **Une table de correspondance** Bubble → NAF, validée une fois, appliquée à chaque reprise |
 | 8 | Qui choisit les secteurs d'un candidat ? | **Le candidat propose** (formulaire de candidature), **le référent confirme** (fiche) |
 | 9 | Comment trouver son secteur ? | **Une recherche par mot**, et deux listes successives |
-| 10 | Qui tient la liste d'une loge ? | **Le Secrétaire**, les administrateurs en secours, avec la date de mise à jour |
+| 10 | Qui tient la liste d'une loge ? | ~~Le Secrétaire, connecté à HERACLES~~ — **remplacée par la décision 18** |
 | 11 | Jusqu'où une loge précise-t-elle ? | **Au moins la division, puis aussi fin qu'elle le veut**, jusqu'à la sous-classe (« 43.21A ») — confirmé |
 | 12 | Le formulaire de candidature, tel que maquetté ? | **Validé tel quel** |
 | 13 | Où le référent modifie-t-il les secteurs d'un candidat ? | **Directement dans la fiche**, chaque geste enregistré aussitôt |
 | 14 | La ligne « Repris de Bubble : « … » » ? | **Affichée tant que le référent n'a pas confirmé** les secteurs, puis retirée |
-| 15 | Où la loge coche-t-elle ses secteurs ? | **Sur la page Référents**, bloc repliable au-dessus des fiches |
-| 16 | Comment interroger chaque loge ? | **Un bandeau** pour le Secrétaire tant que sa loge n'a rien coché, et **le suivi des 73 loges** pour l'administration ; pas de courriel pour l'instant |
+| 15 | Où la loge coche-t-elle ses secteurs ? | ~~Sur la page Référents~~ — **remplacée par les décisions 18 et 25** |
+| 16 | Comment interroger chaque loge ? | ~~Un bandeau, pas de courriel~~ — **remplacée par les décisions 18 à 24** |
+
+## Les décisions du 13 novembre 2026 — les loges du réseau
+
+| # | Question | Décision |
+| --- | --- | --- |
+| 17 | D'où vient la liste des 73 loges ? | **D'ailleurs que Bubble**, et elle **n'existe pas encore** : elle est à constituer |
+| 18 | Comment le Secrétaire d'une loge du réseau coche-t-il ? | Sur **sa page à part, unique** : un formulaire ouvert par un lien personnel, **sans compte HERACLES** |
+| 19 | Qui constitue la liste ? | **L'administration la saisit dans HERACLES**, loge par loge |
+| 20 | Que saisit-on pour chaque loge ? | Le **nom**, le **numéro**, la **province**, le **nom du Secrétaire** et son **adresse électronique** |
+| 21 | Comment les nommer ? | Les « **loges du réseau** ». « Loge » garde son sens actuel |
+| 22 | Combien de temps le lien vaut-il ? | **90 jours**. Le Secrétaire y revient autant qu'il veut ; l'administration peut en renvoyer un nouveau |
+| 23 | Comment l'administration envoie-t-elle les liens ? | **Les deux** : un envoi groupé aux loges qui n'ont rien reçu, et un envoi loge par loge |
+| 24 | Où l'administration gère-t-elle les 73 loges ? | Dans **Paramètres**, nouvelle rubrique « **Loges du réseau** » |
+| 25 | Le cadre « Secteurs représentés » de la page Référents ? | **Retiré** : la page Référents reste telle qu'elle était |
+| 26 | Le Secrétaire signale-t-il qu'il a terminé ? | **Non** : une loge « a répondu » dès son premier secteur coché ; l'administration voit la date de sa dernière modification |
+| 27 | Le texte du courriel ? | **Réglable dans Paramètres** ; une première version est proposée |
+
+Ce qui ne change pas : la loge du réseau coche au moins la division, puis aussi
+précis qu'elle le veut (décision 11), sans nom ni nombre (décision 3). Le nom et
+l'adresse du Secrétaire sont des données personnelles : la liste se saisit sur le
+serveur, jamais dans le dépôt, et le registre RGPD les mentionne.
 
 Les écrans sont décrits par la maquette validée : `docs/maquettes/secteurs-d-activite.html`,
 et ce qui en est retenu dans `docs/maquettes/secteurs-d-activite-notes.md`.
