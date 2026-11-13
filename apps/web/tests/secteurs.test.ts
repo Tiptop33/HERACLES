@@ -4,7 +4,9 @@ import {
   cochesDessous,
   construireArbre,
   dateDeLaListe,
+  lireCodesDuCandidat,
   lireListe,
+  lireSecteursDuCandidat,
   listeAncienne,
   rangerParSection,
   resumeDeLaListe,
@@ -118,5 +120,41 @@ describe('l’arborescence', () => {
     expect(cochesDessous(arbre.parCode.get('43')!, coches, arbre)).toBe(2);
     expect(cochesDessous(arbre.parCode.get('43.21A')!, coches, arbre)).toBe(0);
     expect(cochesDessous(arbre.parCode.get('D')!, coches, arbre)).toBe(1);
+  });
+});
+
+describe('les secteurs d’un candidat', () => {
+  it('trois codes au plus, chacun une fois, section ou division', () => {
+    expect(lireCodesDuCandidat('["43","H"]')).toEqual(['43', 'H']);
+    expect(lireCodesDuCandidat('')).toEqual([]);
+    expect(lireCodesDuCandidat(undefined)).toEqual([]);
+    expect(lireCodesDuCandidat('["43","41","42","56"]')).toBeNull();
+    expect(lireCodesDuCandidat('["43","43"]')).toBeNull();
+    expect(lireCodesDuCandidat('["43.21A"]')).toBeNull();
+    expect(lireCodesDuCandidat('pas du JSON')).toBeNull();
+    expect(lireCodesDuCandidat('{"code":"43"}')).toBeNull();
+  });
+
+  it('la réponse de la base, vérifiée', () => {
+    expect(
+      lireSecteursDuCandidat({
+        modifiable: true,
+        repris_de_bubble: 'BTP',
+        secteurs: [
+          {
+            rang: 1,
+            code: '43',
+            intitule: 'Travaux de construction spécialisés',
+            niveau: 'division',
+            section: 'F',
+            section_intitule: 'Construction',
+            propose_par: 'candidat',
+            confirme_le: null,
+            confirme_par: null,
+          },
+        ],
+      })?.secteurs[0].code,
+    ).toBe('43');
+    expect(lireSecteursDuCandidat({ modifiable: true })).toBeNull();
   });
 });

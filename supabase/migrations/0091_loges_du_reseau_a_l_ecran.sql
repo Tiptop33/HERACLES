@@ -483,7 +483,8 @@ grant execute on function public.cocher_par_le_lien(text, text, boolean) to serv
 
 -- Chercher un secteur, par le lien : la recherche de 0090 en mode précis.
 create or replace function public.rechercher_secteur_par_le_lien(empreinte text, recherche text)
-returns table (code text, intitule text, niveau text, section text, section_intitule text, rang integer)
+returns table (code text, intitule text, niveau text, section text, section_intitule text, rang integer,
+               trouve_par text)
 language plpgsql
 stable
 security definer

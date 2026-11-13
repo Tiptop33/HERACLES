@@ -30,7 +30,7 @@ export type ListeDeLaLoge = {
   secteurs: SecteurCoche[];
 };
 
-/** Une réponse de la recherche par mot (`rechercher_secteur_pour_la_loge`). */
+/** Une réponse de la recherche par mot (`rechercher_secteur`, 0090). */
 export type SecteurTrouve = {
   code: string;
   intitule: string;
@@ -38,7 +38,82 @@ export type SecteurTrouve = {
   section: string;
   section_intitule: string;
   rang: number;
+  /** L'intitulé plus fin qui a fait trouver la réponse, s'il y en a un. */
+  trouve_par?: string | null;
 };
+
+// --- Les secteurs d'un candidat (0088, 0092) ---------------------------------
+
+/** Un secteur cherché par un candidat : une section ou une division, à son rang. */
+export type SecteurDuCandidat = {
+  rang: number;
+  code: string;
+  intitule: string;
+  niveau: 'section' | 'division';
+  section: string;
+  section_intitule: string;
+  propose_par: 'candidat' | 'referent' | 'reprise';
+  confirme_le: string | null;
+  confirme_par: string | null;
+};
+
+/** Ce que le bloc « Sa recherche » de la fiche reçoit. */
+export type SecteursDuCandidat = {
+  modifiable: boolean;
+  secteurs: SecteurDuCandidat[];
+  /** Le texte libre de Bubble, tant que les secteurs ne sont pas tous confirmés. */
+  repris_de_bubble: string | null;
+};
+
+const SecteurCandidat = z.object({
+  rang: z.number(),
+  code: z.string(),
+  intitule: z.string(),
+  niveau: z.enum(['section', 'division']),
+  section: z.string(),
+  section_intitule: z.string(),
+  propose_par: z.enum(['candidat', 'referent', 'reprise']),
+  confirme_le: z.string().nullable(),
+  confirme_par: z.string().nullable(),
+});
+
+const SecteursCandidat = z.object({
+  modifiable: z.boolean(),
+  secteurs: z.array(SecteurCandidat),
+  repris_de_bubble: z.string().nullable(),
+});
+
+/** La réponse de `secteurs_du_candidat`, vérifiée ; `null` si sa forme n'est pas la bonne. */
+export function lireSecteursDuCandidat(valeur: unknown): SecteursDuCandidat | null {
+  const lu = SecteursCandidat.safeParse(valeur);
+  return lu.success ? lu.data : null;
+}
+
+/** Un code qu'un candidat peut choisir : une section (« F ») ou une division (« 43 »). */
+export const CODE_DE_CANDIDAT = /^(?:[A-U]|[0-9]{2})$/;
+
+/** Trois secteurs au plus par candidat (décision 6). */
+export const SECTEURS_PAR_CANDIDAT = 3;
+
+/**
+ * La liste de codes qu'un formulaire envoie, en texte JSON : trois codes au
+ * plus, chacun une fois, chacun une section ou une division. `null` sinon.
+ */
+export function lireCodesDuCandidat(texte: string | null | undefined): string[] | null {
+  if (texte === null || texte === undefined || texte.trim() === '') return [];
+  let valeur: unknown;
+  try {
+    valeur = JSON.parse(texte);
+  } catch {
+    return null;
+  }
+  const lu = z
+    .array(z.string().regex(CODE_DE_CANDIDAT))
+    .max(SECTEURS_PAR_CANDIDAT)
+    .refine((codes) => new Set(codes).size === codes.length)
+    .safeParse(valeur);
+  return lu.success ? lu.data : null;
+}
 
 /** Une ligne de la nomenclature, en liste compacte : code, intitulé, niveau 1 à 5, parent. */
 export type LigneNaf = [string, string, number, string | null];

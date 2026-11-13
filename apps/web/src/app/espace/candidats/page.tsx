@@ -40,6 +40,7 @@ import { exigerProfil } from '@/lib/profil';
 import { accueilDuRole } from '@/lib/roles';
 import OuvrirNouveauCandidat from '@/components/OuvrirNouveauCandidat';
 import PanneauFiche, { estOnglet, type Collegue, type Onglet } from './PanneauFiche';
+import { lireLesSecteursDuCandidat } from '@/lib/secteurs-du-candidat-serveur';
 
 export const metadata = { title: 'Candidats — HERACLES' };
 
@@ -220,6 +221,9 @@ export default async function PosteDeTravail({
   // Le CV anonyme produit par HERACLES (0073) : son état ne se lit que sous
   // l'onglet « Documents », où son bandeau s'affiche.
   const cvAnonyme = fiche && onglet === 'documents' ? await lireLEtatDuCvAnonyme(fiche.id) : null;
+  // Les secteurs d'activité du candidat (0092) : seulement sous l'onglet
+  // « Profil », où le bloc « Sa recherche » les montre.
+  const secteurs = fiche && onglet === 'profil' ? await lireLesSecteursDuCandidat(fiche.id) : null;
 
   // Le bouton « Clôturer le dossier » (0071) : un dossier en cours, et le
   // droit de le faire. La base revérifie l'un et l'autre en clôturant.
@@ -430,6 +434,7 @@ export default async function PosteDeTravail({
             rouvrable={rouvrable}
             cvAnonyme={cvAnonyme}
             refusCvAnonyme={REFUS_DU_CV_ANONYME[premier(parametres.cvanonyme)] ?? null}
+            secteurs={secteurs}
           />
         ) : demande ? (
           // Ni « introuvable », ni « interdit ». La base n'a rien rendu, et

@@ -10,6 +10,7 @@ import {
   TYPES_DE_RECHERCHE,
   estUnStage,
 } from '@/lib/parrainage';
+import ChoixDesSecteursDuCandidat from '@/components/ChoixDesSecteursDuCandidat';
 
 /**
  * La fiche que le candidat remplit lui-même — `renseignement_candidat` chez
@@ -319,6 +320,24 @@ export default function FormulaireCandidature({
               ))}
             </select>
           </div>
+        </div>
+
+        {/* Les secteurs d'activité (maquette validée le 12 novembre 2026,
+            docs/maquettes/secteurs-d-activite.html, écran 1) : jusqu'à
+            trois, le premier est le principal. Ils partent avec la fiche,
+            dans un champ caché ; le référent les confirmera. */}
+        <div className="champ">
+          <span id="c-titre-secteurs">Secteurs d’activité</span>
+          <ChoixDesSecteursDuCandidat
+            mode="candidat"
+            initiale={[]}
+            nomDuChamp="secteurs"
+            idDuTitre="c-titre-secteurs"
+            adresses={{
+              recherche: `/api/candidature/${jeton}/secteurs`,
+              liste: `/api/candidature/${jeton}/secteurs/liste`,
+            }}
+          />
         </div>
 
         {/* Les dates ne concernent qu'un stage. Sans script, elles restent

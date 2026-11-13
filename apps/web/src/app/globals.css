@@ -5554,3 +5554,220 @@ a.poste-document .poste-document-type {
   display: grid;
   gap: 0.25rem;
 }
+
+/* ---------------------------------------------------------------------------
+ * Les secteurs d'un candidat — le formulaire de candidature et le bloc « Sa
+ * recherche » de la fiche (maquette validée le 12 novembre 2026,
+ * docs/maquettes/secteurs-d-activite.html, écrans 1 et 2). Trois au plus,
+ * classés ; le premier est le principal.
+ * ------------------------------------------------------------------------- */
+
+.secteurs {
+  container-type: inline-size;
+}
+
+.secteurs-choisis {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.4rem;
+}
+
+.secteur-choisi {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 0.2rem 0.7rem;
+  align-items: center;
+  padding: 0.55rem 0.7rem;
+  background: var(--surface);
+  border: 1px solid var(--bordure);
+  border-radius: 8px;
+}
+
+.secteur-rang {
+  align-self: start;
+  margin-top: 0.1rem;
+  width: 1.7rem;
+  height: 1.7rem;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font: 700 0.85rem/1 var(--corps);
+  background: var(--surface-creuse);
+  color: var(--encre-douce);
+}
+
+/* Le secteur principal porte la couleur d'action : c'est lui qui compte d'abord. */
+.secteur-choisi:first-child .secteur-rang {
+  background: var(--marque);
+  color: var(--sur-marque);
+}
+
+.secteur-principal {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--marque);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-left: 0.35rem;
+}
+
+.secteur-gestes {
+  display: flex;
+  gap: 0.2rem;
+}
+
+.secteur-etat {
+  grid-column: 2 / 4;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  align-items: center;
+  font-size: 0.78rem;
+}
+
+.secteur-etat .a-confirmer {
+  background: var(--attention-clair);
+  color: var(--attention);
+  border-radius: 999px;
+  padding: 0.1rem 0.55rem;
+  font-weight: 600;
+}
+
+.secteur-etat .confirme {
+  color: var(--referent);
+  font-weight: 600;
+}
+
+.secteur-etat .confirmer {
+  font: 600 0.78rem/1 var(--corps);
+  border: 1px solid var(--marque);
+  color: var(--marque);
+  background: transparent;
+  border-radius: 999px;
+  padding: 0.3rem 0.7rem;
+  cursor: pointer;
+}
+
+.secteur-etat .confirmer:hover:not(:disabled) {
+  background: var(--marque);
+  color: var(--sur-marque);
+}
+
+.secteurs-plein {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--attention);
+}
+
+.secteurs-parcourir {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr);
+  gap: 0.6rem;
+  border: 1px solid var(--bordure);
+  border-radius: 8px;
+  background: var(--surface);
+  padding: 0.5rem;
+  max-height: 22rem;
+}
+
+.secteurs-parcourir ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  overflow: auto;
+}
+
+.secteurs-parcourir li button {
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  font-size: 0.85rem;
+  background: none;
+  border: 0;
+  border-radius: 6px;
+  padding: 0.35rem 0.5rem;
+  cursor: pointer;
+  color: var(--encre);
+  display: flex;
+  gap: 0.4rem;
+  align-items: baseline;
+}
+
+.secteurs-parcourir li button:hover:not(:disabled) {
+  background: var(--candidat-clair);
+}
+
+.secteurs-parcourir li button[aria-current='true'] {
+  background: var(--marque);
+  color: var(--sur-marque);
+}
+
+.secteurs-parcourir li button[aria-current='true'] .secteur-code {
+  background: rgb(255 255 255 / 0.25);
+  color: var(--sur-marque);
+}
+
+.secteurs-parcourir li button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.secteurs-parcourir .tout {
+  font-weight: 600;
+  color: var(--marque);
+}
+
+.secteurs-parcourir-indice {
+  padding: 0.5rem;
+  color: var(--encre-tres-douce);
+  font-size: 0.85rem;
+}
+
+.secteurs-resultats .secteur-texte small em {
+  font-style: normal;
+  color: var(--encre-douce);
+}
+
+/* Dans un bloc étroit — celui de la fiche —, les gestes passent sous
+   l'intitulé : sinon l'intitulé s'écrase mot par mot. */
+@container (max-width: 30rem) {
+  .secteur-choisi {
+    grid-template-columns: auto 1fr;
+  }
+
+  .secteur-etat {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  .secteur-gestes {
+    grid-column: 2;
+    grid-row: 3;
+  }
+
+  .secteurs-parcourir {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* La ligne grise « Repris de Bubble », tant que les secteurs ne sont pas tous
+   confirmés (décision 14). */
+.repris-bubble {
+  font-size: 0.78rem;
+  color: var(--encre-tres-douce);
+  margin: 0.35rem 0 0;
+}
+
+.champs-intitule {
+  margin: 0 0 0.45rem;
+  color: var(--encre-tres-douce);
+  font-size: 0.92rem;
+}
+
+/* Dans le bloc « Sa recherche » de la fiche : les secteurs entre les champs
+   qui les précèdent et le permis qui les suit. */
+.secteurs-du-candidat {
+  margin: 0.9rem 0 0.8rem;
+}

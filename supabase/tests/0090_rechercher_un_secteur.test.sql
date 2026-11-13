@@ -39,6 +39,15 @@ select public.verifier(pg_temp.premier('Restauration') = 'I'
 select public.verifier(pg_temp.premier('electricite') = 'D',
   'electricite, sans accent → D');
 
+\echo '— chaque réponse dit par quoi elle a été trouvée'
+select public.verifier(
+  (select trouve_par from public.rechercher_secteur('boulangerie') where code = '10')
+    like 'Fabrication de produits de boulangerie%',
+  'boulangerie → 10, trouvé par « Fabrication de produits de boulangerie… »');
+select public.verifier(
+  (select trouve_par from public.rechercher_secteur('restauration') where code = '56') is null,
+  'une division trouvée par son propre intitulé ne dit rien de plus');
+
 \echo '— plusieurs mots, dans le même intitulé'
 select public.verifier(pg_temp.premier('aide à domicile') = '88',
   'aide à domicile → 88, par « 88.10A — Aide à domicile »');

@@ -3,6 +3,8 @@ import BoutonImprimer from '@/components/BoutonImprimer';
 import LigneDeSuivi from '@/components/LigneDeSuivi';
 import { Feuille, FeuilleVide, Stylo } from '@/components/Icones';
 import { DrapeauFrance } from '../referents/DrapeauFrance';
+import SecteursDeLaFiche from './SecteursDeLaFiche';
+import type { SecteursDuCandidat } from '@/lib/secteurs';
 import MenuDuReferent from './MenuDuReferent';
 import { dateEnLettres, enEtiquettes, initiales, telephone } from '@/lib/format';
 import {
@@ -82,6 +84,7 @@ export default function PanneauFiche({
   rouvrable,
   cvAnonyme,
   refusCvAnonyme,
+  secteurs,
 }: {
   fiche: FicheOuverte;
   /** La ligne correspondante de la liste, quand la vue courante la contient. */
@@ -126,6 +129,8 @@ export default function PanneauFiche({
   cvAnonyme: EtatDuCvAnonyme | null;
   /** Ce que la validation du CV anonyme a refusé. */
   refusCvAnonyme: string | null;
+  /** Les secteurs du candidat (0092), chargés seulement sous l'onglet « Profil ». */
+  secteurs: SecteursDuCandidat | null;
 }) {
   const nom = nomDeFamilleDabord(fiche.nom, fiche.prenom);
   const metier = fiche.metier_libelle ?? fiche.emploi_recherche ?? rang?.metier ?? null;
@@ -326,6 +331,7 @@ export default function PanneauFiche({
             collegues={collegues}
             referentActuel={referentActuel}
             prise={prise}
+            secteurs={secteurs}
           />
         )}
       </div>
@@ -533,11 +539,13 @@ function Profil({
   collegues,
   referentActuel,
   prise,
+  secteurs,
 }: {
   fiche: FicheOuverte;
   collegues: Collegue[] | null;
   referentActuel: string | null;
   prise: string | null;
+  secteurs: SecteursDuCandidat | null;
 }) {
   const lieu = fiche.ville ?? fiche.adresse;
   const lieuComplet = [lieu, fiche.code_postal ? `(${fiche.code_postal})` : null]
@@ -650,8 +658,22 @@ function Profil({
               <Valeur>{dateEnLettres(fiche.fin_stage)}</Valeur>
             </>
           )}
-          <dt>Secteur</dt>
-          <Valeur>{fiche.secteur_activite_libelle}</Valeur>
+          {/* Sans la liste des secteurs (lecture refusée ou échouée), la ligne
+              d'avant : le texte repris de Bubble. */}
+          {!secteurs && (
+            <>
+              <dt>Secteur</dt>
+              <Valeur>{fiche.secteur_activite_libelle}</Valeur>
+            </>
+          )}
+        </dl>
+
+        {/* La ligne « Secteur » devient la liste des secteurs (maquette
+            validée le 12 novembre 2026, écran 2) : modifiable sur place par
+            le référent et le parrain, en lecture pour les autres. */}
+        {secteurs && <SecteursDeLaFiche candidat={fiche.id} initial={secteurs} />}
+
+        <dl className="champs secteurs-suite">
           <dt>Permis</dt>
           <Valeur>{permis}</Valeur>
         </dl>

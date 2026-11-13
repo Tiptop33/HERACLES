@@ -120,6 +120,14 @@ la clé de service — comme les liens du parrain et du candidat.
 - **la page du Secrétaire** — `/loge-du-reseau/<jeton>` : il coche les secteurs
   de sa loge, sans compte ; un lien expiré ou remplacé donne « Ce lien n'est
   plus valable » ;
+- **le formulaire de candidature** — sous « Métier visé », le candidat
+  propose jusqu'à trois secteurs, classés, trouvés par un mot ou dans la liste
+  (sections et divisions) ; ils partent avec la fiche, à confirmer ;
+- **la fiche candidat**, bloc « Sa recherche » — la ligne « Secteur » devient la
+  liste : son référent et son parrain la corrigent sur place (chaque geste
+  enregistré aussitôt, ce qu'ils ajoutent confirmé d'office) et confirment ce
+  que le candidat a proposé ; les autres référents de la loge la lisent. La
+  ligne « Repris de Bubble » reste tant que tout n'est pas confirmé ;
 - **l'écusson** de chaque loge du réseau, déposé par l'administration (JPEG,
   PNG, WebP, GIF ou AVIF, 5 Mo au plus, reconnu à ses octets), rangé dans le
   seau « documents » à un chemin déduit de la loge, servi par des routes qui
@@ -139,7 +147,7 @@ recopiés à l'identique.
 | --- | --- | --- |
 | 2 | ~~Maquettes des trois écrans~~ — **validées le 12 novembre** | fait |
 | 2 bis | Les loges du réseau : la page du Secrétaire et Paramètres › Loges du réseau | **fait** (0089, 0091) |
-| 2 ter | Le formulaire de candidature et la fiche candidat (écrans 1 et 2 de `secteurs-d-activite.html`) | avant la bascule |
+| 2 ter | Le formulaire de candidature et la fiche candidat (écrans 1 et 2 de `secteurs-d-activite.html`) | **fait** (0092) |
 | 2 quater | Saisir les 73 loges du réseau et envoyer les liens — sur le site d'essai, par l'administration | avant la bascule |
 | 3 | Table de correspondance des secteurs Bubble → NAF, à valider | avant la bascule |
 | 4 | Fiche candidat : « Loges qui peuvent aider » | décembre |

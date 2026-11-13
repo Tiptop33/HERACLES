@@ -86,7 +86,13 @@ returns table (
   section           text,
   section_intitule  text,
   /** 1 = la meilleure réponse. */
-  rang              integer
+  rang              integer,
+  /**
+   * L'intitulé qui a fait trouver la réponse, quand c'est un niveau plus fin
+   * qu'elle : « boulangerie » trouve « 10 — Industries alimentaires » par
+   * « Fabrication de produits de boulangerie-pâtisserie… ». Vide sinon.
+   */
+  trouve_par        text
 )
 language sql
 stable
@@ -106,7 +112,7 @@ as $$
   ),
   -- Un début de code, strictement : deux chiffres, puis le reste d'un code.
   par_code as (
-    select n.code, n.niveau
+    select n.code, n.niveau, n.intitule
       from demande, public.code_naf n
      where upper(demande.texte) ~ '^[0-9]{2}(\.[0-9]{0,2}[A-Z]?)?$'
        and starts_with(n.code, upper(demande.texte))
@@ -116,7 +122,7 @@ as $$
   -- (1 mot sur 2) répond mieux à « électricien » que « Fabrication de
   -- moteurs, génératrices et transformateurs électriques… » (1 sur 9).
   par_mot as (
-    select n.code, n.niveau,
+    select n.code, n.niveau, n.intitule,
            (select count(*) filter (where exists (select 1 from mots where starts_with(w, mots.racine)))::numeric
                    / greatest(count(*), 1)
               from unnest(i.mots) as w) as couverture
@@ -134,9 +140,9 @@ as $$
           where not exists (select 1 from unnest(i.mots) as w where starts_with(w, mots.racine)))
   ),
   trouvailles as (
-    select code, niveau, 1::numeric as couverture from par_code
+    select code, niveau, intitule, 1::numeric as couverture from par_code
     union all
-    select code, niveau, couverture from par_mot
+    select code, niveau, intitule, couverture from par_mot
   ),
   -- Sans `precis`, chaque trouvaille remonte à ce qu'un candidat peut
   -- choisir. Sous la section, les deux premiers chiffres d'un code sont ceux
@@ -155,7 +161,9 @@ as $$
              when 'classe'   then 4
              else 5
            end as profondeur,
-           t.couverture
+           t.couverture,
+           t.code as par_code,
+           t.intitule as par_intitule
       from trouvailles t
      where not (precis and t.niveau = 'sous-classe' and exists (
              select 1 from public.code_naf e, public.code_naf p
@@ -168,13 +176,17 @@ as $$
   classees as (
     select x.cible,
            row_number() over (order by case when precis then max(x.couverture) end desc nulls last,
-                                       min(x.profondeur), count(*) desc, x.cible) as rang
+                                       min(x.profondeur), count(*) desc, x.cible) as rang,
+           -- Ce qui a fait trouver : la trouvaille la moins profonde.
+           (array_agg(x.par_code order by x.profondeur, x.par_code))[1] as par_code,
+           (array_agg(x.par_intitule order by x.profondeur, x.par_code))[1] as par_intitule
       from cibles x
      group by x.cible
   )
   -- La section de chaque réponse : elle-même pour une section, sinon celle de
   -- sa division.
-  select c.code, c.intitule, c.niveau, s.code, s.intitule, k.rang::integer
+  select c.code, c.intitule, c.niveau, s.code, s.intitule, k.rang::integer,
+         case when k.par_code <> c.code then k.par_intitule end
     from classees k
     join public.code_naf c on c.code = k.cible
     left join public.code_naf d on d.code = left(c.code, 2) and c.niveau <> 'section'
