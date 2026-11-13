@@ -5516,6 +5516,14 @@ a.poste-document .poste-document-type {
   margin: 0 0 1.1rem;
 }
 
+/* Le renvoi vers « Mon compte » repris dans la colonne de droite (demande du
+   13 novembre 2026) : il ne s'y montre que sur deux colonnes, ci-dessous. Sur
+   une seule, c'est celui du pied de page qui reste, comme dans les autres
+   rubriques. */
+.reseau-cote > .parametres-pied {
+  display: none;
+}
+
 /* Paramètres › Loges de Guyenne et Gascogne sur un écran large (demande du
    13 novembre 2026) : le courriel passe à droite, en face du titre et de la
    liste, au lieu d'attendre sous elle. La colonne de gauche garde ses 42 rem,
@@ -5562,6 +5570,17 @@ a.poste-document .poste-document-type {
 
   .reseau-cote > .courriel {
     margin-top: 0;
+  }
+
+  /* Le renvoi vers « Mon compte » passe sous le dernier cadre de droite,
+     l'aperçu du courriel ; celui du pied de page s'efface. */
+  .corps.parametres:has(.reseau) > .parametres-pied {
+    display: none;
+  }
+
+  .reseau-cote > .parametres-pied {
+    display: block;
+    margin: 1rem 0 0;
   }
 
   /* Le lien de l'aperçu, d'un seul tenant, déborderait de la colonne quand

@@ -1,9 +1,9 @@
-import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { exigerProfil } from '@/lib/profil';
 import { accueilDuRole } from '@/lib/roles';
 import { RUBRIQUES } from '@/lib/parametres';
 import MenuParametres from './MenuParametres';
+import RenvoiMonCompte from './RenvoiMonCompte';
 
 /**
  * Les paramètres, en deux volets : le menu des rubriques à gauche, la rubrique
@@ -34,12 +34,7 @@ export default async function ParametresLayout({ children }: { children: React.R
         <div className="parametres-contenu">{children}</div>
       </div>
 
-      <p className="aide">
-        {/* Ce que « Mon compte » règle vraiment : il n'a de champ ni pour
-            l'adresse électronique ni pour le mot de passe. */}
-        <Link href="/mon-compte">Mon compte</Link> — votre nom, votre téléphone, votre
-        photo. C&apos;est ailleurs : ce qui se règle ici vaut pour tout le monde.
-      </p>
+      <RenvoiMonCompte />
     </main>
   );
 }

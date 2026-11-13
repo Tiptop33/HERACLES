@@ -27,7 +27,8 @@ import {
  *
  * Deux colonnes sur un écran large (demande du 13 novembre 2026) : à gauche le
  * titre, les compteurs, les filtres, l'ajout et la liste ; à droite, en face,
- * le courriel. Sur un écran plus étroit, le courriel repasse sous la liste.
+ * le courriel, et sous lui le renvoi vers « Mon compte ». Sur un écran plus
+ * étroit, le courriel repasse sous la liste, et le renvoi au pied de la page.
  *
  * Chaque changement s'enregistre aussitôt. Chaque réponse du serveur rend la
  * liste entière, que l'écran affiche telle quelle : il ne garde jamais pour
@@ -62,6 +63,7 @@ const adresseDeLEcusson = (loge: LogeDuReseau, version: number) =>
 
 export default function GestionDesLogesDuReseau({
   entete,
+  pied,
   initiales,
   provinces,
   courriel,
@@ -69,6 +71,8 @@ export default function GestionDesLogesDuReseau({
 }: {
   /** Le titre et le propos de la rubrique, en tête de la colonne de gauche. */
   entete: ReactNode;
+  /** Le renvoi vers « Mon compte », sous le dernier cadre de la colonne de droite. */
+  pied: ReactNode;
   initiales: LogeDuReseau[];
   provinces: Province[];
   courriel: ModeleDuCourriel;
@@ -336,6 +340,7 @@ export default function GestionDesLogesDuReseau({
 
       <div className="reseau-cote" ref={cote}>
         <ReglageDuCourriel initial={courriel} premiere={loges[0] ?? null} origine={origine} dire={dire} />
+        {pied}
       </div>
 
       <div className={`secteurs-enregistre${mot ? ' secteurs-enregistre--visible' : ''}`} role="status" aria-live="polite">

@@ -2,6 +2,7 @@ import { RUBRIQUES } from '@/lib/parametres';
 import { lireLoges } from '@/lib/loges-du-reseau';
 import { rangerProvinces } from '@/lib/provinces';
 import { supabaseServer } from '@/lib/supabase-server';
+import RenvoiMonCompte from '../RenvoiMonCompte';
 import GestionDesLogesDuReseau from './GestionDesLogesDuReseau';
 
 export const metadata = { title: 'Loges de Guyenne et Gascogne — Paramètres — HERACLES' };
@@ -50,6 +51,8 @@ export default async function LogesDuReseau() {
   return (
     <GestionDesLogesDuReseau
       entete={entete}
+      // Repris sous l'aperçu du courriel, en bas de la colonne de droite.
+      pied={<RenvoiMonCompte />}
       initiales={lireLoges(loges.data)}
       provinces={rangerProvinces(
         ((provinces.data ?? []) as { id: string; nom: string | null }[]).filter((p) => p.nom),

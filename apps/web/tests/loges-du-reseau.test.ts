@@ -119,10 +119,12 @@ describe('le courriel', () => {
     );
   });
 
-  it('salue poliment un Secrétaire sans nom', () => {
-    expect(
-      composerLeCourriel(modele, { secretaire: null, loge: 'L’Essai', lien: 'l', expiration: 'e' }).texte,
-    ).toMatch(/^Bonjour Madame, Monsieur,/);
+  it('salue « mon frère » un Secrétaire sans nom, jamais « Madame, Monsieur »', () => {
+    for (const secretaire of [null, '', '   ']) {
+      const texte = composerLeCourriel(modele, { secretaire, loge: 'L’Essai', lien: 'l', expiration: 'e' }).texte;
+      expect(texte).toMatch(/^Bonjour mon frère,/);
+      expect(texte).not.toMatch(/Madame|Monsieur/);
+    }
   });
 
   it('écrit le lien de la page', () => {
