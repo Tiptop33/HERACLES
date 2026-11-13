@@ -37,3 +37,9 @@ inventés.
   proposition.
 - **Les codes NAF de Bubble n'y paraissent pas** : ils passent d'office sur les
   fiches (décision 37).
+
+## Sur la fiche candidat (décision 38)
+
+- La ligne grise « Repris de Bubble : « … » » du bloc « Sa recherche » montre le
+  texte libre de Bubble, **sinon l'intitulé du secteur ROME**. Elle reste tant
+  qu'un secteur est à confirmer, comme avant.

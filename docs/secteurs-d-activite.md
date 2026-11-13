@@ -63,6 +63,7 @@ puis les offres du bâtiment.
 | 35 | Où valider la correspondance Bubble → NAF (décision 7) ? | Dans **Paramètres › Secteurs d'activité**, la rubrique jusque-là grisée : chaque secteur Bubble, son nombre de fiches, le secteur proposé, à valider ou à changer |
 | 36 | Cet écran, tel que maquetté ? | **Validé tel quel** (`docs/maquettes/secteurs-repris-de-bubble.html`) |
 | 37 | Quels champs Bubble ? | ~~`SECTEUR-ACTIVITE-CAND`~~, rempli sur **aucune** des 122 fiches. Retenus : la **liste ROME** (`SECTEUR ACTIVITE ROME`) et le **texte libre** (`Candidat_SA`), chaque ligne de l'écran disant de quel champ elle vient ; le **code NAF** de Bubble (`Code_NAF_Candidats`) passe **d'office**, sans validation |
+| 38 | La ligne grise « Repris de Bubble » de la fiche, pour un secteur ROME ? | Elle montre le **texte libre, sinon l'intitulé ROME** : le référent voit ce que Bubble disait avant de confirmer |
 
 Relevé du 13 novembre sur la base Bubble en service (des comptes, aucune donnée
 relevée) :
@@ -152,7 +153,8 @@ la clé de service — comme les liens du parrain et du candidat.
   liste : son référent et son parrain la corrigent sur place (chaque geste
   enregistré aussitôt, ce qu'ils ajoutent confirmé d'office) et confirment ce
   que le candidat a proposé ; les autres référents de la loge la lisent. La
-  ligne « Repris de Bubble » reste tant que tout n'est pas confirmé ;
+  ligne « Repris de Bubble » — le texte libre de Bubble, sinon son secteur ROME
+  (décision 38) — reste tant que tout n'est pas confirmé ;
 - **l'écusson** de chaque loge du réseau, déposé par l'administration (JPEG,
   PNG, WebP, GIF ou AVIF, 5 Mo au plus, reconnu à ses octets), rangé dans le
   seau « documents » à un chemin déduit de la loge, servi par des routes qui

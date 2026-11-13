@@ -182,6 +182,21 @@ select public.verifier(pg_temp.secteurs(:'f3') = '47:candidat:true', 'f3, propos
 select public.verifier((select valide_par from public.secteur_bubble where valeur = 'rome-0093-r1') = :'ada'::uuid,
   'la décision garde qui l''a prise');
 
+\echo '— sur la fiche, la ligne grise dit ce que Bubble portait'
+begin;
+  set local role authenticated;
+  select set_config('request.jwt.claims', '{"sub":"' || :'remi' || '"}', true);
+  select public.verifier(
+    public.secteurs_du_candidat(:'f1'::uuid) ->> 'repris_de_bubble' = 'Hôtellerie - Restauration',
+    'f1, sans texte libre : l''intitulé ROME');
+  select public.verifier(
+    public.secteurs_du_candidat(:'f4'::uuid) ->> 'repris_de_bubble' = 'Électricité générale 0093',
+    'f4 : le texte libre, d''abord');
+  select public.verifier(
+    public.secteurs_du_candidat(:'f6'::uuid) -> 'repris_de_bubble' = 'null'::jsonb,
+    'f6, ni texte ni ROME : pas de ligne grise');
+commit;
+
 \echo '— Ada change d''avis'
 begin;
   set local role authenticated;

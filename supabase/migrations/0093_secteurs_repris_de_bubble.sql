@@ -400,3 +400,50 @@ comment on function public.regler_un_secteur_bubble(text, text, text) is
 
 revoke all on function public.regler_un_secteur_bubble(text, text, text) from public, anon;
 grant execute on function public.regler_un_secteur_bubble(text, text, text) to authenticated, service_role;
+
+-- 6. La fiche : la ligne grise dit aussi le secteur ROME ----------------------
+-- La ligne « Repris de Bubble : « … » » du bloc « Sa recherche » (0092,
+-- décision 14) montrait le seul texte libre. Une fiche qui portait un secteur
+-- de la liste ROME n'en montrait rien : le référent confirmait un secteur
+-- repris sans voir ce que Bubble disait. Elle montre désormais le texte libre,
+-- sinon l'intitulé ROME (décision 38 du 13 novembre 2026). Le reste est
+-- inchangé : affichée tant qu'un secteur reste à confirmer, puis retirée.
+create or replace function public.secteurs_du_candidat(le_candidat uuid)
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = public
+as $$
+declare
+  liste jsonb;
+  texte text;
+begin
+  if not public.puis_je_lire_les_secteurs_du_candidat(le_candidat) then
+    return null;
+  end if;
+  liste := public.liste_des_secteurs_du_candidat(le_candidat);
+  select coalesce(nullif(btrim(c.secteur_activite_libelle), ''),
+                  public.intitule_bubble(nullif(btrim(c.secteur_activite_rome_bubble_id), '')))
+    into texte
+    from public.candidat c where c.id = le_candidat;
+
+  return jsonb_build_object(
+    'modifiable', public.puis_je_modifier_les_secteurs_du_candidat(le_candidat),
+    'secteurs',   liste,
+    'repris_de_bubble', case
+      when texte is not null
+       and (jsonb_array_length(liste) = 0
+            or exists (select 1 from jsonb_array_elements(liste) e where e ->> 'confirme_le' is null))
+      then texte end);
+end
+$$;
+
+comment on function public.secteurs_du_candidat(uuid) is
+  'Les secteurs d''un candidat pour le bloc « Sa recherche » de sa fiche : la '
+  'liste classée, l''état de chaque secteur, si la session peut les modifier, '
+  'et ce que Bubble portait (le texte libre, sinon l''intitulé ROME) tant '
+  'qu''ils ne sont pas tous confirmés. Null pour qui ne lit pas la fiche.';
+
+revoke all on function public.secteurs_du_candidat(uuid) from public, anon;
+grant execute on function public.secteurs_du_candidat(uuid) to authenticated, service_role;
