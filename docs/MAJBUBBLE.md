@@ -380,8 +380,8 @@ BUBBLE_TOKEN=xxx sudo -E /opt/heracles-essai-depot/infra/essai/reprendre-bubble.
 ```
 
 Elle recopie le type `provinces` dans `bubble_brut` — lui seul —, le déplie
-dans la table `province` (`deverser_provinces_bubble()`, migrations 0080 et
-0081), rattache chaque loge à sa province, rapatrie les écussons dans le
+dans la table `provinces` (`deverser_provinces_bubble()`, migrations 0080,
+0081 et 0096), rattache chaque loge à sa province, rapatrie les écussons dans le
 stockage, et finit par un bilan chiffré. Sans jeton, elle refuse de tourner
 (code 3).
 
@@ -413,7 +413,8 @@ Lues dans : base de test (version-test) — repli, jeton refusé par la base en 
 ```
 
 Le nom ou l'écusson peuvent y différer de ceux en service : les comparer à
-l'écran Province avant la bascule. Le jour où la base en service accepte le
+l'écran Province avant la bascule, et corriger dans HERACLES ce qui doit
+l'être — la correction tient (voir ci-dessous). Le jour où la base en service accepte le
 jeton, c'est elle qui fait foi, sans rien changer. Si la base de test le
 refuse aussi, la mise en ligne affiche « le jeton Bubble est refusé, même par
 la base de test » : il a été mal recopié, ou régénéré depuis.
@@ -441,16 +442,46 @@ Deux défauts de 0080, corrigés par 0081 avant toute reprise réelle :
   leur `_id`, et le dépliage effaçait alors le nom et l'écusson déjà connus.
   Désormais, ce que Bubble ne dit pas n'efface pas ce qu'on sait.
 
+**HERACLES fait foi (migration 0096, 13 novembre 2026).** L'administration
+tient les provinces depuis l'écran Province : elle en ajoute, les renomme,
+dépose leur écusson, en retire. La reprise, rejouée à chaque mise en ligne, ne
+défait rien de tout cela — règle stricte, décidée le 13 novembre 2026 :
+
+- une province absente de HERACLES est créée, avec son nom et son écusson ;
+- une province présente **n'est plus touchée**, pas même pour remplir une
+  case vide : un nom ou un écusson manquant se saisit dans l'écran Province ;
+- une province **retirée** par l'administration ne revient pas : chaque
+  province Bubble prise une fois est notée dans `provinces_bubble` ;
+- une province saisie à la main sous le même nom que celle de Bubble n'est
+  pas doublée : elle reçoit seulement l'identifiant Bubble, pour que ses
+  loges la retrouvent ;
+- une fiche réduite à son identifiant — ce que Bubble rend sans jeton — ne
+  crée rien : la reprise suivante, avec jeton, créera la province entière.
+
+Le rapatriement de l'écusson n'est pas une complétion : il copie dans notre
+stockage le fichier dont l'adresse a été prise à la création, avant la
+fermeture du CDN de Bubble, et ne remplace jamais un écusson déposé.
+
+Table et champs portent leurs noms depuis le même jour : `provinces`,
+`nom_de_la_province`, `ecusson_provincial` (le chemin dans le stockage) et
+`ecusson_provincial_url` (l'adresse d'origine chez Bubble). Une base qui avait
+l'ancienne table `province` est renommée au premier déploiement, sans perte
+(en-tête de la migration 0080).
+
 **À vérifier après chaque reprise des provinces**, sur le bilan :
 
 - la ligne « Lues dans » : base en service, ou base de test en repli ;
-- `provinces` = 2, `avec_nom` = 2, `avec_ecusson` = 2 ;
+- `provinces` = 2, `avec_nom` = 2, `avec_ecusson` = 2 — moins les provinces
+  que l'administration a retirées, comptées à part
+  (`retirees_par_l_administration`) ;
 - `ecusson_dans_le_stockage` = 2 — sinon relancer : le rapatriement reprend
   où il s'est arrêté ;
 - `loges_rattachees` = le nombre de loges reprises.
 
-Un `avec_nom` inférieur à `provinces` veut dire que le jeton n'a pas été pris
-— ou que Bubble a renommé un champ. Les clés se lisent ainsi, les clés seules :
+Un `avec_nom` inférieur à `provinces` veut dire que Bubble a renommé un champ,
+ou qu'une province a été créée avant le 13 novembre sans son nom. Depuis la
+règle stricte, une reprise ne le remplira plus : le saisir dans l'écran
+Province. Les clés se lisent ainsi, les clés seules :
 
 ```sql
 select distinct jsonb_object_keys(donnees) from public.bubble_brut

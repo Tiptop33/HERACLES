@@ -117,7 +117,7 @@ begin
              'nom',              l.nom,
              'numero',           l.numero,
              'province_id',      l.province_id,
-             'province',         p.nom,
+             'province',         p.nom_de_la_province,
              'secretaire_nom',   l.secretaire_nom,
              'secretaire_email', l.secretaire_email,
              'a_un_ecusson',     l.ecusson_chemin is not null,
@@ -131,7 +131,7 @@ begin
                 where s.loge_du_reseau_id = l.id), '[]'::jsonb))
            order by (substring(l.numero from '^[0-9]{1,9}'))::integer nulls last, l.numero, l.nom)
       from public.loge_du_reseau l
-      left join public.province p on p.id = l.province_id), '[]'::jsonb);
+      left join public.provinces p on p.id = l.province_id), '[]'::jsonb);
 end
 $$;
 
@@ -410,7 +410,7 @@ begin
       'etat',           'valable',
       'nom',            l.nom,
       'numero',         l.numero,
-      'province',       p.nom,
+      'province',       p.nom_de_la_province,
       'secretaire_nom', l.secretaire_nom,
       'a_un_ecusson',   l.ecusson_chemin is not null,
       'expire_le',      l.lien_expire_le,
@@ -435,7 +435,7 @@ begin
   end
   from (select 1) as un
   left join public.loge_du_reseau l on l.lien_empreinte = empreinte
-  left join public.province p on p.id = l.province_id);
+  left join public.provinces p on p.id = l.province_id);
 end
 $$;
 

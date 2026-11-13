@@ -2284,6 +2284,112 @@ tbody tr:focus-within {
   overflow-wrap: anywhere;
 }
 
+/* Province, côté administration (migration 0096, choix du 13 novembre 2026) :
+   le formulaire d'ajout en haut, et sous chaque carte un volet qui s'ouvre par
+   ▾ — les mêmes champs que Loges de Guyenne et Gascogne. */
+
+.provinces-ajout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--surface);
+  border: 1px solid var(--bordure);
+  border-radius: 10px;
+  padding: 0.8rem;
+  margin-bottom: 0.8rem;
+}
+
+@media (max-width: 40rem) {
+  .provinces-ajout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.provinces-ajout-ecusson {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  color: var(--encre-douce);
+}
+
+.provinces-ajout input[name='nom_de_la_province'],
+.carte-province-champ input {
+  font: inherit;
+  font-size: 0.88rem;
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--bordure-nette);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--encre);
+  min-width: 0;
+}
+
+/* Un volet ouvert allonge sa carte, pas ses voisines de rangée. */
+.provinces--gestion {
+  align-items: start;
+}
+
+.carte-province-tete {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+}
+
+.carte-province-volet {
+  display: grid;
+  gap: 0.6rem;
+  border-top: 1px solid var(--bordure);
+  padding-top: 0.6rem;
+}
+
+.carte-province-champ {
+  display: grid;
+  gap: 0.2rem;
+  font-size: 0.75rem;
+  color: var(--encre-douce);
+  min-width: 0;
+}
+
+/* Sans largeur imposée, un champ garde sa taille naturelle (vingt
+   caractères) et déborde d'une carte étroite. */
+.carte-province-champ input {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Le volet et ses lignes tiennent dans la carte, quelle que soit sa largeur. */
+.carte-province-volet > * {
+  min-width: 0;
+}
+
+.carte-province-ecusson {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.7rem;
+  font-size: 0.8rem;
+  color: var(--encre-douce);
+}
+
+/* `minmax(0, 1fr)` : sans elle, la colonne prend la largeur naturelle du
+   choix de fichier, et le `max-width: 100%` ci-dessous ne borne plus rien. */
+.carte-province-ecusson label {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+/* La carte est étroite (cinq par rangée) : le choix du fichier ne la déborde pas. */
+.carte-province-ecusson input[type='file'] {
+  max-width: 100%;
+  font-size: 0.75rem;
+}
+
 /* ————————————————————————————————————————————————————————————————————————
    Les paramètres : le menu des rubriques à gauche, la rubrique à droite.
    ———————————————————————————————————————————————————————————————————————— */

@@ -17,9 +17,9 @@ insert into public.loge (bubble_id, nom) values
   ('lr-0094-autre',    'AUTRE 0094')
 on conflict (bubble_id) do nothing;
 
-insert into public.province (bubble_id, nom) values ('prov-0094', 'Province 0094')
+insert into public.provinces (bubble_id, nom_de_la_province) values ('prov-0094', 'Province 0094')
 on conflict (bubble_id) do nothing;
-select id as prov from public.province where bubble_id = 'prov-0094' \gset
+select id as prov from public.provinces where bubble_id = 'prov-0094' \gset
 
 -- La loge saisie à la main avant la reprise, avec son Secrétaire et son adresse.
 insert into public.loge_du_reseau (nom, numero, secretaire_nom, secretaire_email)
@@ -150,7 +150,7 @@ delete from public.loge_du_reseau where numero in ('90941', '90942', '90943', '9
 delete from public.loge_du_reseau_bubble where bubble_id like 'b-0094-%';
 delete from public.bubble_brut where bubble_id like 'b-0094-%';
 delete from public.loge where bubble_id like 'lr-0094-%';
-delete from public.province where bubble_id = 'prov-0094';
+delete from public.provinces where bubble_id = 'prov-0094';
 
 \o
 \echo '0094 — les loges du réseau, reprises de Bubble : tout est vert'

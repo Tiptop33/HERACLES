@@ -35,7 +35,7 @@ import {
  * vraie une liste qu'il croit avoir envoyée.
  */
 
-type Province = { id: string; nom: string };
+type Province = { id: string; nom_de_la_province: string };
 type Filtre = 'toutes' | EtatDeLaLoge;
 
 const FILTRES: [Filtre, string][] = [
@@ -289,7 +289,7 @@ export default function GestionDesLogesDuReseau({
             <option value="">Province…</option>
             {provinces.map((p) => (
               <option key={p.id} value={p.id}>
-                {p.nom}
+                {p.nom_de_la_province}
               </option>
             ))}
           </select>
@@ -463,7 +463,7 @@ function LigneDeLaLoge({
                 <option value="">—</option>
                 {provinces.map((p) => (
                   <option key={p.id} value={p.id}>
-                    {p.nom}
+                    {p.nom_de_la_province}
                   </option>
                 ))}
               </select>

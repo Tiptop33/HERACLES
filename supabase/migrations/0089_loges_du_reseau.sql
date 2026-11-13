@@ -55,7 +55,7 @@ create table if not exists public.loge_du_reseau (
   id                uuid primary key default gen_random_uuid(),
   nom               text not null,
   numero            text,
-  province_id       uuid references public.province (id) on delete set null,
+  province_id       uuid references public.provinces (id) on delete set null,
   secretaire_nom    text,
   secretaire_email  text,
   -- L'écusson, dans le seau « documents ». Vide = pas d'écusson.

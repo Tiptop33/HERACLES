@@ -25,32 +25,72 @@
 -- l'emplacement du fichier une fois rapatrié dans le stockage Supabase. Tant
 -- que `image_chemin` est vide, le fichier n'a pas encore été copié — ce qui
 -- rend le rapatriement rejouable.
+--
+-- RENOMMÉE LE 13 NOVEMBRE 2026 (voir 0096)
+--
+-- À la demande, la table s'appelle désormais `provinces`, et ses deux champs
+-- `nom_de_la_province` et `ecusson_provincial` — l'image est l'écusson de la
+-- province, c'est le mot de Bubble (`Ecusson`). L'adresse d'origine chez
+-- Bubble devient `ecusson_provincial_url`.
+--
+-- Pourquoi ici, et pas seulement dans 0096 : le serveur rejoue TOUTES les
+-- migrations à chaque déploiement. Si 0080 créait encore `province`, chaque
+-- déploiement referait une table `province` vide à côté de la vraie, et la vue
+-- comme les fonctions qui suivent s'y brancheraient jusqu'à 0096. Le nouveau
+-- nom s'écrit donc à la naissance de la table.
+--
+-- Une base créée avant cette date porte encore l'ancien nom : le bloc 0 la
+-- renomme, une fois, sans rien perdre — les lignes, la clé des loges et celle
+-- des loges du réseau suivent la table, qui ne change que de nom.
 -- ---------------------------------------------------------------------------
 
+-- 0. Le renommage, pour une base qui a connu l'ancien nom ---------------------
+-- Ne fait rien sur une base neuve, ni sur une base déjà renommée : rejouable.
+do $$
+begin
+  if to_regclass('public.province') is not null and to_regclass('public.provinces') is null then
+    alter table public.province rename to provinces;
+    alter table public.provinces rename column nom to nom_de_la_province;
+    alter table public.provinces rename column image_chemin to ecusson_provincial;
+    alter table public.provinces rename column image_url to ecusson_provincial_url;
+    alter table public.provinces rename constraint province_pkey to provinces_pkey;
+    alter table public.provinces rename constraint province_bubble_id_key to provinces_bubble_id_key;
+  end if;
+end
+$$;
+
 -- 1. La table ---------------------------------------------------------------
-create table if not exists public.province (
-  id                 uuid primary key default gen_random_uuid(),
-  bubble_id          text unique,
-  nom                text,
-  -- L'adresse de l'image chez Bubble, conservée pour la traçabilité. Elle
-  -- cessera de répondre à la fermeture de l'application : d'où `image_chemin`.
-  image_url          text,
-  -- L'emplacement de l'image dans le stockage Supabase (seau « documents »).
-  -- Vide = pas encore rapatriée depuis Bubble.
-  image_chemin       text,
-  cree_par_bubble_id text,
-  cree_le            timestamptz not null default now(),
-  maj_le             timestamptz not null default now()
+create table if not exists public.provinces (
+  id                     uuid primary key default gen_random_uuid(),
+  bubble_id              text unique,
+  nom_de_la_province     text,
+  -- L'adresse de l'écusson chez Bubble, conservée pour la traçabilité. Elle
+  -- cessera de répondre à la fermeture de l'application : d'où
+  -- `ecusson_provincial`.
+  ecusson_provincial_url text,
+  -- L'emplacement de l'écusson dans le stockage Supabase (seau « documents »).
+  -- Vide = pas encore rapatrié depuis Bubble, ni déposé par l'administration.
+  ecusson_provincial     text,
+  cree_par_bubble_id     text,
+  cree_le                timestamptz not null default now(),
+  maj_le                 timestamptz not null default now()
 );
 
-comment on table public.province is
-  'Type Bubble « PROVINCE » : le regroupement de loges. Donnée de référence — '
-  'un nom, une image — affichée dans le tableau de bord. Remplie par la reprise '
-  'quand la base éditeur l''expose.';
+comment on table public.provinces is
+  'Type Bubble « provinces » : le regroupement de loges. Donnée de référence — '
+  'le nom de la province, son écusson — affichée dans l''écran Province. '
+  'Reprise de Bubble, puis tenue par l''administration (0096).';
 
-comment on column public.province.image_chemin is
-  'Emplacement de l''image dans le stockage Supabase. Vide = pas encore '
-  'rapatriée depuis Bubble.';
+comment on column public.provinces.nom_de_la_province is
+  'Le nom de la province, tel que la carte l''affiche.';
+
+comment on column public.provinces.ecusson_provincial is
+  'Emplacement de l''écusson dans le stockage Supabase. Vide = pas encore '
+  'rapatrié depuis Bubble, ni déposé par l''administration.';
+
+comment on column public.provinces.ecusson_provincial_url is
+  'L''adresse de l''écusson chez Bubble. Le fichier est rapatrié vers '
+  '`ecusson_provincial` tant que celui-ci est vide.';
 
 -- Pas d'unicité sur le nom, à dessein : la table est remplie par la reprise,
 -- pas par un formulaire. Deux provinces homonymes dans Bubble feraient échouer
@@ -67,7 +107,11 @@ comment on column public.province.image_chemin is
 -- cartes, en lecture. Les provinces arrivent par la reprise, qui écrit avec le
 -- rôle propriétaire. Le jour où un écran d'administration les corrigera, il
 -- apportera sa policy — pas avant (gardé par le test 0007).
-alter table public.province enable row level security;
+--
+-- (Ce jour est venu le 13 novembre 2026 : l'administration tient les
+-- provinces depuis l'écran Province — par les fonctions de 0096, pas par une
+-- écriture ouverte sur la table.)
+alter table public.provinces enable row level security;
 
 -- Le pendant de `est_admin()` (0010), pour la même raison : `security
 -- definer`, afin qu'une policy qui demande le rôle ne déclenche pas à son tour
@@ -91,12 +135,15 @@ comment on function public.est_referent_ou_admin() is
 revoke all on function public.est_referent_ou_admin() from public, anon;
 grant execute on function public.est_referent_ou_admin() to authenticated, service_role;
 
-drop policy if exists province_lecture on public.province;
-create policy province_lecture on public.province
+-- `province_lecture` est l'ancien nom de la policy : une base renommée par le
+-- bloc 0 la porte encore.
+drop policy if exists province_lecture on public.provinces;
+drop policy if exists provinces_lecture on public.provinces;
+create policy provinces_lecture on public.provinces
   for select to authenticated
   using ((select public.est_referent_ou_admin()));
 
-grant select on public.province to authenticated;
+grant select on public.provinces to authenticated;
 
 -- 3. Rattacher les loges à leur province ------------------------------------
 -- `province_bubble_id` était resté du texte faute de cible (0002). La cible
@@ -104,14 +151,14 @@ grant select on public.province to authenticated;
 -- résout depuis l'identifiant Bubble conservé. `on delete set null` : retirer
 -- une province ne doit pas emporter les loges qui s'y rattachaient.
 alter table public.loge
-  add column if not exists province_id uuid references public.province (id) on delete set null;
+  add column if not exists province_id uuid references public.provinces (id) on delete set null;
 
 comment on column public.loge.province_id is
   'La province de la loge, résolue depuis province_bubble_id par la reprise.';
 
 -- 4. Suivre le rapatriement de l'image --------------------------------------
 -- La vue récapitule, par genre, combien de fichiers restent à copier depuis
--- Bubble. On y ajoute l'image des provinces, au même titre que les logos de
+-- Bubble. On y ajoute l'écusson des provinces, au même titre que les logos de
 -- loge.
 --
 -- Attention en la reprenant : sa dernière définition est celle de 0069, et non
@@ -148,10 +195,10 @@ create or replace view public.fichiers_a_rapatrier as
          count(*) filter (where logo_url is not null and logo_chemin is null)
     from public.loge
   union all
-  select 'province', 'image',
-         count(*) filter (where image_url is not null),
-         count(*) filter (where image_url is not null and image_chemin is null)
-    from public.province
+  select 'provinces', 'ecusson provincial',
+         count(*) filter (where ecusson_provincial_url is not null),
+         count(*) filter (where ecusson_provincial_url is not null and ecusson_provincial is null)
+    from public.provinces
   union all
   select 'document', 'pdf',
          count(*) filter (where lien_url is not null and efface_le is null),
@@ -240,15 +287,15 @@ begin
       from brut
   ),
   posee as (
-    insert into public.province as p
-      (bubble_id, nom, image_url, cree_par_bubble_id, cree_le, maj_le)
+    insert into public.provinces as p
+      (bubble_id, nom_de_la_province, ecusson_provincial_url, cree_par_bubble_id, cree_le, maj_le)
     select bubble_id, nom, image_url, cree_par, coalesce(cree, now()), coalesce(maj, now())
       from lue
     on conflict (bubble_id) do update set
-      nom                = excluded.nom,
-      image_url          = excluded.image_url,
-      image_chemin       = case when p.image_url is distinct from excluded.image_url
-                                then null else p.image_chemin end,
+      nom_de_la_province     = excluded.nom_de_la_province,
+      ecusson_provincial_url = excluded.ecusson_provincial_url,
+      ecusson_provincial     = case when p.ecusson_provincial_url is distinct from excluded.ecusson_provincial_url
+                                    then null else p.ecusson_provincial end,
       cree_par_bubble_id = excluded.cree_par_bubble_id,
       cree_le            = excluded.cree_le,
       maj_le             = excluded.maj_le
@@ -262,7 +309,7 @@ begin
   -- écrites : rejouer ne touche rien.
   update public.loge l
      set province_id = p.id
-    from public.province p
+    from public.provinces p
    where p.bubble_id = l.province_bubble_id
      and l.province_id is distinct from p.id;
 
@@ -270,8 +317,8 @@ begin
     select
       ecrites,
       neuves,
-      (select count(*) from public.province where bubble_id is not null and nom is null),
-      (select count(*) from public.province where bubble_id is not null and image_url is null),
+      (select count(*) from public.provinces where bubble_id is not null and nom_de_la_province is null),
+      (select count(*) from public.provinces where bubble_id is not null and ecusson_provincial_url is null),
       (select count(*) from public.loge where province_id is not null),
       (select count(*) from public.loge
         where province_bubble_id is not null and province_id is null);
@@ -279,7 +326,7 @@ end
 $$;
 
 comment on function public.deverser_provinces_bubble() is
-  'Déplie les provinces Bubble de `bubble_brut` dans `province`, puis rattache '
+  'Déplie les provinces Bubble de `bubble_brut` dans `provinces`, puis rattache '
   'les loges. Rejouable. Réservée à l''exploitation — la reprise l''appelle, '
   'l''application jamais.';
 

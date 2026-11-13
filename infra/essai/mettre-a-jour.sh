@@ -205,7 +205,9 @@ fi
 etape "Provinces — depuis Bubble"
 # Le nom et l'écusson de chaque province, pour l'écran « Province »
 # (migrations 0080, 0081). Même règle que les PDF : non bloquant, borné, à
-# retirer après la bascule.
+# retirer après la bascule. Rejouer ne touche à aucune province présente, et
+# ne recrée pas une province que l'administration a retirée (migration 0096) :
+# seules les provinces absentes viennent.
 #
 # Bubble cache les provinces à l'API sans jeton : la reprise lit le jeton dans
 # la ligne `BUBBLE_TOKEN=` du `.env` de la pile. Sans elle, elle s'arrête sur

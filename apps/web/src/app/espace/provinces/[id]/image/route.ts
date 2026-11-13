@@ -1,15 +1,15 @@
 import { NextResponse } from 'next/server';
 import { typeDeFichier } from '@/lib/fichiers';
-import { cheminImageProvince } from '@/lib/provinces';
+import { cheminEcussonProvincial } from '@/lib/provinces-serveur';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 
 /**
- * L'image d'une province, pour sa carte.
+ * L'écusson d'une province, pour sa carte.
  *
  * Le même ordre que la photo d'un référent, et pour les mêmes raisons :
  *
- *   1. la session — `cheminImageProvince()` passe par `supabaseServer()` ;
- *   2. le droit — la RLS de `province` (migration 0080) ne rend la ligne, donc
+ *   1. la session — `cheminEcussonProvincial()` passe par `supabaseServer()` ;
+ *   2. le droit — la RLS de `provinces` (migration 0080) ne rend la ligne, donc
  *      le chemin, qu'aux référents et à l'administration. C'est la base qui
  *      tranche, pas cette route ;
  *   3. alors seulement `supabaseAdmin()`, pour lire les octets dans un seau
@@ -24,9 +24,9 @@ export async function GET(_requete: Request, { params }: { params: Promise<{ id:
     return NextResponse.json({ erreur: 'Image introuvable.' }, { status: 404 });
   }
 
-  const chemin = await cheminImageProvince(id);
+  const chemin = await cheminEcussonProvincial(id);
 
-  // Pas d'image, pas de province, ou pas le droit : la même réponse.
+  // Pas d'écusson, pas de province, ou pas le droit : la même réponse.
   if (!chemin) {
     return NextResponse.json({ erreur: 'Image introuvable.' }, { status: 404 });
   }
