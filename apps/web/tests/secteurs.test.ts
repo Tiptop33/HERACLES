@@ -91,7 +91,7 @@ describe('la date de la liste', () => {
 
   it('une liste jamais remplie n’est pas « ancienne » : elle est vide', () => {
     expect(listeAncienne(null, maintenant)).toBe(false);
-    expect(dateDeLaListe(null)).toBe('Jamais rempli');
+    expect(dateDeLaListe(null)).toBe('Rien de coché pour l’instant');
   });
 
   it('s’écrit en toutes lettres, à l’heure de Paris', () => {

@@ -26,7 +26,7 @@ traitements.
 | Représentant légal | ⚠️ *nom, qualité (président…)* |
 | Délégué à la protection des données | ⚠️ *aucun désigné, ou nom et contact* |
 | Contact pour exercer ses droits | ⚠️ *adresse électronique à afficher aux candidats* |
-| Dernière mise à jour du registre | 12 novembre 2026 |
+| Dernière mise à jour du registre | 13 novembre 2026 |
 
 ---
 
@@ -69,7 +69,6 @@ traitements.
 | **Base légale** | ⚖️ *Intérêt légitime de l'association, ou exécution de l'adhésion : à trancher.* |
 | **Personnes concernées** | Les référents, les parrains qui ont un compte, les administrateurs. |
 | **Données** | Identité, adresse électronique, téléphone, photo, loge, fonction (Vénérable Maître, Secrétaire…), présences aux réunions, empreintes des derniers mots de passe (pour en interdire la réutilisation). |
-| **Secteurs présents dans la loge** | Les secteurs d'activité où travaillent des membres de la loge, cochés par le Secrétaire (NAF, de la division à la sous-classe, migration 0089). **Ni nom ni nombre** : ce n'est pas, en soi, une donnée personnelle. ⚖️ *Un secteur rare et très précis, coché dans une petite loge, peut toutefois désigner quelqu'un pour qui connaît la loge. Depuis la migration 0091, la liste se lit sur la page Référents par les référents de la loge et les administrateurs, et se coche par le Secrétaire de la loge ou un administrateur ; jamais montrée aux candidats.* |
 | **Données sensibles** | ⚖️ *Même remarque qu'au § 2 : l'appartenance à une loge.* |
 | **Destinataires** | Les membres de la loge, selon leur fonction ; les administrateurs. |
 | **Sous-traitants** | Hostinger, Brevo (courriels de connexion et de réinitialisation). |
@@ -77,11 +76,26 @@ traitements.
 | **Durée de conservation** | ⚠️ *À fixer : jusqu'au départ de la loge, puis… ?* |
 | **Sécurité** | Entrée sur invitation seulement ; mots de passe hachés ; messages d'erreur qui ne révèlent pas qu'une adresse est inscrite. |
 
+## 3 bis. Les loges du réseau et leurs secteurs d'activité
+
+| | |
+| --- | --- |
+| **Finalité** | Savoir quels secteurs d'activité sont présents dans chacune des 73 loges du réseau, pour orienter un candidat vers les loges qui peuvent l'aider. |
+| **Base légale** | ⚖️ *Intérêt légitime de l'association : à confirmer.* |
+| **Personnes concernées** | Les Secrétaires des loges du réseau — extérieurs à l'application, sans compte HERACLES. |
+| **Données** | Du Secrétaire : nom, adresse électronique. De la loge : nom, numéro, province. Du lien personnel : son empreinte (jamais le lien lui-même), sa date d'envoi et sa date de fin. Les secteurs d'activité cochés (NAF, de la division à la sous-classe) — **ni nom ni nombre** de membres (migration 0089). |
+| **Données sensibles** | ⚖️ *Le nom d'un Secrétaire, rattaché à une loge, révèle son appartenance — même remarque qu'au § 2 (article 9 du RGPD). Un secteur rare et très précis, coché dans une petite loge, peut aussi désigner un membre pour qui connaît la loge.* |
+| **Destinataires** | Les administrateurs de HERACLES (Paramètres › Loges du réseau). Le Secrétaire voit, par son lien, la page de sa seule loge : le nom, le numéro et la province de la loge, son propre nom et les secteurs cochés. Jamais montré aux candidats. |
+| **Sous-traitants** | Hostinger (hébergement), Brevo (envoi du lien). |
+| **Transferts hors UE** | Aucun. |
+| **Durée de conservation** | ⚠️ *À fixer : tant que la loge fait partie du réseau ; le nom et l'adresse d'un Secrétaire sont remplacés à chaque changement de Secrétaire, et la loge retirée de la liste emporte ses secteurs.* |
+| **Sécurité** | Tables fermées (RLS, aucune policy, aucun droit de table) ; tout passe par des fonctions qui vérifient l'administration ou le lien. Le lien personnel vaut 90 jours, seule son empreinte est conservée, et un nouvel envoi remplace l'ancien lien, qui cesse aussitôt de valoir. |
+
 ## 4. Les courriels de l'application
 
 | | |
 | --- | --- |
-| **Finalité** | Envoyer le lien au parrain, le lien au candidat, et les courriels de connexion. |
+| **Finalité** | Envoyer le lien au parrain, le lien au candidat, le lien au Secrétaire d'une loge du réseau (§ 3 bis), et les courriels de connexion. |
 | **Base légale** | Celle du traitement que le courriel sert (§ 1 à 3). |
 | **Données** | Adresse électronique et prénom du destinataire, nom de la loge, texte du courriel, lien personnel. |
 | **Sous-traitant** | Brevo, société française — hébergement dans l'Union européenne. Voir `docs/brevo.md`. |

@@ -17,7 +17,7 @@ import { supabaseServer } from './supabase-server';
  */
 
 /** Un jeton plausible : 32 octets en base64url. Le reste ne mérite pas une requête. */
-function jetonPlausible(jeton: string): boolean {
+export function jetonPlausible(jeton: string): boolean {
   return /^[A-Za-z0-9_-]{40,64}$/.test(jeton);
 }
 

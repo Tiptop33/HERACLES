@@ -82,7 +82,7 @@ Une loge ouvre des portes dans des **entreprises** : le secteur est l'axe qui lu
 parle. Les offres France Travail portent les deux codes (`offre_emploi.rome_code`,
 `offre_emploi.code_naf`).
 
-## Ce qui est en place (étape 1, migrations 0086 à 0090)
+## Ce qui est en place (migrations 0086 à 0091)
 
 ```
 code_naf            la nomenclature, ses 5 niveaux, 1 728 lignes
@@ -93,17 +93,33 @@ code_naf            la nomenclature, ses 5 niveaux, 1 728 lignes
 candidat_secteur    jusqu'à 3 par candidat (section ou division)
   candidat_id · rang 1..3 · code · propose_par · confirme_par · confirme_le
 
-loge_secteur        les secteurs cochés par la loge (de la division à la sous-classe)
-  loge_id · code · coche_le · coche_par
-  + loge.secteurs_maj_le : la date de la liste de la loge
+loge_du_reseau      les 73 loges du réseau, saisies par l'administration
+  nom · numero · province_id · secretaire_nom · secretaire_email
+  lien_empreinte · lien_envoye_le · lien_expire_le   (le lien : son empreinte, 90 jours)
+  secteurs_maj_le                                    (la date de la liste)
+
+loge_du_reseau_secteur   les secteurs cochés par le Secrétaire (de la division à la sous-classe)
+  loge_du_reseau_id · code · coche_le
 
 rechercher_secteur(mot)        « boulangerie » → 10 — Industries alimentaires
 rechercher_secteur(mot, true)  « installation électrique » → 43.21, 43.21A… pour la loge qui précise
 ```
 
-Tout est **fermé** : RLS active, aucune policy, aucun droit pour `anon` ni
-`authenticated`. Chaque écran apportera la lecture ou l'écriture dont il a
-besoin, et pas plus (règle n° 1 du CLAUDE.md).
+Tout est **fermé** : RLS active, aucune policy, aucun droit de table pour
+`anon` ni `authenticated`. Les écrans passent par des fonctions (0091) :
+l'administration seule gère les loges du réseau ; le Secrétaire n'atteint que
+sa loge, par son lien, que la route web hache avant de le passer à la base avec
+la clé de service — comme les liens du parrain et du candidat.
+
+**Les écrans en service :**
+
+- **la page du Secrétaire** — `/loge-du-reseau/<jeton>` : il coche les secteurs
+  de sa loge, sans compte ; un lien expiré ou remplacé donne « Ce lien n'est
+  plus valable » ;
+- **Paramètres › Loges du réseau** — l'administration saisit les loges, envoie
+  les liens (groupé ou loge par loge, par Brevo), suit les réponses et règle le
+  courriel. Le lien n'est enregistré qu'une fois le courriel parti : si l'envoi
+  échoue, l'ancien lien vaut encore.
 
 Données : les fichiers NAF rév. 2 de l'INSEE (`naf2008_liste_n1.xls` à
 `naf2008_liste_n5.xls`, et `naf2008_5_niveaux.xls` pour les rattachements),
@@ -114,8 +130,9 @@ recopiés à l'identique.
 | Étape | Contenu | Quand |
 | --- | --- | --- |
 | 2 | ~~Maquettes des trois écrans~~ — **validées le 12 novembre** | fait |
-| 2 bis | Construire les trois écrans, avec leurs droits d'accès. **Fait : le bloc « Secteurs représentés » de la page Référents** (migration 0091). Restent le formulaire de candidature et la fiche candidat | avant la bascule |
-| 2 ter | Le bandeau du Secrétaire et le suivi des 73 loges — emplacement à montrer d'abord | avant la bascule |
+| 2 bis | Les loges du réseau : la page du Secrétaire et Paramètres › Loges du réseau | **fait** (0089, 0091) |
+| 2 ter | Le formulaire de candidature et la fiche candidat (écrans 1 et 2 de `secteurs-d-activite.html`) | avant la bascule |
+| 2 quater | Saisir les 73 loges du réseau et envoyer les liens — sur le site d'essai, par l'administration | avant la bascule |
 | 3 | Table de correspondance des secteurs Bubble → NAF, à valider | avant la bascule |
 | 4 | Fiche candidat : « Loges qui peuvent aider » | décembre |
 | 5 | Fiche candidat : « Offres de son secteur » | décembre |

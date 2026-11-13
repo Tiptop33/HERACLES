@@ -16,31 +16,44 @@ import {
 } from '@/lib/secteurs';
 
 /**
- * Le bloc « Secteurs représentés » de la page Référents (maquette validée le
- * 12 novembre 2026, docs/maquettes/secteurs-d-activite.html, écran 3).
+ * Le choix des secteurs d'une loge du réseau — l'encadré « Secteurs de la
+ * loge » de la page que le Secrétaire ouvre par son lien (maquette validée le
+ * 13 novembre 2026, docs/maquettes/loges-du-reseau.html, écran 1, qui reprend
+ * l'écran 3 de docs/maquettes/secteurs-d-activite.html).
  *
- * Le Secrétaire de la loge — ou un administrateur — y coche les secteurs
- * d'activité présents dans la loge : ni nom, ni nombre. Au moins la division,
- * puis aussi précis qu'il le veut. Chaque geste s'enregistre aussitôt ; la
- * liste affichée est toujours celle que la base a rendue, jamais celle que
- * l'écran croit avoir envoyée.
+ * Le Secrétaire y coche les secteurs d'activité présents dans sa loge : ni
+ * nom, ni nombre. Au moins la division, puis aussi précis qu'il le veut.
+ * Chaque geste s'enregistre aussitôt ; la liste affichée est toujours celle
+ * que la base a rendue, jamais celle que l'écran croit avoir envoyée.
  *
- * Les autres référents de la loge lisent la liste, sans champ de recherche ni
- * arborescence. Le droit est dans la base (0091) : un bouton caché ne protège
- * rien.
+ * Le composant ne sait pas qui l'appelle : les trois adresses où il cocher,
+ * cherche et charge la nomenclature lui sont données. Le droit est dans la
+ * base (0091) — un bouton caché ne protège rien.
  */
+
+/** Les trois adresses du serveur dont le composant se sert. */
+export type AdressesDesSecteurs = {
+  /** PATCH { code, coche } → { liste } */
+  cocher: string;
+  /** GET ?q= → { resultats } */
+  recherche: string;
+  /** GET → { lignes } */
+  nomenclature: string;
+};
 
 type Etat = { sorte: 'pret' } | { sorte: 'envoi' } | { sorte: 'erreur'; message: string };
 
 const DELAI_RECHERCHE = 250;
 const RESULTATS_MONTRES = 8;
 
-export default function SecteursDeLaLoge({
-  logeId,
+export default function ChoixDesSecteurs({
+  adresses,
   initiale,
+  titre = 'Secteurs de la loge',
 }: {
-  logeId: string;
+  adresses: AdressesDesSecteurs;
   initiale: ListeDeLaLoge;
+  titre?: string;
 }) {
   const [liste, setListe] = useState(initiale);
   const [etat, setEtat] = useState<Etat>({ sorte: 'pret' });
@@ -79,7 +92,7 @@ export default function SecteursDeLaLoge({
       setEtat({ sorte: 'envoi' });
       setEnCours({ code, coche });
       try {
-        const reponse = await fetch(`/api/loges/${logeId}/secteurs`, {
+        const reponse = await fetch(adresses.cocher, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ code, coche }),
@@ -101,7 +114,7 @@ export default function SecteursDeLaLoge({
         setEtat({ sorte: 'erreur', message: 'Le serveur ne répond pas. Ce changement n’est pas enregistré.' });
       }
     },
-    [logeId],
+    [adresses.cocher],
   );
 
   useEffect(() => () => {
@@ -115,7 +128,7 @@ export default function SecteursDeLaLoge({
     const abandon = new AbortController();
     const attente = setTimeout(async () => {
       try {
-        const reponse = await fetch(`/api/secteurs/recherche?q=${encodeURIComponent(q)}`, {
+        const reponse = await fetch(`${adresses.recherche}?q=${encodeURIComponent(q)}`, {
           signal: abandon.signal,
         });
         const lu = (await reponse.json().catch(() => null)) as { resultats?: SecteurTrouve[] } | null;
@@ -129,7 +142,7 @@ export default function SecteursDeLaLoge({
       clearTimeout(attente);
       abandon.abort();
     };
-  }, [recherche]);
+  }, [recherche, adresses.recherche]);
 
   // Un clic ailleurs referme les propositions.
   useEffect(() => {
@@ -174,7 +187,7 @@ export default function SecteursDeLaLoge({
     if (!suivant || arbre) return;
     setArbreEnErreur(null);
     try {
-      const reponse = await fetch('/api/secteurs/nomenclature');
+      const reponse = await fetch(adresses.nomenclature);
       const lu = (await reponse.json().catch(() => null)) as { lignes?: LigneNaf[]; erreur?: string } | null;
       if (!reponse.ok || !lu?.lignes) {
         setArbreEnErreur(lu?.erreur ?? 'La liste des secteurs n’a pas pu être chargée.');
@@ -197,18 +210,13 @@ export default function SecteursDeLaLoge({
   const occupe = etat.sorte === 'envoi';
 
   return (
-    <details className="bloc decompte-section" open>
-      <summary className="decompte-tete">
-        <h2>Secteurs représentés</h2>
+    <section className="bloc decompte-section">
+      <div className="decompte-tete">
+        <h2>{titre}</h2>
         <span className={`decompte-date${ancienne ? ' decompte-date--ancienne' : ''}`}>
           {dateDeLaListe(liste.maj_le)}
         </span>
-      </summary>
-
-      <p className="secteurs-aide">
-        Les secteurs d’activité où travaillent des membres de la loge — sans nom ni nombre. C’est ce
-        qui permettra de trouver, pour un candidat, les loges qui peuvent l’aider.
-      </p>
+      </div>
 
       <div className="secteurs" ref={racine}>
         {liste.secteurs.length === 0 ? (
@@ -261,9 +269,7 @@ export default function SecteursDeLaLoge({
           </p>
         )}
 
-        {!liste.modifiable ? (
-          <p className="decompte-total">Tenu par le Secrétaire de la loge.</p>
-        ) : (
+        {!liste.modifiable ? null : (
           <>
             <div className="secteurs-ajout">
               <input
@@ -363,7 +369,7 @@ export default function SecteursDeLaLoge({
       <div className={`secteurs-enregistre${enregistre ? ' secteurs-enregistre--visible' : ''}`} role="status" aria-live="polite">
         {enregistre ? 'Enregistré' : ''}
       </div>
-    </details>
+    </section>
   );
 }
 

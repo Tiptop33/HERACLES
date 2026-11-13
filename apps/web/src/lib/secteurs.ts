@@ -117,11 +117,11 @@ export function listeAncienne(majLe: string | null, maintenant: Date = new Date(
   return maintenant.getTime() - date.getTime() > LISTE_ANCIENNE_JOURS * 86_400_000;
 }
 
-/** « Mis à jour le 2 mars 2026 », ou « Jamais rempli ». */
+/** « Mis à jour le 2 mars 2026 », ou « Rien de coché pour l’instant » — les mots de la maquette validée. */
 export function dateDeLaListe(majLe: string | null): string {
-  if (!majLe) return 'Jamais rempli';
+  if (!majLe) return 'Rien de coché pour l’instant';
   const date = new Date(majLe);
-  if (Number.isNaN(date.getTime())) return 'Jamais rempli';
+  if (Number.isNaN(date.getTime())) return 'Rien de coché pour l’instant';
   return `Mis à jour le ${date.toLocaleDateString('fr-FR', {
     day: 'numeric',
     month: 'long',

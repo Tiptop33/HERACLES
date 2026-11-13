@@ -37,6 +37,13 @@ Ce qui est nouveau y est encadré en pointillé ; le reste de l'écran est gris�
 
 ## 3. Page Référents — bloc « Secteurs représentés »
 
+> **Remplacé le 13 novembre 2026.** Ce bloc reposait sur une confusion entre les
+> 3 loges de HERACLES et les 73 loges du réseau. Il a été retiré avant toute mise
+> en ligne ; la page Référents est restée telle qu'elle était. Les secteurs sont
+> cochés par le Secrétaire de chaque loge du réseau, sur sa propre page :
+> voir `loges-du-reseau-notes.md`. Le choix des secteurs décrit ci-dessous y est
+> repris tel quel.
+
 - Un bloc repliable au-dessus des fiches de l'annuaire.
 - Le Secrétaire **coche les secteurs présents** dans sa loge : ni nombre, ni
   nom. Au moins la division, puis aussi précis qu'il le veut, jusqu'à la
@@ -50,7 +57,7 @@ Ce qui est nouveau y est encadré en pointillé ; le reste de l'écran est gris�
 - Les autres référents voient la liste en lecture seule (« Tenu par le
   Secrétaire de la loge »).
 
-## Décidé après la maquette, pas encore dessiné
+## Décidé après la maquette, puis remplacé
 
 - **Interroger chaque loge** : tant que sa loge n'a rien coché, le Secrétaire
   voit un bandeau en haut de son espace — « Indiquez les secteurs présents dans

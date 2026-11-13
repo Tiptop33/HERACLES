@@ -4789,29 +4789,40 @@ a.poste-document .poste-document-type {
 }
 
 /* ---------------------------------------------------------------------------
- * Les secteurs d'activité — le bloc « Secteurs représentés » de la page
- * Référents (maquette validée le 12 novembre 2026,
- * docs/maquettes/secteurs-d-activite.html, écran 3). Une loge y coche les
- * secteurs présents chez elle ; chaque geste s'enregistre aussitôt.
+ * Les secteurs d'activité — la page du Secrétaire d'une loge du réseau
+ * (maquette validée le 13 novembre 2026, docs/maquettes/loges-du-reseau.html,
+ * écrans 1 et 1 bis), et son encadré « Secteurs de la loge », repris de
+ * l'écran 3 de docs/maquettes/secteurs-d-activite.html. Chaque case
+ * s'enregistre aussitôt.
  * ------------------------------------------------------------------------- */
+
+.page-secretaire .entree-carte {
+  max-width: 56rem;
+}
+
+.loge-reseau-titre {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--encre-douce);
+}
+
+.loge-reseau-titre strong {
+  color: var(--encre);
+}
+
+.lien-validite {
+  margin: 1.2rem 0 0;
+  font-size: 0.8rem;
+  color: var(--encre-tres-douce);
+}
+
+.lien-mort {
+  text-align: center;
+}
 
 .decompte-section {
   display: grid;
   gap: 0.8rem;
-  margin-bottom: 1.5rem;
-}
-
-.decompte-section summary {
-  cursor: pointer;
-  list-style: none;
-}
-
-.decompte-section summary::-webkit-details-marker {
-  display: none;
-}
-
-.decompte-section[open] summary {
-  margin-bottom: -0.4rem;
 }
 
 .decompte-tete {
@@ -5135,4 +5146,333 @@ a.poste-document .poste-document-type {
   .secteurs-enregistre {
     display: none;
   }
+}
+
+/* ---------------------------------------------------------------------------
+ * Paramètres › Loges du réseau (maquette validée le 13 novembre 2026,
+ * docs/maquettes/loges-du-reseau.html, écran 2) : compteurs, envoi groupé,
+ * filtres, ajout, une ligne par loge, le courriel et son aperçu.
+ * ------------------------------------------------------------------------- */
+
+.reseau-compteurs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0.4rem 0 1rem;
+}
+
+.reseau-compteur {
+  background: var(--surface);
+  border: 1px solid var(--bordure);
+  border-radius: 10px;
+  padding: 0.55rem 0.8rem;
+  min-width: 7rem;
+}
+
+.reseau-compteur strong {
+  display: block;
+  font-size: 1.35rem;
+  line-height: 1.1;
+}
+
+.reseau-compteur span {
+  font-size: 0.78rem;
+  color: var(--encre-douce);
+}
+
+.reseau-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  align-items: center;
+  margin-bottom: 0.8rem;
+}
+
+.reseau-chercher {
+  margin-left: auto;
+}
+
+.reseau-filtres {
+  display: flex;
+  gap: 0.3rem;
+  flex-wrap: wrap;
+}
+
+.reseau-filtres button {
+  font: inherit;
+  font-size: 0.8rem;
+  border: 1px solid var(--bordure-nette);
+  background: var(--surface);
+  color: var(--encre-douce);
+  border-radius: 999px;
+  padding: 0.25rem 0.7rem;
+  cursor: pointer;
+}
+
+.reseau-filtres button[aria-pressed='true'] {
+  background: var(--encre);
+  border-color: var(--encre);
+  color: var(--surface);
+}
+
+.reseau-ajout {
+  display: grid;
+  grid-template-columns: 1fr 6rem 1fr auto;
+  gap: 0.5rem;
+  background: var(--surface);
+  border: 1px solid var(--bordure);
+  border-radius: 10px;
+  padding: 0.8rem;
+  margin-bottom: 0.8rem;
+}
+
+.reseau-ajout [name='nom'] {
+  grid-column: 1;
+}
+
+.reseau-ajout [name='numero'] {
+  grid-column: 2;
+}
+
+.reseau-ajout [name='province_id'] {
+  grid-column: 3 / 5;
+}
+
+.reseau-ajout [name='secretaire_nom'] {
+  grid-column: 1;
+}
+
+.reseau-ajout [name='secretaire_email'] {
+  grid-column: 2 / 4;
+}
+
+.reseau-ajout button {
+  grid-column: 4;
+}
+
+.reseau-ajout-pied {
+  grid-column: 1 / -1;
+}
+
+.reseau-ajout-pied small {
+  color: var(--encre-tres-douce);
+}
+
+@media (max-width: 40rem) {
+  .reseau-ajout {
+    grid-template-columns: 1fr;
+  }
+
+  .reseau-ajout > * {
+    grid-column: 1 !important;
+  }
+}
+
+.reseau-ajout input,
+.reseau-ajout select,
+.reseau-champs input,
+.reseau-champs select {
+  font: inherit;
+  font-size: 0.88rem;
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--bordure-nette);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--encre);
+  min-width: 0;
+}
+
+.reseau-liste {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.4rem;
+}
+
+.reseau-vide {
+  padding: 0.5rem;
+}
+
+.reseau-ligne {
+  background: var(--surface);
+  border: 1px solid var(--bordure);
+  border-radius: 10px;
+}
+
+.reseau-ligne-tete {
+  display: grid;
+  grid-template-columns: 3.5rem 1fr auto;
+  gap: 0.3rem 0.8rem;
+  align-items: center;
+  padding: 0.6rem 0.8rem;
+}
+
+.reseau-numero {
+  font: 700 0.95rem/1 var(--mono);
+  color: var(--encre-douce);
+}
+
+.reseau-nom strong {
+  display: block;
+}
+
+.reseau-nom small {
+  color: var(--encre-tres-douce);
+  font-size: 0.8rem;
+}
+
+.reseau-gestes {
+  display: flex;
+  gap: 0.3rem;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.reseau-manque {
+  font-size: 0.78rem;
+  color: var(--encre-douce);
+}
+
+/* L'état d'une loge : les couleurs disent un état, jamais une action. */
+.reseau-etat {
+  font-size: 0.76rem;
+  font-weight: 600;
+  border-radius: 999px;
+  padding: 0.15rem 0.6rem;
+  white-space: nowrap;
+}
+
+.reseau-etat--sans {
+  background: var(--surface-creuse);
+  color: var(--encre-douce);
+}
+
+.reseau-etat--envoye {
+  background: var(--attention-clair);
+  color: var(--attention);
+}
+
+.reseau-etat--repondu {
+  background: var(--referent-clair);
+  color: var(--referent);
+}
+
+.reseau-etat--expire {
+  background: var(--alerte-clair);
+  color: var(--alerte);
+}
+
+.reseau-detail {
+  border-top: 1px solid var(--bordure);
+  padding: 0.7rem 0.8rem 0.8rem;
+  display: grid;
+  gap: 0.7rem;
+}
+
+.reseau-champs {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  gap: 0.5rem;
+}
+
+.reseau-champs label {
+  display: grid;
+  gap: 0.2rem;
+  font-size: 0.75rem;
+  color: var(--encre-douce);
+}
+
+.reseau-historique {
+  font-size: 0.8rem;
+  color: var(--encre-douce);
+  margin: 0;
+}
+
+.reseau-secteurs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+
+.reseau-secteurs span {
+  font-size: 0.78rem;
+  background: var(--surface-creuse);
+  border-radius: 4px;
+  padding: 0.1rem 0.45rem;
+}
+
+.reseau-retirer {
+  font: inherit;
+  font-size: 0.8rem;
+  color: var(--alerte);
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  text-decoration: underline;
+  justify-self: start;
+}
+
+.courriel {
+  display: grid;
+  gap: 0.6rem;
+  margin-top: 1.8rem;
+}
+
+.courriel-chapo {
+  margin: 0;
+}
+
+.courriel label {
+  display: grid;
+  gap: 0.25rem;
+  font-size: 0.8rem;
+  color: var(--encre-douce);
+}
+
+.courriel input,
+.courriel textarea {
+  font: inherit;
+  font-size: 0.9rem;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid var(--bordure-nette);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--encre);
+}
+
+.courriel textarea {
+  min-height: 14rem;
+  line-height: 1.45;
+}
+
+.courriel-variables {
+  font-size: 0.78rem;
+  color: var(--encre-douce);
+  margin: 0;
+}
+
+.courriel-variables--titre {
+  margin-bottom: 0.3rem;
+}
+
+.courriel-variables code {
+  background: var(--surface-creuse);
+  border-radius: 3px;
+  padding: 0 0.3rem;
+}
+
+.courriel-apercu {
+  background: var(--surface-creuse);
+  border-radius: 10px;
+  padding: 0.8rem 1rem;
+  font-size: 0.88rem;
+  white-space: pre-line;
+}
+
+.courriel-apercu strong {
+  display: block;
+  margin-bottom: 0.5rem;
 }

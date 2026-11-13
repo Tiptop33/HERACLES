@@ -1,6 +1,5 @@
 import Link from 'next/link';
 import {
-  SANS_LOGE,
   TOUTES_LES_LOGES,
   choisirLoge,
   filtrerAnnuaire,
@@ -11,9 +10,7 @@ import {
 } from '@/lib/annuaire';
 import { initiales, nomComplet, telephone } from '@/lib/format';
 import { exigerProfil } from '@/lib/profil';
-import { lireSecteursDeLaLoge } from '@/lib/secteurs-serveur';
 import { DrapeauFrance } from './DrapeauFrance';
-import SecteursDeLaLoge from './SecteursDeLaLoge';
 import { Corbeille, Stylo } from '@/components/Icones';
 
 export const metadata = { title: 'Référents — HERACLES' };
@@ -67,13 +64,6 @@ export default async function Referents({
   const choixOuvert = loges.length > 1;
 
   const refus = REFUS[premier(parametres.erreur)] ?? null;
-
-  // Les secteurs d'activité présents dans la loge affichée (0091). Seulement
-  // pour une vraie loge : ni « toutes », ni « sans loge ». La base ne rend la
-  // liste qu'à un référent de cette loge ou à l'administration — `null`
-  // sinon, et le bloc ne s'affiche pas.
-  const logeAffichee = loge !== TOUTES_LES_LOGES && loge !== SANS_LOGE ? loge : null;
-  const secteurs = logeAffichee ? await lireSecteursDeLaLoge(logeAffichee) : null;
 
   /** L'adresse de cette même page, avec un paramètre en plus ou en moins. */
   const adresse = (ajout?: Record<string, string | null>) => {
@@ -145,10 +135,6 @@ export default async function Referents({
         <p className="erreur" role="alert">
           {refus}
         </p>
-      )}
-
-      {logeAffichee && secteurs && (
-        <SecteursDeLaLoge key={logeAffichee} logeId={logeAffichee} initiale={secteurs} />
       )}
 
       {tous.length === 0 && (
