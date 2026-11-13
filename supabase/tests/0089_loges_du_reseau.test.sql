@@ -31,8 +31,10 @@ select public.verifier(
      from information_schema.columns
     where table_schema = 'public' and table_name = 'loge_du_reseau')
   = array['id', 'nom', 'numero', 'province_id', 'secretaire_nom', 'secretaire_email', 'ecusson_chemin',
-          'lien_empreinte', 'lien_envoye_le', 'lien_expire_le', 'secteurs_maj_le', 'cree_le', 'maj_le'],
-  'nom, numéro, province, Secrétaire et adresse, écusson, le lien, la date de la liste');
+          'lien_empreinte', 'lien_envoye_le', 'lien_expire_le', 'secteurs_maj_le', 'cree_le', 'maj_le',
+          -- 0094 : le lien avec la loge Bubble d'où elle vient, et l'adresse de son logo.
+          'bubble_id', 'ecusson_url'],
+  'nom, numéro, province, Secrétaire et adresse, écusson, le lien, la date de la liste — et sa loge Bubble');
 
 do $$
 begin

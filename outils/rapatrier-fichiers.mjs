@@ -30,9 +30,14 @@ const LIMITE = process.env.LIMITE ? Number(process.env.LIMITE) : Infinity;
 //
 // SEULEMENT=provinces : l'écusson de chaque province, et rien d'autre
 // (`reprendre-bubble.sh --provinces`, migration 0080).
+//
+// SEULEMENT=loges-du-reseau : l'écusson de chaque loge du réseau reprise de
+// Bubble, et rien d'autre (`reprendre-bubble.sh --loges-du-reseau`,
+// migration 0094).
 const SEULEMENT = process.env.SEULEMENT ?? '';
-if (SEULEMENT && SEULEMENT !== 'pdf-commission' && SEULEMENT !== 'provinces') {
-  console.error(`SEULEMENT=${SEULEMENT} : seules « pdf-commission » et « provinces » sont connues.`);
+const CONNUS = ['pdf-commission', 'provinces', 'loges-du-reseau'];
+if (SEULEMENT && !CONNUS.includes(SEULEMENT)) {
+  console.error(`SEULEMENT=${SEULEMENT} : seules ${CONNUS.map((c) => `« ${c} »`).join(', ')} sont connues.`);
   process.exit(1);
 }
 
@@ -103,7 +108,9 @@ let octets = 0;
 
 const PROVINCES = [['province', 'image_url', 'image_chemin', 'province/image']];
 
-const CHOIX = { 'pdf-commission': PDF_COMMISSION, provinces: PROVINCES };
+// Les écussons des loges du réseau ont leur propre passe, plus bas : leur
+// chemin est imposé par la table, et leur format se lit dans leurs octets.
+const CHOIX = { 'pdf-commission': PDF_COMMISSION, provinces: PROVINCES, 'loges-du-reseau': [] };
 
 for (const [table, colonneUrl, colonneChemin, dossier, condition] of SEULEMENT ? CHOIX[SEULEMENT] : CIBLES) {
   const { rows } = await client.query(
@@ -171,6 +178,76 @@ for (const [table, colonneUrl, colonneChemin, dossier, condition] of SEULEMENT ?
   total += faits;
   echecs += rates;
   console.log(`${table}.${colonneUrl} : ${faits} rapatriés${rates ? `, ${rates} en échec` : ''}`);
+}
+
+// ————— Les écussons des loges du réseau (migration 0094) —————
+// Pas le chemin des autres fichiers : la table impose
+// `loge-du-reseau/ecusson/<id de la loge>.<format>`, celui que l'écran de
+// l'administration produit, et le format se lit dans les octets — comme
+// lorsque l'administration dépose un écusson (`formatDImage`, lib/fichiers.ts).
+// Une loge qui a déjà son écusson le garde.
+const FORMATS = { jpg: 'image/jpeg', png: 'image/png', webp: 'image/webp', gif: 'image/gif', avif: 'image/avif' };
+const TAILLE_MAXIMALE_ECUSSON = 5 * 1024 * 1024;
+
+/** Le format d'une image, lu dans ses octets — le pendant de `formatDImage`. */
+function formatDImage(octets) {
+  const a = (position, ...attendus) => attendus.every((valeur, decalage) => octets[position + decalage] === valeur);
+  const mot = (position) => String.fromCharCode(...octets.subarray(position, position + 4));
+  if (a(0, 0xff, 0xd8, 0xff)) return 'jpg';
+  if (a(0, 0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a)) return 'png';
+  if (mot(0) === 'GIF8') return 'gif';
+  if (mot(0) === 'RIFF' && mot(8) === 'WEBP') return 'webp';
+  if (mot(4) === 'ftyp' && ['avif', 'avis'].includes(mot(8))) return 'avif';
+  return null;
+}
+
+if (!SEULEMENT || SEULEMENT === 'loges-du-reseau') {
+  const { rows } = await client.query(
+    `select id, bubble_id, ecusson_url as url
+       from public.loge_du_reseau
+      where ecusson_url is not null and ecusson_chemin is null
+      order by numero`,
+  );
+  let faits = 0;
+  let rates = 0;
+  for (const ligne of rows.slice(0, LIMITE === Infinity ? undefined : LIMITE)) {
+    try {
+      const adresse = adresseComplete(ligne.url);
+      if (!adresse) throw new Error('adresse illisible');
+      const source = await fetch(adresse);
+      if (!source.ok) throw new Error(`téléchargement HTTP ${source.status}`);
+      const contenu = Buffer.from(await source.arrayBuffer());
+      if (contenu.length > TAILLE_MAXIMALE_ECUSSON) throw new Error('plus de 5 Mo');
+      const format = formatDImage(new Uint8Array(contenu));
+      if (!format) throw new Error('ce n’est pas une image reconnue');
+
+      const chemin = `loge-du-reseau/ecusson/${ligne.id}.${format}`;
+      const depot = await fetch(`${SUPABASE_URL}/storage/v1/object/${SEAU}/${chemin}`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${SERVICE_KEY}`, 'Content-Type': FORMATS[format], 'x-upsert': 'true' },
+        body: contenu,
+      });
+      if (!depot.ok) throw new Error(`dépôt HTTP ${depot.status} — ${(await depot.text()).slice(0, 120)}`);
+
+      // Un écusson déposé entre-temps par l'administration l'emporte.
+      await client.query(
+        'update public.loge_du_reseau set ecusson_chemin = $1 where id = $2 and ecusson_chemin is null',
+        [chemin, ligne.id],
+      );
+      faits++;
+      octets += contenu.length;
+    } catch (erreur) {
+      rates++;
+      if (rates <= 3) console.error(`  ! loge_du_reseau ${ligne.bubble_id ?? ligne.id} : ${erreur.message}`);
+    }
+  }
+  total += faits;
+  echecs += rates;
+  console.log(
+    rows.length
+      ? `loge_du_reseau.ecusson_url : ${faits} rapatriés${rates ? `, ${rates} en échec` : ''}`
+      : 'loge_du_reseau.ecusson_url : rien à faire',
+  );
 }
 
 console.log();

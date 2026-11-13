@@ -6,6 +6,15 @@
 #   sudo ./infra/essai/reprendre-bubble.sh --pdf-commission   # les PDF seuls
 #   sudo ./infra/essai/reprendre-bubble.sh --dates-candidats  # une date seule
 #   BUBBLE_TOKEN=xxx sudo -E ./infra/essai/reprendre-bubble.sh --provinces
+#   sudo ./infra/essai/reprendre-bubble.sh --loges-du-reseau  # les 73 loges du réseau
+#
+# `--loges-du-reseau` ne reprend que le type Bubble `loges`, en réserve brute,
+# puis pose dans Paramètres › Loges du réseau celles que Bubble rattache à la
+# loge HERACLES — nom, numéro, province, adresse, écusson (migration 0094).
+# Rien de ce que l'administration a saisi n'est remplacé, et une loge qu'elle
+# a retirée ne revient pas. Sans jeton : Bubble montre ce type à l'API
+# anonyme. `mettre-a-jour.sh` le joue à chaque mise en ligne, jusqu'à la
+# bascule.
 #
 # `--provinces` ne reprend que les provinces — nom et écusson — et rattache
 # les loges (migrations 0080, 0081). Jeton obligatoire : Bubble cache ce type
@@ -62,12 +71,14 @@ FICHIERS=0
 PDF_COMMISSION=0
 DATES_CANDIDATS=0
 PROVINCES=0
+LOGES_DU_RESEAU=0
 case "${1:-}" in
   "") ;;
   --fichiers) FICHIERS=1 ;;
   --pdf-commission) PDF_COMMISSION=1 ;;
   --dates-candidats) DATES_CANDIDATS=1 ;;
   --provinces) PROVINCES=1 ;;
+  --loges-du-reseau) LOGES_DU_RESEAU=1 ;;
   *) printf 'Option inconnue : %s\n' "$1" >&2; exit 1 ;;
 esac
 
@@ -221,6 +232,44 @@ if [[ $PROVINCES -eq 1 ]]; then
   exit 0
 fi
 
+# ————— Les loges du réseau, et rien d'autre —————
+if [[ $LOGES_DU_RESEAU -eq 1 ]]; then
+  etape "Loges du réseau — la réserve brute, depuis la base en service"
+  # Le type `loges` seul — les 1 389 loges de l'annuaire —, recopié dans
+  # bubble_brut. La base en service, et non celle de l'éditeur : celle-ci n'a
+  # que 39 des 73 loges du réseau (relevé du 13 novembre 2026).
+  outil -e TYPES_BRUTS=loges "$IMAGE" node import-bubble.mjs
+
+  etape "Loges du réseau — posées dans Paramètres › Loges du réseau"
+  # Celles que Bubble rattache à la loge HERACLES. Créées, rattachées à une
+  # loge saisie au même numéro, ou complétées là où une case est vide ; jamais
+  # remplacées. « laissees » : sans nom, retirées par l'administration, ou un
+  # numéro déjà pris par une autre loge.
+  docker exec -i "$PREFIXE-db" psql -U postgres -d postgres -v ON_ERROR_STOP=1 -c "
+    select * from public.deverser_loges_du_reseau_bubble()"
+
+  etape "Loges du réseau — les écussons, du CDN de Bubble vers le stockage"
+  CLE="$(grep -m1 '^SERVICE_ROLE_KEY=' "$DOSSIER/.env" | cut -d= -f2-)"
+  [[ -n "$CLE" ]] || { rouge "SERVICE_ROLE_KEY introuvable dans $DOSSIER/.env"; exit 1; }
+  outil -e SUPABASE_URL="http://kong:8000" \
+        -e SUPABASE_SERVICE_ROLE_KEY="$CLE" \
+        -e SEULEMENT=loges-du-reseau \
+        "$IMAGE" node rapatrier-fichiers.mjs
+
+  etape "Loges du réseau — bilan"
+  # Des nombres, jamais un nom ni une adresse.
+  docker exec -i "$PREFIXE-db" psql -U postgres -d postgres -c "
+    select count(*)                 as loges_du_reseau,
+           count(bubble_id)         as reprises_de_bubble,
+           count(province_id)       as avec_province,
+           count(secretaire_email)  as avec_adresse,
+           count(secretaire_nom)    as avec_secretaire,
+           count(ecusson_chemin)    as avec_ecusson,
+           count(*) filter (where ecusson_url is not null and ecusson_chemin is null) as ecussons_a_rapatrier
+      from public.loge_du_reseau"
+  exit 0
+fi
+
 # ————— Les PDF de la commission, et rien d'autre —————
 if [[ $PDF_COMMISSION -eq 1 ]]; then
   etape "PDF de la commission — la table, depuis la base en service"
@@ -309,6 +358,15 @@ echo "fiches qui ont changé."
 docker exec -i "$PREFIXE-db" psql -U postgres -d postgres -v ON_ERROR_STOP=1 -c "
   select public.appliquer_les_secteurs_bubble() as fiches_changees"
 
+# ————— Passe 7 : les loges du réseau —————
+etape "Loges du réseau — de la réserve brute vers Paramètres › Loges du réseau"
+echo "Les loges que Bubble rattache à la loge HERACLES (migration 0094) : créées,"
+echo "ou complétées là où une case est vide. Ce que l'administration a saisi"
+echo "reste ; une loge qu'elle a retirée ne revient pas. Leurs écussons suivent"
+echo "avec --fichiers, ou avec --loges-du-reseau."
+docker exec -i "$PREFIXE-db" psql -U postgres -d postgres -v ON_ERROR_STOP=1 -c "
+  select * from public.deverser_loges_du_reseau_bubble()"
+
 # ————— Les fichiers, si on les a demandés —————
 if [[ $FICHIERS -eq 1 ]]; then
   etape "Fichiers — du CDN de Bubble vers le stockage"
@@ -339,6 +397,7 @@ docker exec -i "$PREFIXE-db" psql -U postgres -d postgres -c "
   union all select 'appel', count(*) from public.appel
   union all select 'province', count(*) from public.province
   union all select 'candidat_secteur', count(*) from public.candidat_secteur
+  union all select 'loge_du_reseau', count(*) from public.loge_du_reseau
   union all select 'bubble_brut', count(*) from public.bubble_brut
   order by 1"
 

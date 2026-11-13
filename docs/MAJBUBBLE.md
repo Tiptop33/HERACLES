@@ -84,6 +84,19 @@ select count(*) as secteurs_a_valider
  where sb.valide_le is null;
 ```
 
+**Les loges du réseau.** La commande les pose aussi (passe 7, migration 0094) :
+les 73 loges que Bubble rattache à la loge HERACLES, dans Paramètres › Loges
+du réseau. Rien de ce que l'administration a saisi n'est remplacé ; une loge
+qu'elle a retirée ne revient pas. Leurs écussons partent avec `--fichiers`, ou
+seuls avec `--loges-du-reseau`. Les adresses des logos, comme toutes celles du
+CDN de Bubble, cesseront de répondre à la fermeture : vérifier qu'aucun
+écusson ne reste à rapatrier.
+
+```sql
+select count(*) as ecussons_a_rapatrier from public.loge_du_reseau
+ where ecusson_url is not null and ecusson_chemin is null;
+```
+
 **Rattacher les comptes.** Les fiches arrivent de Bubble ; les comptes de
 connexion, eux, existent déjà. Rien ne les lie tant qu'on ne le demande pas :
 
