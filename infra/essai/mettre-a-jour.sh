@@ -222,4 +222,18 @@ case $provinces in
      rouge "la prochaine mise en ligne reprendra." ;;
 esac
 
+etape "Loges du réseau — depuis Bubble"
+# Les 73 loges que Bubble rattache à la loge HERACLES, posées dans Paramètres ›
+# Loges du réseau avec leur écusson (migration 0094). Même règle que les PDF :
+# non bloquant, borné, sans jeton, à retirer après la bascule. Rejouer ne
+# remplace rien de ce que l'administration a saisi, et ne recrée pas une loge
+# qu'elle a retirée : la première mise en ligne les crée, les suivantes ne
+# font que remplir les cases encore vides.
+if env -u BUBBLE_TOKEN timeout 300 "$DEPOT/infra/essai/reprendre-bubble.sh" --loges-du-reseau; then
+  vert "loges du réseau à jour"
+else
+  rouge "loges du réseau : reprise incomplète — sans effet sur l'application,"
+  rouge "la prochaine mise en ligne reprendra."
+fi
+
 vert "instance d'essai à jour"

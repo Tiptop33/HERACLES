@@ -37,9 +37,9 @@ puis les offres du bâtiment.
 
 | # | Question | Décision |
 | --- | --- | --- |
-| 17 | D'où vient la liste des 73 loges ? | **D'ailleurs que Bubble**, et elle **n'existe pas encore** : elle est à constituer |
+| 17 | D'où vient la liste des 73 loges ? | ~~D'ailleurs que Bubble, à constituer~~ — **elle est dans Bubble** : reprise, décisions 39 et 40 |
 | 18 | Comment le Secrétaire d'une loge du réseau coche-t-il ? | Sur **sa page à part, unique** : un formulaire ouvert par un lien personnel, **sans compte HERACLES** |
-| 19 | Qui constitue la liste ? | **L'administration la saisit dans HERACLES**, loge par loge |
+| 19 | Qui constitue la liste ? | **L'administration la saisit dans HERACLES**, loge par loge — reprise de Bubble depuis la décision 39, l'administration la complète |
 | 20 | Que saisit-on pour chaque loge ? | Le **nom**, le **numéro**, la **province**, le **nom du Secrétaire** et son **adresse électronique** |
 | 21 | Comment les nommer ? | Les « **loges du réseau** ». « Loge » garde son sens actuel |
 | 22 | Combien de temps le lien vaut-il ? | **90 jours**. Le Secrétaire y revient autant qu'il veut ; l'administration peut en renvoyer un nouveau |
@@ -64,6 +64,25 @@ puis les offres du bâtiment.
 | 36 | Cet écran, tel que maquetté ? | **Validé tel quel** (`docs/maquettes/secteurs-repris-de-bubble.html`) |
 | 37 | Quels champs Bubble ? | ~~`SECTEUR-ACTIVITE-CAND`~~, rempli sur **aucune** des 122 fiches. Retenus : la **liste ROME** (`SECTEUR ACTIVITE ROME`) et le **texte libre** (`Candidat_SA`), chaque ligne de l'écran disant de quel champ elle vient ; le **code NAF** de Bubble (`Code_NAF_Candidats`) passe **d'office**, sans validation |
 | 38 | La ligne grise « Repris de Bubble » de la fiche, pour un secteur ROME ? | Elle montre le **texte libre, sinon l'intitulé ROME** : le référent voit ce que Bubble disait avant de confirmer |
+
+## Les décisions du 13 novembre 2026 — les loges du réseau reprises de Bubble
+
+La liste des 73 loges du réseau existe dans Bubble, contrairement à ce que
+disait la décision 17 : le type `loges` (l'annuaire, 1 389 loges) rattache 73
+loges à la loge HERACLES par le champ `LOGE-LOGEREF` — une seule province,
+73 numéros. La page Bubble `correspondants` les affiche.
+
+| # | Question | Décision |
+| --- | --- | --- |
+| 39 | Quelles loges reprendre dans Loges du réseau ? | **Les 73 rattachées à HERACLES** — pas les 6 rattachées à PYTHAGORE |
+| 40 | L'adresse électronique de la loge (36 loges sur 73) ? | Elle devient **l'adresse du Secrétaire**, à corriger dans HERACLES au besoin |
+
+La reprise (migration 0094, `reprendre-bubble.sh --loges-du-reseau`, jouée à
+chaque mise en ligne jusqu'à la bascule) prend le nom, le numéro, la province,
+l'adresse et le logo, qui devient l'écusson. Elle ne remplace jamais ce que
+l'administration a saisi, ne recrée pas une loge retirée, et rattache à sa
+loge Bubble une loge déjà saisie au même numéro. Bubble n'a pas le nom du
+Secrétaire : il reste à saisir.
 
 Relevé du 13 novembre sur la base Bubble en service (des comptes, aucune donnée
 relevée) :
@@ -108,7 +127,7 @@ Une loge ouvre des portes dans des **entreprises** : le secteur est l'axe qui lu
 parle. Les offres France Travail portent les deux codes (`offre_emploi.rome_code`,
 `offre_emploi.code_naf`).
 
-## Ce qui est en place (migrations 0086 à 0093)
+## Ce qui est en place (migrations 0086 à 0094)
 
 ```
 code_naf            la nomenclature, ses 5 niveaux, 1 728 lignes
@@ -123,6 +142,10 @@ loge_du_reseau      les 73 loges du réseau, saisies par l'administration
   nom · numero · province_id · secretaire_nom · secretaire_email
   lien_empreinte · lien_envoye_le · lien_expire_le   (le lien : son empreinte, 90 jours)
   secteurs_maj_le                                    (la date de la liste)
+
+  bubble_id · ecusson_url                            (la loge Bubble d'où elle vient, son logo)
+
+loge_du_reseau_bubble    les loges Bubble déjà reprises : une loge retirée ne revient pas
 
 loge_du_reseau_secteur   les secteurs cochés par le Secrétaire (de la division à la sous-classe)
   loge_du_reseau_id · code · coche_le
@@ -185,7 +208,7 @@ recopiés à l'identique.
 | 2 | ~~Maquettes des trois écrans~~ — **validées le 12 novembre** | fait |
 | 2 bis | Les loges du réseau : la page du Secrétaire et Paramètres › Loges du réseau | **fait** (0089, 0091) |
 | 2 ter | Le formulaire de candidature et la fiche candidat (écrans 1 et 2 de `secteurs-d-activite.html`) | **fait** (0092) |
-| 2 quater | Saisir les 73 loges du réseau et envoyer les liens — sur le site d'essai, par l'administration | avant la bascule |
+| 2 quater | ~~Saisir les 73 loges du réseau~~ — **reprises de Bubble** (0094) ; compléter le nom des Secrétaires et les adresses manquantes, puis envoyer les liens — par l'administration | avant la bascule |
 | 3 | ~~Table de correspondance des secteurs Bubble → NAF~~ — Paramètres › Secteurs d'activité | **fait** (0093) |
 | 3 bis | Valider chaque secteur Bubble — sur le site d'essai, par l'administration | avant la bascule |
 | 4 | Fiche candidat : « Loges qui peuvent aider » | décembre |
