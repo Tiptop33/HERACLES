@@ -20,6 +20,13 @@ sont pas les « loges » de HERACLES (voir le vocabulaire du CLAUDE.md et
   de la ligne de la loge dans Paramètres.
 - Sans écusson : l'initiale de la loge dans un rond, comme une province sans
   image (« Loge » et l'article sont sautés : « Les Bâtisseurs » donne B).
+- Ajouté le 14 novembre 2026, à la demande : l'écusson se glisse-dépose aussi,
+  en plus de « Parcourir », sur « Écusson (facultatif) » du formulaire d'ajout
+  (il part avec la loge) et sur la zone de l'écusson de la loge ouverte (il la
+  remplace aussitôt). Pendant le glisser, la zone s'encadre en pointillés. Un
+  fichier qui n'est pas une image JPEG, PNG, WebP, GIF ou AVIF de 5 Mo au plus
+  est refusé, avec le message habituel. Le même geste existe sur l'écran
+  Province, où l'image de chaque carte reçoit aussi le dépôt.
 
 ## Modifié après validation : le courriel à droite (13 novembre 2026)
 

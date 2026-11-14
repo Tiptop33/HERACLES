@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from 'react';
 import Ecusson from '@/components/Ecusson';
+import ZoneDeDepot, { useGardeDuGlisser } from '@/components/ZoneDeDepot';
+import { ACCEPTE_ECUSSON } from '@/lib/depot';
 import {
   TAILLE_MAXIMALE_ECUSSON_PROVINCIAL,
   adresseDeLEcusson,
@@ -21,11 +23,14 @@ import {
  * l'écusson dès qu'il est choisi. Le retrait seul demande confirmation, et
  * dit combien de loges perdront leur province.
  *
+ * L'écusson se choisit par « Parcourir », ou se glisse-dépose (demande du
+ * 14 novembre 2026) : sur l'image de la carte, sur la zone de l'écusson dans
+ * le volet, et sur « Écusson (facultatif) » du formulaire d'ajout.
+ *
  * Les droits ne se jouent pas ici : la route les vérifie, la base les redit.
  */
 
 const API = '/api/provinces';
-const FORMATS = 'image/jpeg,image/png,image/webp,image/gif,image/avif';
 
 type Reponse = { provinces?: ProvinceAGerer[]; id?: string; erreur?: string };
 
@@ -36,6 +41,7 @@ export default function GestionDesProvinces({ initiales }: { initiales: Province
   const [erreur, setErreur] = useState<string | null>(null);
   const [mot, setMot] = useState<string | null>(null);
   const minuteur = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useGardeDuGlisser();
 
   const dire = (texte: string) => {
     setMot(texte);
@@ -134,10 +140,15 @@ export default function GestionDesProvinces({ initiales }: { initiales: Province
           required
           maxLength={120}
         />
-        <label className="provinces-ajout-ecusson">
+        <ZoneDeDepot
+          comme="label"
+          className="provinces-ajout-ecusson"
+          refuser={setErreur}
+          tailleMaximale={TAILLE_MAXIMALE_ECUSSON_PROVINCIAL}
+        >
           Écusson <span className="maigre">(facultatif)</span>
-          <input name="ecusson" type="file" accept={FORMATS} />
-        </label>
+          <input name="ecusson" type="file" accept={ACCEPTE_ECUSSON} />
+        </ZoneDeDepot>
         <button className="bouton bouton--fort" type="submit" disabled={occupe}>
           Ajouter
         </button>
@@ -160,6 +171,7 @@ export default function GestionDesProvinces({ initiales }: { initiales: Province
               renommer={(nom) => renommer(p.id, nom)}
               deposer={(fichier) => void deposerLEcusson(p.id, fichier).then((ok) => ok && dire('Écusson déposé'))}
               retirer={() => void retirer(p)}
+              signaler={setErreur}
               occupe={occupe}
             />
           ))}
@@ -182,6 +194,7 @@ function CarteAGerer({
   renommer,
   deposer,
   retirer,
+  signaler,
   occupe,
 }: {
   province: ProvinceAGerer;
@@ -190,6 +203,8 @@ function CarteAGerer({
   renommer: (nom: string) => Promise<boolean>;
   deposer: (fichier: File) => void;
   retirer: () => void;
+  /** Dire pourquoi un fichier glissé est refusé. */
+  signaler: (message: string) => void;
   occupe: boolean;
 }) {
   const connu = province.nom_de_la_province ?? '';
@@ -207,7 +222,16 @@ function CarteAGerer({
 
   return (
     <article className="carte-province">
-      <div className="carte-province-image">
+      {/* L'image de la carte reçoit aussi un écusson glissé : il remplace
+          l'actuel aussitôt, sans ouvrir le volet. */}
+      <ZoneDeDepot
+        className="carte-province-image"
+        envoyer={deposer}
+        refuser={signaler}
+        tailleMaximale={TAILLE_MAXIMALE_ECUSSON_PROVINCIAL}
+        desactivee={occupe}
+        invite="Déposez l’écusson"
+      >
         {/* `alt` vide : le nom est juste en dessous. Faute d'écusson,
             l'initiale — comme pour un référent sans photo. */}
         {ecusson ? (
@@ -218,7 +242,7 @@ function CarteAGerer({
             {initialeDeProvince(province.nom_de_la_province)}
           </span>
         )}
-      </div>
+      </ZoneDeDepot>
 
       <div className="carte-province-tete">
         <p className="carte-province-nom">{affiche}</p>
@@ -250,13 +274,19 @@ function CarteAGerer({
             />
           </label>
 
-          <div className="carte-province-ecusson">
+          <ZoneDeDepot
+            className="carte-province-ecusson"
+            envoyer={deposer}
+            refuser={signaler}
+            tailleMaximale={TAILLE_MAXIMALE_ECUSSON_PROVINCIAL}
+            desactivee={occupe}
+          >
             <Ecusson src={ecusson} nom={affiche} initiale={initialeDeProvince(province.nom_de_la_province)} />
             <label>
               {province.a_un_ecusson ? 'Remplacer l’écusson' : 'Déposer un écusson'}
               <input
                 type="file"
-                accept={FORMATS}
+                accept={ACCEPTE_ECUSSON}
                 disabled={occupe}
                 onChange={(e) => {
                   const fichier = e.target.files?.[0];
@@ -266,7 +296,7 @@ function CarteAGerer({
               />
             </label>
             <small className="maigre">JPEG, PNG, WebP, GIF ou AVIF, 5 Mo au plus.</small>
-          </div>
+          </ZoneDeDepot>
 
           <button type="button" className="reseau-retirer" onClick={retirer} disabled={occupe}>
             Retirer cette province

@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import Ecusson from '@/components/Ecusson';
+import ZoneDeDepot, { useGardeDuGlisser } from '@/components/ZoneDeDepot';
+import { ACCEPTE_ECUSSON } from '@/lib/depot';
 import {
   DUREE_DU_LIEN_JOURS,
   aEnvoyerEnGroupe,
@@ -85,6 +87,9 @@ export default function GestionDesLogesDuReseau({
   const [occupe, setOccupe] = useState(false);
   const [erreur, setErreur] = useState<string | null>(null);
   const [mot, setMot] = useState<string | null>(null);
+  // Une image lâchée à côté d'une zone de dépôt n'ouvre pas l'image à la
+  // place de la page.
+  useGardeDuGlisser();
   // Une version par loge : après un dépôt, l'adresse de l'écusson change, et
   // le navigateur ne ressert pas l'ancien.
   const [versions, setVersions] = useState<Record<string, number>>({});
@@ -304,10 +309,17 @@ export default function GestionDesLogesDuReseau({
           <button className="bouton bouton--fort" type="submit" disabled={occupe}>
             Ajouter
           </button>
-          <label className="reseau-ajout-ecusson">
+          {/* L'écusson se choisit par « Parcourir », ou se glisse-dépose ici
+              (demande du 14 novembre 2026) ; il part avec la loge. */}
+          <ZoneDeDepot
+            comme="label"
+            className="reseau-ajout-ecusson"
+            refuser={setErreur}
+            tailleMaximale={TAILLE_MAXIMALE_ECUSSON}
+          >
             Écusson <span className="maigre">(facultatif)</span>
-            <input name="ecusson" type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/avif" />
-          </label>
+            <input name="ecusson" type="file" accept={ACCEPTE_ECUSSON} />
+          </ZoneDeDepot>
           <div className="reseau-ajout-pied">
             <small>Le lien ne part pas tout seul : envoyez-le quand la fiche est complète.</small>
           </div>
@@ -325,6 +337,7 @@ export default function GestionDesLogesDuReseau({
                 loge={l}
                 ecusson={adresseDeLEcusson(l, versions[l.id] ?? 0)}
                 deposer={(fichier) => void deposerLEcusson(l.id, fichier).then((ok) => ok && dire('Écusson déposé'))}
+                signaler={setErreur}
                 provinces={provinces}
                 ouverte={ouverte === l.id}
                 basculer={() => setOuverte(ouverte === l.id ? null : l.id)}
@@ -373,6 +386,7 @@ function LigneDeLaLoge({
   loge,
   ecusson,
   deposer,
+  signaler,
   provinces,
   ouverte,
   basculer,
@@ -385,6 +399,8 @@ function LigneDeLaLoge({
   /** L'adresse de l'écusson, ou `null` : l'initiale le remplace. */
   ecusson: string | null;
   deposer: (fichier: File) => void;
+  /** Dire pourquoi un fichier glissé est refusé. */
+  signaler: (message: string) => void;
   provinces: Province[];
   ouverte: boolean;
   basculer: () => void;
@@ -489,13 +505,19 @@ function LigneDeLaLoge({
             </label>
           </div>
 
-          <div className="reseau-ecusson">
+          <ZoneDeDepot
+            className="reseau-ecusson"
+            envoyer={deposer}
+            refuser={signaler}
+            tailleMaximale={TAILLE_MAXIMALE_ECUSSON}
+            desactivee={occupe}
+          >
             <Ecusson src={ecusson} nom={loge.nom} taille="grand" />
             <label>
               {loge.a_un_ecusson ? 'Remplacer l’écusson' : 'Déposer un écusson'}
               <input
                 type="file"
-                accept="image/jpeg,image/png,image/webp,image/gif,image/avif"
+                accept={ACCEPTE_ECUSSON}
                 disabled={occupe}
                 onChange={(e) => {
                   const fichier = e.target.files?.[0];
@@ -505,7 +527,7 @@ function LigneDeLaLoge({
               />
             </label>
             <small className="maigre">JPEG, PNG, WebP, GIF ou AVIF, 5 Mo au plus.</small>
-          </div>
+          </ZoneDeDepot>
 
           <p className="reseau-historique">
             {loge.lien_envoye_le && loge.lien_expire_le

@@ -2390,6 +2390,35 @@ tbody tr:focus-within {
   font-size: 0.75rem;
 }
 
+/* Le glisser-déposer d'un écusson (demande du 14 novembre 2026) — écran
+   Province et Paramètres › Loges de Guyenne et Gascogne. Hors glisser, la zone
+   ne se voit pas : seul l'encadré en pointillés dit, pendant le geste, où
+   lâcher l'image. */
+.zone-de-depot {
+  position: relative;
+  border-radius: 8px;
+}
+
+.zone-de-depot--survol {
+  outline: 2px dashed var(--marque);
+  outline-offset: 3px;
+}
+
+/* Sur une image, l'encadré seul se voit mal : un mot vient par-dessus. */
+.zone-de-depot-invite {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 0.5rem;
+  text-align: center;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--marque);
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+  pointer-events: none;
+}
+
 /* ————————————————————————————————————————————————————————————————————————
    Les paramètres : le menu des rubriques à gauche, la rubrique à droite.
    ———————————————————————————————————————————————————————————————————————— */
