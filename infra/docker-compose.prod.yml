@@ -48,6 +48,14 @@ services:
       # La lecture du CV par Claude (docs/lecture-du-cv.md), pour pré-remplir
       # la fiche du candidat. Vide : rien ne part, le candidat remplit à la main.
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      # La réception des offres de France Travail (docs/france-travail.md) :
+      # les identifiants de l'application déclarée chez eux, les départements
+      # suivis, et le secret de la route /api/offres/recevoir. Vides : la
+      # route est fermée, et les offres restent celles déjà en base.
+      FRANCE_TRAVAIL_CLIENT_ID: ${FRANCE_TRAVAIL_CLIENT_ID:-}
+      FRANCE_TRAVAIL_CLIENT_SECRET: ${FRANCE_TRAVAIL_CLIENT_SECRET:-}
+      FRANCE_TRAVAIL_DEPARTEMENTS: ${FRANCE_TRAVAIL_DEPARTEMENTS:-}
+      RECEPTION_OFFRES_SECRET: ${RECEPTION_OFFRES_SECRET:-}
     ports:
       # Jamais exposé directement sur Internet : la façade — Nginx ou Traefik —
       # fait le reverse-proxy HTTPS vers ce port. Publié sur la boucle locale

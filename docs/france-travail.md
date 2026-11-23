@@ -1,0 +1,140 @@
+# La réception des offres de France Travail
+
+Les **offres** d'emploi viennent de France Travail. Jusqu'au 23 novembre 2026,
+HERACLES ne les tenait que de la reprise de Bubble — et Bubble n'en recevait
+plus depuis le 25 mai : aucune n'était « en cours », l'écran « France Travail »
+était vide. Depuis la migration 0099, HERACLES les reçoit lui-même. C'est la
+« réception France Travail » du lot 4.
+
+## Ce qui se passe
+
+```
+minuterie (toutes les 3 h)          mise en ligne
+        │                                 │
+        └──► infra/essai/recevoir-offres.sh ◄──┘
+                      │  POST, secret partagé, boucle locale
+                      ▼
+        /api/offres/recevoir            (application web)
+                      │  1. vérifie le secret
+                      │  2. demande un jeton à France Travail
+                      │  3. cherche les offres : par département, jour par jour
+                      │  4. remet chaque page à la base, clé de service
+                      ▼
+        recevoir_offres_france_travail(jsonb)      (migration 0099)
+                      │  met à jour l'offre connue, crée l'autre
+                      ▼
+                 offre_emploi
+```
+
+- **Quelles offres** : celles créées dans les départements suivis — par défaut
+  les quatre de l'application Bubble, **33, 40, 47, 64**. `FRANCE_TRAVAIL_DEPARTEMENTS`
+  en donne d'autres (`24,33,40,47,64`).
+- **Depuis quand** : depuis la dernière offre connue, plus un jour de
+  recouvrement ; deux jours au moins, trente et un au plus. Au-delà de trente
+  jours une offre n'est plus « en cours » (migrations 0011 et 0097) : la
+  recevoir ne servirait à rien.
+- **Reconnaître une offre** : par l'identifiant que France Travail lui donne
+  (`offre_emploi.source_id`). Une offre reprise de Bubble que France Travail
+  renvoie est mise à jour, et garde son `bubble_id`.
+- **Rien n'est supprimé.** Une offre que France Travail ne renvoie plus cesse
+  d'être actualisée et sort des offres en cours au bout de trente jours.
+- **Le contact du recruteur n'est pas gardé** — nom, courriel, téléphone. Aucun
+  écran n'en a besoin ; l'offre porte l'adresse de sa page d'origine.
+
+Ce qui part chez France Travail : les identifiants de l'application, un numéro
+de département, deux dates. Rien d'un candidat ni d'un référent — le registre
+des traitements n'a pas à changer.
+
+## Les identifiants
+
+Ils viennent d'une application déclarée sur **francetravail.io** (espace
+« Partenaires »), abonnée à l'API **« Offres d'emploi v2 »**. Le site donne
+alors un *identifiant client* et une *clé secrète*. Si l'application Bubble
+avait les siens, ils conviennent : ce sont les mêmes.
+
+Ils se rangent sur le serveur, dans `/opt/heracles-essai-depot/.env.essai`,
+**jamais dans le dépôt** :
+
+| Variable | Ce que c'est |
+| --- | --- |
+| `FRANCE_TRAVAIL_CLIENT_ID` | l'identifiant client de l'application |
+| `FRANCE_TRAVAIL_CLIENT_SECRET` | sa clé secrète |
+| `FRANCE_TRAVAIL_DEPARTEMENTS` | facultatif — `33,40,47,64` si la ligne est vide ou absente |
+| `RECEPTION_OFFRES_SECRET` | le secret de la route ; `installer-reception-offres.sh` le fabrique |
+
+`deployer.sh` conserve ces quatre lignes quand il réécrit le fichier.
+
+## Mettre en service
+
+Sur le serveur, une fois les deux identifiants rangés dans `.env.essai` :
+
+```bash
+sudo /opt/heracles-essai-depot/infra/essai/installer-reception-offres.sh
+```
+
+Il fabrique le secret de la route, redémarre l'application pour qu'elle lise
+ses réglages, pose la minuterie `heracles-offres.timer` (toutes les trois
+heures) et reçoit tout de suite le mois écoulé — quelques minutes.
+
+Sans systemd, la même chose avec `cron` :
+
+```
+17 */3 * * * /opt/heracles-essai-depot/infra/essai/recevoir-offres.sh >/dev/null
+```
+
+## Vérifier, rejouer
+
+```bash
+systemctl status heracles-offres.timer        # la minuterie tourne ?
+journalctl -u heracles-offres -n 40           # la dernière réception ?
+sudo ./infra/essai/recevoir-offres.sh         # recevoir maintenant
+sudo ./infra/essai/recevoir-offres.sh --jours 31   # tout le mois écoulé
+```
+
+Chaque passage affiche le bilan que la route renvoie — des compteurs, rien
+d'autre :
+
+```
+{"ok":true,"jours":2,"recues":412,"creees":96,"mises_a_jour":316,"appels":14,
+ "fenetres_lues":8,"fenetres_prevues":8,"plafonnees":0,"termine":true}
+```
+
+| Champ | Ce qu'il dit |
+| --- | --- |
+| `recues`, `creees`, `mises_a_jour` | les offres rangées par ce passage |
+| `appels` | les recherches faites à France Travail |
+| `fenetres_lues` / `fenetres_prevues` | un département × un jour, c'est une fenêtre |
+| `plafonnees` | les fenêtres qui dépassaient ce que l'API accepte de rendre (3 150 offres) — au-delà de zéro, des offres manquent ce jour-là |
+| `termine` | `false` : les quatre minutes se sont écoulées ; le script rappelle la route, qui reprend où elle s'est arrêtée |
+
+Quand ça échoue, la réponse dit l'étape :
+
+| `etape` | À regarder |
+| --- | --- |
+| `jeton` (souvent `401`) | les identifiants : recopiés en entier ? l'application est-elle abonnée à l'API « Offres d'emploi v2 » ? |
+| `recherche` | France Travail a refusé ou ne répond pas — le code HTTP est dans `statut` |
+| `depot` | la base a refusé la page : `docker compose -p heracles-essai-web logs --tail 50` |
+
+HTTP `401` sur la route elle-même : le secret ne correspond pas, ou il est
+absent — la route est alors fermée à tout le monde, et c'est voulu. HTTP `503` :
+les identifiants France Travail manquent.
+
+## Ce qui reste à savoir
+
+- **Jamais joué contre la vraie API avant la première mise en service.** Le
+  code a été écrit d'après la documentation de l'API et éprouvé contre une
+  fausse ; les adresses, la portée du jeton et la forme des réponses sont à
+  confirmer au premier passage réel. Le bilan et les codes d'erreur ci-dessus
+  sont là pour ça.
+- **Les offres créées, pas les offres actualisées.** La recherche se fait par
+  date de création. Une offre créée il y a deux mois et simplement actualisée
+  hier n'est pas reçue.
+- **Les conditions d'utilisation de l'API** — mention de la source, logo,
+  durée de conservation — sont à relire sur francetravail.io : elles
+  s'appliquent à l'écran « France Travail ».
+- **La table grossit.** Rien n'est supprimé : quatre départements, c'est
+  plusieurs milliers d'offres par mois. Une purge des offres anciennes sera à
+  décider quand les offres proposées à un candidat existeront (lot 4), pour ne
+  pas effacer ce qu'un référent a proposé.
+- **L'instance de production** n'existe pas encore : ces scripts sont ceux de
+  l'essai. La mise en ligne du lot 6 reprendra la même minuterie.
