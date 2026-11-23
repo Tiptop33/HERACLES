@@ -1,23 +1,18 @@
-import { Fragment } from 'react';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import ListeDesOffres from '@/components/ListeDesOffres';
-import { dateEnLettres } from '@/lib/format';
+import OffreOuverte from '@/components/OffreOuverte';
 import {
   adresseDesOffres,
   estFiltre,
-  lienSur,
   lireFiltres,
   lireIdentifiantDOffre,
   menusAAfficher,
   nombreDePages,
-  pointsDuDetail,
-  type DetailDOffre,
 } from '@/lib/offres';
 import { lireMenusDesOffres, lireOffre, lirePageDOffres } from '@/lib/offres-serveur';
 import { exigerProfil } from '@/lib/profil';
 import { accueilDuRole } from '@/lib/roles';
-import FenetreDeLOffre from './FenetreDeLOffre';
 import FiltresDesOffres from './FiltresDesOffres';
 
 export const metadata = { title: 'France Travail — HERACLES' };
@@ -144,77 +139,9 @@ export default async function FranceTravail({
       )}
 
       {demandee && (
-        <FenetreDeLOffre
-          // Une autre offre : une autre fenêtre, qui revient en haut de son texte.
-          key={demandee}
-          titre={offre?.intitule ?? (offre ? 'Offre sans intitulé' : 'Offre introuvable')}
-          fermer={adresseDesOffres(filtres)}
-        >
-          {offre ? <DetailDeLOffre offre={offre} /> : <p>Cette offre n’existe plus.</p>}
-        </FenetreDeLOffre>
+        <OffreOuverte demandee={demandee} offre={offre} fermer={adresseDesOffres(filtres)} />
       )}
     </main>
   );
 }
 
-/**
- * Le contenu de la fenêtre : l'entreprise, les points de l'offre, sa
- * description, et le lien vers sa page chez France Travail.
- *
- * Tout ce texte vient de l'extérieur. Il est affiché comme du texte — jamais
- * comme du HTML — et les adresses ne deviennent des liens qu'en `http(s)`.
- */
-function DetailDeLOffre({ offre }: { offre: DetailDOffre }) {
-  const points = pointsDuDetail(offre);
-  const origine = lienSur(offre.url_origine);
-  const site = lienSur(offre.entreprise_url);
-  const date = dateEnLettres(offre.date_actualisation ?? offre.date_creation);
-
-  return (
-    <>
-      {(offre.entreprise_nom || date) && (
-        <p className="maigre fenetre-offre-chapeau">
-          {[offre.entreprise_nom, date ? `actualisée le ${date}` : null].filter(Boolean).join(' · ')}
-        </p>
-      )}
-
-      {points.length > 0 && (
-        <dl className="champs">
-          {points.map((p) => (
-            <Fragment key={p.libelle}>
-              <dt>{p.libelle}</dt>
-              <dd>{p.valeur}</dd>
-            </Fragment>
-          ))}
-        </dl>
-      )}
-
-      {offre.description && <p className="fenetre-offre-texte">{offre.description}</p>}
-
-      {(offre.entreprise_description || offre.entreprise_taille || site) && (
-        <div className="fenetre-offre-entreprise">
-          <h3>L’entreprise</h3>
-          {offre.entreprise_description && (
-            <p className="fenetre-offre-texte">{offre.entreprise_description}</p>
-          )}
-          {offre.entreprise_taille && <p className="maigre">{offre.entreprise_taille}</p>}
-          {site && (
-            <p>
-              <a href={site} target="_blank" rel="noopener noreferrer">
-                Site de l’entreprise ↗
-              </a>
-            </p>
-          )}
-        </div>
-      )}
-
-      {origine && (
-        <p>
-          <a className="filtre" href={origine} target="_blank" rel="noopener noreferrer">
-            Voir l’offre sur France Travail ↗
-          </a>
-        </p>
-      )}
-    </>
-  );
-}
