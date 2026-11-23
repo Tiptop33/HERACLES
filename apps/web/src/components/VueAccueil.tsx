@@ -4,6 +4,8 @@ import FenetreDArchivage from '@/components/FenetreDArchivage';
 import FenetreDEffacement from '@/components/FenetreDEffacement';
 import type { Chiffres, Demande, DossierAArchiver, Offre } from '@/lib/accueil';
 import ListeDesOffres from './ListeDesOffres';
+import OffreOuverte from './OffreOuverte';
+import type { DetailDOffre } from '@/lib/offres';
 import type { DocumentArchive, Sorte } from '@/lib/documents/archives';
 import { depuis, initiales, nomComplet } from '@/lib/format';
 
@@ -37,6 +39,10 @@ export default function VueAccueil({
   aEffacer,
   refusDArchive,
   offres,
+  lienDeLOffre,
+  offreDemandee = null,
+  offre = null,
+  fermerLOffre = '/espace/accueil',
   aArchiver = [],
   refusDArchivage = null,
   estReferent,
@@ -51,6 +57,14 @@ export default function VueAccueil({
   /** Ce que la route d'effacement a refusé, dit en clair. */
   refusDArchive: string | null;
   offres: Offre[];
+  /** L'adresse qui ouvre le détail d'une offre. Absent : les lignes ne se cliquent pas. */
+  lienDeLOffre?: (id: string) => string;
+  /** L'offre dont le détail est demandé dans l'adresse (`?offre=…`). */
+  offreDemandee?: string | null;
+  /** Ce que la base a rendu pour elle ; `null` : elle n'existe plus. */
+  offre?: DetailDOffre | null;
+  /** Où mène la croix de la fenêtre du détail. */
+  fermerLOffre?: string;
   /** Les dossiers clôturés depuis plus de deux mois, pour le Vénérable et le Secrétaire (0071). */
   aArchiver?: DossierAArchiver[];
   /** Ce que la route d'archivage a refusé, dit en clair. */
@@ -141,7 +155,7 @@ export default function VueAccueil({
 
       <section className="bloc" data-aide="offres-en-cours">
         <h2>Offres d&apos;emploi en cours</h2>
-        <ListeDesOffres offres={offres} />
+        <ListeDesOffres offres={offres} lien={lienDeLOffre} ouverte={offreDemandee} />
       </section>
 
       {estReferent && (
@@ -151,6 +165,13 @@ export default function VueAccueil({
       )}
 
       {aEffacer && <FenetreDEffacement archive={aEffacer} adresse="/espace/accueil" />}
+
+      {/* Le détail d'une offre, en fenêtre flottante et non modale — la même
+          que sur l'écran France Travail. Pas pendant la confirmation d'un
+          effacement : une fenêtre à la fois. */}
+      {offreDemandee && !aEffacer && (
+        <OffreOuverte demandee={offreDemandee} offre={offre} fermer={fermerLOffre} />
+      )}
 
       {/* Une fenêtre à la fois : la confirmation d'un effacement passe avant. */}
       {!aEffacer && aArchiver.length > 0 && (

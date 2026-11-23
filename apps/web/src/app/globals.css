@@ -770,13 +770,15 @@ h3 {
   border-radius: 0.4rem;
 }
 
-/* Les deux filtres de l'écran « France Travail », centrés sous le logo. */
+/* La recherche et les deux filtres de l'écran « France Travail », sur toute
+   la largeur de la liste qu'ils commandent : le champ de recherche part du
+   bord gauche de la liste et prend la place qui reste, les deux menus
+   ferment la ligne à droite (23 novembre 2026, à la demande). */
 .filtres-des-offres {
   display: flex;
   gap: 0.5rem;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: center;
 }
 
 /* Le temps que la liste revienne : on voit que le geste a pris. */
@@ -784,10 +786,11 @@ h3 {
   opacity: 0.7;
 }
 
-/* Le champ de recherche, en tête de la barre. Large sur un écran d'ordinateur,
-   sur toute la ligne sur un téléphone — c'est le geste principal. */
+/* Le champ de recherche, en tête de la barre : il s'étire jusqu'aux menus.
+   Sur un téléphone, il prend toute la ligne et les menus passent dessous —
+   c'est le geste principal. */
 .filtres-des-offres form {
-  flex: 0 1 20rem;
+  flex: 1 1 16rem;
   min-width: 12rem;
 }
 
@@ -951,6 +954,16 @@ h3 {
   left: auto;
   right: 0;
   width: min(34rem, calc(100vw - 2rem));
+}
+
+/* Sur un téléphone, les menus passent sous la recherche et s'alignent à
+   gauche : le panneau part alors du bord gauche de son bouton, comme celui des
+   départements — aligné à droite, il sortirait de l'écran. */
+@media (max-width: 46rem) {
+  .choix-secteur-panneau {
+    left: 0;
+    right: auto;
+  }
 }
 
 .choix-secteur-texte {

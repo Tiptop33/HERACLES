@@ -6,8 +6,8 @@ import type { Offre } from '@/lib/accueil';
  * lieu et le type de contrat. La même à l'accueil et sur l'écran « France
  * Travail » — un seul composant, pour que les deux ne divergent pas.
  *
- * Avec `lien`, chaque ligne devient un lien — vers le détail de l'offre, sur
- * l'écran France Travail. Sans lui, la liste se lit et c'est tout : l'accueil.
+ * Avec `lien`, chaque ligne devient un lien vers le détail de l'offre. Sans
+ * lui, la liste se lit et c'est tout.
  */
 export default function ListeDesOffres({
   offres,
