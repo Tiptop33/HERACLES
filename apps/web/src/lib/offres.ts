@@ -116,13 +116,17 @@ export function lireFiltres(parametres: {
   return { departements, secteur: SECTION.test(secteur) ? secteur : '', recherche, page };
 }
 
-/** L'adresse de l'écran pour ces filtres. Sans filtre : l'adresse nue. */
-export function adresseDesOffres(filtres: FiltresDesOffres): string {
+/**
+ * L'adresse de l'écran pour ces filtres. Sans filtre : l'adresse nue.
+ * `offre` : l'offre dont le détail est ouvert, s'il y en a une.
+ */
+export function adresseDesOffres(filtres: FiltresDesOffres, offre?: string | null): string {
   const p = new URLSearchParams();
   if (filtres.recherche) p.set('q', filtres.recherche);
   if (filtres.departements.length > 0) p.set('dep', filtres.departements.join(','));
   if (filtres.secteur) p.set('secteur', filtres.secteur);
   if (filtres.page > 1) p.set('page', String(filtres.page));
+  if (offre) p.set('offre', offre);
   const suite = p.toString().replaceAll('%2C', ',');
   return suite ? `/espace/france-travail?${suite}` : '/espace/france-travail';
 }
@@ -169,6 +173,109 @@ export function resumeDesDepartements(choisis: readonly string[]): string {
 function ordreDesNumeros(a: string, b: string): number {
   const rang = (n: string) => (n.length === 3 ? 1000 + Number(n) : n === '2A' ? 20 : n === '2B' ? 20.5 : Number(n));
   return rang(a) - rang(b);
+}
+
+// --- Le détail d'une offre ------------------------------------------------------
+
+const IDENTIFIANT = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** L'identifiant d'offre écrit dans l'adresse (`?offre=…`), ou `null` s'il n'en a pas la forme. */
+export function lireIdentifiantDOffre(valeur: string | string[] | undefined): string | null {
+  const brut = (Array.isArray(valeur) ? valeur[0] : valeur)?.trim() ?? '';
+  return IDENTIFIANT.test(brut) ? brut.toLowerCase() : null;
+}
+
+const texte = z.string().nullable();
+
+const Detail = z.object({
+  id: z.string(),
+  intitule: texte,
+  description: texte,
+  appellation_libelle: texte,
+  rome_libelle: texte,
+  type_contrat_libelle: texte,
+  nature_contrat: texte,
+  duree_travail_libelle: texte,
+  duree_travail_type: texte,
+  salaire_libelle: texte,
+  experience_libelle: texte,
+  qualification_libelle: texte,
+  alternance: z.boolean().nullable(),
+  nombre_postes: z.number().nullable(),
+  accessible_th: z.boolean().nullable(),
+  entreprise_adaptee: z.boolean().nullable(),
+  lieu_libelle: texte,
+  secteur_libelle: texte,
+  entreprise_nom: texte,
+  entreprise_description: texte,
+  entreprise_url: texte,
+  entreprise_taille: texte,
+  url_origine: texte,
+  date_creation: texte,
+  date_actualisation: texte,
+});
+
+export type DetailDOffre = z.infer<typeof Detail>;
+
+/** Les colonnes que le détail demande à la base — celles-là, et pas `*`. */
+export const COLONNES_DU_DETAIL = Object.keys(Detail.shape).join(', ');
+
+/** Lit la ligne rendue par la base. `null` si elle n'a pas la forme attendue. */
+export function lireDetail(donnees: unknown): DetailDOffre | null {
+  const lu = Detail.safeParse(donnees);
+  return lu.success ? lu.data : null;
+}
+
+/**
+ * Une adresse venue de France Travail, si elle peut devenir un lien : `http`
+ * ou `https`, rien d'autre. Ces adresses viennent de l'extérieur ; un
+ * `javascript:` glissé là ne doit jamais atterrir dans un `href`.
+ */
+export function lienSur(adresse: string | null | undefined): string | null {
+  const brute = adresse?.trim() ?? '';
+  if (!brute) return null;
+  try {
+    const lue = new URL(brute);
+    return lue.protocol === 'https:' || lue.protocol === 'http:' ? lue.toString() : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Les points du détail — « Contrat », « Salaire »… — dans l'ordre d'affichage,
+ * réduits à ceux que l'offre renseigne. Une ligne vide ne dit rien : on ne
+ * l'affiche pas.
+ */
+export function pointsDuDetail(o: DetailDOffre): { libelle: string; valeur: string }[] {
+  const contrat = [o.type_contrat_libelle, o.nature_contrat]
+    .filter((v, i, tous) => v && tous.indexOf(v) === i)
+    .join(' — ');
+  const duree = [o.duree_travail_type, o.duree_travail_libelle]
+    .filter((v, i, tous) => v && tous.indexOf(v) === i)
+    .join(' — ');
+  const metier = o.appellation_libelle ?? o.rome_libelle;
+  const mentions = [
+    o.alternance ? 'En alternance' : null,
+    o.accessible_th ? 'Accessible aux travailleurs handicapés' : null,
+    o.entreprise_adaptee ? 'Entreprise adaptée' : null,
+  ].filter(Boolean);
+
+  const points: [string, string | null | undefined][] = [
+    ['Lieu', o.lieu_libelle],
+    ['Contrat', contrat],
+    ['Temps de travail', duree],
+    ['Salaire', o.salaire_libelle],
+    ['Expérience', o.experience_libelle],
+    ['Qualification', o.qualification_libelle],
+    ['Métier', metier],
+    ['Secteur', o.secteur_libelle],
+    ['Postes', o.nombre_postes && o.nombre_postes > 1 ? String(o.nombre_postes) : null],
+    ['À noter', mentions.join(' · ')],
+  ];
+  return points
+    .filter((p): p is [string, string] => Boolean(p[1]?.trim()))
+    .map(([libelle, valeur]) => ({ libelle, valeur }));
 }
 
 // --- Une page de la liste (`offres_en_cours`, 0097) ----------------------------

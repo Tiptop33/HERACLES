@@ -795,6 +795,111 @@ h3 {
   width: 100%;
 }
 
+/* Une ligne de la liste, quand elle ouvre le détail de l'offre. Le lien prend
+   toute la ligne — la cible est large sous le doigt — et garde l'apparence du
+   texte : c'est une liste qu'on lit, pas une colonne de liens bleus. */
+.liste-nue li.offre-ligne {
+  padding: 0;
+}
+
+.offre-lien {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  padding: 0.5rem 0.4rem;
+  margin: 0 -0.4rem;
+  border-radius: 0.4rem;
+  color: inherit;
+  text-decoration: none;
+}
+
+.offre-lien:hover,
+.offre-lien[aria-current='true'] {
+  background: var(--surface-creuse);
+}
+
+.offre-lien:focus-visible {
+  outline: 2px solid var(--candidat);
+  outline-offset: 1px;
+}
+
+/* La fenêtre du détail : la fenêtre flottante de l'application, en plus
+   large, posée à droite à l'ouverture. Sur un téléphone, elle prend la
+   largeur de l'écran et s'arrête au-dessus de la barre d'onglets. */
+.fenetre-offre {
+  top: 5rem;
+  right: 1rem;
+  width: min(34rem, calc(100vw - 2rem));
+  max-height: calc(100dvh - 6rem - var(--onglets-h, 0px));
+}
+
+.fenetre-offre-barre {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  /* Elle reste en vue quand le texte de l'offre défile dessous. */
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.fenetre-offre-barre h2 {
+  flex: 1;
+  min-width: 0;
+}
+
+.fenetre-offre-fermer {
+  flex: none;
+  padding: 0.15rem 0.5rem;
+  border-radius: 0.4rem;
+  color: var(--encre-douce);
+  text-decoration: none;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.fenetre-offre-fermer:hover {
+  background: var(--bordure);
+}
+
+.fenetre-offre-chapeau {
+  margin: 0;
+  font-size: 0.88rem;
+}
+
+/* Le texte de l'offre garde ses retours à la ligne — c'est du texte, affiché
+   comme tel, jamais interprété. */
+.fenetre-offre-texte {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+.fenetre-offre-entreprise {
+  display: grid;
+  gap: 0.5rem;
+  padding-top: 0.8rem;
+  border-top: 1px solid var(--bordure);
+}
+
+.fenetre-offre-entreprise h3,
+.fenetre-offre-entreprise p {
+  margin: 0;
+}
+
+.fenetre-offre-entreprise h3 {
+  font-size: 0.72rem;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: var(--encre-tres-douce);
+}
+
+.fenetre-offre .flottante-corps > p:last-child {
+  margin: 0;
+}
+
 /* Sous la liste : la page d'avant, où l'on est, la page d'après. */
 .pages-des-offres {
   display: flex;
