@@ -167,6 +167,13 @@ la clé de service — comme les liens du parrain et du candidat.
 
 **Les écrans en service :**
 
+- **l'écran « France Travail »** — `/espace/france-travail` (migration 0097,
+  23 novembre 2026) : les offres en cours se filtrent par un ou plusieurs
+  départements et par un secteur, qui est la **section** de la NAF
+  (`offre_emploi.code_naf` → division → section). Les deux menus ne proposent
+  que ce qui porte une offre en cours. Le département se lit dans le texte
+  repris de Bubble, sinon dans le code postal ;
+
 - **la page du Secrétaire** — `/loge-du-reseau/<jeton>` : il coche les secteurs
   de sa loge, sans compte ; un lien expiré ou remplacé donne « Ce lien n'est
   plus valable » ;

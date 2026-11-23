@@ -602,7 +602,7 @@ export const PARCOURS: readonly Parcours[] = [
         ancre: 'offres-en-cours',
         ecran: ACCUEIL,
         texte:
-          'L’accueil liste les offres d’emploi en cours : intitulé, entreprise, lieu, type de contrat. C’est pour l’instant le seul endroit où elles se lisent.',
+          'L’accueil liste les offres d’emploi en cours : intitulé, entreprise, lieu, type de contrat. L’écran « France Travail », dans la famille « Emploi », en donne la liste plus longue, à filtrer par département et par secteur d’activité.',
       },
     ],
   },
@@ -615,7 +615,7 @@ export const PARCOURS: readonly Parcours[] = [
       {
         ancre: 'eteint:Offres internes',
         texte:
-          'Les écrans des offres — internes, externes, web — ne sont pas encore en service : leurs entrées sont grisées dans la famille « Emploi ». En attendant, l’accueil liste les offres en cours.',
+          'Les écrans des offres internes et des offres web ne sont pas encore en service : leurs entrées sont grisées dans la famille « Emploi ». En attendant, l’accueil liste les offres en cours, et l’écran « France Travail » — les anciennes « offres externes » — en donne la liste plus longue.',
       },
     ],
   },
