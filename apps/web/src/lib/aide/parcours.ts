@@ -602,7 +602,7 @@ export const PARCOURS: readonly Parcours[] = [
         ancre: 'offres-en-cours',
         ecran: ACCUEIL,
         texte:
-          'L’accueil liste les offres d’emploi en cours : intitulé, entreprise, lieu, type de contrat. L’écran « France Travail », dans la famille « Emploi », en donne la liste plus longue, à filtrer par département et par secteur d’activité.',
+          'L’accueil liste les offres d’emploi en cours : intitulé, entreprise, lieu, type de contrat. L’écran « France Travail », dans la famille « Emploi », en donne la liste entière, à filtrer par département et par secteur d’activité, ou en y cherchant un mot.',
       },
     ],
   },

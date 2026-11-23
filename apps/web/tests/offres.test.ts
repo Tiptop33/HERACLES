@@ -4,6 +4,9 @@ import {
   DEPARTEMENTS,
   adresseDesOffres,
   basculerDepartement,
+  chercher,
+  estFiltre,
+  nettoyerRecherche,
   choisirSecteur,
   lirePage,
   nombreDePages,
@@ -61,11 +64,12 @@ describe('adresseDesOffres', () => {
   });
 
   it('écrit ce que lireFiltres relit', () => {
-    const filtres = { departements: ['2A', '33', '47'], secteur: 'F', page: 3 };
+    const filtres = { departements: ['2A', '33', '47'], secteur: 'F', recherche: 'chef de chantier', page: 3 };
     const adresse = adresseDesOffres(filtres);
-    expect(adresse).toBe('/espace/france-travail?dep=2A,33,47&secteur=F&page=3');
+    expect(adresse).toBe('/espace/france-travail?q=chef+de+chantier&dep=2A,33,47&secteur=F&page=3');
     const p = new URL(adresse, 'https://exemple.test').searchParams;
     expect(lireFiltres({
+        q: p.get('q') ?? undefined,
         dep: p.get('dep') ?? undefined,
         secteur: p.get('secteur') ?? undefined,
         page: p.get('page') ?? undefined,
@@ -76,16 +80,17 @@ describe('adresseDesOffres', () => {
 
 describe('basculerDepartement', () => {
   it('coche, puis décoche, sans toucher au secteur', () => {
-    const un = basculerDepartement({ departements: ['47'], secteur: 'F', page: 1 }, '33');
-    expect(un).toEqual({ departements: ['33', '47'], secteur: 'F', page: 1 });
-    expect(basculerDepartement(un, '47')).toEqual({ departements: ['33'], secteur: 'F', page: 1 });
+    const un = basculerDepartement({ departements: ['47'], secteur: 'F', recherche: 'maçon', page: 1 }, '33');
+    expect(un).toEqual({ departements: ['33', '47'], secteur: 'F', recherche: 'maçon', page: 1 });
+    expect(basculerDepartement(un, '47')).toEqual({ departements: ['33'], secteur: 'F', recherche: 'maçon', page: 1 });
   });
 
   it('ramène à la première page, comme tout changement de filtre', () => {
-    const page7 = { departements: ['33'], secteur: 'F', page: 7 };
+    const page7 = { departements: ['33'], secteur: 'F', recherche: '', page: 7 };
     expect(basculerDepartement(page7, '47').page).toBe(1);
-    expect(choisirSecteur(page7, 'C')).toEqual({ departements: ['33'], secteur: 'C', page: 1 });
-    expect(tousLesDepartements(page7)).toEqual({ departements: [], secteur: 'F', page: 1 });
+    expect(choisirSecteur(page7, 'C')).toEqual({ departements: ['33'], secteur: 'C', recherche: '', page: 1 });
+    expect(chercher(page7, 'maçon')).toEqual({ departements: ['33'], secteur: 'F', recherche: 'maçon', page: 1 });
+    expect(tousLesDepartements(page7)).toEqual({ departements: [], secteur: 'F', recherche: '', page: 1 });
   });
 });
 
@@ -112,7 +117,7 @@ describe('les menus', () => {
 
   it('gardent ce qui est choisi, même si plus aucune offre ne le porte — pour pouvoir le décocher', () => {
     const menus = { departements: ['33'], secteurs: [{ code: 'F', intitule: 'Construction' }] };
-    const affiches = menusAAfficher(menus, { departements: ['47'], secteur: 'C', page: 1 });
+    const affiches = menusAAfficher(menus, { departements: ['47'], secteur: 'C', recherche: '', page: 1 });
     expect(affiches.departements).toEqual(['33', '47']);
     expect(affiches.secteurs.map((s) => s.code)).toEqual(['C', 'F']);
     expect(menusAAfficher(menus, AUCUN_FILTRE)).toEqual(menus);
@@ -129,8 +134,8 @@ describe('les pages', () => {
   });
 
   it('la première page ne s’écrit pas dans l’adresse', () => {
-    expect(adresseDesOffres({ departements: ['33'], secteur: '', page: 1 })).toBe('/espace/france-travail?dep=33');
-    expect(adresseDesOffres({ departements: [], secteur: '', page: 2 })).toBe('/espace/france-travail?page=2');
+    expect(adresseDesOffres({ departements: ['33'], secteur: '', recherche: '', page: 1 })).toBe('/espace/france-travail?dep=33');
+    expect(adresseDesOffres({ departements: [], secteur: '', recherche: '', page: 2 })).toBe('/espace/france-travail?page=2');
   });
 
   it('se comptent à cinquante offres par page', () => {
@@ -145,5 +150,39 @@ describe('les pages', () => {
     expect(lirePage({ total: 1, offres: [offre] })).toEqual({ total: 1, offres: [offre] });
     expect(lirePage({ total: -1, offres: [] })).toBeNull();
     expect(lirePage([offre])).toBeNull();
+  });
+});
+
+describe('la recherche par mots', () => {
+  it('se lit dans l’adresse, espaces resserrées', () => {
+    expect(lireFiltres({ q: '  chef   de chantier ' }).recherche).toBe('chef de chantier');
+    expect(lireFiltres({ q: ['boulanger', 'autre'] }).recherche).toBe('boulanger');
+    expect(lireFiltres({}).recherche).toBe('');
+    expect(lireFiltres({ q: '   ' }).recherche).toBe('');
+  });
+
+  it('est bornée à 120 caractères, sans espace en fin', () => {
+    expect(nettoyerRecherche('a'.repeat(300))).toHaveLength(120);
+    expect(nettoyerRecherche(`${'a'.repeat(119)} bcd`)).toBe('a'.repeat(119));
+  });
+
+  it('garde les accents et les signes : c’est la base qui compare', () => {
+    expect(nettoyerRecherche('Électricien 100% & co')).toBe('Électricien 100% & co');
+    const adresse = adresseDesOffres({ ...AUCUN_FILTRE, recherche: 'Électricien 100% & co' });
+    const p = new URL(adresse, 'https://exemple.test').searchParams;
+    expect(lireFiltres({ q: p.get('q') ?? undefined }).recherche).toBe('Électricien 100% & co');
+  });
+
+  it('compte comme un filtre — pour dire « aucune offre pour ce choix »', () => {
+    expect(estFiltre(AUCUN_FILTRE)).toBe(false);
+    expect(estFiltre({ ...AUCUN_FILTRE, page: 4 })).toBe(false);
+    expect(estFiltre({ ...AUCUN_FILTRE, recherche: 'maçon' })).toBe(true);
+    expect(estFiltre({ ...AUCUN_FILTRE, departements: ['33'] })).toBe(true);
+    expect(estFiltre({ ...AUCUN_FILTRE, secteur: 'F' })).toBe(true);
+  });
+
+  it('effacer la recherche garde les autres filtres', () => {
+    const avec = { departements: ['33'], secteur: 'F', recherche: 'maçon', page: 3 };
+    expect(chercher(avec, '  ')).toEqual({ departements: ['33'], secteur: 'F', recherche: '', page: 1 });
   });
 });

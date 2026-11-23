@@ -198,7 +198,7 @@ $$;
 \echo '— une personne non connectée : rien'
 select public.verifier(
   not has_function_privilege('anon', 'public.filtres_des_offres()', 'execute')
-    and not has_function_privilege('anon', 'public.offres_en_cours(text[], text, integer, integer)', 'execute')
+    and not has_function_privilege('anon', 'public.offres_en_cours(text[], text, integer, integer, text)', 'execute')
     and not has_function_privilege('anon', 'public.section_naf_d_une_offre(text)', 'execute')
     and not has_function_privilege('authenticated', 'public.section_naf_d_une_offre(text)', 'execute'),
   'anon n''exécute aucune des fonctions ; la lecture de la nomenclature reste interne');

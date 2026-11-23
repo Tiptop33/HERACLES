@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import ListeDesOffres from '@/components/ListeDesOffres';
-import { adresseDesOffres, lireFiltres, menusAAfficher, nombreDePages } from '@/lib/offres';
+import { adresseDesOffres, estFiltre, lireFiltres, menusAAfficher, nombreDePages } from '@/lib/offres';
 import { lireMenusDesOffres, lirePageDOffres } from '@/lib/offres-serveur';
 import { exigerProfil } from '@/lib/profil';
 import { accueilDuRole } from '@/lib/roles';
@@ -15,12 +15,14 @@ export const metadata = { title: 'France Travail — HERACLES' };
  * France Travail, autant le dire.
  *
  * En haut, le logo de France Travail, centré, qui tient lieu de titre. En
- * dessous, deux filtres — un ou plusieurs départements, un secteur d'activité
- * — puis la liste des offres en cours qui y répondent : actualisées depuis
+ * dessous, une recherche par mots et deux filtres — un ou plusieurs
+ * départements, un secteur d'activité — puis la liste des offres en cours qui
+ * y répondent : actualisées depuis
  * moins de trente jours, les plus récentes d'abord, cinquante par page. Sous
  * la liste, de quoi passer d'une page à l'autre, jusqu'à la dernière.
  *
- * Les filtres et la page vivent dans l'adresse (`?dep=33,47&secteur=F&page=2`). Tout passe par
+ * La recherche, les filtres et la page vivent dans l'adresse
+ * (`?q=boulanger&dep=33,47&secteur=F&page=2`). Tout passe par
  * la base (migration 0097), avec la session de la personne : c'est elle qui
  * refuse un compte chercheur, range chaque offre dans son département et son
  * secteur, et borne la liste. Une offre ne dit rien de personne.
@@ -32,6 +34,7 @@ export default async function FranceTravail({
   searchParams,
 }: {
   searchParams: Promise<{
+    q?: string | string[];
     dep?: string | string[];
     secteur?: string | string[];
     page?: string | string[];
@@ -48,7 +51,7 @@ export default async function FranceTravail({
   const pages = page ? nombreDePages(page.total) : 1;
   if (page && filtres.page > pages) redirect(adresseDesOffres({ ...filtres, page: pages }));
 
-  const filtre = filtres.departements.length > 0 || filtres.secteur !== '';
+  const filtre = estFiltre(filtres);
 
   return (
     <main className="corps">
@@ -64,7 +67,13 @@ export default async function FranceTravail({
         </h1>
       </div>
 
-      {menus && <FiltresDesOffres filtres={filtres} menus={menusAAfficher(menus, filtres)} />}
+      {/* Sans les menus — la base ne les a pas rendus — la recherche reste :
+          elle n'en dépend pas. */}
+      <FiltresDesOffres
+        filtres={filtres}
+        menus={menus ? menusAAfficher(menus, filtres) : { departements: filtres.departements, secteurs: [] }}
+        menusLus={menus !== null}
+      />
 
       <section className="bloc">
         <h2>Offres d&apos;emploi en cours</h2>

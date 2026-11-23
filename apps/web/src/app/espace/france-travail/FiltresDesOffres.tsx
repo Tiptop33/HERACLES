@@ -5,7 +5,9 @@ import { useRouter } from 'next/navigation';
 import {
   adresseDesOffres,
   basculerDepartement,
+  chercher,
   choisirSecteur,
+  LONGUEUR_DE_RECHERCHE,
   nomDuDepartement,
   resumeDesDepartements,
   tousLesDepartements,
@@ -14,8 +16,9 @@ import {
 } from '@/lib/offres';
 
 /**
- * Les deux filtres de l'écran « France Travail » (23 novembre 2026, à la
- * demande) : un ou plusieurs départements, et un secteur d'activité.
+ * La recherche et les deux filtres de l'écran « France Travail » (23 novembre
+ * 2026, à la demande) : des mots à chercher dans les offres, un ou plusieurs
+ * départements, et un secteur d'activité.
  *
  * Chaque geste s'applique aussitôt : il réécrit l'adresse, et la page relit la
  * liste. Pas de bouton « Appliquer ». L'adresse porte les filtres — elle se
@@ -28,19 +31,35 @@ import {
  *
  * `useOptimistic` : la case se coche à l'instant du clic, sans attendre que le
  * serveur ait rendu la liste.
+ *
+ * La recherche s'applique en tapant, après un court silence : relire la liste
+ * à chaque lettre ferait dix allers-retours pour un mot. « Entrée » l'applique
+ * tout de suite.
  */
+
+/** Le silence, en millisecondes, après lequel la recherche part. */
+const SILENCE = 350;
+
 export default function FiltresDesOffres({
   filtres,
   menus,
+  menusLus = true,
 }: {
   filtres: Filtres;
   menus: MenusDesOffres;
+  /** Faux quand la base n'a pas rendu les menus : seule la recherche s'affiche. */
+  menusLus?: boolean;
 }) {
   const router = useRouter();
   const [enCours, demarrer] = useTransition();
   const [affiches, afficher] = useOptimistic(filtres);
   const [ouvert, setOuvert] = useState(false);
   const cadre = useRef<HTMLDivElement>(null);
+
+  // Ce qui est tapé, à l'instant : en avance sur l'adresse le temps du silence.
+  const [saisie, setSaisie] = useState(filtres.recherche);
+  const minuterie = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => void (minuterie.current && clearTimeout(minuterie.current)), []);
 
   // Le panneau se referme d'un clic ailleurs ou d'« Échap » — sans rien
   // annuler : ce qui est coché est déjà appliqué.
@@ -67,8 +86,44 @@ export default function FiltresDesOffres({
     });
   };
 
+  /** Applique la recherche — tout de suite, ou après le silence. */
+  const lancerLaRecherche = (texte: string, attente: number) => {
+    if (minuterie.current) clearTimeout(minuterie.current);
+    minuterie.current = setTimeout(() => {
+      minuterie.current = null;
+      const suivants = chercher(affiches, texte);
+      // Rien de neuf — une espace en plus, la même recherche : on ne relit pas.
+      if (suivants.recherche !== affiches.recherche) appliquer(suivants);
+    }, attente);
+  };
+
   return (
     <div className="filtres-des-offres" aria-busy={enCours}>
+      <form
+        role="search"
+        onSubmit={(e) => {
+          e.preventDefault();
+          lancerLaRecherche(saisie, 0);
+        }}
+      >
+        <input
+          className="recherche"
+          type="search"
+          value={saisie}
+          maxLength={LONGUEUR_DE_RECHERCHE}
+          onChange={(e) => {
+            setSaisie(e.target.value);
+            lancerLaRecherche(e.target.value, SILENCE);
+          }}
+          placeholder="Chercher un métier, une entreprise, un lieu…"
+          aria-label="Chercher dans les offres"
+          autoComplete="off"
+          enterKeyHint="search"
+        />
+      </form>
+
+      {menusLus && (
+      <>
       <div className="choix-departements" ref={cadre}>
         <button
           type="button"
@@ -132,6 +187,8 @@ export default function FiltresDesOffres({
           </option>
         ))}
       </select>
+      </>
+      )}
     </div>
   );
 }

@@ -784,6 +784,17 @@ h3 {
   opacity: 0.7;
 }
 
+/* Le champ de recherche, en tête de la barre. Large sur un écran d'ordinateur,
+   sur toute la ligne sur un téléphone — c'est le geste principal. */
+.filtres-des-offres form {
+  flex: 0 1 20rem;
+  min-width: 12rem;
+}
+
+.filtres-des-offres .recherche {
+  width: 100%;
+}
+
 .filtres-des-offres select {
   max-width: 100%;
 }
