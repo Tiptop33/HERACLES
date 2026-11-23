@@ -111,6 +111,17 @@ describe('Province', () => {
     ]);
   });
 
+  it('appelle « France Travail » l’ancienne entrée « Offres externes », à la même place', () => {
+    const emploi = FAMILLES.find((f) => f.nom === 'Emploi')!;
+    expect(emploi.entrees.map((e) => e.libelle)).toEqual([
+      'Offres internes',
+      'France Travail',
+      'Offres web',
+      'Entreprises',
+    ]);
+    expect(emploi.entrees[1].vers).toBe('/espace/france-travail');
+  });
+
   it('mène aux cartes des provinces', () => {
     const reseau = FAMILLES.find((f) => f.nom === 'Réseau')!;
     expect(reseau.entrees.find((e) => e.libelle === 'Province')?.vers).toBe('/espace/provinces');

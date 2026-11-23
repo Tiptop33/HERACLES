@@ -615,7 +615,7 @@ export const PARCOURS: readonly Parcours[] = [
       {
         ancre: 'eteint:Offres internes',
         texte:
-          'Les écrans des offres — internes, externes, web — ne sont pas encore en service : leurs entrées sont grisées dans la famille « Emploi ». En attendant, l’accueil liste les offres en cours.',
+          'Les écrans des offres internes et des offres web ne sont pas encore en service : leurs entrées sont grisées dans la famille « Emploi ». Celui de France Travail — les anciennes « offres externes » — est ouvert, mais ne liste pas encore les offres. En attendant, l’accueil liste les offres en cours.',
       },
     ],
   },

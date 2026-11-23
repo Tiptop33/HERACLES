@@ -751,6 +751,22 @@ h3 {
   margin: 0;
 }
 
+/* L'en-tête de l'écran « France Travail » : le titre, puis le logo, centrés
+   l'un sur l'autre. Le logo est posé sur une plaque blanche : son bleu marine
+   disparaîtrait sur le fond du thème sombre, et un logo tiers ne se recolore
+   pas. */
+.entete-france-travail {
+  align-items: center;
+}
+
+.logo-france-travail {
+  height: 2.75rem;
+  width: auto;
+  padding: 0.3rem 0.5rem;
+  background: #fff;
+  border-radius: 0.4rem;
+}
+
 .entete-liste .compte {
   color: var(--encre-douce);
   font-size: 0.9rem;
