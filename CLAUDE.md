@@ -193,6 +193,9 @@ sert**, pas la liste des fichiers touchés.
 - **Secteurs d'activité** — `docs/secteurs-d-activite.md` : la nomenclature NAF
   qui range candidats, loges et offres, les dix décisions qui la fondent, et ce
   qui reste à faire.
+- **Offres de France Travail** — `docs/france-travail.md` : la réception des
+  offres par l'application (route planifiée, minuterie sur le serveur), les
+  identifiants `FRANCE_TRAVAIL_*`, et ce qui reste à confirmer.
 - **Aide intégrée** — `docs/aide.md` : le bouton « Aide », le catalogue des
   parcours, les ancres `data-aide` et le personnage qui désigne. Tout écran qui
   porte une ancre la garde, ou le test de l'aide casse.

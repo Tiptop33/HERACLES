@@ -167,6 +167,24 @@ else
   exit 1
 fi
 
+etape "Offres d'emploi — depuis France Travail"
+# Les offres créées depuis la dernière connue (docs/france-travail.md). La
+# minuterie `heracles-offres.timer` le fait toutes les trois heures ; le
+# rejouer ici met l'écran à jour dès la mise en ligne.
+#
+# **Non bloquant**, et borné à cinq minutes : l'application est déjà en ligne,
+# et une API France Travail lente ne doit ni la faire échouer ni tenir le
+# déploiement. Ce qui est reçu reste reçu, la minuterie reprend le reste.
+# Code 3 : la réception n'est pas configurée — ce n'est pas une panne.
+offres=0
+timeout 300 "$DEPOT/infra/essai/recevoir-offres.sh" || offres=$?
+case $offres in
+  0) ;;
+  3) ;;
+  *) rouge "offres : réception incomplète (code $offres) — sans effet sur l'application,"
+     rouge "le prochain passage de la minuterie reprendra." ;;
+esac
+
 etape "PDF de la commission — depuis Bubble"
 # Les comptes rendus, affiches et affichettes de Bubble, pour que l'accueil
 # les montre et les ouvre depuis notre stockage (migration 0069). Rejoué à
