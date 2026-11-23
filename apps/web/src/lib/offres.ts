@@ -1,8 +1,8 @@
 import { z } from 'zod';
 
 /**
- * Les filtres de l'écran « France Travail » : un ou plusieurs départements, et
- * un secteur d'activité (migration 0097).
+ * Les filtres de l'écran « France Travail » : un ou plusieurs départements, un
+ * secteur d'activité (migration 0097) et des mots à chercher (0100).
  *
  * Ce module est pur — lire l'adresse, la réécrire, nommer un département — et
  * sert au serveur comme au navigateur. La lecture en base est dans
@@ -60,11 +60,26 @@ export type FiltresDesOffres = {
   departements: string[];
   /** Vide : tous les secteurs. Sinon la lettre de la section NAF. */
   secteur: string;
+  /** Les mots cherchés, tels que tapés. Vide : pas de recherche. */
+  recherche: string;
   /** La page affichée, à partir de 1. */
   page: number;
 };
 
-export const AUCUN_FILTRE: FiltresDesOffres = { departements: [], secteur: '', page: 1 };
+export const AUCUN_FILTRE: FiltresDesOffres = { departements: [], secteur: '', recherche: '', page: 1 };
+
+/** La longueur que la base retient d'une recherche (0100) : inutile d'en porter plus. */
+export const LONGUEUR_DE_RECHERCHE = 120;
+
+/** Une recherche propre : espaces resserrées, 120 caractères au plus. */
+export function nettoyerRecherche(brute: string): string {
+  return brute.replace(/\s+/g, ' ').trim().slice(0, LONGUEUR_DE_RECHERCHE).trim();
+}
+
+/** Vrai si quelque chose restreint la liste — pour dire « aucune offre pour ce choix ». */
+export function estFiltre(filtres: FiltresDesOffres): boolean {
+  return filtres.departements.length > 0 || filtres.secteur !== '' || filtres.recherche !== '';
+}
 
 /** Le nombre d'offres par page. */
 export const OFFRES_PAR_PAGE = 50;
@@ -72,13 +87,14 @@ export const OFFRES_PAR_PAGE = 50;
 type Parametre = string | string[] | undefined;
 
 /**
- * Les filtres écrits dans l'adresse : `?dep=33,47&secteur=F&page=2`.
+ * Les filtres écrits dans l'adresse : `?q=boulanger&dep=33,47&secteur=F&page=2`.
  *
  * Tout ce qui n'a pas la forme attendue est ignoré, sans erreur : une adresse
  * recopiée de travers doit ouvrir la liste, pas une page d'erreur. `dep` se
  * lit aussi répété (`?dep=33&dep=47`).
  */
 export function lireFiltres(parametres: {
+  q?: Parametre;
   dep?: Parametre;
   secteur?: Parametre;
   page?: Parametre;
@@ -95,12 +111,15 @@ export function lireFiltres(parametres: {
   const numero = (Array.isArray(parametres.page) ? parametres.page[0] : parametres.page) ?? '';
   const page = /^[1-9][0-9]{0,5}$/.test(numero.trim()) ? Number(numero.trim()) : 1;
 
-  return { departements, secteur: SECTION.test(secteur) ? secteur : '', page };
+  const recherche = nettoyerRecherche((Array.isArray(parametres.q) ? parametres.q[0] : parametres.q) ?? '');
+
+  return { departements, secteur: SECTION.test(secteur) ? secteur : '', recherche, page };
 }
 
 /** L'adresse de l'écran pour ces filtres. Sans filtre : l'adresse nue. */
 export function adresseDesOffres(filtres: FiltresDesOffres): string {
   const p = new URLSearchParams();
+  if (filtres.recherche) p.set('q', filtres.recherche);
   if (filtres.departements.length > 0) p.set('dep', filtres.departements.join(','));
   if (filtres.secteur) p.set('secteur', filtres.secteur);
   if (filtres.page > 1) p.set('page', String(filtres.page));
@@ -122,6 +141,11 @@ export function basculerDepartement(filtres: FiltresDesOffres, numero: string): 
 /** Change de secteur (vide : tous), et revient à la première page. */
 export function choisirSecteur(filtres: FiltresDesOffres, secteur: string): FiltresDesOffres {
   return { ...filtres, secteur, page: 1 };
+}
+
+/** Change les mots cherchés (vide : pas de recherche), et revient à la première page. */
+export function chercher(filtres: FiltresDesOffres, recherche: string): FiltresDesOffres {
+  return { ...filtres, recherche: nettoyerRecherche(recherche), page: 1 };
 }
 
 /** Tous les départements, et la première page. */

@@ -172,7 +172,9 @@ la clé de service — comme les liens du parrain et du candidat.
   départements et par un secteur, qui est la **section** de la NAF
   (`offre_emploi.code_naf` → division → section). Les deux menus ne proposent
   que ce qui porte une offre en cours. Le département se lit dans le texte
-  repris de Bubble, sinon dans le code postal ;
+  repris de Bubble, sinon dans le code postal, le code INSEE ou le libellé du
+  lieu (0098). Une recherche par mots s'y ajoute (0100) : intitulé, métier,
+  entreprise, lieu et description, sans accents ;
 
 - **la page du Secrétaire** — `/loge-du-reseau/<jeton>` : il coche les secteurs
   de sa loge, sans compte ; un lien expiré ou remplacé donne « Ce lien n'est

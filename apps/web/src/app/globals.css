@@ -784,8 +784,15 @@ h3 {
   opacity: 0.7;
 }
 
-.filtres-des-offres select {
-  max-width: 100%;
+/* Le champ de recherche, en tête de la barre. Large sur un écran d'ordinateur,
+   sur toute la ligne sur un téléphone — c'est le geste principal. */
+.filtres-des-offres form {
+  flex: 0 1 20rem;
+  min-width: 12rem;
+}
+
+.filtres-des-offres .recherche {
+  width: 100%;
 }
 
 /* Sous la liste : la page d'avant, où l'on est, la page d'après. */
@@ -824,6 +831,34 @@ h3 {
   border: 1px solid var(--bordure-nette);
   border-radius: var(--rayon);
   box-shadow: 0 8px 24px rgb(0 0 0 / 0.18);
+}
+
+/* Le panneau des secteurs : un secteur par ligne, jamais deux. Les intitulés
+   de la NAF sont longs ; au-delà de la largeur du panneau, une ellipse — et
+   l'intitulé entier dans l'infobulle. Le panneau s'aligne à droite : son
+   bouton est le dernier de la barre, il déborderait de l'écran sinon. */
+.choix-secteur-panneau {
+  left: auto;
+  right: 0;
+  width: min(34rem, calc(100vw - 2rem));
+}
+
+.choix-secteur-texte {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Le bouton garde une largeur raisonnable, même sur « T — Activités des
+   ménages en tant qu'employeurs… ». */
+.choix-secteur-bouton {
+  display: inline-flex;
+  align-items: center;
+  /* L'espace avant la flèche : dans une boîte flexible, celle du texte se perd. */
+  gap: 0.3rem;
+  max-width: min(22rem, 100%);
+  white-space: nowrap;
 }
 
 .choix-departements-panneau .maigre {

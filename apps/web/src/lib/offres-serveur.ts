@@ -27,8 +27,9 @@ export async function lireMenusDesOffres(): Promise<MenusDesOffres | null> {
 }
 
 /**
- * La page demandée des offres en cours qui répondent aux filtres, les plus
- * récentes d'abord, et le total — qui dit combien de pages il y a.
+ * La page demandée des offres en cours qui répondent aux filtres et aux mots
+ * cherchés (0100), les plus récentes d'abord, et le total — qui dit combien
+ * de pages il y a.
  */
 export async function lirePageDOffres(filtres: FiltresDesOffres): Promise<PageDOffres | null> {
   const supabase = await supabaseServer();
@@ -37,6 +38,7 @@ export async function lirePageDOffres(filtres: FiltresDesOffres): Promise<PageDO
     le_secteur: filtres.secteur || null,
     limite: OFFRES_PAR_PAGE,
     decalage: (filtres.page - 1) * OFFRES_PAR_PAGE,
+    la_recherche: filtres.recherche || null,
   });
   if (error) return null;
   return lirePage(data);
