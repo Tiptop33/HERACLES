@@ -36,14 +36,39 @@ minuterie (toutes les 3 h)          mise en ligne
 - **Reconnaître une offre** : par l'identifiant que France Travail lui donne
   (`offre_emploi.source_id`). Une offre reprise de Bubble que France Travail
   renvoie est mise à jour, et garde son `bubble_id`.
-- **Rien n'est supprimé.** Une offre que France Travail ne renvoie plus cesse
-  d'être actualisée et sort des offres en cours au bout de trente jours.
+- **Une offre vit soixante jours.** Une offre que France Travail ne renvoie
+  plus cesse d'être actualisée : elle sort des offres en cours au bout de
+  trente jours, et elle est supprimée au bout de soixante (voir « La purge »).
 - **Le contact du recruteur n'est pas gardé** — nom, courriel, téléphone. Aucun
   écran n'en a besoin ; l'offre porte l'adresse de sa page d'origine.
 
 Ce qui part chez France Travail : les identifiants de l'application, un numéro
 de département, deux dates. Rien d'un candidat ni d'un référent — le registre
 des traitements n'a pas à changer.
+
+## La purge
+
+Chaque réception terminée se conclut par la suppression des offres de plus de
+**soixante jours** (migration 0101, `purger_les_offres_anciennes`). L'âge d'une
+offre est sa date d'actualisation chez France Travail ; à défaut sa date de
+création ; à défaut le jour où HERACLES l'a reçue.
+
+- Entre trente et soixante jours, une offre n'est plus à l'écran mais reste en
+  base : une marge, si France Travail la réactualise.
+- La première purge a emporté les quelque 4 500 offres reprises de Bubble,
+  toutes antérieures au 25 mai 2026. **Rejouer la reprise des offres Bubble les
+  ramène, et la réception suivante les supprime de nouveau** : c'est voulu, ces
+  offres ne sont plus à pourvoir.
+- La fonction refuse moins de trente et un jours : une faute de frappe ne peut
+  pas vider les offres en cours.
+- Une purge qui échoue ne fait pas échouer la réception : le bilan porte alors
+  `"purgees":null`, et le journal de l'application la ligne `[offres] purge
+  impossible`.
+- La suppression est définitive. Les sauvegardes nocturnes (`docs/sauvegarde.md`)
+  gardent la table telle qu'elle était.
+- **Le jour où une offre pourra être proposée à un candidat (lot 4), cette
+  purge devra épargner les offres proposées.** Aujourd'hui, aucune table ne
+  désigne une offre.
 
 ## Les identifiants
 
@@ -96,7 +121,7 @@ d'autre :
 
 ```
 {"ok":true,"jours":2,"recues":412,"creees":96,"mises_a_jour":316,"appels":14,
- "fenetres_lues":8,"fenetres_prevues":8,"plafonnees":0,"termine":true}
+ "fenetres_lues":8,"fenetres_prevues":8,"plafonnees":0,"termine":true,"purgees":187}
 ```
 
 | Champ | Ce qu'il dit |
@@ -106,6 +131,7 @@ d'autre :
 | `fenetres_lues` / `fenetres_prevues` | un département × un jour, c'est une fenêtre |
 | `plafonnees` | les fenêtres qui dépassaient ce que l'API accepte de rendre (3 150 offres) — au-delà de zéro, des offres manquent ce jour-là |
 | `termine` | `false` : les quatre minutes se sont écoulées ; le script rappelle la route, qui reprend où elle s'est arrêtée |
+| `purgees` | les offres de plus de soixante jours supprimées à la fin de ce passage ; `0` tant que la réception n'est pas terminée, `null` si la purge a échoué |
 
 Quand ça échoue, la réponse dit l'étape :
 
@@ -132,9 +158,8 @@ les identifiants France Travail manquent.
 - **Les conditions d'utilisation de l'API** — mention de la source, logo,
   durée de conservation — sont à relire sur francetravail.io : elles
   s'appliquent à l'écran « France Travail ».
-- **La table grossit.** Rien n'est supprimé : quatre départements, c'est
-  plusieurs milliers d'offres par mois. Une purge des offres anciennes sera à
-  décider quand les offres proposées à un candidat existeront (lot 4), pour ne
-  pas effacer ce qu'un référent a proposé.
+- **La purge ignore encore les offres proposées.** Elle supprime toute offre
+  de plus de soixante jours ; quand un référent pourra proposer une offre à un
+  candidat (lot 4), il faudra qu'elle épargne celles-là.
 - **L'instance de production** n'existe pas encore : ces scripts sont ceux de
   l'essai. La mise en ligne du lot 6 reprendra la même minuterie.

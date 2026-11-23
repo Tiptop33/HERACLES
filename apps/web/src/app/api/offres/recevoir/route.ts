@@ -30,11 +30,17 @@ import { supabaseAdmin } from '@/lib/supabase-admin';
  * suivant les lui rend (`?jours=…&reprise=…`) et reprend où celui-ci s'est
  * arrêté. Déposer deux fois la même offre ne la double pas.
  *
+ * Une réception terminée se conclut par la purge des offres de plus de
+ * soixante jours (migration 0101) ; `purgees` en donne le nombre.
+ *
  * La réponse ne porte que des compteurs : elle finit dans les journaux de la
  * tâche planifiée.
  */
 
 export const dynamic = 'force-dynamic';
+
+/** Au-delà de soixante jours sans actualisation, une offre est supprimée (0101). */
+const JOURS_DE_GARDE = 60;
 
 /** Quatre minutes : sous le délai des façades, et large pour une réception du jour. */
 const BUDGET_MS = 4 * 60 * 1000;
@@ -101,7 +107,22 @@ export async function POST(requete: Request) {
         return data as Compte;
       },
     }, reprise);
-    return NextResponse.json({ ok: true, jours, ...bilan });
+
+    // La réception finie, on purge les offres de plus de soixante jours (0101).
+    // Seulement quand elle est finie : une réception écourtée reprend au
+    // passage suivant, et la purge avec elle. Si la purge échoue, les offres
+    // sont quand même reçues — on le dit par `purgees: null`, sans faire
+    // échouer l'appel.
+    let purgees: number | null = 0;
+    if (bilan.termine) {
+      const { data, error } = await admin.rpc('purger_les_offres_anciennes', {
+        jours: JOURS_DE_GARDE,
+      });
+      if (error) console.error('[offres] purge impossible', error.code);
+      purgees = error || typeof data !== 'number' ? null : data;
+    }
+
+    return NextResponse.json({ ok: true, jours, ...bilan, purgees });
   } catch (panne) {
     // Ni identifiant, ni jeton, ni contenu d'offre dans le journal : l'étape
     // et le code suffisent à savoir où regarder.
