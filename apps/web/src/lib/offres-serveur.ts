@@ -1,7 +1,10 @@
 import {
+  COLONNES_DU_DETAIL,
   OFFRES_PAR_PAGE,
+  lireDetail,
   lireMenus,
   lirePage,
+  type DetailDOffre,
   type FiltresDesOffres,
   type MenusDesOffres,
   type PageDOffres,
@@ -42,4 +45,20 @@ export async function lirePageDOffres(filtres: FiltresDesOffres): Promise<PageDO
   });
   if (error) return null;
   return lirePage(data);
+}
+
+/**
+ * Le détail d'une offre, lu dans la table sous RLS (0002) avec la session de
+ * la personne — seulement les colonnes que l'écran montre. `null` : elle
+ * n'existe pas, ou plus.
+ */
+export async function lireOffre(id: string): Promise<DetailDOffre | null> {
+  const supabase = await supabaseServer();
+  const { data, error } = await supabase
+    .from('offre_emploi')
+    .select(COLONNES_DU_DETAIL)
+    .eq('id', id)
+    .maybeSingle();
+  if (error) return null;
+  return lireDetail(data);
 }

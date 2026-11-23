@@ -1,10 +1,23 @@
+import { Fragment } from 'react';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import ListeDesOffres from '@/components/ListeDesOffres';
-import { adresseDesOffres, estFiltre, lireFiltres, menusAAfficher, nombreDePages } from '@/lib/offres';
-import { lireMenusDesOffres, lirePageDOffres } from '@/lib/offres-serveur';
+import { dateEnLettres } from '@/lib/format';
+import {
+  adresseDesOffres,
+  estFiltre,
+  lienSur,
+  lireFiltres,
+  lireIdentifiantDOffre,
+  menusAAfficher,
+  nombreDePages,
+  pointsDuDetail,
+  type DetailDOffre,
+} from '@/lib/offres';
+import { lireMenusDesOffres, lireOffre, lirePageDOffres } from '@/lib/offres-serveur';
 import { exigerProfil } from '@/lib/profil';
 import { accueilDuRole } from '@/lib/roles';
+import FenetreDeLOffre from './FenetreDeLOffre';
 import FiltresDesOffres from './FiltresDesOffres';
 
 export const metadata = { title: 'France Travail — HERACLES' };
@@ -22,7 +35,8 @@ export const metadata = { title: 'France Travail — HERACLES' };
  * la liste, de quoi passer d'une page à l'autre, jusqu'à la dernière.
  *
  * La recherche, les filtres et la page vivent dans l'adresse
- * (`?q=boulanger&dep=33,47&secteur=F&page=2`). Tout passe par
+ * (`?q=boulanger&dep=33,47&secteur=F&page=2`). Toucher une offre en ouvre le
+ * détail dans une fenêtre flottante (`&offre=…`), lu dans la table sous RLS. Tout passe par
  * la base (migration 0097), avec la session de la personne : c'est elle qui
  * refuse un compte chercheur, range chaque offre dans son département et son
  * secteur, et borne la liste. Une offre ne dit rien de personne.
@@ -38,18 +52,27 @@ export default async function FranceTravail({
     dep?: string | string[];
     secteur?: string | string[];
     page?: string | string[];
+    offre?: string | string[];
   }>;
 }) {
   const profil = await exigerProfil();
   if (profil.role === 'chercheur') redirect(accueilDuRole(profil.role));
 
-  const filtres = lireFiltres(await searchParams);
-  const [menus, page] = await Promise.all([lireMenusDesOffres(), lirePageDOffres(filtres)]);
+  const parametres = await searchParams;
+  const filtres = lireFiltres(parametres);
+  // L'offre dont le détail est demandé. Elle se lit à la base, jamais dans la
+  // liste : l'adresse peut venir d'un favori, la page de la liste avoir changé.
+  const demandee = lireIdentifiantDOffre(parametres.offre);
+  const [menus, page, offre] = await Promise.all([
+    lireMenusDesOffres(),
+    lirePageDOffres(filtres),
+    demandee ? lireOffre(demandee) : null,
+  ]);
 
   // Une page au-delà de la dernière — une adresse gardée en favori, des offres
   // expirées depuis : on ramène à la dernière, plutôt que de montrer du vide.
   const pages = page ? nombreDePages(page.total) : 1;
-  if (page && filtres.page > pages) redirect(adresseDesOffres({ ...filtres, page: pages }));
+  if (page && filtres.page > pages) redirect(adresseDesOffres({ ...filtres, page: pages }, demandee));
 
   const filtre = estFiltre(filtres);
 
@@ -81,6 +104,8 @@ export default async function FranceTravail({
           <ListeDesOffres
             offres={page.offres}
             vide={filtre ? 'Aucune offre en cours pour ce choix.' : undefined}
+            lien={(id) => adresseDesOffres(filtres, id)}
+            ouverte={demandee}
           />
         ) : (
           <p className="erreur" role="alert">
@@ -117,6 +142,79 @@ export default async function FranceTravail({
           )}
         </nav>
       )}
+
+      {demandee && (
+        <FenetreDeLOffre
+          // Une autre offre : une autre fenêtre, qui revient en haut de son texte.
+          key={demandee}
+          titre={offre?.intitule ?? (offre ? 'Offre sans intitulé' : 'Offre introuvable')}
+          fermer={adresseDesOffres(filtres)}
+        >
+          {offre ? <DetailDeLOffre offre={offre} /> : <p>Cette offre n’existe plus.</p>}
+        </FenetreDeLOffre>
+      )}
     </main>
+  );
+}
+
+/**
+ * Le contenu de la fenêtre : l'entreprise, les points de l'offre, sa
+ * description, et le lien vers sa page chez France Travail.
+ *
+ * Tout ce texte vient de l'extérieur. Il est affiché comme du texte — jamais
+ * comme du HTML — et les adresses ne deviennent des liens qu'en `http(s)`.
+ */
+function DetailDeLOffre({ offre }: { offre: DetailDOffre }) {
+  const points = pointsDuDetail(offre);
+  const origine = lienSur(offre.url_origine);
+  const site = lienSur(offre.entreprise_url);
+  const date = dateEnLettres(offre.date_actualisation ?? offre.date_creation);
+
+  return (
+    <>
+      {(offre.entreprise_nom || date) && (
+        <p className="maigre fenetre-offre-chapeau">
+          {[offre.entreprise_nom, date ? `actualisée le ${date}` : null].filter(Boolean).join(' · ')}
+        </p>
+      )}
+
+      {points.length > 0 && (
+        <dl className="champs">
+          {points.map((p) => (
+            <Fragment key={p.libelle}>
+              <dt>{p.libelle}</dt>
+              <dd>{p.valeur}</dd>
+            </Fragment>
+          ))}
+        </dl>
+      )}
+
+      {offre.description && <p className="fenetre-offre-texte">{offre.description}</p>}
+
+      {(offre.entreprise_description || offre.entreprise_taille || site) && (
+        <div className="fenetre-offre-entreprise">
+          <h3>L’entreprise</h3>
+          {offre.entreprise_description && (
+            <p className="fenetre-offre-texte">{offre.entreprise_description}</p>
+          )}
+          {offre.entreprise_taille && <p className="maigre">{offre.entreprise_taille}</p>}
+          {site && (
+            <p>
+              <a href={site} target="_blank" rel="noopener noreferrer">
+                Site de l’entreprise ↗
+              </a>
+            </p>
+          )}
+        </div>
+      )}
+
+      {origine && (
+        <p>
+          <a className="filtre" href={origine} target="_blank" rel="noopener noreferrer">
+            Voir l’offre sur France Travail ↗
+          </a>
+        </p>
+      )}
+    </>
   );
 }
