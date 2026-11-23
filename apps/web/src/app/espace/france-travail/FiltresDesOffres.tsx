@@ -26,8 +26,8 @@ import {
  * ramène à la première page.
  *
  * Les départements se cochent dans un panneau flottant, non modal : il ne
- * voile rien, et se referme d'un clic ailleurs ou d'« Échap ». Le secteur est
- * un menu déroulant du système — sur un iPad, c'est la roue native.
+ * voile rien, et se referme d'un clic ailleurs ou d'« Échap ». Le secteur se
+ * choisit dans un panneau du même genre, un secteur par ligne.
  *
  * `useOptimistic` : la case se coche à l'instant du clic, sans attendre que le
  * serveur ait rendu la liste.
@@ -36,6 +36,11 @@ import {
  * à chaque lettre ferait dix allers-retours pour un mot. « Entrée » l'applique
  * tout de suite.
  */
+
+/** « F — Construction ». Un secteur sans intitulé connu s'affiche par sa lettre. */
+function libelleDuSecteur(s: { code: string; intitule: string }): string {
+  return s.intitule ? `${s.code} — ${s.intitule}` : s.code;
+}
 
 /** Le silence, en millisecondes, après lequel la recherche part. */
 const SILENCE = 350;
@@ -53,8 +58,12 @@ export default function FiltresDesOffres({
   const router = useRouter();
   const [enCours, demarrer] = useTransition();
   const [affiches, afficher] = useOptimistic(filtres);
-  const [ouvert, setOuvert] = useState(false);
+  // Un seul panneau à la fois : ouvrir l'un referme l'autre.
+  const [panneau, setPanneau] = useState<'departements' | 'secteurs' | null>(null);
+  const ouvert = panneau === 'departements';
+  const secteursOuverts = panneau === 'secteurs';
   const cadre = useRef<HTMLDivElement>(null);
+  const cadreDesSecteurs = useRef<HTMLDivElement>(null);
 
   // Ce qui est tapé, à l'instant : en avance sur l'adresse le temps du silence.
   const [saisie, setSaisie] = useState(filtres.recherche);
@@ -64,12 +73,13 @@ export default function FiltresDesOffres({
   // Le panneau se referme d'un clic ailleurs ou d'« Échap » — sans rien
   // annuler : ce qui est coché est déjà appliqué.
   useEffect(() => {
-    if (!ouvert) return;
+    if (!panneau) return;
     const dehors = (e: PointerEvent) => {
-      if (cadre.current && !cadre.current.contains(e.target as Node)) setOuvert(false);
+      const ou = panneau === 'departements' ? cadre.current : cadreDesSecteurs.current;
+      if (ou && !ou.contains(e.target as Node)) setPanneau(null);
     };
     const touche = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setOuvert(false);
+      if (e.key === 'Escape') setPanneau(null);
     };
     document.addEventListener('pointerdown', dehors);
     document.addEventListener('keydown', touche);
@@ -77,7 +87,7 @@ export default function FiltresDesOffres({
       document.removeEventListener('pointerdown', dehors);
       document.removeEventListener('keydown', touche);
     };
-  }, [ouvert]);
+  }, [panneau]);
 
   const appliquer = (suivants: Filtres) => {
     demarrer(() => {
@@ -85,6 +95,8 @@ export default function FiltresDesOffres({
       router.replace(adresseDesOffres(suivants), { scroll: false });
     });
   };
+
+  const secteurChoisi = menus.secteurs.find((x) => x.code === affiches.secteur) ?? null;
 
   /** Applique la recherche — tout de suite, ou après le silence. */
   const lancerLaRecherche = (texte: string, attente: number) => {
@@ -131,7 +143,7 @@ export default function FiltresDesOffres({
           aria-haspopup="true"
           aria-expanded={ouvert}
           aria-controls="panneau-departements"
-          onClick={() => setOuvert((o) => !o)}
+          onClick={() => setPanneau(ouvert ? null : 'departements')}
         >
           {resumeDesDepartements(affiches.departements)}
           <span aria-hidden="true"> ▾</span>
@@ -174,19 +186,55 @@ export default function FiltresDesOffres({
         )}
       </div>
 
-      <select
-        className="filtre-loge"
-        aria-label="Secteur d’activité"
-        value={affiches.secteur}
-        onChange={(e) => appliquer(choisirSecteur(affiches, e.target.value))}
-      >
-        <option value="">Tous les secteurs d’activité</option>
-        {menus.secteurs.map((s) => (
-          <option key={s.code} value={s.code}>
-            {s.intitule ? `${s.code} — ${s.intitule}` : s.code}
-          </option>
-        ))}
-      </select>
+      {/* Les secteurs : un panneau maison, et non le menu du système. Sur un
+          iPad, le menu natif coupait les longs intitulés sur plusieurs lignes ;
+          ici chaque secteur tient sur une ligne, coupé d'une ellipse s'il le
+          faut — l'intitulé entier reste dans l'infobulle. Un seul choix : le
+          panneau se referme dès qu'il est fait. */}
+      <div className="choix-departements" ref={cadreDesSecteurs}>
+        <button
+          type="button"
+          className="filtre-loge choix-secteur-bouton"
+          aria-haspopup="true"
+          aria-expanded={secteursOuverts}
+          aria-controls="panneau-secteurs"
+          aria-label="Secteur d’activité"
+          title={secteurChoisi ? libelleDuSecteur(secteurChoisi) : undefined}
+          onClick={() => setPanneau(secteursOuverts ? null : 'secteurs')}
+        >
+          <span className="choix-secteur-texte">
+            {secteurChoisi ? libelleDuSecteur(secteurChoisi) : 'Tous les secteurs d’activité'}
+          </span>
+          <span aria-hidden="true">▾</span>
+        </button>
+
+        {secteursOuverts && (
+          <div
+            id="panneau-secteurs"
+            className="choix-departements-panneau choix-secteur-panneau"
+            role="radiogroup"
+            aria-label="Secteur d’activité"
+          >
+            {[{ code: '', intitule: '' }, ...menus.secteurs].map((s) => {
+              const libelle = s.code ? libelleDuSecteur(s) : 'Tous les secteurs d’activité';
+              return (
+                <label key={s.code || 'tous'} className="choix-departements-ligne" title={libelle}>
+                  <input
+                    type="radio"
+                    name="secteur-des-offres"
+                    checked={affiches.secteur === s.code}
+                    onChange={() => {
+                      appliquer(choisirSecteur(affiches, s.code));
+                      setPanneau(null);
+                    }}
+                  />
+                  <span className="choix-secteur-texte">{libelle}</span>
+                </label>
+              );
+            })}
+          </div>
+        )}
+      </div>
       </>
       )}
     </div>
