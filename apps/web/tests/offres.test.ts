@@ -4,6 +4,10 @@ import {
   DEPARTEMENTS,
   adresseDesOffres,
   basculerDepartement,
+  choisirSecteur,
+  lirePage,
+  nombreDePages,
+  tousLesDepartements,
   lireFiltres,
   lireMenus,
   menusAAfficher,
@@ -57,19 +61,31 @@ describe('adresseDesOffres', () => {
   });
 
   it('écrit ce que lireFiltres relit', () => {
-    const filtres = { departements: ['2A', '33', '47'], secteur: 'F' };
+    const filtres = { departements: ['2A', '33', '47'], secteur: 'F', page: 3 };
     const adresse = adresseDesOffres(filtres);
-    expect(adresse).toBe('/espace/france-travail?dep=2A,33,47&secteur=F');
+    expect(adresse).toBe('/espace/france-travail?dep=2A,33,47&secteur=F&page=3');
     const p = new URL(adresse, 'https://exemple.test').searchParams;
-    expect(lireFiltres({ dep: p.get('dep') ?? undefined, secteur: p.get('secteur') ?? undefined })).toEqual(filtres);
+    expect(lireFiltres({
+        dep: p.get('dep') ?? undefined,
+        secteur: p.get('secteur') ?? undefined,
+        page: p.get('page') ?? undefined,
+      }),
+    ).toEqual(filtres);
   });
 });
 
 describe('basculerDepartement', () => {
   it('coche, puis décoche, sans toucher au secteur', () => {
-    const un = basculerDepartement({ departements: ['47'], secteur: 'F' }, '33');
-    expect(un).toEqual({ departements: ['33', '47'], secteur: 'F' });
-    expect(basculerDepartement(un, '47')).toEqual({ departements: ['33'], secteur: 'F' });
+    const un = basculerDepartement({ departements: ['47'], secteur: 'F', page: 1 }, '33');
+    expect(un).toEqual({ departements: ['33', '47'], secteur: 'F', page: 1 });
+    expect(basculerDepartement(un, '47')).toEqual({ departements: ['33'], secteur: 'F', page: 1 });
+  });
+
+  it('ramène à la première page, comme tout changement de filtre', () => {
+    const page7 = { departements: ['33'], secteur: 'F', page: 7 };
+    expect(basculerDepartement(page7, '47').page).toBe(1);
+    expect(choisirSecteur(page7, 'C')).toEqual({ departements: ['33'], secteur: 'C', page: 1 });
+    expect(tousLesDepartements(page7)).toEqual({ departements: [], secteur: 'F', page: 1 });
   });
 });
 
@@ -96,9 +112,38 @@ describe('les menus', () => {
 
   it('gardent ce qui est choisi, même si plus aucune offre ne le porte — pour pouvoir le décocher', () => {
     const menus = { departements: ['33'], secteurs: [{ code: 'F', intitule: 'Construction' }] };
-    const affiches = menusAAfficher(menus, { departements: ['47'], secteur: 'C' });
+    const affiches = menusAAfficher(menus, { departements: ['47'], secteur: 'C', page: 1 });
     expect(affiches.departements).toEqual(['33', '47']);
     expect(affiches.secteurs.map((s) => s.code)).toEqual(['C', 'F']);
     expect(menusAAfficher(menus, AUCUN_FILTRE)).toEqual(menus);
+  });
+});
+
+describe('les pages', () => {
+  it('se lisent dans l’adresse — et tout ce qui n’est pas un numéro ouvre la première', () => {
+    expect(lireFiltres({ page: '4' }).page).toBe(4);
+    expect(lireFiltres({ page: ['2', '9'] }).page).toBe(2);
+    for (const faux of ['0', '-1', '2.5', 'deux', '', '1e3', '99999999']) {
+      expect(lireFiltres({ page: faux }).page, faux).toBe(1);
+    }
+  });
+
+  it('la première page ne s’écrit pas dans l’adresse', () => {
+    expect(adresseDesOffres({ departements: ['33'], secteur: '', page: 1 })).toBe('/espace/france-travail?dep=33');
+    expect(adresseDesOffres({ departements: [], secteur: '', page: 2 })).toBe('/espace/france-travail?page=2');
+  });
+
+  it('se comptent à cinquante offres par page', () => {
+    expect(nombreDePages(0)).toBe(1);
+    expect(nombreDePages(50)).toBe(1);
+    expect(nombreDePages(51)).toBe(2);
+    expect(nombreDePages(4539)).toBe(91);
+  });
+
+  it('une page de la base se lit, ou se refuse', () => {
+    const offre = { id: 'a', intitule: 'Essai', entreprise_nom: null, lieu_libelle: null, type_contrat_libelle: null };
+    expect(lirePage({ total: 1, offres: [offre] })).toEqual({ total: 1, offres: [offre] });
+    expect(lirePage({ total: -1, offres: [] })).toBeNull();
+    expect(lirePage([offre])).toBeNull();
   });
 });

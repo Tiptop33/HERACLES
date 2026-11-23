@@ -11,7 +11,8 @@
 --     une offre en cours ;
 --   * plusieurs départements : l'un ou l'autre ; département et secteur :
 --     l'un et l'autre ; une offre de plus de trente jours ne sort jamais ;
---   * la limite est bornée par la base ;
+--   * la liste se lit page par page, avec son total ; la taille de la page
+--     est bornée par la base ;
 --   * ni un compte candidat ni une personne non connectée n'obtient rien.
 --
 -- Chaque contrôle d'accès se joue en devenant la personne (CLAUDE.md).
@@ -49,6 +50,17 @@ insert into public.offre_emploi
   ('offre-0097-g', 'Essai 0097 g', null,           null,    null,     now() - interval '6 days', null)
 on conflict (bubble_id) do nothing;
 
+-- La fonction rend { total, offres } : pour les contrôles, on déplie la page.
+create or replace function pg_temp.page(deps text[], secteur text, limite integer, decalage integer default 0)
+returns table (intitule text)
+language sql
+as $$
+  select o->>'intitule'
+    from jsonb_array_elements(public.offres_en_cours(deps, secteur, limite, decalage)->'offres')
+         with ordinality as t(o, rang)
+   order by rang
+$$;
+
 -- ===========================================================================
 \echo '— le département : le texte d''abord, le code postal ensuite'
 select public.verifier(
@@ -81,7 +93,7 @@ begin;
     'les départements des offres en cours sont proposés');
   select public.verifier(
     (select not exists (
-       select 1 from public.offres_en_cours(array['75'], null, 200) o
+       select 1 from pg_temp.page(array['75'], null, 200) o
         where o.intitule like 'Essai 0097 %')),
     'Paris ne rend aucune de nos offres : la seule y est trop ancienne');
   select public.verifier(
@@ -93,45 +105,67 @@ begin;
   -- =========================================================================
   \echo '— Rémi : la liste, filtrée'
   select public.verifier(
-    (select count(*) = 6 from public.offres_en_cours(null, null, 200) o
+    (select count(*) = 6 from pg_temp.page(null, null, 200) o
       where o.intitule like 'Essai 0097 %'),
     'sans filtre : les six offres en cours, pas la septième');
   select public.verifier(
     (select array_agg(o.intitule order by o.intitule) = array['Essai 0097 a', 'Essai 0097 c']
-       from public.offres_en_cours(array['33'], null, 200) o
+       from pg_temp.page(array['33'], null, 200) o
       where o.intitule like 'Essai 0097 %'),
     'la Gironde : a et c');
   select public.verifier(
     (select array_agg(o.intitule order by o.intitule)
               = array['Essai 0097 a', 'Essai 0097 b', 'Essai 0097 c', 'Essai 0097 d']
-       from public.offres_en_cours(array['33', '47', '2A'], null, 200) o
+       from pg_temp.page(array['33', '47', '2A'], null, 200) o
       where o.intitule like 'Essai 0097 %'),
     'trois départements : l''un ou l''autre');
   select public.verifier(
     (select array_agg(o.intitule order by o.intitule) = array['Essai 0097 b', 'Essai 0097 e']
-       from public.offres_en_cours(null, 'C', 200) o
+       from pg_temp.page(null, 'C', 200) o
       where o.intitule like 'Essai 0097 %'),
     'l''industrie : b et e');
   select public.verifier(
     (select array_agg(o.intitule order by o.intitule) = array['Essai 0097 b']
-       from public.offres_en_cours(array['33', '47'], 'C', 200) o
+       from pg_temp.page(array['33', '47'], 'C', 200) o
       where o.intitule like 'Essai 0097 %'),
     'départements et secteur : l''un et l''autre');
   select public.verifier(
-    (select count(*) = 6 from public.offres_en_cours('{}', '  ', 200) o
+    (select count(*) = 6 from pg_temp.page('{}', '  ', 200) o
       where o.intitule like 'Essai 0097 %'),
     'une liste vide et un secteur blanc ne filtrent rien');
   select public.verifier(
-    (select count(*) = 1 from public.offres_en_cours(null, null, 0)),
+    (select count(*) = 1 from pg_temp.page(null, null, 0)),
     'une limite nulle ou négative rend une ligne, pas une erreur');
   select public.verifier(
-    (select count(*) <= 200 from public.offres_en_cours(null, null, 100000)),
+    (select count(*) <= 200 from pg_temp.page(null, null, 100000)),
     'la limite est bornée à 200 par la base');
   select public.verifier(
     (select (array_agg(o.intitule))[1] = 'Essai 0097 a'
-       from public.offres_en_cours(array['33'], null, 200) o
+       from pg_temp.page(array['33'], null, 200) o
       where o.intitule like 'Essai 0097 %'),
     'les plus récemment actualisées d''abord');
+
+  -- =========================================================================
+  \echo '— Rémi : page par page'
+  select public.verifier(
+    (select (public.offres_en_cours(array['33', '47', '2A'], null, 2, 0)->>'total')::int = 4),
+    'le total compte tout ce qui répond aux filtres, pas la seule page');
+  select public.verifier(
+    (select array_agg(o.intitule) = array['Essai 0097 a', 'Essai 0097 b']
+       from pg_temp.page(array['33', '47', '2A'], null, 2, 0) o),
+    'première page de deux : a et b');
+  select public.verifier(
+    (select array_agg(o.intitule) = array['Essai 0097 c', 'Essai 0097 d']
+       from pg_temp.page(array['33', '47', '2A'], null, 2, 2) o),
+    'deuxième page : c et d — ni doublon, ni trou');
+  select public.verifier(
+    (select public.offres_en_cours(array['33', '47', '2A'], null, 2, 40)
+              = '{"total": 4, "offres": []}'::jsonb),
+    'au-delà de la dernière page : rien, mais le total reste dit');
+  select public.verifier(
+    (select array_agg(o.intitule) = array['Essai 0097 a', 'Essai 0097 b']
+       from pg_temp.page(array['33', '47', '2A'], null, 2, -5) o),
+    'un décalage négatif vaut zéro');
 commit;
 
 -- ===========================================================================
@@ -147,7 +181,7 @@ begin
     raise notice '  ok — les menus lui sont refusés';
   end;
   begin
-    perform * from public.offres_en_cours(null, null, 10);
+    perform public.offres_en_cours(null, null, 10, 0);
     raise exception 'ÉCHEC — un compte candidat a lu la liste';
   exception when insufficient_privilege then
     raise notice '  ok — la liste lui est refusée';
@@ -164,7 +198,7 @@ $$;
 \echo '— une personne non connectée : rien'
 select public.verifier(
   not has_function_privilege('anon', 'public.filtres_des_offres()', 'execute')
-    and not has_function_privilege('anon', 'public.offres_en_cours(text[], text, integer)', 'execute')
+    and not has_function_privilege('anon', 'public.offres_en_cours(text[], text, integer, integer)', 'execute')
     and not has_function_privilege('anon', 'public.section_naf_d_une_offre(text)', 'execute')
     and not has_function_privilege('authenticated', 'public.section_naf_d_une_offre(text)', 'execute'),
   'anon n''exécute aucune des fonctions ; la lecture de la nomenclature reste interne');

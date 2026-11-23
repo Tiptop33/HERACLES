@@ -60,20 +60,29 @@ export type FiltresDesOffres = {
   departements: string[];
   /** Vide : tous les secteurs. Sinon la lettre de la section NAF. */
   secteur: string;
+  /** La page affichée, à partir de 1. */
+  page: number;
 };
 
-export const AUCUN_FILTRE: FiltresDesOffres = { departements: [], secteur: '' };
+export const AUCUN_FILTRE: FiltresDesOffres = { departements: [], secteur: '', page: 1 };
+
+/** Le nombre d'offres par page. */
+export const OFFRES_PAR_PAGE = 50;
 
 type Parametre = string | string[] | undefined;
 
 /**
- * Les filtres écrits dans l'adresse : `?dep=33,47&secteur=F`.
+ * Les filtres écrits dans l'adresse : `?dep=33,47&secteur=F&page=2`.
  *
  * Tout ce qui n'a pas la forme attendue est ignoré, sans erreur : une adresse
  * recopiée de travers doit ouvrir la liste, pas une page d'erreur. `dep` se
  * lit aussi répété (`?dep=33&dep=47`).
  */
-export function lireFiltres(parametres: { dep?: Parametre; secteur?: Parametre }): FiltresDesOffres {
+export function lireFiltres(parametres: {
+  dep?: Parametre;
+  secteur?: Parametre;
+  page?: Parametre;
+}): FiltresDesOffres {
   const bruts = (Array.isArray(parametres.dep) ? parametres.dep : [parametres.dep ?? ''])
     .flatMap((v) => v.split(','))
     .map((v) => v.trim().toUpperCase());
@@ -82,7 +91,11 @@ export function lireFiltres(parametres: { dep?: Parametre; secteur?: Parametre }
   const brut = Array.isArray(parametres.secteur) ? parametres.secteur[0] : parametres.secteur;
   const secteur = (brut ?? '').trim().toUpperCase();
 
-  return { departements, secteur: SECTION.test(secteur) ? secteur : '' };
+  // « 2 », pas « 2.5 », « -1 » ni « deux » : tout le reste ouvre la première.
+  const numero = (Array.isArray(parametres.page) ? parametres.page[0] : parametres.page) ?? '';
+  const page = /^[1-9][0-9]{0,5}$/.test(numero.trim()) ? Number(numero.trim()) : 1;
+
+  return { departements, secteur: SECTION.test(secteur) ? secteur : '', page };
 }
 
 /** L'adresse de l'écran pour ces filtres. Sans filtre : l'adresse nue. */
@@ -90,16 +103,35 @@ export function adresseDesOffres(filtres: FiltresDesOffres): string {
   const p = new URLSearchParams();
   if (filtres.departements.length > 0) p.set('dep', filtres.departements.join(','));
   if (filtres.secteur) p.set('secteur', filtres.secteur);
+  if (filtres.page > 1) p.set('page', String(filtres.page));
   const suite = p.toString().replaceAll('%2C', ',');
   return suite ? `/espace/france-travail?${suite}` : '/espace/france-travail';
 }
 
-/** Coche ou décoche un département, sans toucher au reste. */
+/**
+ * Coche ou décoche un département, sans toucher au secteur. On revient à la
+ * première page : la page 7 d'une autre liste ne veut rien dire.
+ */
 export function basculerDepartement(filtres: FiltresDesOffres, numero: string): FiltresDesOffres {
   const departements = filtres.departements.includes(numero)
     ? filtres.departements.filter((d) => d !== numero)
     : [...filtres.departements, numero].sort(ordreDesNumeros);
-  return { ...filtres, departements };
+  return { ...filtres, departements, page: 1 };
+}
+
+/** Change de secteur (vide : tous), et revient à la première page. */
+export function choisirSecteur(filtres: FiltresDesOffres, secteur: string): FiltresDesOffres {
+  return { ...filtres, secteur, page: 1 };
+}
+
+/** Tous les départements, et la première page. */
+export function tousLesDepartements(filtres: FiltresDesOffres): FiltresDesOffres {
+  return { ...filtres, departements: [], page: 1 };
+}
+
+/** Combien de pages pour ce total. Une liste vide tient en une page. */
+export function nombreDePages(total: number, parPage: number = OFFRES_PAR_PAGE): number {
+  return Math.max(1, Math.ceil(total / parPage));
 }
 
 /** Ce que dit le bouton des départements, refermé. */
@@ -113,6 +145,29 @@ export function resumeDesDepartements(choisis: readonly string[]): string {
 function ordreDesNumeros(a: string, b: string): number {
   const rang = (n: string) => (n.length === 3 ? 1000 + Number(n) : n === '2A' ? 20 : n === '2B' ? 20.5 : Number(n));
   return rang(a) - rang(b);
+}
+
+// --- Une page de la liste (`offres_en_cours`, 0097) ----------------------------
+
+const Page = z.object({
+  total: z.number().int().nonnegative(),
+  offres: z.array(
+    z.object({
+      id: z.string(),
+      intitule: z.string().nullable(),
+      entreprise_nom: z.string().nullable(),
+      lieu_libelle: z.string().nullable(),
+      type_contrat_libelle: z.string().nullable(),
+    }),
+  ),
+});
+
+export type PageDOffres = z.infer<typeof Page>;
+
+/** Lit la réponse de la base. `null` si elle n'a pas la forme attendue. */
+export function lirePage(donnees: unknown): PageDOffres | null {
+  const lu = Page.safeParse(donnees);
+  return lu.success ? lu.data : null;
 }
 
 // --- Ce que les menus proposent (`filtres_des_offres`, 0097) -------------------

@@ -5,8 +5,10 @@ import { useRouter } from 'next/navigation';
 import {
   adresseDesOffres,
   basculerDepartement,
+  choisirSecteur,
   nomDuDepartement,
   resumeDesDepartements,
+  tousLesDepartements,
   type FiltresDesOffres as Filtres,
   type MenusDesOffres,
 } from '@/lib/offres';
@@ -17,7 +19,8 @@ import {
  *
  * Chaque geste s'applique aussitôt : il réécrit l'adresse, et la page relit la
  * liste. Pas de bouton « Appliquer ». L'adresse porte les filtres — elle se
- * recharge, se garde en favori et s'envoie telle quelle.
+ * recharge, se garde en favori et s'envoie telle quelle. Changer un filtre
+ * ramène à la première page.
  *
  * Les départements se cochent dans un panneau flottant, non modal : il ne
  * voile rien, et se referme d'un clic ailleurs ou d'« Échap ». Le secteur est
@@ -96,7 +99,7 @@ export default function FiltresDesOffres({
                     checked={affiches.departements.length === 0}
                     // Déjà « tous » : il n'y a rien à décocher.
                     disabled={affiches.departements.length === 0}
-                    onChange={() => appliquer({ ...affiches, departements: [] })}
+                    onChange={() => appliquer(tousLesDepartements(affiches))}
                   />
                   Tous les départements
                 </label>
@@ -120,7 +123,7 @@ export default function FiltresDesOffres({
         className="filtre-loge"
         aria-label="Secteur d’activité"
         value={affiches.secteur}
-        onChange={(e) => appliquer({ ...affiches, secteur: e.target.value })}
+        onChange={(e) => appliquer(choisirSecteur(affiches, e.target.value))}
       >
         <option value="">Tous les secteurs d’activité</option>
         {menus.secteurs.map((s) => (

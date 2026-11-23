@@ -788,6 +788,23 @@ h3 {
   max-width: 100%;
 }
 
+/* Sous la liste : la page d'avant, où l'on est, la page d'après. */
+.pages-des-offres {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+}
+
+/* Première ou dernière page : le lien reste à sa place, éteint, pour que
+   l'autre ne saute pas d'un côté à l'autre sous le doigt. */
+.pages-des-offres-eteint {
+  opacity: 0.4;
+  cursor: default;
+}
+
 /* Le bouton et son panneau : le panneau se pose sous le bouton, par-dessus la
    liste, sans voile — on continue de voir ce qu'on filtre. */
 .choix-departements {

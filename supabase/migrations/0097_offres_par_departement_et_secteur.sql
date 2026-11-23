@@ -3,7 +3,8 @@
 --
 -- Ce que ça change : l'écran « France Travail » (l'ancien « Offres externes »)
 -- laisse choisir un ou plusieurs départements et un secteur d'activité, et ne
--- montre que les offres en cours qui y répondent. Les deux menus ne proposent
+-- montre que les offres en cours qui y répondent, page par page, jusqu'à la
+-- dernière. Les deux menus ne proposent
 -- que ce qui existe : les départements et les secteurs où il y a, aujourd'hui,
 -- au moins une offre en cours.
 --
@@ -134,29 +135,43 @@ grant execute on function public.filtres_des_offres() to authenticated, service_
 
 -- 4. La liste -------------------------------------------------------------------
 
--- Les offres en cours, les plus récemment actualisées d'abord. Sans
--- département ni secteur : toutes. Plusieurs départements : l'un OU l'autre.
--- Département et secteur ensemble : l'un ET l'autre. La limite est bornée ici,
--- pas dans la page : une adresse trafiquée n'obtient pas dix mille lignes.
+-- Les offres en cours, les plus récemment actualisées d'abord, page par page :
+--   { "total": 4539, "offres": [ { "id": …, "intitule": …, … }, … ] }
+-- `total` compte tout ce qui répond aux filtres, pas la seule page : c'est lui
+-- qui dit à l'écran combien de pages il y a.
+--
+-- Sans département ni secteur : toutes. Plusieurs départements : l'un OU
+-- l'autre. Département et secteur ensemble : l'un ET l'autre. La taille de la
+-- page est bornée ici, pas dans la page web : une adresse trafiquée n'obtient
+-- pas dix mille lignes d'un coup.
+--
+-- Une première écriture, jamais mise en ligne, rendait une table sans total ni
+-- décalage. On la retire si elle traîne : deux fonctions du même nom
+-- rendraient l'appel ambigu.
+drop function if exists public.offres_en_cours(text[], text, integer);
+
 create or replace function public.offres_en_cours(
   les_departements text[]  default null,
   le_secteur       text    default null,
-  limite           integer default 50)
-returns table (id uuid, intitule text, entreprise_nom text, lieu_libelle text,
-               type_contrat_libelle text)
+  limite           integer default 50,
+  decalage         integer default 0)
+returns jsonb
 language plpgsql
 stable
 security definer
 set search_path = public
 as $$
+declare
+  resultat jsonb;
 begin
   if not public.est_referent_ou_admin() then
     raise exception 'Les offres sont réservées aux référents'
       using errcode = 'insufficient_privilege';
   end if;
 
-  return query
-    select o.id, o.intitule, o.entreprise_nom, o.lieu_libelle, o.type_contrat_libelle
+  with retenues as (
+    select o.id, o.intitule, o.entreprise_nom, o.lieu_libelle, o.type_contrat_libelle,
+           coalesce(o.date_actualisation, o.date_creation) as quand
       from public.offre_emploi o
      where coalesce(o.date_actualisation, o.date_creation) > now() - interval '30 days'
        and (coalesce(cardinality(les_departements), 0) = 0
@@ -164,15 +179,33 @@ begin
                = any (les_departements))
        and (nullif(btrim(le_secteur), '') is null
             or public.section_naf_d_une_offre(o.code_naf) = btrim(le_secteur))
-     order by coalesce(o.date_actualisation, o.date_creation) desc, o.id
-     limit least(greatest(coalesce(limite, 50), 1), 200);
+  ),
+  la_page as (
+    select r.* from retenues r
+     order by r.quand desc, r.id
+     limit least(greatest(coalesce(limite, 50), 1), 200)
+    offset greatest(coalesce(decalage, 0), 0)
+  )
+  select jsonb_build_object(
+           'total', (select count(*) from retenues),
+           'offres', coalesce(
+             (select jsonb_agg(jsonb_build_object(
+                       'id', p.id, 'intitule', p.intitule, 'entreprise_nom', p.entreprise_nom,
+                       'lieu_libelle', p.lieu_libelle,
+                       'type_contrat_libelle', p.type_contrat_libelle)
+                     order by p.quand desc, p.id)
+                from la_page p),
+             '[]'::jsonb))
+    into resultat;
+
+  return resultat;
 end
 $$;
 
-comment on function public.offres_en_cours(text[], text, integer) is
-  'Les offres en cours de l''écran France Travail, filtrées par départements '
-  '(l''un ou l''autre) et par secteur (section NAF). Réservée aux référents et '
-  'à l''administration ; 200 lignes au plus.';
+comment on function public.offres_en_cours(text[], text, integer, integer) is
+  'Une page des offres en cours de l''écran France Travail, filtrées par '
+  'départements (l''un ou l''autre) et par secteur (section NAF), avec le total. '
+  'Réservée aux référents et à l''administration ; 200 lignes par page au plus.';
 
-revoke all on function public.offres_en_cours(text[], text, integer) from public, anon;
-grant execute on function public.offres_en_cours(text[], text, integer) to authenticated, service_role;
+revoke all on function public.offres_en_cours(text[], text, integer, integer) from public, anon;
+grant execute on function public.offres_en_cours(text[], text, integer, integer) to authenticated, service_role;
