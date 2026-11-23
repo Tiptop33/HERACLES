@@ -3,6 +3,7 @@ import ColonnesDesArchives from '@/components/ColonnesDesArchives';
 import FenetreDArchivage from '@/components/FenetreDArchivage';
 import FenetreDEffacement from '@/components/FenetreDEffacement';
 import type { Chiffres, Demande, DossierAArchiver, Offre } from '@/lib/accueil';
+import ListeDesOffres from './ListeDesOffres';
 import type { DocumentArchive, Sorte } from '@/lib/documents/archives';
 import { depuis, initiales, nomComplet } from '@/lib/format';
 
@@ -140,22 +141,7 @@ export default function VueAccueil({
 
       <section className="bloc" data-aide="offres-en-cours">
         <h2>Offres d&apos;emploi en cours</h2>
-        {offres.length === 0 ? (
-          <p className="vide-liste">Aucune offre en cours.</p>
-        ) : (
-          <ul className="liste-nue">
-            {offres.map((o) => (
-              <li key={o.id}>
-                <span>{o.intitule ?? 'Offre sans intitulé'}</span>
-                <span className="maigre">
-                  {[o.entreprise_nom, o.lieu_libelle, o.type_contrat_libelle]
-                    .filter(Boolean)
-                    .join(' · ')}
-                </span>
-              </li>
-            ))}
-          </ul>
-        )}
+        <ListeDesOffres offres={offres} />
       </section>
 
       {estReferent && (
