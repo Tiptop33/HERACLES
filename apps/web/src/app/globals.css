@@ -826,10 +826,15 @@ h3 {
 /* La fenêtre du détail : la fenêtre flottante de l'application, en plus
    large, posée à droite à l'ouverture. Sur un téléphone, elle prend la
    largeur de l'écran et s'arrête au-dessus de la barre d'onglets. */
-.fenetre-offre {
+/* `.flottante.fenetre-offre`, et non `.fenetre-offre` seul : la règle
+   `.flottante`, écrite plus bas dans ce fichier, l'emportait à poids égal et
+   imposait ses 420 px. */
+.flottante.fenetre-offre {
   top: 5rem;
   right: 1rem;
-  width: min(34rem, calc(100vw - 2rem));
+  /* Doublée le 23 novembre 2026, à la demande : de 420 px à 840. Jamais plus
+     large que l'écran. */
+  width: min(840px, calc(100vw - 2rem));
   max-height: calc(100dvh - 6rem - var(--onglets-h, 0px));
 }
 
