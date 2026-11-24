@@ -1,11 +1,11 @@
 import Link from 'next/link';
 import type { Offre } from '@/lib/accueil';
-import { sousTitre } from '@/lib/offres';
+import { parution, sousTitre } from '@/lib/offres';
 
 /**
  * La liste des offres d'emploi en cours : l'intitulé, puis l'entreprise, le
- * lieu, le type de contrat et la date de parution de l'annonce (24 novembre
- * 2026, à la demande). La même à l'accueil et sur l'écran « France
+ * lieu et le type de contrat ; à droite de la ligne, la date de parution de
+ * l'annonce (24 novembre 2026, à la demande). La même à l'accueil et sur l'écran « France
  * Travail » — un seul composant, pour que les deux ne divergent pas.
  *
  * Avec `lien`, chaque ligne devient un lien vers le détail de l'offre. Sans
@@ -30,13 +30,25 @@ export default function ListeDesOffres({
   return (
     <ul className="liste-nue">
       {offres.map((o) => {
+        const date = parution(o);
+        // À gauche l'offre, sur deux lignes ; à droite, sa date de parution
+        // (24 novembre 2026, à la demande).
         const contenu = (
           <>
-            <span>{o.intitule ?? 'Offre sans intitulé'}</span>
-            <span className="maigre">{sousTitre(o)}</span>
+            <span className="offre-texte">
+              <span>{o.intitule ?? 'Offre sans intitulé'}</span>
+              <span className="maigre">{sousTitre(o)}</span>
+            </span>
+            {date && <span className="maigre offre-parution">{date}</span>}
           </>
         );
-        if (!lien) return <li key={o.id}>{contenu}</li>;
+        if (!lien) {
+          return (
+            <li key={o.id} className="offre-rangee">
+              {contenu}
+            </li>
+          );
+        }
 
         return (
           <li key={o.id} className="offre-ligne">
@@ -44,7 +56,7 @@ export default function ListeDesOffres({
             <Link
               href={lien(o.id)}
               scroll={false}
-              className="offre-lien"
+              className="offre-lien offre-rangee"
               aria-current={ouverte === o.id ? 'true' : undefined}
             >
               {contenu}

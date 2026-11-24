@@ -805,6 +805,41 @@ h3 {
   padding: 0;
 }
 
+/* Une ligne d'offre : à gauche l'intitulé et, dessous, l'entreprise, le lieu
+   et le contrat ; à droite la date de parution, sur une seule ligne. Le texte
+   de gauche cède la place et se replie ; la date ne se coupe jamais. */
+.liste-nue li.offre-rangee,
+.offre-lien.offre-rangee {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.offre-texte {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.offre-parution {
+  flex: none;
+  white-space: nowrap;
+  text-align: right;
+}
+
+/* Sur un téléphone, la date à côté ne laissait au texte qu'une colonne de
+   quelques mots. Elle passe dessous, toujours à droite. */
+@media (max-width: 46rem) {
+  .liste-nue li.offre-rangee,
+  .offre-lien.offre-rangee {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.1rem;
+  }
+}
+
 .offre-lien {
   display: flex;
   flex-direction: column;

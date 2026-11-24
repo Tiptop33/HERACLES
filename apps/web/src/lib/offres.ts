@@ -179,17 +179,20 @@ function ordreDesNumeros(a: string, b: string): number {
 
 // --- Une ligne de la liste ------------------------------------------------------
 
-/**
- * La ligne grise sous l'intitulé d'une offre, dans la liste. La parution vient en dernier, et seulement
- * si France Travail l'a donnée : pas de date plutôt qu'une date inventée.
- */
+/** La ligne grise sous l'intitulé d'une offre, dans la liste : entreprise, lieu, contrat. */
 export function sousTitre(o: Offre): string {
-  const parution = dateEnLettres(o.date_creation);
-  return [o.entreprise_nom, o.lieu_libelle, o.type_contrat_libelle, parution ? `parue le ${parution}` : null]
-    .filter(Boolean)
-    .join(' · ');
+  return [o.entreprise_nom, o.lieu_libelle, o.type_contrat_libelle].filter(Boolean).join(' · ');
 }
 
+/**
+ * « parue le 22 novembre 2026 » — la date de parution de l'annonce, affichée à
+ * droite de la ligne. `null` quand France Travail ne l'a pas donnée, ou
+ * qu'elle est illisible : pas de date plutôt qu'une date inventée.
+ */
+export function parution(o: Offre): string | null {
+  const date = dateEnLettres(o.date_creation);
+  return date ? `parue le ${date}` : null;
+}
 
 // --- Le détail d'une offre ------------------------------------------------------
 
