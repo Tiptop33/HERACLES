@@ -245,15 +245,12 @@ service indisponible (journal : `[la bonne alternance] <message> <statut>`).
 - **La purge ignore encore les offres proposées.** Elle supprime toute offre
   de plus de soixante jours ; quand un référent pourra proposer une offre à un
   candidat (lot 4), il faudra qu'elle épargne celles-là.
-- **La Bonne Boîte n'a jamais été appelée pour de vrai** non plus : écrite
-  d'après sa spécification OpenAPI, éprouvée contre une fausse API. Au premier
-  essai, vérifier aussi l'adresse du jeton : la documentation de La Bonne
-  Boîte indique `authentification-partenaire.francetravail.io`, notre code
-  appelle `entreprise.francetravail.fr` — toutes deux pour le royaume
-  `/partenaire`, à confirmer.
-- **La bonne alternance et ROMEO n'ont jamais été appelés pour de vrai** :
-  écrits d'après leurs spécifications, éprouvés contre de faux services. Le
-  métier écrit sur la fiche est parfois vague (« SECRETARIAT DE DIRECTION ») :
-  la pertinence des codes ROME proposés est à juger sur quelques fiches.
+- **La Bonne Boîte, ROMEO et La bonne alternance répondent** : premier essai
+  réel le 24 novembre 2026 sur le site d'essai, les deux blocs de la fiche
+  affichent leurs listes. L'adresse du jeton de notre code
+  (`entreprise.francetravail.fr`) sert donc aussi La Bonne Boîte et ROMEO.
+- **La pertinence des offres en alternance** reste à juger sur quelques
+  fiches : le métier écrit sur la fiche est parfois vague (« SECRETARIAT DE
+  DIRECTION »), et les codes ROME que ROMEO en tire décident des offres.
 - **L'instance de production** n'existe pas encore : ces scripts sont ceux de
   l'essai. La mise en ligne du lot 6 reprendra la même minuterie.
