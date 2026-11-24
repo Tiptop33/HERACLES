@@ -185,75 +185,14 @@ case $offres in
      rouge "le prochain passage de la minuterie reprendra." ;;
 esac
 
-etape "PDF de la commission — depuis Bubble"
-# Les comptes rendus, affiches et affichettes de Bubble, pour que l'accueil
-# les montre et les ouvre depuis notre stockage (migration 0069). Rejoué à
-# chaque mise en ligne : la première fois rapatrie tout, les suivantes ne
-# prennent que ce que Bubble a produit entre-temps.
+# Plus rien ne vient de Bubble à la mise en ligne. Jusqu'au 24 novembre 2026,
+# quatre reprises étaient rejouées ici à chaque déploiement — les PDF de la
+# commission, la date de modification des candidats, les provinces, les loges
+# de Guyenne et Gascogne. Décision du 24 novembre 2026 : ce qui reste dans
+# Bubble est abandonné, HERACLES fait foi. Bubble arrêté, ces reprises
+# n'auraient plus fait qu'attendre leur délai et finir en rouge.
 #
-# **Non bloquant**, et borné à cinq minutes : l'application est déjà en ligne
-# à ce stade, et une API Bubble lente ou fermée ne doit ni la faire échouer ni
-# tenir le déploiement. `timeout` arrête tout le groupe, conteneurs compris ;
-# ce qui est passé reste passé, la mise en ligne suivante reprend le reste.
-#
-# À retirer après la bascule du 5 décembre 2026 : Bubble ne répondra plus.
-#
-# **Sans le jeton Bubble** (`env -u`). Le `.env` chargé plus haut l'exporte
-# dès que la ligne `BUBBLE_TOKEN=` y est, pour les provinces. Les PDF et les
-# dates n'en ont pas besoin, et un jeton que la base en service ne reconnaît
-# pas encore les ferait échouer à chaque mise en ligne.
-if env -u BUBBLE_TOKEN timeout 300 "$DEPOT/infra/essai/reprendre-bubble.sh" --pdf-commission; then
-  vert "PDF de la commission à jour"
-else
-  rouge "PDF de la commission : reprise incomplète — sans effet sur l'application,"
-  rouge "la prochaine mise en ligne reprendra où celle-ci s'est arrêtée."
-fi
-
-etape "Dates de modification des candidats — depuis Bubble"
-# La date approchée de clôture ou d'archivage des dossiers repris (migration
-# 0071) : une colonne seule, recopiée de Bubble. Même règle que les PDF : non
-# bloquant, borné, sans jeton, à retirer après la bascule.
-if env -u BUBBLE_TOKEN timeout 120 "$DEPOT/infra/essai/reprendre-bubble.sh" --dates-candidats; then
-  vert "dates des candidats à jour"
-else
-  rouge "dates des candidats : reprise incomplète — sans effet sur l'application,"
-  rouge "la prochaine mise en ligne reprendra."
-fi
-
-etape "Provinces — depuis Bubble"
-# Le nom et l'écusson de chaque province, pour l'écran « Province »
-# (migrations 0080, 0081). Même règle que les PDF : non bloquant, borné, à
-# retirer après la bascule. Rejouer ne touche à aucune province présente, et
-# ne recrée pas une province que l'administration a retirée (migration 0096) :
-# seules les provinces absentes viennent.
-#
-# Bubble cache les provinces à l'API sans jeton : la reprise lit le jeton dans
-# la ligne `BUBBLE_TOKEN=` du `.env` de la pile. Sans elle, elle s'arrête sur
-# le code 3 — ce n'est pas une panne, juste une reprise qu'on n'a pas les
-# moyens de faire, et le dire en rouge à chaque mise en ligne l'userait.
-provinces=0
-timeout 180 "$DEPOT/infra/essai/reprendre-bubble.sh" --provinces || provinces=$?
-case $provinces in
-  0) vert "provinces à jour" ;;
-  3) echo "provinces : pas de jeton Bubble dans $DOSSIER/.env — reprise non faite" ;;
-  4) rouge "provinces : le jeton Bubble est refusé, même par la base de test — vérifier"
-     rouge "qu'il a été recopié en entier dans $DOSSIER/.env, et qu'il n'a pas été régénéré." ;;
-  *) rouge "provinces : reprise incomplète (code $provinces) — sans effet sur l'application,"
-     rouge "la prochaine mise en ligne reprendra." ;;
-esac
-
-etape "Loges du réseau — depuis Bubble"
-# Les 73 loges que Bubble rattache à la loge HERACLES, posées dans Paramètres ›
-# Loges du réseau avec leur écusson (migration 0094). Même règle que les PDF :
-# non bloquant, borné, sans jeton, à retirer après la bascule. Rejouer ne
-# remplace rien de ce que l'administration a saisi, et ne recrée pas une loge
-# qu'elle a retirée : la première mise en ligne les crée, les suivantes ne
-# font que remplir les cases encore vides.
-if env -u BUBBLE_TOKEN timeout 300 "$DEPOT/infra/essai/reprendre-bubble.sh" --loges-du-reseau; then
-  vert "loges du réseau à jour"
-else
-  rouge "loges du réseau : reprise incomplète — sans effet sur l'application,"
-  rouge "la prochaine mise en ligne reprendra."
-fi
+# `reprendre-bubble.sh` existe toujours, pour qui voudrait relire Bubble à la
+# main tant qu'il répond ; plus rien ne l'appelle tout seul.
 
 vert "instance d'essai à jour"

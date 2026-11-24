@@ -1,5 +1,27 @@
 # MAJBUBBLE — la reprise finale des données Bubble
 
+> **Abandonnée — décision du 24 novembre 2026.** Ce qui reste dans Bubble n'est
+> plus repris : HERACLES fait foi, et Bubble peut être arrêté sans reprise
+> finale. Les quatre reprises que `mettre-a-jour.sh` rejouait à chaque mise en
+> ligne (PDF de la commission, dates des candidats, provinces, loges de Guyenne
+> et Gascogne) ont été retirées le même jour.
+>
+> Ce que la décision laisse derrière elle, en connaissance de cause :
+>
+> - tout ce qui a été saisi ou modifié dans Bubble depuis la dernière reprise
+>   complète ;
+> - les fichiers que Bubble refusait de servir — au dernier bilan, 1 CV sur 95
+>   et 9 PDF sur 188, dont six comptes rendus et affiches en « HTTP 403 ».
+>
+> Pourquoi ne pas l'avoir rejouée « au cas où » : la reprise remplace, sur
+> chaque fiche qui existe aussi dans Bubble, tout champ que Bubble renseigne —
+> coordonnées, recherche, appréciation d'un candidat, réglages, textes des
+> courriels. Elle aurait défait ce qui a été corrigé dans HERACLES depuis.
+>
+> La suite de ce document reste comme mémoire de ce qui a été fait, et comme
+> mode d'emploi de `reprendre-bubble.sh`, qui fonctionne tant que Bubble
+> répond. **Plus rien ici n'est à faire avant la bascule.**
+
 - **Nom retenu :** `MAJBUBBLE`
 - **Échéance :** au plus tard le **5 décembre 2026**, jour de la bascule
 - **À faire aussi :** au moins une fois **à blanc**, deux semaines avant
