@@ -6,7 +6,7 @@ import {
   estEnAlternance,
   lireLaPosition,
   lireLesOffres,
-  lireLesRomes,
+  lireLeMetier,
   lireReglagesAlternance,
   metierAPredire,
   serviceLaBonneAlternance,
@@ -66,25 +66,29 @@ describe('qui est concerné', () => {
 });
 
 describe('ROMEO', () => {
-  it('garde le premier code, puis les suivants assez sûrs, sans doublon', () => {
-    const lu = lireLesRomes([
+  it('ne garde que le métier le plus probable, avec son intitulé', () => {
+    const lu = lireLeMetier([
       {
         metiersRome: [
-          { codeRome: 'F1602', scorePrediction: 0.4 },
-          { codeRome: 'F1602', scorePrediction: 0.9 },
-          { codeRome: 'h2602', scorePrediction: 0.6 },
-          { codeRome: 'I1309', scorePrediction: 0.2 },
-          { codeRome: 'n’importe quoi', scorePrediction: 0.99 },
+          { codeRome: 'f1602', libelleRome: ' Électricité bâtiment ', scorePrediction: 0.4 },
+          { codeRome: 'H2602', libelleRome: 'Câblage électrique', scorePrediction: 0.9 },
         ],
       },
     ]);
-    expect(lu).toEqual(['F1602', 'H2602']);
+    expect(lu).toEqual({ code: 'F1602', libelle: 'Électricité bâtiment' });
+  });
+
+  it('saute une prédiction illisible, et se passe d’intitulé', () => {
+    expect(lireLeMetier([{ metiersRome: [{ codeRome: 'n’importe quoi' }, { codeRome: 'H2602' }] }])).toEqual({
+      code: 'H2602',
+      libelle: null,
+    });
   });
 
   it('ne casse pas sur une réponse vide ou étrange', () => {
-    expect(lireLesRomes(null)).toEqual([]);
-    expect(lireLesRomes([])).toEqual([]);
-    expect(lireLesRomes([{ metiersRome: 'rien' }])).toEqual([]);
+    expect(lireLeMetier(null)).toBeNull();
+    expect(lireLeMetier([])).toBeNull();
+    expect(lireLeMetier([{ metiersRome: 'rien' }])).toBeNull();
   });
 });
 
@@ -165,7 +169,7 @@ function theatre(offres: () => Response = () => Response.json({ jobs: [offre('a1
       appels.push({ adresse, init });
       if (adresse.pathname.endsWith('/access_token')) return Response.json({ access_token: 'jeton-essai' });
       if (adresse.pathname.endsWith('/predictionMetiers')) {
-        return Response.json([{ metiersRome: [{ codeRome: 'F1602', scorePrediction: 0.8 }] }]);
+        return Response.json([{ metiersRome: [{ codeRome: 'F1602', libelleRome: 'Électricité bâtiment', scorePrediction: 0.8 }] }]);
       }
       if (adresse.pathname.endsWith('/commune/search')) return Response.json([commune('Bordeaux', -0.58, 44.84)]);
       return offres();
@@ -185,14 +189,18 @@ describe('le service', () => {
     const chercher = serviceLaBonneAlternance(REGLAGES, t.outils);
 
     const reponse = await chercher(DEMANDE);
-    expect(reponse).toMatchObject({ etat: 'ok', romes: ['F1602'], resultat: { total: 1 } });
+    expect(reponse).toMatchObject({
+      etat: 'ok',
+      metier: { code: 'F1602', libelle: 'Électricité bâtiment' },
+      resultat: { total: 1 },
+    });
 
     const jeton = t.appels.find((a) => a.adresse.pathname.endsWith('/access_token'));
     expect(new URLSearchParams(String(jeton?.init?.body)).get('scope')).toBe(PORTEE_ROMEO);
     const romeo = t.appels.find((a) => a.adresse.pathname.endsWith('/predictionMetiers'));
     expect(JSON.parse(String(romeo?.init?.body))).toEqual({
       appellations: [{ intitule: 'Électricien', identifiant: '1' }],
-      options: { nomAppelant: 'heracles', nbResultats: 3 },
+      options: { nomAppelant: 'heracles', nbResultats: 1 },
     });
     const recherche = t.appels.find((a) => a.adresse.pathname.endsWith('/job/v1/search'));
     expect((recherche?.init?.headers as Record<string, string>).Authorization).toBe('Bearer cle-essai');

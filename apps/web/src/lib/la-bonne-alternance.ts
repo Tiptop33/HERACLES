@@ -9,7 +9,7 @@ import { PanneFranceTravail, obtenirJeton } from './france-travail';
  * Sur la fiche d'un candidat qui cherche une alternance, les offres autour de
  * chez lui, pour son métier. Trois étapes, chacune gardée en mémoire :
  *
- *   1. le métier écrit sur la fiche → codes ROME, par ROMEO (France Travail) ;
+ *   1. le métier écrit sur la fiche → un code ROME, par ROMEO (France Travail) ;
  *   2. le code postal → le centre de la commune (API apprentissage) ;
  *   3. codes ROME + position + rayon → les offres (API apprentissage).
  *
@@ -30,8 +30,6 @@ const ADRESSE_APPRENTISSAGE = 'https://api.apprentissage.beta.gouv.fr/api';
 export const RAYON_KM = 30;
 /** Combien d'offres la fiche montre. */
 export const OFFRES_PAR_FICHE = 10;
-/** Au-delà de ce score, une deuxième ou troisième prédiction de ROMEO est retenue. */
-const SCORE_MINIMUM = 0.5;
 
 /** Le candidat cherche-t-il une alternance ? « stage en alternance » dans la liste de Bubble. */
 export function estEnAlternance(typeEmploi: string | null | undefined): boolean {
@@ -54,26 +52,27 @@ const CODE_ROME = /^[A-N]\d{4}$/;
 const PredictionRomeo = z.array(
   z.object({
     metiersRome: z
-      .array(z.object({ codeRome: z.string(), scorePrediction: z.number().catch(0) }).passthrough())
+      .array(
+        z.object({ codeRome: z.string(), libelleRome: z.string().trim().optional().catch(undefined) }).passthrough(),
+      )
       .catch([]),
   }).passthrough(),
 );
 
+/** Le métier du ROME retenu pour la recherche : son code, et son intitulé pour l'écran. */
+export type MetierRome = { code: string; libelle: string | null };
+
 /**
- * Les codes ROME tirés d'une réponse de ROMEO : toujours le premier, les
- * suivants s'ils sont assez sûrs. Sans doublon (plusieurs appellations d'un
- * même métier partagent leur code).
+ * Le métier tiré d'une réponse de ROMEO : la prédiction la plus probable, et
+ * elle seule (décision du 24 novembre 2026 — plusieurs métiers ramenaient des
+ * offres hors sujet). `null` si ROMEO n'en propose aucun de lisible.
  */
-export function lireLesRomes(json: unknown): string[] {
+export function lireLeMetier(json: unknown): MetierRome | null {
   const lu = PredictionRomeo.safeParse(json);
-  if (!lu.success || lu.data.length === 0) return [];
-  const codes: string[] = [];
-  lu.data[0].metiersRome.forEach((m, rang) => {
-    const code = m.codeRome.trim().toUpperCase();
-    if (!CODE_ROME.test(code) || codes.includes(code)) return;
-    if (rang === 0 || m.scorePrediction >= SCORE_MINIMUM) codes.push(code);
-  });
-  return codes;
+  if (!lu.success || lu.data.length === 0) return null;
+  const premier = lu.data[0].metiersRome.find((m) => CODE_ROME.test(m.codeRome.trim().toUpperCase()));
+  if (!premier) return null;
+  return { code: premier.codeRome.trim().toUpperCase(), libelle: premier.libelleRome || null };
 }
 
 export type Outils = {
@@ -91,7 +90,7 @@ async function appeler(adresse: URL | string, init: RequestInit, outils: Outils)
   }
 }
 
-export async function predireLesRomes(jeton: string, metier: string, outils: Outils): Promise<string[]> {
+export async function predireLeMetier(jeton: string, metier: string, outils: Outils): Promise<MetierRome | null> {
   const reponse = await appeler(
     ADRESSE_ROMEO,
     {
@@ -99,13 +98,13 @@ export async function predireLesRomes(jeton: string, metier: string, outils: Out
       headers: { Authorization: `Bearer ${jeton}`, 'Content-Type': 'application/json', Accept: 'application/json' },
       body: JSON.stringify({
         appellations: [{ intitule: metier, identifiant: '1' }],
-        options: { nomAppelant: 'heracles', nbResultats: 3 },
+        options: { nomAppelant: 'heracles', nbResultats: 1 },
       }),
     },
     outils,
   );
   if (!reponse.ok) throw new PanneFranceTravail('ROMEO n’a pas répondu.', 'recherche', reponse.status);
-  return lireLesRomes(await reponse.json().catch(() => null));
+  return lireLeMetier(await reponse.json().catch(() => null));
 }
 
 // --- 2. La commune : son centre ---------------------------------------------
@@ -300,7 +299,7 @@ export function lireReglagesAlternance(env: Record<string, string | undefined>):
 export type Demande = { metier: string; codePostal: string; ville: string | null };
 
 export type Reponse =
-  | { etat: 'ok'; romes: string[]; resultat: ResultatAlternance }
+  | { etat: 'ok'; metier: MetierRome; resultat: ResultatAlternance }
   | { etat: 'metier-inconnu' }
   | { etat: 'commune-inconnue' };
 
@@ -323,27 +322,27 @@ function memoire<T>(dureeMs: number, maintenant: () => number) {
 }
 
 /**
- * Le service : le jeton ROMEO vingt minutes, les codes ROME d'un métier et la
+ * Le service : le jeton ROMEO vingt minutes, le code ROME d'un métier et la
  * position d'une commune un jour, chaque liste d'offres une heure.
  */
 export function serviceLaBonneAlternance(reglages: ReglagesAlternance, outils: Outils & { maintenant: () => number }) {
   const UNE_HEURE = 3600 * 1000;
   let jeton: { valeur: string; expire: number } | null = null;
-  const romes = memoire<string[]>(24 * UNE_HEURE, outils.maintenant);
+  const metiers = memoire<MetierRome | null>(24 * UNE_HEURE, outils.maintenant);
   const positions = memoire<Position | null>(24 * UNE_HEURE, outils.maintenant);
   const listes = memoire<ResultatAlternance>(UNE_HEURE, outils.maintenant);
 
-  async function codesRome(metier: string): Promise<string[]> {
+  async function metierRome(metier: string): Promise<MetierRome | null> {
     const cle = normaliser(metier);
-    const gardes = romes.lire(cle);
-    if (gardes) return gardes;
+    const garde = metiers.lire(cle);
+    if (garde !== undefined) return garde;
     if (!jeton || jeton.expire <= outils.maintenant()) {
       jeton = { valeur: await obtenirJeton(reglages, outils, PORTEE_ROMEO), expire: outils.maintenant() + 20 * 60 * 1000 };
     }
     try {
-      const codes = await predireLesRomes(jeton.valeur, metier, outils);
-      romes.ecrire(cle, codes);
-      return codes;
+      const trouve = await predireLeMetier(jeton.valeur, metier, outils);
+      metiers.ecrire(cle, trouve);
+      return trouve;
     } catch (panne) {
       if (panne instanceof PanneFranceTravail && panne.statut === 401) jeton = null;
       throw panne;
@@ -360,17 +359,17 @@ export function serviceLaBonneAlternance(reglages: ReglagesAlternance, outils: O
   }
 
   return async function chercher(demande: Demande): Promise<Reponse> {
-    const [codes, lieu] = await Promise.all([codesRome(demande.metier), position(demande.codePostal, demande.ville)]);
-    if (codes.length === 0) return { etat: 'metier-inconnu' };
+    const [rome, lieu] = await Promise.all([metierRome(demande.metier), position(demande.codePostal, demande.ville)]);
+    if (!rome) return { etat: 'metier-inconnu' };
     if (!lieu) return { etat: 'commune-inconnue' };
 
-    const recherche = { romes: codes, position: lieu };
+    const recherche = { romes: [rome.code], position: lieu };
     const cle = adresseDeRecherche(recherche).search;
     let resultat = listes.lire(cle);
     if (!resultat) {
       resultat = await chercherLesOffres(reglages.cle, recherche, outils);
       listes.ecrire(cle, resultat);
     }
-    return { etat: 'ok', romes: codes, resultat };
+    return { etat: 'ok', metier: rome, resultat };
   };
 }
