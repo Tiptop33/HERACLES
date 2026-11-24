@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { effectif, type EntrepriseQuiRecrute } from '@/lib/la-bonne-boite';
+import { effectif, potentielAffiche, type EntrepriseQuiRecrute } from '@/lib/la-bonne-boite';
 
 /**
  * Le bloc « Entreprises qui recrutent » de la fiche (décision du 24 novembre
@@ -77,20 +77,28 @@ export default function EntreprisesQuiRecrutent({ candidat }: { candidat: string
           <ul className="entreprises-liste">
             {etat.reponse.entreprises.map((e) => {
               const taille = effectif(e.effectif_min, e.effectif_max);
+              const potentiel = potentielAffiche(e.potentiel);
               return (
-                <li key={e.siret}>
-                  <a
-                    href={`https://annuaire-entreprises.data.gouv.fr/etablissement/${e.siret}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    title="Ouvrir sa fiche dans l’Annuaire des entreprises"
-                  >
-                    {e.nom}
-                  </a>
-                  {e.fort_potentiel && <span className="entreprises-fort">fort potentiel</span>}
-                  <span className="entreprises-detail">
-                    {[e.ville, e.activite, taille].filter(Boolean).join(' · ')}
+                <li key={e.siret} className="offre-rangee">
+                  {/* À gauche le nom et sa ligne grise ; à droite le potentiel
+                      d'embauche (demande du 24 novembre 2026). */}
+                  <span className="offre-texte">
+                    <span>
+                      <a
+                        href={`https://annuaire-entreprises.data.gouv.fr/etablissement/${e.siret}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        title="Ouvrir sa fiche dans l’Annuaire des entreprises"
+                      >
+                        {e.nom}
+                      </a>
+                      {e.fort_potentiel && <span className="entreprises-fort">fort potentiel</span>}
+                    </span>
+                    <span className="entreprises-detail">
+                      {[e.ville, e.activite, taille].filter(Boolean).join(' · ')}
+                    </span>
                   </span>
+                  {potentiel && <span className="entreprises-detail offre-parution">{potentiel}</span>}
                 </li>
               );
             })}
