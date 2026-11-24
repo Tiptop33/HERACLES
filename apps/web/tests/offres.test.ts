@@ -4,6 +4,7 @@ import {
   DEPARTEMENTS,
   adresseDesOffres,
   basculerDepartement,
+  parution,
   sousTitre,
   lienSur,
   lireDetail,
@@ -276,22 +277,19 @@ describe('le détail d’une offre', () => {
 describe('la ligne d’une offre dans la liste', () => {
   const offre = { id: 'a', intitule: 'Maçon', entreprise_nom: 'Bâti Essai', lieu_libelle: '47 - AGEN', type_contrat_libelle: 'CDI' };
 
-  it('dit quand l’annonce est parue, en dernier', () => {
-    expect(sousTitre({ ...offre, date_creation: '2026-11-22T08:00:00+00:00' })).toBe(
-      'Bâti Essai · 47 - AGEN · CDI · parue le 22 novembre 2026',
-    );
-    expect(sousTitre({ ...offre, date_creation: '2026-11-01T08:00:00+00:00' })).toMatch(/parue le 1er novembre 2026$/);
+  it('dit l’entreprise, le lieu et le contrat — sans la date, qui va à droite', () => {
+    expect(sousTitre({ ...offre, date_creation: '2026-11-22T08:00:00+00:00' })).toBe('Bâti Essai · 47 - AGEN · CDI');
+    expect(sousTitre({ ...offre, entreprise_nom: null })).toBe('47 - AGEN · CDI');
+  });
+
+  it('dit à part quand l’annonce est parue', () => {
+    expect(parution({ ...offre, date_creation: '2026-11-22T08:00:00+00:00' })).toBe('parue le 22 novembre 2026');
+    expect(parution({ ...offre, date_creation: '2026-11-01T08:00:00+00:00' })).toBe('parue le 1er novembre 2026');
   });
 
   it('ne dit rien de la parution quand France Travail ne l’a pas donnée', () => {
-    expect(sousTitre(offre)).toBe('Bâti Essai · 47 - AGEN · CDI');
-    expect(sousTitre({ ...offre, date_creation: null })).toBe('Bâti Essai · 47 - AGEN · CDI');
-    expect(sousTitre({ ...offre, date_creation: 'hier' })).toBe('Bâti Essai · 47 - AGEN · CDI');
-  });
-
-  it('une offre réduite à sa date ne commence pas par un séparateur', () => {
-    expect(sousTitre({ id: 'b', intitule: null, entreprise_nom: null, lieu_libelle: null, type_contrat_libelle: null, date_creation: '2026-11-22T08:00:00+00:00' })).toBe(
-      'parue le 22 novembre 2026',
-    );
+    expect(parution(offre)).toBeNull();
+    expect(parution({ ...offre, date_creation: null })).toBeNull();
+    expect(parution({ ...offre, date_creation: 'hier' })).toBeNull();
   });
 });
