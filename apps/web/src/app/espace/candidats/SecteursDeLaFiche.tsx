@@ -10,8 +10,9 @@ import { annoncerSecteursModifies } from './EntreprisesQuiRecrutent';
  * (maquette validée le 12 novembre 2026, docs/maquettes/secteurs-d-activite.html,
  * écran 2 ; décisions 13 et 14).
  *
- * Pour son référent et son parrain : chaque geste s'enregistre aussitôt, et
- * « Confirmer » valide un secteur proposé par le candidat. Pour les autres
+ * Pour son référent, son parrain et l'administration (0103) : chaque geste
+ * s'enregistre aussitôt, et « Confirmer » valide un secteur proposé par le
+ * candidat. Pour les autres
  * référents de la loge : en lecture seule. La ligne grise « Repris de
  * Bubble » garde ce que l'ancienne application portait, tant que les
  * secteurs ne sont pas tous confirmés ; la base dit quand elle s'efface.

@@ -5,7 +5,7 @@
 --   · Paula   parraine le candidat, loge Nord    — de même
 --   · Victor  autre référent de la loge Nord     — lit, ne modifie pas
 --   · Sami    référent de la loge Sud            — ne lit rien
---   · Ada     administratrice                    — lit, ne modifie pas (comme la fiche)
+--   · Ada     administratrice                    — lit ; modifie depuis 0103 (testé là)
 --   · le candidat, sans compte, par le lien de sa candidature
 --
 -- Données fabriquées : aucune personne réelle.
@@ -225,10 +225,10 @@ commit;
 begin;
   set local role authenticated;
   select set_config('request.jwt.claims', '{"sub":"' || :'ada' || '"}', true);
+  -- Depuis 0103, l'administration modifie aussi : ce droit s'éprouve là-bas.
   select public.verifier(
-    public.secteurs_du_candidat(:'cand'::uuid) is not null
-      and not (public.secteurs_du_candidat(:'cand'::uuid) ->> 'modifiable')::boolean,
-    'l''administration lit, sans modifier — comme la fiche');
+    public.secteurs_du_candidat(:'cand'::uuid) is not null,
+    'l''administration lit les secteurs — comme la fiche');
 commit;
 
 \echo '— une personne non connectée, et les fonctions du lien'

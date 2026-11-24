@@ -33,7 +33,7 @@ export async function POST(requete: Request, { params }: { params: Promise<{ id:
     if (error) {
       if (error.code === '42501') {
         return NextResponse.json(
-          { erreur: 'Seuls le référent et le parrain du candidat confirment ses secteurs.' },
+          { erreur: 'Seuls le référent, le parrain et l’administration confirment les secteurs du candidat.' },
           { status: 403 },
         );
       }
