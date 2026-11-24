@@ -6,8 +6,9 @@ import { supabaseServer } from '@/lib/supabase-server';
 /**
  * Poser la liste des secteurs d'un candidat, depuis sa fiche — chaque geste
  * s'enregistre aussitôt (décision 13). La session d'abord ; le droit est dans
- * la base : son référent et son parrain (`ecrire_les_secteurs_du_candidat`,
- * 0092). La route rend la liste telle que la base l'a retenue.
+ * la base : son référent, son parrain et l'administration
+ * (`ecrire_les_secteurs_du_candidat`, 0092 ; 0103). La route rend la liste
+ * telle que la base l'a retenue.
  */
 
 const Demande = z
@@ -43,7 +44,7 @@ export async function PATCH(requete: Request, { params }: { params: Promise<{ id
     if (error) {
       if (error.code === '42501') {
         return NextResponse.json(
-          { erreur: 'Seuls le référent et le parrain du candidat modifient ses secteurs.' },
+          { erreur: 'Seuls le référent, le parrain et l’administration modifient les secteurs du candidat.' },
           { status: 403 },
         );
       }

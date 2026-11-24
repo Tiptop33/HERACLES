@@ -28,7 +28,7 @@ puis les offres du bâtiment.
 | 10 | Qui tient la liste d'une loge ? | ~~Le Secrétaire, connecté à HERACLES~~ — **remplacée par la décision 18** |
 | 11 | Jusqu'où une loge précise-t-elle ? | **Au moins la division, puis aussi fin qu'elle le veut**, jusqu'à la sous-classe (« 43.21A ») — confirmé |
 | 12 | Le formulaire de candidature, tel que maquetté ? | **Validé tel quel** |
-| 13 | Où le référent modifie-t-il les secteurs d'un candidat ? | **Directement dans la fiche**, chaque geste enregistré aussitôt |
+| 13 | Où le référent modifie-t-il les secteurs d'un candidat ? | **Directement dans la fiche**, chaque geste enregistré aussitôt. Le parrain aussi ; **l'administration aussi, sur toutes les fiches, depuis le 24 novembre 2026** (migration 0103) |
 | 14 | La ligne « Repris de Bubble : « … » » ? | **Affichée tant que le référent n'a pas confirmé** les secteurs, puis retirée |
 | 15 | Où la loge coche-t-elle ses secteurs ? | ~~Sur la page Référents~~ — **remplacée par les décisions 18 et 25** |
 | 16 | Comment interroger chaque loge ? | ~~Un bandeau, pas de courriel~~ — **remplacée par les décisions 18 à 24** |
