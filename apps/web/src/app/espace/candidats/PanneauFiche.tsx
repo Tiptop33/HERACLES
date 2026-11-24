@@ -5,6 +5,8 @@ import { Feuille, FeuilleVide, Stylo } from '@/components/Icones';
 import { DrapeauFrance } from '../referents/DrapeauFrance';
 import SecteursDeLaFiche from './SecteursDeLaFiche';
 import EntreprisesQuiRecrutent from './EntreprisesQuiRecrutent';
+import OffresEnAlternance from './OffresEnAlternance';
+import { estEnAlternance } from '@/lib/la-bonne-alternance';
 import type { SecteursDuCandidat } from '@/lib/secteurs';
 import MenuDuReferent from './MenuDuReferent';
 import { dateEnLettres, enEtiquettes, initiales, telephone } from '@/lib/format';
@@ -775,6 +777,11 @@ function Profil({
           décision du 24 novembre 2026) : seulement pour qui lit ses secteurs,
           c'est-à-dire la fiche. */}
       {secteurs && <EntreprisesQuiRecrutent candidat={fiche.id} />}
+
+      {/* Les offres en alternance pour son métier (La bonne alternance,
+          décision du 24 novembre 2026) : seulement s'il cherche une
+          alternance. */}
+      {estEnAlternance(fiche.type_emploi) && <OffresEnAlternance candidat={fiche.id} />}
 
       <section className="bloc bloc--large">
         <h2>Parcours</h2>

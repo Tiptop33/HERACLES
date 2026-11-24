@@ -56,6 +56,9 @@ services:
       FRANCE_TRAVAIL_CLIENT_SECRET: ${FRANCE_TRAVAIL_CLIENT_SECRET:-}
       FRANCE_TRAVAIL_DEPARTEMENTS: ${FRANCE_TRAVAIL_DEPARTEMENTS:-}
       RECEPTION_OFFRES_SECRET: ${RECEPTION_OFFRES_SECRET:-}
+      # Les offres en alternance sur la fiche (docs/france-travail.md) : la clé
+      # de l'API apprentissage. Vide : le bloc dit qu'il n'est pas configuré.
+      LA_BONNE_ALTERNANCE_CLE: ${LA_BONNE_ALTERNANCE_CLE:-}
     ports:
       # Jamais exposé directement sur Internet : la façade — Nginx ou Traefik —
       # fait le reverse-proxy HTTPS vers ce port. Publié sur la boucle locale
