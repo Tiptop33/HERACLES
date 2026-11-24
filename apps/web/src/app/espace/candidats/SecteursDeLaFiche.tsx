@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import ChoixDesSecteursDuCandidat from '@/components/ChoixDesSecteursDuCandidat';
 import type { SecteurDuCandidat, SecteursDuCandidat } from '@/lib/secteurs';
+import { annoncerSecteursModifies } from './EntreprisesQuiRecrutent';
 
 /**
  * Les secteurs d'un candidat, dans le bloc « Sa recherche » de sa fiche
@@ -33,6 +34,8 @@ export default function SecteursDeLaFiche({ candidat, initial }: { candidat: str
       } | null;
       if (!reponse.ok || !lu?.secteurs) return lu?.erreur ?? 'L’enregistrement a échoué. Réessayez.';
       setReprisDeBubble(lu.repris_de_bubble ?? null);
+      // Le bloc « Entreprises qui recrutent » se recalcule sur les secteurs retenus.
+      annoncerSecteursModifies(candidat);
       return lu.secteurs;
     } catch {
       return 'Le serveur ne répond pas. Ce changement n’est pas enregistré.';

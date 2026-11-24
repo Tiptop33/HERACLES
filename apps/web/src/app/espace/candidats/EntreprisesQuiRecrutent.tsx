@@ -10,8 +10,16 @@ import { effectif, type EntrepriseQuiRecrute } from '@/lib/la-bonne-boite';
  * liste se déduit de la fiche.
  *
  * Chargée après la fiche, pour ne pas la retarder : France Travail peut être
- * lent, la fiche ne l'attend pas.
+ * lent, la fiche ne l'attend pas. Rechargée quand les secteurs de la fiche
+ * changent (`annoncerSecteursModifies`), sans recharger la page.
  */
+
+const SECTEURS_MODIFIES = 'heracles:secteurs-modifies';
+
+/** Prévient le bloc que les secteurs de ce candidat viennent d'être enregistrés. */
+export function annoncerSecteursModifies(candidat: string) {
+  window.dispatchEvent(new CustomEvent(SECTEURS_MODIFIES, { detail: candidat }));
+}
 
 type Reponse =
   | { etat: 'ok'; departement: string; total: number; entreprises: EntrepriseQuiRecrute[] }
@@ -28,17 +36,30 @@ const PHRASES: Record<Exclude<Reponse['etat'], 'ok'>, string> = {
 
 export default function EntreprisesQuiRecrutent({ candidat }: { candidat: string }) {
   const [etat, setEtat] = useState<Etat>({ charge: true });
+  // Chaque modification des secteurs fait monter ce compteur, donc relance la recherche.
+  const [version, setVersion] = useState(0);
+
+  useEffect(() => {
+    function ecouter(evenement: Event) {
+      if ((evenement as CustomEvent<string>).detail !== candidat) return;
+      setEtat({ charge: true });
+      setVersion((v) => v + 1);
+    }
+    window.addEventListener(SECTEURS_MODIFIES, ecouter);
+    return () => window.removeEventListener(SECTEURS_MODIFIES, ecouter);
+  }, [candidat]);
 
   useEffect(() => {
     const abandon = new AbortController();
-    fetch(`/api/candidats/${candidat}/entreprises`, { signal: abandon.signal })
+    // Une modification rapide en interrompt une autre : seule la dernière réponse s'affiche.
+    fetch(`/api/candidats/${candidat}/entreprises`, { signal: abandon.signal, cache: 'no-store' })
       .then((r) => r.json())
       .then((reponse: Reponse) => setEtat({ charge: false, reponse }))
       .catch(() => {
         if (!abandon.signal.aborted) setEtat({ charge: false, reponse: { etat: 'indisponible' } });
       });
     return () => abandon.abort();
-  }, [candidat]);
+  }, [candidat, version]);
 
   return (
     <section className="bloc bloc--large entreprises-qui-recrutent" aria-busy={etat.charge}>
