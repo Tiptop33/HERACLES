@@ -162,6 +162,8 @@ export type Offre = {
   entreprise_nom: string | null;
   lieu_libelle: string | null;
   type_contrat_libelle: string | null;
+  /** La date de parution de l'annonce chez France Travail. Absente : on ne dit rien. */
+  date_creation?: string | null;
 };
 
 /**
@@ -175,7 +177,7 @@ export async function listerOffresEnCours(limite = 5): Promise<Offre[]> {
 
   const { data } = await supabase
     .from('offre_emploi')
-    .select('id, intitule, entreprise_nom, lieu_libelle, type_contrat_libelle')
+    .select('id, intitule, entreprise_nom, lieu_libelle, type_contrat_libelle, date_creation')
     .gt('date_actualisation', bord)
     .order('date_actualisation', { ascending: false })
     .limit(limite);
