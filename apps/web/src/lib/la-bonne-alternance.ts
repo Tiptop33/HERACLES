@@ -180,6 +180,8 @@ export type OffreEnAlternance = {
   debut: string | null;
   duree_mois: number | null;
   lien: string | null;
+  /** La date de parution de l'offre (`offer.publication.creation`), ou `null`. */
+  parue_le: string | null;
 };
 
 export type ResultatAlternance = {
@@ -212,7 +214,12 @@ const Offre = z.object({
     .nullable()
     .optional()
     .catch(null),
-  offer: z.object({ title: z.string().trim().min(1) }).passthrough(),
+  offer: z
+    .object({
+      title: z.string().trim().min(1),
+      publication: z.object({ creation: TexteFacultatif }).passthrough().nullable().optional().catch(null),
+    })
+    .passthrough(),
 });
 
 const ReponseRecherche = z.object({ jobs: z.array(z.unknown()).catch([]) }).passthrough();
@@ -240,6 +247,7 @@ export function lireLesOffres(json: unknown): ResultatAlternance {
     const id = o.data.identifier.id ?? o.data.identifier.partner_job_id;
     if (!id || offres.some((x) => x.id === id)) continue;
     const debut = o.data.contract?.start ?? null;
+    const parue = o.data.offer.publication?.creation ?? null;
     offres.push({
       id,
       titre: o.data.offer.title,
@@ -249,6 +257,7 @@ export function lireLesOffres(json: unknown): ResultatAlternance {
       debut: debut && !Number.isNaN(Date.parse(debut)) ? debut : null,
       duree_mois: o.data.contract?.duration ?? null,
       lien: lienSur(o.data.apply?.url),
+      parue_le: parue && !Number.isNaN(Date.parse(parue)) ? parue : null,
     });
   }
   return { total: offres.length, offres: offres.slice(0, OFFRES_PAR_FICHE) };

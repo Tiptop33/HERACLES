@@ -6522,3 +6522,25 @@ a.poste-document .poste-document-type {
 .entreprises-liste + .entreprises-note {
   margin-top: 0.75rem;
 }
+
+/* Une offre en alternance : à gauche l'intitulé et sa ligne grise, à droite la
+   date de parution, alignée d'une offre à l'autre — comme la liste France
+   Travail (.offre-rangee, plus haut). Sur un téléphone, la date passe dessous. */
+.entreprises-liste li.offre-rangee {
+  flex-wrap: nowrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.entreprises-liste li.offre-rangee .entreprises-detail {
+  flex-basis: auto;
+}
+
+@media (max-width: 46rem) {
+  .entreprises-liste li.offre-rangee {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.1rem;
+  }
+}

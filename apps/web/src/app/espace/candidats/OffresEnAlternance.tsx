@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { dateEnLettres } from '@/lib/format';
 import { RAYON_KM, type MetierRome, type OffreEnAlternance } from '@/lib/la-bonne-alternance';
 
 /**
@@ -97,21 +98,28 @@ export default function OffresEnAlternance({ candidat }: { candidat: string }) {
               <ul className="entreprises-liste">
                 {etat.reponse.offres.map((o) => {
                   const detail = [o.entreprise, o.adresse, contrat(o)].filter(Boolean).join(' · ');
+                  const date = dateEnLettres(o.parue_le);
+                  const parue = date ? `parue le ${date}` : null;
                   return (
-                    <li key={o.id}>
-                      {o.lien ? (
-                        <a
-                          href={o.lien}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          title="Ouvrir l’offre sur La bonne alternance"
-                        >
-                          {o.titre}
-                        </a>
-                      ) : (
-                        <strong>{o.titre}</strong>
-                      )}
-                      {detail && <span className="entreprises-detail">{detail}</span>}
+                    <li key={o.id} className="offre-rangee">
+                      {/* À gauche l'intitulé et sa ligne grise ; à droite la
+                          date de parution, comme dans la liste France Travail. */}
+                      <span className="offre-texte">
+                        {o.lien ? (
+                          <a
+                            href={o.lien}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            title="Ouvrir l’offre sur La bonne alternance"
+                          >
+                            {o.titre}
+                          </a>
+                        ) : (
+                          <strong>{o.titre}</strong>
+                        )}
+                        {detail && <span className="entreprises-detail">{detail}</span>}
+                      </span>
+                      {parue && <span className="entreprises-detail offre-parution">{parue}</span>}
                     </li>
                   );
                 })}
