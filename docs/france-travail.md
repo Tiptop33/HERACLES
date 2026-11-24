@@ -145,6 +145,46 @@ HTTP `401` sur la route elle-même : le secret ne correspond pas, ou il est
 absent — la route est alors fermée à tout le monde, et c'est voulu. HTTP `503` :
 les identifiants France Travail manquent.
 
+## Les entreprises qui recrutent (La Bonne Boîte)
+
+Sous l'onglet « Profil » de la fiche d'un candidat, le bloc **« Entreprises qui
+recrutent »** (décision du 24 novembre 2026) liste les dix entreprises que
+France Travail juge les plus susceptibles de recruter dans les six mois, dans
+les secteurs du candidat et son département. Rien à saisir : la liste se
+déduit de la fiche. Chaque nom mène à la fiche de l'établissement dans
+l'Annuaire des entreprises (`annuaire-entreprises.data.gouv.fr`), où chercher
+un contact — La Bonne Boîte n'en donne aucun.
+
+```
+fiche (onglet Profil) ──► GET /api/candidats/<id>/entreprises
+                               │  1. session
+                               │  2. fiche et secteurs, lus sous RLS
+                               │  3. secteurs → divisions NAF, code postal → département
+                               ▼
+              api.francetravail.io/partenaire/labonneboite/v2/recherche
+```
+
+- **API** : « La Bonne Boîte v2 » (spécification v2.27.3 lue le 24 novembre
+  2026), accès libre, licence Etalab, **deux appels par seconde**.
+- **Portée du jeton** : `api_labonneboitev2 search office`. L'application
+  déclarée sur francetravail.io doit être **abonnée aussi à La Bonne Boîte** —
+  mêmes identifiants `FRANCE_TRAVAIL_*`, rien de plus dans `.env.essai`.
+- **Ce qui part** : des divisions NAF et un numéro de département. Jamais un
+  nom ni un identifiant de candidat.
+- **Secteurs** : une division telle quelle, une section dépliée en ses
+  divisions (NAF rév. 2), dans l'ordre des secteurs, quarante au plus.
+- **Lieu** : le département du code postal de la fiche (Corse : 2A/2B ;
+  outre-mer : 971 à 976). Pas de rayon autour de la commune : il faudrait
+  géocoder l'adresse — une évolution possible.
+- **Rien en base.** Le jeton est gardé vingt minutes, chaque liste une heure,
+  en mémoire du processus ; un redémarrage les oublie.
+- **Qui la voit** : qui lit les secteurs de la fiche, donc la fiche elle-même.
+  La route ne répond rien à qui ne la lit pas.
+
+Quand la liste manque, le bloc dit pourquoi : pas de secteur, pas de code
+postal, identifiants absents, ou France Travail indisponible (le journal de
+l'application porte alors `[la bonne boîte] recherche <statut>`).
+
 ## Ce qui reste à savoir
 
 - **Jamais joué contre la vraie API avant la première mise en service.** Le
@@ -161,5 +201,11 @@ les identifiants France Travail manquent.
 - **La purge ignore encore les offres proposées.** Elle supprime toute offre
   de plus de soixante jours ; quand un référent pourra proposer une offre à un
   candidat (lot 4), il faudra qu'elle épargne celles-là.
+- **La Bonne Boîte n'a jamais été appelée pour de vrai** non plus : écrite
+  d'après sa spécification OpenAPI, éprouvée contre une fausse API. Au premier
+  essai, vérifier aussi l'adresse du jeton : la documentation de La Bonne
+  Boîte indique `authentification-partenaire.francetravail.io`, notre code
+  appelle `entreprise.francetravail.fr` — toutes deux pour le royaume
+  `/partenaire`, à confirmer.
 - **L'instance de production** n'existe pas encore : ces scripts sont ceux de
   l'essai. La mise en ligne du lot 6 reprendra la même minuterie.
