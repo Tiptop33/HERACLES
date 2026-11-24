@@ -4,6 +4,7 @@ import {
   DEPARTEMENTS,
   adresseDesOffres,
   basculerDepartement,
+  sousTitre,
   lienSur,
   lireDetail,
   lireIdentifiantDOffre,
@@ -154,6 +155,10 @@ describe('les pages', () => {
   it('une page de la base se lit, ou se refuse', () => {
     const offre = { id: 'a', intitule: 'Essai', entreprise_nom: null, lieu_libelle: null, type_contrat_libelle: null };
     expect(lirePage({ total: 1, offres: [offre] })).toEqual({ total: 1, offres: [offre] });
+    // Avec la date de parution (0102), ou sans elle le temps d'une mise en ligne.
+    const datee = { ...offre, date_creation: '2026-11-22T08:00:00+00:00' };
+    expect(lirePage({ total: 1, offres: [datee] })?.offres[0].date_creation).toBe('2026-11-22T08:00:00+00:00');
+    expect(lirePage({ total: 1, offres: [{ ...offre, date_creation: null }] })?.offres[0].date_creation).toBeNull();
     expect(lirePage({ total: -1, offres: [] })).toBeNull();
     expect(lirePage([offre])).toBeNull();
   });
@@ -265,5 +270,28 @@ describe('le détail d’une offre', () => {
     for (const dangereuse of ['javascript:alert(1)', 'data:text/html,<p>', 'exemple.test', '', null, undefined, 'mailto:a@b.c']) {
       expect(lienSur(dangereuse), String(dangereuse)).toBeNull();
     }
+  });
+});
+
+describe('la ligne d’une offre dans la liste', () => {
+  const offre = { id: 'a', intitule: 'Maçon', entreprise_nom: 'Bâti Essai', lieu_libelle: '47 - AGEN', type_contrat_libelle: 'CDI' };
+
+  it('dit quand l’annonce est parue, en dernier', () => {
+    expect(sousTitre({ ...offre, date_creation: '2026-11-22T08:00:00+00:00' })).toBe(
+      'Bâti Essai · 47 - AGEN · CDI · parue le 22 novembre 2026',
+    );
+    expect(sousTitre({ ...offre, date_creation: '2026-11-01T08:00:00+00:00' })).toMatch(/parue le 1er novembre 2026$/);
+  });
+
+  it('ne dit rien de la parution quand France Travail ne l’a pas donnée', () => {
+    expect(sousTitre(offre)).toBe('Bâti Essai · 47 - AGEN · CDI');
+    expect(sousTitre({ ...offre, date_creation: null })).toBe('Bâti Essai · 47 - AGEN · CDI');
+    expect(sousTitre({ ...offre, date_creation: 'hier' })).toBe('Bâti Essai · 47 - AGEN · CDI');
+  });
+
+  it('une offre réduite à sa date ne commence pas par un séparateur', () => {
+    expect(sousTitre({ id: 'b', intitule: null, entreprise_nom: null, lieu_libelle: null, type_contrat_libelle: null, date_creation: '2026-11-22T08:00:00+00:00' })).toBe(
+      'parue le 22 novembre 2026',
+    );
   });
 });

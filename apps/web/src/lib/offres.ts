@@ -1,4 +1,6 @@
 import { z } from 'zod';
+import type { Offre } from './accueil';
+import { dateEnLettres } from './format';
 
 /**
  * Les filtres de l'écran « France Travail » : un ou plusieurs départements, un
@@ -175,6 +177,20 @@ function ordreDesNumeros(a: string, b: string): number {
   return rang(a) - rang(b);
 }
 
+// --- Une ligne de la liste ------------------------------------------------------
+
+/**
+ * La ligne grise sous l'intitulé d'une offre, dans la liste. La parution vient en dernier, et seulement
+ * si France Travail l'a donnée : pas de date plutôt qu'une date inventée.
+ */
+export function sousTitre(o: Offre): string {
+  const parution = dateEnLettres(o.date_creation);
+  return [o.entreprise_nom, o.lieu_libelle, o.type_contrat_libelle, parution ? `parue le ${parution}` : null]
+    .filter(Boolean)
+    .join(' · ');
+}
+
+
 // --- Le détail d'une offre ------------------------------------------------------
 
 const IDENTIFIANT = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -289,6 +305,9 @@ const Page = z.object({
       entreprise_nom: z.string().nullable(),
       lieu_libelle: z.string().nullable(),
       type_contrat_libelle: z.string().nullable(),
+      // La date de parution (0102). Facultative : pendant une mise en ligne, la
+      // base peut encore répondre sans elle le temps que la migration passe.
+      date_creation: z.string().nullable().optional(),
     }),
   ),
 });

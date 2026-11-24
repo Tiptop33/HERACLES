@@ -1,9 +1,11 @@
 import Link from 'next/link';
 import type { Offre } from '@/lib/accueil';
+import { sousTitre } from '@/lib/offres';
 
 /**
  * La liste des offres d'emploi en cours : l'intitulé, puis l'entreprise, le
- * lieu et le type de contrat. La même à l'accueil et sur l'écran « France
+ * lieu, le type de contrat et la date de parution de l'annonce (24 novembre
+ * 2026, à la demande). La même à l'accueil et sur l'écran « France
  * Travail » — un seul composant, pour que les deux ne divergent pas.
  *
  * Avec `lien`, chaque ligne devient un lien vers le détail de l'offre. Sans
@@ -31,9 +33,7 @@ export default function ListeDesOffres({
         const contenu = (
           <>
             <span>{o.intitule ?? 'Offre sans intitulé'}</span>
-            <span className="maigre">
-              {[o.entreprise_nom, o.lieu_libelle, o.type_contrat_libelle].filter(Boolean).join(' · ')}
-            </span>
+            <span className="maigre">{sousTitre(o)}</span>
           </>
         );
         if (!lien) return <li key={o.id}>{contenu}</li>;
