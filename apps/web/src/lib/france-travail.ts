@@ -84,8 +84,16 @@ export class PanneFranceTravail extends Error {
   }
 }
 
-/** Demande un jeton d'accès. Il vaut environ vingt-cinq minutes. */
-export async function obtenirJeton(reglages: Reglages, outils: Pick<Outils, 'fetch'>): Promise<string> {
+/**
+ * Demande un jeton d'accès. Il vaut environ vingt-cinq minutes. La portée est
+ * celle de l'API visée : les offres par défaut, La Bonne Boîte pour les
+ * entreprises qui recrutent (`la-bonne-boite.ts`).
+ */
+export async function obtenirJeton(
+  reglages: Pick<Reglages, 'clientId' | 'clientSecret'>,
+  outils: Pick<Outils, 'fetch'>,
+  portee: string = PORTEE,
+): Promise<string> {
   const reponse = await outils.fetch(ADRESSE_DU_JETON, {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -93,7 +101,7 @@ export async function obtenirJeton(reglages: Reglages, outils: Pick<Outils, 'fet
       grant_type: 'client_credentials',
       client_id: reglages.clientId,
       client_secret: reglages.clientSecret,
-      scope: PORTEE,
+      scope: portee,
     }),
   });
   if (!reponse.ok) {

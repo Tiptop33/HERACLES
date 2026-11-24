@@ -6472,3 +6472,53 @@ a.poste-document .poste-document-type {
     justify-content: flex-start;
   }
 }
+
+/* Le bloc « Entreprises qui recrutent » de la fiche (La Bonne Boîte). */
+.entreprises-liste {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.55rem;
+}
+
+.entreprises-liste li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: 0.5rem;
+}
+
+.entreprises-liste a {
+  color: var(--encre);
+  font-weight: 600;
+}
+
+.entreprises-detail {
+  flex-basis: 100%;
+  font-size: 0.85rem;
+  color: var(--encre-douce);
+}
+
+.entreprises-fort {
+  font-size: 0.72rem;
+  padding: 0.05rem 0.45rem;
+  border-radius: 999px;
+  background: var(--referent-clair);
+  color: var(--referent);
+}
+
+.entreprises-note {
+  margin: 0.6rem 0 0;
+  font-size: 0.8rem;
+  color: var(--encre-tres-douce);
+}
+
+.entreprises-liste + .entreprises-note,
+.entreprises-qui-recrutent h2 + .entreprises-note {
+  margin-top: 0;
+}
+
+.entreprises-liste + .entreprises-note {
+  margin-top: 0.75rem;
+}

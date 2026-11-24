@@ -178,8 +178,10 @@ traitements.
 | Bubble | l'ancienne application, jusqu'au 5 décembre 2026 | ⚠️ *à vérifier* | ⚠️ *à archiver* |
 
 Ne voient **aucune** donnée personnelle : GitHub (le code seul, et le dépôt n'en
-contient aucune), France Travail (les offres viennent de chez eux, rien n'y
-part).
+contient aucune), France Travail (les offres viennent de chez eux ; pour le
+bloc « Entreprises qui recrutent » de la fiche, ne partent que des divisions
+NAF et un numéro de département, sans rien qui désigne le candidat — et la
+liste reçue, des entreprises en données ouvertes, n'est pas conservée).
 
 ## 9. Les mesures de sécurité, pour tous les traitements
 

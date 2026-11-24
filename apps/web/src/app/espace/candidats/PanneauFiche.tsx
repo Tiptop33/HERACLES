@@ -4,6 +4,7 @@ import LigneDeSuivi from '@/components/LigneDeSuivi';
 import { Feuille, FeuilleVide, Stylo } from '@/components/Icones';
 import { DrapeauFrance } from '../referents/DrapeauFrance';
 import SecteursDeLaFiche from './SecteursDeLaFiche';
+import EntreprisesQuiRecrutent from './EntreprisesQuiRecrutent';
 import type { SecteursDuCandidat } from '@/lib/secteurs';
 import MenuDuReferent from './MenuDuReferent';
 import { dateEnLettres, enEtiquettes, initiales, telephone } from '@/lib/format';
@@ -769,6 +770,11 @@ function Profil({
           </dl>
         </section>
       )}
+
+      {/* Les entreprises qui recrutent dans ses secteurs (La Bonne Boîte,
+          décision du 24 novembre 2026) : seulement pour qui lit ses secteurs,
+          c'est-à-dire la fiche. */}
+      {secteurs && <EntreprisesQuiRecrutent candidat={fiche.id} />}
 
       <section className="bloc bloc--large">
         <h2>Parcours</h2>
