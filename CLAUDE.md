@@ -26,11 +26,12 @@ Toute décision qui décale un lot doit être signalée : la date de bascule, el
 | Site | Adresse | Ce qu'on y fait |
 | --- | --- | --- |
 | **HERACLES, essai** | `essai.oaf-heracles.cloud` | toutes les modifications demandées |
-| **Bubble** | `oaf-heracles.fr` | **rien** — on y lit les données à reprendre, et c'est tout |
+| **Bubble** | `oaf-heracles.fr` | **rien** — plus rien n'y est lu non plus depuis le 24 novembre 2026 (reprise abandonnée) |
 
 Une demande de modification vise **toujours** le site d'essai. L'application Bubble ne se
 modifie en aucun cas : ni ses données, ni ses réglages, ni ses écrans. Elle reste telle
-qu'elle est jusqu'à la bascule ; HERACLES n'en fait que la lecture, pour la reprise.
+qu'elle est jusqu'à son arrêt ; HERACLES n'en lit plus rien non plus — la reprise a été
+abandonnée le 24 novembre 2026, HERACLES fait foi.
 
 ## Langue
 
@@ -172,9 +173,11 @@ sert**, pas la liste des fichiers touchés.
 - Cadrage : `docs/specs/2026-08-04-heracles-cadrage.md`
 - Modèle repris de Bubble : `docs/specs/2026-08-04-modele-bubble.md`
 - Plans par lot : `docs/plans/`
-- **MAJBUBBLE** — la reprise finale des données Bubble, à rejouer au plus tard le
-  5 décembre 2026 : `docs/MAJBUBBLE.md`. C'est la seule opération de la bascule qui
-  ne se rattrape pas — passé la fermeture, ni l'API ni le CDN de Bubble ne répondent.
+- **MAJBUBBLE** — `docs/MAJBUBBLE.md` : la reprise des données Bubble.
+  **Abandonnée le 24 novembre 2026** : ce qui reste dans Bubble n'est plus
+  repris, HERACLES fait foi, et plus aucune mise en ligne n'interroge Bubble.
+  Le document reste comme mémoire, et comme mode d'emploi de
+  `reprendre-bubble.sh` tant que Bubble répond.
 - **Courriels** — `docs/brevo.md` : les deux canaux d'envoi (authentification
   en SMTP, application par l'API) et le paramétrage de Brevo.
 - **Lecture du CV** — `docs/lecture-du-cv.md` : le CV du candidat lu par Claude

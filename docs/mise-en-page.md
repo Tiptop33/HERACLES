@@ -171,8 +171,10 @@ Migration 0071.
   ARCHIVER — un dossier qu'HERACLES a rouvert.
 - Recopier la date de Bubble ou repousser l'archivage ne changent pas la
   « dernière mise à jour » affichée sur la fiche.
-- **Les PDF de Bubble arrivent à chaque mise en ligne**, jusqu'à la bascule :
-  `mettre-a-jour.sh` lance `reprendre-bubble.sh --pdf-commission`, qui reprend
+- **Les PDF de Bubble n'arrivent plus à la mise en ligne** depuis le
+  24 novembre 2026 : la reprise de Bubble est abandonnée (voir
+  `MAJBUBBLE.md`), et ceux qui n'étaient pas rapatriés ce jour-là ne le seront
+  pas. Jusque-là, `mettre-a-jour.sh` lançait `reprendre-bubble.sh --pdf-commission`, qui reprend
   la table des PDF et ne rapatrie que les comptes rendus, affiches et
   affichettes (pas les CV anonymes, laissés à MAJBUBBLE). Non bloquant, borné à
   cinq minutes, rejouable ; le journal du déploiement finit par un bilan
