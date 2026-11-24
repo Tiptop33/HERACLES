@@ -8,7 +8,9 @@ export const metadata = { title: 'Modifier une fiche — HERACLES' };
 
 export default async function ModifierCandidat({ params }: { params: Promise<{ id: string }> }) {
   const profil = await exigerProfil();
-  if (profil.role !== 'referent') redirect(accueilDuRole(profil.role));
+  // Le référent, le parrain et, depuis 0104, l'administration. La RLS décide
+  // de quelles fiches : `lireCandidat` ne rend rien de plus.
+  if (profil.role !== 'referent' && profil.role !== 'admin') redirect(accueilDuRole(profil.role));
 
   const { id } = await params;
   const candidat = await lireCandidat(id);

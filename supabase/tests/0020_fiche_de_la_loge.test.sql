@@ -171,9 +171,11 @@ begin;
     'Jonas ouvre Lyon et Tours — sans lui, les 118 fiches reprises de Bubble '
     'ne s''ouvriraient nulle part');
 
+  -- Depuis 0104 (décision du 24 novembre 2026), l'administration corrige
+  -- aussi toute fiche : ce droit s'éprouve dans le test de 0104.
   select public.verifier(
-    (select modifiable from public.fiche_candidat(:'anne'::uuid)) = false,
-    'et n''en corrige aucune : administrer n''est pas accompagner');
+    (select modifiable from public.fiche_candidat(:'anne'::uuid)) = true,
+    'et les corrige toutes, depuis 0104');
 commit;
 
 -- ---------------------------------------------------------------------------
