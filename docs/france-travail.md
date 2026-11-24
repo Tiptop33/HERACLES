@@ -210,14 +210,16 @@ fiche (onglet Profil) ──► GET /api/candidats/<id>/alternance
   partenaires, dont France Travail.
 - **Deux accès** :
   - **ROMEO** (francetravail.io, portée `api_romeov2`) traduit le métier écrit
-    sur la fiche en codes ROME : le premier toujours, les deux suivants si
-    leur score atteint 0,5. Mêmes identifiants `FRANCE_TRAVAIL_*` ; abonner
-    l'application à ROMEO.
+    sur la fiche en **un** code ROME, le plus probable (décision du 24 novembre
+    2026 : en retenir jusqu'à trois ramenait des offres hors sujet). Le bloc
+    le nomme en tête — « Métier reconnu : … » — pour qu'on sache d'où viennent
+    les offres ; s'il est faux, préciser le métier sur la fiche. Mêmes
+    identifiants `FRANCE_TRAVAIL_*` ; abonner l'application à ROMEO.
   - **`LA_BONNE_ALTERNANCE_CLE`** : une clé « production » créée sur
     api.apprentissage.beta.gouv.fr (compte, profil). Lire ne demande aucune
     habilitation. À ranger dans `.env.essai` ; `deployer.sh` la conserve.
 - **Ce qui part** : l'intitulé du métier chez France Travail ; le code postal,
-  les codes ROME et le centre de la commune (pas l'adresse) chez la Mission
+  le code ROME et le centre de la commune (pas l'adresse) chez la Mission
   apprentissage. Jamais un nom ni un identifiant de candidat.
 - **Rien en base.** En mémoire : le jeton ROMEO vingt minutes, les codes ROME
   d'un métier et la position d'une commune un jour, chaque liste une heure.
@@ -251,6 +253,8 @@ service indisponible (journal : `[la bonne alternance] <message> <statut>`).
   (`entreprise.francetravail.fr`) sert donc aussi La Bonne Boîte et ROMEO.
 - **La pertinence des offres en alternance** reste à juger sur quelques
   fiches : le métier écrit sur la fiche est parfois vague (« SECRETARIAT DE
-  DIRECTION »), et les codes ROME que ROMEO en tire décident des offres.
+  DIRECTION »), et le code ROME que ROMEO en tire décide des offres. Premier
+  retour, le 24 novembre : « en partie » pertinentes avec trois métiers ;
+  ramené à un seul, et affiché, le même jour.
 - **L'instance de production** n'existe pas encore : ces scripts sont ceux de
   l'essai. La mise en ligne du lot 6 reprendra la même minuterie.
