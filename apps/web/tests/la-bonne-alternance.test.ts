@@ -26,7 +26,13 @@ function offre(id: string, autres: Record<string, unknown> = {}) {
     },
     apply: { url: `https://labonnealternance.example/offre/${id}`, phone: '0600000000', recipient_id: null },
     contract: { start: '2027-09-01T00:00:00.000Z', duration: 24, type: ['Apprentissage'], remote: null },
-    offer: { title: 'Électricien en alternance', description: '…', rome_codes: ['F1602'], status: 'Active' },
+    offer: {
+      title: 'Électricien en alternance',
+      description: '…',
+      rome_codes: ['F1602'],
+      status: 'Active',
+      publication: { creation: '2026-11-20T08:00:00.000Z', expiration: null },
+    },
     ...autres,
   };
 }
@@ -122,6 +128,7 @@ describe('les offres', () => {
           debut: '2027-09-01T00:00:00.000Z',
           duree_mois: 24,
           lien: 'https://labonnealternance.example/offre/a1',
+          parue_le: '2026-11-20T08:00:00.000Z',
         },
       ],
     });
@@ -139,6 +146,15 @@ describe('les offres', () => {
     });
     expect(lu.offres.map((o) => o.id)).toEqual(['a1', 'a2']);
     expect(lu.offres[1]).toMatchObject({ lien: null, entreprise: null, contrats: [], debut: null });
+  });
+
+  it('écarte une date de parution illisible plutôt que d’en inventer une', () => {
+    const sans = lireLesOffres({ jobs: [offre('d1', { offer: { title: 'Sans date' } })] });
+    const illisible = lireLesOffres({
+      jobs: [offre('d2', { offer: { title: 'Date illisible', publication: { creation: 'hier' } } })],
+    });
+    expect(sans.offres[0].parue_le).toBeNull();
+    expect(illisible.offres[0].parue_le).toBeNull();
   });
 
   it('n’en montre que dix, et dit combien il y en avait', () => {
