@@ -12,7 +12,7 @@ import { supabaseServer } from '@/lib/supabase-server';
  *
  * La session d'abord ; puis la fiche, lue sous RLS : qui ne la lit pas
  * n'obtient rien. Alors seulement on interroge ROMEO et l'API apprentissage —
- * avec l'intitulé du métier, un code postal, des codes ROME et le centre de
+ * avec l'intitulé du métier, un code postal, un code ROME et le centre de
  * la commune, rien qui désigne le candidat.
  *
  * La réponse dit toujours pourquoi la liste manque.
@@ -46,7 +46,7 @@ export async function GET(_requete: Request, { params }: { params: Promise<{ id:
 
     const reponse = await chercher({ metier, codePostal, ville: fiche.ville });
     if (reponse.etat !== 'ok') return NextResponse.json({ etat: reponse.etat });
-    return NextResponse.json({ etat: 'ok', rayon: RAYON_KM, ...reponse.resultat });
+    return NextResponse.json({ etat: 'ok', rayon: RAYON_KM, metier: reponse.metier, ...reponse.resultat });
   } catch (souci) {
     if (souci instanceof PanneFranceTravail) {
       console.error('[la bonne alternance]', souci.message, souci.statut ?? '');
