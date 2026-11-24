@@ -115,16 +115,6 @@ export function effectif(min: number | null, max: number | null): string | null 
   return null;
 }
 
-/**
- * « potentiel 88/100 » — le potentiel d'embauche que France Travail donne à
- * l'entreprise, arrondi, affiché à droite de sa ligne. `null` s'il manque ou
- * sort de 0 à 100 : pas de chiffre plutôt qu'un chiffre faux.
- */
-export function potentielAffiche(potentiel: number | null): string | null {
-  if (potentiel === null || !Number.isFinite(potentiel) || potentiel < 0 || potentiel > 100) return null;
-  return `potentiel ${Math.round(potentiel)}/100`;
-}
-
 export type ResultatLaBonneBoite = {
   /** Combien d'entreprises correspondent en tout. */
   total: number;
