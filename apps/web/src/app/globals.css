@@ -6523,10 +6523,9 @@ a.poste-document .poste-document-type {
   margin-top: 0.75rem;
 }
 
-/* Une offre en alternance, ou une entreprise qui recrute : à gauche l'intitulé
-   et sa ligne grise, à droite la date de parution ou le potentiel, alignés
-   d'une ligne à l'autre — comme la liste France Travail (.offre-rangee, plus
-   haut). Sur un téléphone, ils passent dessous. */
+/* Une offre en alternance : à gauche l'intitulé et sa ligne grise, à droite la
+   date de parution, alignée d'une offre à l'autre — comme la liste France
+   Travail (.offre-rangee, plus haut). Sur un téléphone, la date passe dessous. */
 .entreprises-liste li.offre-rangee {
   flex-wrap: nowrap;
   justify-content: space-between;
@@ -6544,10 +6543,4 @@ a.poste-document .poste-document-type {
     align-items: stretch;
     gap: 0.1rem;
   }
-}
-
-/* La pastille « fort potentiel » garde son espace après le nom, maintenant que
-   le nom et elle partagent une ligne dans .offre-texte. */
-.entreprises-liste .offre-texte .entreprises-fort {
-  margin-left: 0.5rem;
 }

@@ -8,7 +8,6 @@ import {
   divisionsDeLaSection,
   divisionsDuCandidat,
   effectif,
-  potentielAffiche,
   lireLaReponse,
   serviceLaBonneBoite,
 } from '../src/lib/la-bonne-boite';
@@ -124,21 +123,6 @@ describe('l’effectif', () => {
     expect(effectif(250, null)).toBe('250 salariés et plus');
     expect(effectif(null, 9)).toBe('jusqu’à 9 salariés');
     expect(effectif(null, null)).toBeNull();
-  });
-});
-
-describe('le potentiel', () => {
-  it('s’affiche arrondi, sur cent', () => {
-    expect(potentielAffiche(87.5)).toBe('potentiel 88/100');
-    expect(potentielAffiche(0)).toBe('potentiel 0/100');
-    expect(potentielAffiche(100)).toBe('potentiel 100/100');
-  });
-
-  it('ne s’affiche pas s’il manque ou n’a pas de sens', () => {
-    expect(potentielAffiche(null)).toBeNull();
-    expect(potentielAffiche(-1)).toBeNull();
-    expect(potentielAffiche(140)).toBeNull();
-    expect(potentielAffiche(Number.NaN)).toBeNull();
   });
 });
 
