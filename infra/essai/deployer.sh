@@ -365,11 +365,11 @@ TRAEFIK_ENABLE=false
 # coupait l'envoi des courriels sans prévenir. Seul le nombre de lignes est
 # affiché : jamais les valeurs. La clé d'Anthropic, qui lit les CV
 # (docs/lecture-du-cv.md), est gardée de la même façon. Les identifiants France
-# Travail et le secret de la réception des offres (docs/france-travail.md)
-# aussi.
+# Travail, le secret de la réception des offres et la clé de La bonne
+# alternance (docs/france-travail.md) aussi.
 GARDE_COURRIEL=""
 if [[ -f "$DEPOT/.env.essai" ]]; then
-  GARDE_COURRIEL="$(grep -E '^(BREVO_API_KEY|COURRIEL_EXPEDITEUR|COURRIEL_NOM_EXPEDITEUR|RELANCE_SECRET|ANTHROPIC_API_KEY|FRANCE_TRAVAIL_CLIENT_ID|FRANCE_TRAVAIL_CLIENT_SECRET|FRANCE_TRAVAIL_DEPARTEMENTS|RECEPTION_OFFRES_SECRET)=.' \
+  GARDE_COURRIEL="$(grep -E '^(BREVO_API_KEY|COURRIEL_EXPEDITEUR|COURRIEL_NOM_EXPEDITEUR|RELANCE_SECRET|ANTHROPIC_API_KEY|FRANCE_TRAVAIL_CLIENT_ID|FRANCE_TRAVAIL_CLIENT_SECRET|FRANCE_TRAVAIL_DEPARTEMENTS|RECEPTION_OFFRES_SECRET|LA_BONNE_ALTERNANCE_CLE)=.' \
     "$DEPOT/.env.essai" || true)"
 fi
 

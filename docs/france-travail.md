@@ -185,6 +185,50 @@ Quand la liste manque, le bloc dit pourquoi : pas de secteur, pas de code
 postal, identifiants absents, ou France Travail indisponible (le journal de
 l'application porte alors `[la bonne boîte] recherche <statut>`).
 
+## Les offres en alternance (La bonne alternance)
+
+Sous l'onglet « Profil » de la fiche d'un candidat qui cherche une alternance
+(« Stage en alternance »), le bloc **« Offres en alternance »** (décision du
+24 novembre 2026, option a) liste les dix premières offres de La bonne
+alternance pour son métier, à moins de **30 km** de sa commune. Rien à
+saisir : le métier recherché et le code postal de la fiche suffisent. Chaque
+titre ouvre l'offre, où l'on postule.
+
+```
+fiche (onglet Profil) ──► GET /api/candidats/<id>/alternance
+                               │  1. session ; fiche lue sous RLS
+                               │  2. métier recherché ──► ROMEO (France Travail) ──► codes ROME
+                               │  3. code postal ──► /geographie/v1/commune/search ──► centre de la commune
+                               ▼
+              api.apprentissage.beta.gouv.fr/api/job/v1/search  (ROME, position, 30 km)
+```
+
+- **API** : « Recherche d'opportunités d'emploi en alternance », Mission
+  interministérielle de l'apprentissage (spécification lue le 24 novembre
+  2026). Gratuite, **usage non lucratif**, 60 recherches par minute. Elle
+  rassemble les offres déposées sur La bonne alternance et celles de ses
+  partenaires, dont France Travail.
+- **Deux accès** :
+  - **ROMEO** (francetravail.io, portée `api_romeov2`) traduit le métier écrit
+    sur la fiche en codes ROME : le premier toujours, les deux suivants si
+    leur score atteint 0,5. Mêmes identifiants `FRANCE_TRAVAIL_*` ; abonner
+    l'application à ROMEO.
+  - **`LA_BONNE_ALTERNANCE_CLE`** : une clé « production » créée sur
+    api.apprentissage.beta.gouv.fr (compte, profil). Lire ne demande aucune
+    habilitation. À ranger dans `.env.essai` ; `deployer.sh` la conserve.
+- **Ce qui part** : l'intitulé du métier chez France Travail ; le code postal,
+  les codes ROME et le centre de la commune (pas l'adresse) chez la Mission
+  apprentissage. Jamais un nom ni un identifiant de candidat.
+- **Rien en base.** En mémoire : le jeton ROMEO vingt minutes, les codes ROME
+  d'un métier et la position d'une commune un jour, chaque liste une heure.
+- **Le téléphone du recruteur**, que l'API rend parfois, n'est pas repris : le
+  lien mène à l'offre, où il figure.
+- **Qui la voit** : qui lit la fiche ; la route ne répond rien aux autres.
+
+Quand la liste manque, le bloc dit pourquoi : pas de métier, pas de code
+postal, métier non reconnu par ROMEO, commune introuvable, clé absente, ou
+service indisponible (journal : `[la bonne alternance] <message> <statut>`).
+
 ## Ce qui reste à savoir
 
 - **Jamais joué contre la vraie API avant la première mise en service.** Le
@@ -207,5 +251,9 @@ l'application porte alors `[la bonne boîte] recherche <statut>`).
   Boîte indique `authentification-partenaire.francetravail.io`, notre code
   appelle `entreprise.francetravail.fr` — toutes deux pour le royaume
   `/partenaire`, à confirmer.
+- **La bonne alternance et ROMEO n'ont jamais été appelés pour de vrai** :
+  écrits d'après leurs spécifications, éprouvés contre de faux services. Le
+  métier écrit sur la fiche est parfois vague (« SECRETARIAT DE DIRECTION ») :
+  la pertinence des codes ROME proposés est à juger sur quelques fiches.
 - **L'instance de production** n'existe pas encore : ces scripts sont ceux de
   l'essai. La mise en ligne du lot 6 reprendra la même minuterie.

@@ -175,13 +175,16 @@ traitements.
 | Hostinger | tout : le serveur porte la base et les fichiers | ⚠️ *centre de données à relever dans hPanel* | ⚠️ *DPA d'Hostinger à archiver* |
 | Brevo | adresses électroniques, texte des courriels | Union européenne | ⚠️ *DPA de Brevo à archiver* |
 | Anthropic | le CV, si le candidat demande la lecture ; la question posée à l'aide, si le référent clique sur « Demander à Claude » | États-Unis | DPA du 24 février 2025, clauses contractuelles types |
+| Mission interministérielle de l'apprentissage (La bonne alternance) | pour le bloc « Offres en alternance » de la fiche : un code postal, des codes ROME et le centre de la commune — rien qui désigne le candidat ; rien n'est conservé | ⚠️ *à vérifier* | ⚠️ *conditions d'utilisation de l'API à archiver* |
 | Bubble | l'ancienne application, jusqu'au 5 décembre 2026 | ⚠️ *à vérifier* | ⚠️ *à archiver* |
 
 Ne voient **aucune** donnée personnelle : GitHub (le code seul, et le dépôt n'en
 contient aucune), France Travail (les offres viennent de chez eux ; pour le
 bloc « Entreprises qui recrutent » de la fiche, ne partent que des divisions
 NAF et un numéro de département, sans rien qui désigne le candidat — et la
-liste reçue, des entreprises en données ouvertes, n'est pas conservée).
+liste reçue, des entreprises en données ouvertes, n'est pas conservée ; pour
+le bloc « Offres en alternance », ROMEO reçoit l'intitulé du métier recherché,
+seul).
 
 ## 9. Les mesures de sécurité, pour tous les traitements
 
