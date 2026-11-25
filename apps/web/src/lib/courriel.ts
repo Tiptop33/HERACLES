@@ -22,11 +22,19 @@ export type Courriel = {
   sujet: string;
   /** Le texte brut. Une version HTML en est tirée, paragraphes et liens compris. */
   texte: string;
+  /**
+   * Un lien du texte à montrer sous un libellé — « Cliquez ici » — dans la
+   * version HTML. La version texte, elle, garde l'adresse : c'est tout ce
+   * qu'une messagerie sans HTML sait afficher.
+   */
+  lienNomme?: LienNomme | null;
   /** Le nom affiché comme expéditeur — la loge, comme chez Bubble. */
   nomExpediteur?: string | null;
   /** À qui répondre : le référent, plutôt qu'une adresse qui ne lit rien. */
   repondreA?: string | null;
 };
+
+export type LienNomme = { url: string; libelle: string };
 
 export type IssueDEnvoi =
   | { envoye: true }
@@ -56,7 +64,7 @@ export async function envoyerCourriel(courriel: Courriel): Promise<IssueDEnvoi> 
     to: [{ email: courriel.a }],
     subject: courriel.sujet,
     textContent: courriel.texte,
-    htmlContent: enHtml(courriel.texte),
+    htmlContent: enHtml(courriel.texte, courriel.lienNomme),
     ...(courriel.repondreA ? { replyTo: { email: courriel.repondreA } } : {}),
   };
 
@@ -97,8 +105,14 @@ function echapper(texte: string): string {
  * Le texte brut mis en HTML : un paragraphe par bloc, un `<br>` par retour à
  * la ligne, et les adresses `https://` rendues cliquables. Le texte vient des
  * modèles de la commission, donc d'une saisie libre : tout est échappé avant.
+ *
+ * Le lien nommé, s'il y en a un, s'affiche sous son libellé ; les autres
+ * adresses restent écrites en toutes lettres.
  */
-export function enHtml(texte: string): string {
+export function enHtml(texte: string, lienNomme?: LienNomme | null): string {
+  const urlNommee = lienNomme ? echapper(lienNomme.url) : null;
+  const libelle = lienNomme ? echapper(lienNomme.libelle) : '';
+
   const paragraphes = texte
     .replace(/\r\n/g, '\n')
     .split(/\n{2,}/)
@@ -107,7 +121,7 @@ export function enHtml(texte: string): string {
     .map((bloc) => {
       const sur = echapper(bloc).replace(
         /https:\/\/[^\s<]+/g,
-        (lien) => `<a href="${lien}">${lien}</a>`,
+        (lien) => `<a href="${lien}">${lien === urlNommee ? libelle : lien}</a>`,
       );
       return `<p>${sur.replace(/\n/g, '<br>')}</p>`;
     });

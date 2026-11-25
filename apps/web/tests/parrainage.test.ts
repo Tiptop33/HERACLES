@@ -354,4 +354,13 @@ describe('courrielAuCandidatSansParrain', () => {
     expect(m.texte).toContain('https://x.test/candidature/abc');
     expect(m.texte).toMatch(/Jeanne R\nCommission HERACLES — Loge A$/);
   });
+
+  it('présente le lien sous « Cliquez ici », au candidat comme au parrain', () => {
+    const lien = 'https://x.test/candidature/abc';
+    const attendu = { url: lien, libelle: 'Cliquez ici' };
+    expect(courrielAuCandidatSansParrain({}, lien, 'Loge A', null).lienNomme).toEqual(attendu);
+    expect(courrielAuCandidat({}, lien, 'Loge A', 'Lucie').lienNomme).toEqual(attendu);
+    expect(courrielAuParrain({}, lien, 'Loge A', null).lienNomme).toEqual(attendu);
+    expect(courrielDeRelance({}, lien, 'Loge A', null).lienNomme).toEqual(attendu);
+  });
 });
