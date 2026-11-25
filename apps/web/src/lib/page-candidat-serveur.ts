@@ -207,3 +207,15 @@ export async function ouvrirLaSessionDe(adresse: string): Promise<boolean> {
   }
   return ouvrirLaSession(jeton);
 }
+
+/**
+ * Les messages du candidat pour sa fiche, côté référent — ou `null` pour qui
+ * n'est ni son référent ni son parrain : le bloc n'a alors pas à paraître,
+ * même vide.
+ */
+export async function lireLesMessagesSiPermis(candidat: string): Promise<MessageDuCandidat[] | null> {
+  const supabase = await supabaseServer();
+  const { data: permis } = await supabase.rpc('puis_je_lire_ses_messages', { le_candidat: candidat });
+  if (permis !== true) return null;
+  return lireLesMessages(candidat);
+}

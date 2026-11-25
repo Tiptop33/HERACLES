@@ -9,6 +9,10 @@ import OffresEnAlternance from './OffresEnAlternance';
 import { estEnAlternance } from '@/lib/la-bonne-alternance';
 import type { SecteursDuCandidat } from '@/lib/secteurs';
 import MenuDuReferent from './MenuDuReferent';
+import MessagesDuCandidatSurLaFiche from './MessagesDuCandidatSurLaFiche';
+import PageDuCandidat from './PageDuCandidat';
+import { jourCourt, type DocumentDuCandidat, type MessageDuCandidat } from '@/lib/page-candidat';
+import type { EtatDeLaPage } from '@/lib/page-candidat-serveur';
 import { dateEnLettres, enEtiquettes, initiales, telephone } from '@/lib/format';
 import {
   A_FAIRE,
@@ -88,6 +92,10 @@ export default function PanneauFiche({
   cvAnonyme,
   refusCvAnonyme,
   secteurs,
+  pageCandidat,
+  documentsDuCandidat,
+  messagesDuCandidat,
+  maintenant,
 }: {
   fiche: FicheOuverte;
   /** La ligne correspondante de la liste, quand la vue courante la contient. */
@@ -134,6 +142,17 @@ export default function PanneauFiche({
   refusCvAnonyme: string | null;
   /** Les secteurs du candidat (0092), chargés seulement sous l'onglet « Profil ». */
   secteurs: SecteursDuCandidat | null;
+  /** Où en est sa page candidat (0105) ; `null` si la base ne l'a pas rendu. */
+  pageCandidat: EtatDeLaPage | null;
+  /** Ses CV et lettres (0105), chargés seulement sous l'onglet « Documents ». */
+  documentsDuCandidat: DocumentDuCandidat[];
+  /**
+   * Ses messages (0105), sous l'onglet « Suivi » — `null` pour qui n'est ni
+   * son référent ni son parrain : le bloc n'apparaît pas.
+   */
+  messagesDuCandidat: MessageDuCandidat[] | null;
+  /** L'heure du serveur, pour dire si un message se corrige encore. */
+  maintenant: number;
 }) {
   const nom = nomDeFamilleDabord(fiche.nom, fiche.prenom);
   const metier = fiche.metier_libelle ?? fiche.emploi_recherche ?? rang?.metier ?? null;
@@ -283,6 +302,8 @@ export default function PanneauFiche({
         </div>
       </div>
 
+      {pageCandidat && <PageDuCandidat candidat={fiche.id} prenom={fiche.prenom} etat={pageCandidat} />}
+
       <nav className="poste-onglets" aria-label="Parties de la fiche" data-aide="onglets-fiche">
         {ONGLETS.map((o) =>
           'lot' in o ? (
@@ -312,11 +333,14 @@ export default function PanneauFiche({
         {onglet === 'documents' ? (
           <Documents
             fiche={fiche}
+            documentsDuCandidat={documentsDuCandidat}
             cvAnonyme={cvAnonyme}
             refusCvAnonyme={refusCvAnonyme}
             retour={adresse({ cvanonyme: null })}
           />
         ) : onglet === 'suivi' ? (
+          <>
+          {messagesDuCandidat && <MessagesDuCandidatSurLaFiche messages={messagesDuCandidat} maintenant={maintenant} />}
           <Suivi
             fiche={fiche}
             journal={journal}
@@ -328,6 +352,7 @@ export default function PanneauFiche({
             adresse={adresse}
             retour={adresse({ onglet: 'suivi' })}
           />
+          </>
         ) : (
           <Profil
             fiche={fiche}
@@ -857,11 +882,13 @@ function Profil({
  */
 function Documents({
   fiche,
+  documentsDuCandidat,
   cvAnonyme,
   refusCvAnonyme,
   retour,
 }: {
   fiche: FicheOuverte;
+  documentsDuCandidat: DocumentDuCandidat[];
   cvAnonyme: EtatDuCvAnonyme | null;
   refusCvAnonyme: string | null;
   retour: string;
@@ -887,6 +914,31 @@ function Documents({
     <>
     <div className="poste-documents">
       {documents.map(({ genre, libelle, chemin, url }) => {
+        // 0105 : tous les CV et toutes les lettres du candidat, le principal
+        // d'abord. Sans document rangé, la carte unique d'avant reste.
+        const deposes =
+          genre === 'cv' || genre === 'lettre'
+            ? documentsDuCandidat
+                .filter((d) => d.genre === genre)
+                .sort((a, b) => Number(b.principal) - Number(a.principal) || b.depose_le.localeCompare(a.depose_le))
+            : [];
+        if (deposes.length > 0) {
+          return deposes.map((d) => (
+            <a
+              key={d.id}
+              className={`poste-document${d.principal ? ' poste-document--principal' : ''}`}
+              href={`/espace/referent/candidats/${fiche.id}/documents/${d.id}`}
+              title={`Ouvrir : ${d.nom}`}
+            >
+              <span className="poste-document-type">
+                <Feuille />
+              </span>
+              <span>{d.nom}</span>
+              <small>{d.principal ? `${genre === 'cv' ? 'CV' : 'lettre'} principal${genre === 'cv' ? '' : 'e'}` : `déposé le ${jourCourt(d.depose_le)}`}</small>
+            </a>
+          ));
+        }
+
         // Produit par HERACLES : validé, ou à valider dès qu'il y a un CV
         // original. La route sert la copie figée, sinon le produit à la volée.
         if (genre === 'cv-anonyme' && carte.sorte === 'produit') {

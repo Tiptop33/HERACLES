@@ -82,6 +82,7 @@ export default async function EspaceDuCandidat({
       documents={documents}
       messages={messages}
       maintenant={maintenant}
+      logo={<Logo taille="petit" />}
       offres={
         <OffresDuCandidat
           offres={offres}

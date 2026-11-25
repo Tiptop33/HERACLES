@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import Logo from '@/components/Logo';
 import {
   initialesDe,
   remplissage,
@@ -31,6 +30,7 @@ export default function EspaceCandidat({
   documents,
   messages,
   offres,
+  logo,
   maintenant,
 }: {
   initiale: FicheDuCandidat;
@@ -38,6 +38,8 @@ export default function EspaceCandidat({
   messages: MessageDuCandidat[];
   /** Le bloc des offres, rendu par le serveur. */
   offres: React.ReactNode;
+  /** Le logo, rendu par le serveur : il se lit sur le disque. */
+  logo: React.ReactNode;
   /** L'heure du serveur : la même au premier rendu des deux côtés. */
   maintenant: number;
 }) {
@@ -67,7 +69,7 @@ export default function EspaceCandidat({
     <div className="pc">
       <header className="pc-barre">
         <a className="pc-logo" href="/espace/chercheur">
-          <Logo taille="petit" />
+          {logo}
           <span>HERACLES</span>
         </a>
         <div className="pc-qui">
