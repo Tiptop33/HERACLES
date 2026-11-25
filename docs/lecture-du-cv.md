@@ -30,8 +30,34 @@ rappelle.
 
 Le CV est ensuite joint à la fiche comme avant, à l'envoi, par la route
 habituelle. **La lecture n'enregistre rien.** Ni le fichier ni ce qui en est
-tiré ne sont conservés par HERACLES, et le journal ne note que la nature d'un
-échec, jamais un contenu.
+tiré ne sont conservés par HERACLES, et le journal ne note que l'issue d'une
+lecture, jamais un contenu.
+
+Chaque appel laisse une ligne au journal du serveur, qu'il réussisse ou non :
+
+```
+[lecture-cv] sortie 200 lu format=pdf 8412 ms
+[lecture-cv] sortie 429 limite 3 ms
+```
+
+Le statut, le motif (`lu`, `lien`, `limite`, `sans-fichier`, `taille`,
+`format-inconnu`, `format-non-lu`, `photo-trop-lourde`, `cle-absente`,
+`illisible`, `limite-de-depense`, `echec-lecture`, `inattendu`), le format quand il est connu, et la
+durée. Ni jeton, ni nom de fichier, ni contenu. Un clic qui ne laisse **aucune**
+ligne n'a pas atteint la route : chercher du côté du navigateur ou de la façade.
+
+```bash
+docker logs --since 10m $(docker ps -qf name=heracles-essai-web) 2>&1 | grep "lecture-cv"
+```
+
+**La limite de dépense.** Le compte Anthropic porte une limite de dépense
+mensuelle, réglée dans sa Console. Atteinte, l'API refuse toute lecture jusqu'au
+1er du mois suivant : c'est la panne du 25 novembre 2026. Le journal le dit en
+une ligne — « limite de dépense du compte Anthropic atteinte, retour le … » —
+et la lecture n'est pas retentée. Le candidat lit le message d'échec habituel
+et remplit sa fiche à la main. Pour rétablir la lecture avant la date : relever
+la limite dans la Console ; aucune mise en ligne n'est nécessaire. Le renfort
+de l'aide (`docs/aide.md`) passe par la même clé et s'arrête avec elle.
 
 Si la lecture échoue (format non lu, panne), le candidat le voit sous le bouton
 et remplit à la main. La fiche s'envoie dans tous les cas.
