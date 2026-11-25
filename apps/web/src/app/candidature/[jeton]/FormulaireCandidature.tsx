@@ -64,6 +64,7 @@ export default function FormulaireCandidature({
   const [cv, setCv] = useState<File | null>(null);
   // Le refus d'un fichier lâché sur le champ du CV : il s'écrit sous le champ.
   const [refusDuCv, setRefusDuCv] = useState<string | null>(null);
+  const [refusDeLaLettre, setRefusDeLaLettre] = useState<string | null>(null);
   const [lecture, setLecture] = useState<Lecture>({ etat: 'attente' });
   const [photo, setPhoto] = useState<Photo | null>(null);
   const formulaire = useRef<HTMLFormElement>(null);
@@ -215,7 +216,8 @@ export default function FormulaireCandidature({
           )}
         </ZoneDeDepot>
         <p className="aide">
-          PDF, Word, OpenDocument, RTF ou photo (JPEG, PNG, WebP), 10 Mo au plus.
+          Choisissez votre fichier, ou glissez-le sur le champ. PDF, Word, OpenDocument, RTF ou
+          photo (JPEG, PNG, WebP), 10 Mo au plus.
         </p>
         {lectureDisponible && (
           <>
@@ -444,11 +446,32 @@ export default function FormulaireCandidature({
 
       <fieldset>
         <legend data-aide="candidature-documents">Vos documents</legend>
-        <div className="champ">
+        {/* Comme le CV : la lettre se choisit ou se lâche sur le champ. */}
+        <ZoneDeDepot
+          className="champ"
+          refus={refusDuDocument}
+          refuser={setRefusDeLaLettre}
+          pose={() => setRefusDeLaLettre(null)}
+          tailleMaximale={TAILLE_MAXIMALE_DOCUMENT}
+        >
           <label htmlFor="c-lettre">Lettre de motivation</label>
-          <input {...champ('lettre')} type="file" accept={ACCEPTES} />
-        </div>
-        <p className="aide">PDF, Word, OpenDocument, RTF ou photo (JPEG, PNG, WebP), 10 Mo au plus.</p>
+          <input
+            {...champ('lettre')}
+            type="file"
+            accept={ACCEPTES}
+            aria-describedby={refusDeLaLettre ? 'c-lettre-refus' : undefined}
+            onChange={() => setRefusDeLaLettre(null)}
+          />
+          {refusDeLaLettre && (
+            <span className="erreur-champ" id="c-lettre-refus" role="alert">
+              {refusDeLaLettre}
+            </span>
+          )}
+        </ZoneDeDepot>
+        <p className="aide">
+          Choisissez votre fichier, ou glissez-le sur le champ. PDF, Word, OpenDocument, RTF ou
+          photo (JPEG, PNG, WebP), 10 Mo au plus.
+        </p>
       </fieldset>
 
       <label

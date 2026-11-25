@@ -55,8 +55,8 @@ const TYPES_DE_DOCUMENT = [
 const EXTENSIONS_DE_DOCUMENT = /\.(pdf|docx?|odt|rtf|jpe?g|png|webp)$/i;
 
 /**
- * Pourquoi ce fichier ne peut pas être un CV, ou `null` s'il peut l'être —
- * le glisser-déposer du formulaire « Votre fiche » (demande du 25 novembre
+ * Pourquoi ce fichier ne peut pas être un CV ou une lettre de motivation, ou
+ * `null` s'il peut l'être — le glisser-déposer du formulaire « Votre fiche » (demande du 25 novembre
  * 2026).
  *
  * Le type annoncé par le système varie d'un poste à l'autre pour un Word ou
