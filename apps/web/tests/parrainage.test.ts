@@ -268,6 +268,29 @@ describe('les courriels', () => {
     expect(message.texte).toContain(lien);
   });
 
+  it('remplacent le lien vers Bubble resté dans le modèle par le lien du candidat', () => {
+    const lienCandidat = 'https://heracles.example.fr/candidature/J';
+    for (const ancien of [
+      'https://oaf-heracles.fr/renseignement_candidat/Lorem%20ipsum...?debug_mode=true',
+      'https://oaf-heracles.fr/renseignement_candidat/Lorem ipsum...?debug_mode=true',
+      'http://www.oaf-heracles.fr/renseignement_candidat/abc',
+    ]) {
+      const message = courrielAuCandidat(
+        { mot_candidat: `Bonjour,\n\nMerci de remplir votre fiche :\n${ancien}\n\nCordialement` },
+        lienCandidat,
+        'Pau',
+        'Lucie',
+      );
+      expect(message.texte).not.toContain('oaf-heracles.fr');
+      expect(message.texte).not.toContain('debug_mode');
+      expect(message.texte).not.toContain('Lorem');
+      expect(message.texte).toContain(`Merci de remplir votre fiche :\n${lienCandidat}\n\nCordialement`);
+      // Le lien prend la place de l'ancien : il n'est pas répété à la fin.
+      expect(message.texte.split(lienCandidat)).toHaveLength(2);
+      expect(message.texte).toContain('Ce lien est personnel');
+    }
+  });
+
   it('gardent l’objet de Bubble pour le candidat', () => {
     expect(courrielAuCandidat({}, lien, 'Pau', 'Lucie').sujet).toBe('DEMANDE DE RENSEIGNEMENTS');
   });

@@ -66,6 +66,10 @@ Les textes des courriels sont ceux de la commission, repris de Bubble dans `para
 `objet_candidat` / `mot_candidat`. Le lien est ajouté à la fin. Un modèle vide laisse la
 place à un texte par défaut.
 
+Un modèle qui porte encore un lien vers Bubble (`https://oaf-heracles.fr/…`) est corrigé à
+l'envoi : le lien d'HERACLES prend la place de l'ancien, et n'est alors pas répété à la fin.
+Le texte enregistré dans `parametre`, lui, n'est pas modifié.
+
 ## La relance — désactivée
 
 Décision du 8 novembre 2026 : pas de relance automatique, ni par n8n ni par une tâche

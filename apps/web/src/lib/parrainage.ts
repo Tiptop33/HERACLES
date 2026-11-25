@@ -336,9 +336,25 @@ export type Modeles = {
 type Message = { sujet: string; texte: string };
 
 /**
- * Le modèle de la commission s'il existe, puis le lien — toujours à la fin et
- * sur sa propre ligne. Les textes de Bubble ne connaissent pas nos liens : on
- * ne les cherche pas dans le modèle, on les ajoute.
+ * Un lien vers l'application Bubble, resté dans un modèle repris tel quel :
+ * `https://oaf-heracles.fr/renseignement_candidat/Lorem ipsum...?debug_mode=true`.
+ * Bubble y a figé son texte d'exemple, espace compris : on prend donc aussi la
+ * suite de la ligne quand elle porte encore `debug_mode`.
+ */
+const LIEN_BUBBLE =
+  /https?:\/\/(?:www\.)?oaf-heracles\.fr(?:\/[^\s<>"]*)?(?:[ \t]+[^\s<>"]*debug_mode=[^\s<>"]*)?/gi;
+
+const MENTION_DU_LIEN =
+  'Ce lien est personnel : ne le transférez pas. Il reste valable trente jours.';
+
+/**
+ * Le modèle de la commission s'il existe, puis le lien — à la fin et sur sa
+ * propre ligne. Les textes de Bubble ne connaissent pas nos liens : on ne les
+ * cherche pas dans le modèle, on les ajoute.
+ *
+ * Une exception : le modèle qui porte encore un lien vers Bubble. Ce lien-là
+ * ne mène nulle part de bon ; le nôtre prend sa place, et n'est alors pas
+ * répété à la fin.
  */
 function composer(
   modele: string | null | undefined,
@@ -347,7 +363,12 @@ function composer(
   signature: string,
 ): string {
   const corps = modele?.trim() || defaut;
-  return `${corps}\n\n${lien}\n\nCe lien est personnel : ne le transférez pas. Il reste valable trente jours.\n\n${signature}`;
+  // Remplacement par fonction : un `$` dans le lien ne doit rien vouloir dire.
+  const corrige = corps.replace(LIEN_BUBBLE, () => lien);
+  if (corrige !== corps) {
+    return `${corrige}\n\n${MENTION_DU_LIEN}\n\n${signature}`;
+  }
+  return `${corps}\n\n${lien}\n\n${MENTION_DU_LIEN}\n\n${signature}`;
 }
 
 export function courrielAuParrain(
