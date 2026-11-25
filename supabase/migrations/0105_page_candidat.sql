@@ -137,6 +137,81 @@ grant execute on function public.puis_je_lire_ce_candidat(uuid) to authenticated
 grant execute on function public.puis_je_lire_ses_messages(uuid) to authenticated, service_role;
 grant execute on function public.puis_je_inviter_ce_candidat(uuid) to authenticated, service_role;
 
+-- 1a. Une porte restée ouverte depuis 0006. `rattacher_referent_au_compte`
+--     est `security definer`, et n'avait jamais été fermée : toute session
+--     pouvait se rattacher une fiche de référent libre en donnant son
+--     adresse. Tant que seuls des membres invités avaient une session, le
+--     risque restait dans la maison ; avec la page candidat, chaque candidat
+--     a la sienne. Seuls le déclencheur d'inscription (0006) et le rattrapage
+--     de 0014 l'appellent — tous deux `security definer`.
+revoke all on function public.rattacher_referent_au_compte(uuid, text) from public, anon, authenticated;
+
+-- 1b. Un chemin de fichier qui appartient bien à CE candidat : celui que la
+--     candidature fixe (`candidat/<genre>/<id>.<ext>`, 0057, 0066), celui de
+--     la page (`candidat/documents/<id>/<uuid>.<ext>`), ou celui du
+--     rapatriement de Bubble (`candidat/<genre>/<bubble_id>/<fichier>`).
+--     Tout autre chemin est refusé : il désignerait le fichier d'un autre.
+create or replace function public.chemin_de_ce_candidat(
+  le_candidat uuid, son_bubble_id text, le_genre text, le_chemin text)
+returns boolean
+language plpgsql
+immutable
+set search_path = public
+as $$
+declare
+  prefixe text;
+begin
+  if le_chemin is null or le_genre not in ('cv', 'lettre', 'photo') or position('..' in le_chemin) > 0 then
+    return false;
+  end if;
+  if le_chemin ~ ('^candidat/' || le_genre || '/' || le_candidat::text || '\.[A-Za-z0-9]{1,5}$') then
+    return true;
+  end if;
+  if le_genre <> 'photo'
+     and le_chemin ~ ('^candidat/documents/' || le_candidat::text || '/[0-9a-f-]{36}\.[a-z0-9]{1,5}$') then
+    return true;
+  end if;
+  if nullif(btrim(son_bubble_id), '') is not null then
+    prefixe := 'candidat/' || le_genre || '/' || son_bubble_id || '/';
+    return left(le_chemin, char_length(prefixe)) = prefixe
+       and char_length(le_chemin) > char_length(prefixe)
+       and position('/' in substr(le_chemin, char_length(prefixe) + 1)) = 0;
+  end if;
+  return false;
+end
+$$;
+
+revoke all on function public.chemin_de_ce_candidat(uuid, text, text, text) from public, anon;
+grant execute on function public.chemin_de_ce_candidat(uuid, text, text, text) to authenticated, service_role;
+
+-- 1c. Les chemins de fichiers d'une fiche ne s'écrivent plus depuis une
+--     session : la policy de 0006 laisse le référent écrire toute colonne, et
+--     un chemin choisi désignerait le fichier d'un autre dossier, que la page
+--     ouvrirait ou effacerait ensuite. Seules les fonctions de 0105 les
+--     écrivent, en le disant (`heracles.documents_du_candidat`) ; la clé de
+--     service — la candidature, la reprise — n'est pas concernée.
+create or replace function public.candidat_chemins_proteges()
+returns trigger
+language plpgsql
+set search_path = public
+as $$
+begin
+  if auth.uid() is not null
+     and coalesce(current_setting('heracles.documents_du_candidat', true), '') <> 'oui' then
+    new.cv_chemin                := old.cv_chemin;
+    new.lettre_motivation_chemin := old.lettre_motivation_chemin;
+    new.photo_chemin             := old.photo_chemin;
+    new.cv_anonyme_chemin        := old.cv_anonyme_chemin;
+  end if;
+  return new;
+end
+$$;
+
+drop trigger if exists candidat_chemins_proteges on public.candidat;
+create trigger candidat_chemins_proteges
+  before update on public.candidat
+  for each row execute function public.candidat_chemins_proteges();
+
 -- ---------------------------------------------------------------------------
 -- 2. La page : invitation, visites, départements
 -- ---------------------------------------------------------------------------
@@ -146,6 +221,9 @@ create table if not exists public.page_candidat (
   -- L'invitation en cours : l'empreinte sha256 du jeton, jamais le jeton.
   invitation_empreinte  text unique,
   invitation_expire_le  timestamptz,
+  -- L'adresse à laquelle l'invitation est partie : le lien ne vaut que tant
+  -- que la fiche porte toujours celle-là.
+  invitation_email      text,
   invitee_le            timestamptz,
   -- Qui a invité ; vide quand HERACLES l'a fait seul, après la candidature.
   invitee_par           uuid references public.referent (id) on delete set null,
@@ -165,9 +243,13 @@ comment on table public.page_candidat is
   'La page du candidat (0105) : l''invitation qui relie son compte à sa fiche, '
   'ses visites, ses départements. Fermée à tous : on la lit par fonctions.';
 
+alter table public.page_candidat
+  add column if not exists invitation_email text;
+
 alter table public.page_candidat enable row level security;
-revoke all on public.page_candidat from public, anon, authenticated;
-grant all on public.page_candidat to service_role;
+-- Fermée à tous, clé de service comprise : seules les fonctions de 0105 y
+-- touchent.
+revoke all on public.page_candidat from public, anon, authenticated, service_role;
 
 drop trigger if exists page_candidat_maj_le on public.page_candidat;
 create trigger page_candidat_maj_le
@@ -204,9 +286,8 @@ create index if not exists candidat_document_candidat_idx
   on public.candidat_document (candidat_id, genre, depose_le desc);
 
 alter table public.candidat_document enable row level security;
-revoke all on public.candidat_document from public, anon, authenticated;
-grant select on public.candidat_document to authenticated;
-grant all on public.candidat_document to service_role;
+revoke all on public.candidat_document from public, anon, authenticated, service_role;
+grant select on public.candidat_document to authenticated, service_role;
 
 drop policy if exists candidat_document_lecture on public.candidat_document;
 create policy candidat_document_lecture on public.candidat_document
@@ -221,32 +302,33 @@ create trigger candidat_document_maj_le
   for each row execute function public.toucher_maj_le();
 
 -- 3a. Le principal, recopié sur la fiche.
-create or replace function public.recopier_les_documents_principaux(le_candidat uuid)
+-- Un genre à la fois : déposer une lettre ne touche pas au CV de la fiche.
+drop function if exists public.recopier_les_documents_principaux(uuid);
+create or replace function public.recopier_les_documents_principaux(le_candidat uuid, le_genre text)
 returns void
 language plpgsql
 security definer
 set search_path = public
 as $$
 declare
-  le_cv     text;
-  la_lettre text;
+  principal text;
 begin
-  select d.chemin into le_cv from public.candidat_document d
-   where d.candidat_id = le_candidat and d.genre = 'cv' and d.principal;
-  select d.chemin into la_lettre from public.candidat_document d
-   where d.candidat_id = le_candidat and d.genre = 'lettre' and d.principal;
+  select d.chemin into principal from public.candidat_document d
+   where d.candidat_id = le_candidat and d.genre = le_genre and d.principal;
 
   perform set_config('heracles.documents_du_candidat', 'oui', true);
-  update public.candidat c
-     set cv_chemin = le_cv,
-         lettre_motivation_chemin = la_lettre
-   where c.id = le_candidat
-     and (c.cv_chemin, c.lettre_motivation_chemin) is distinct from (le_cv, la_lettre);
+  if le_genre = 'cv' then
+    update public.candidat c set cv_chemin = principal
+     where c.id = le_candidat and c.cv_chemin is distinct from principal;
+  elsif le_genre = 'lettre' then
+    update public.candidat c set lettre_motivation_chemin = principal
+     where c.id = le_candidat and c.lettre_motivation_chemin is distinct from principal;
+  end if;
   perform set_config('heracles.documents_du_candidat', '', true);
 end
 $$;
 
-revoke all on function public.recopier_les_documents_principaux(uuid) from public, anon, authenticated;
+revoke all on function public.recopier_les_documents_principaux(uuid, text) from public, anon, authenticated;
 
 create or replace function public.candidat_document_apres_ecriture()
 returns trigger
@@ -257,7 +339,8 @@ as $$
 begin
   -- Pendant la suppression d'un dossier, la fiche est déjà partie : la mise
   -- à jour ne trouve rien, et c'est très bien ainsi.
-  perform public.recopier_les_documents_principaux(coalesce(new.candidat_id, old.candidat_id));
+  perform public.recopier_les_documents_principaux(coalesce(new.candidat_id, old.candidat_id),
+                                                    coalesce(new.genre, old.genre));
   return null;
 end
 $$;
@@ -289,7 +372,9 @@ begin
                    then case g when 'cv' then old.cv_chemin else old.lettre_motivation_chemin end
               end;
 
-    if ch is not null and ch is distinct from ancien then
+    -- Un chemin qui n'est pas celui de ce candidat ne devient pas un document.
+    if ch is not null and ch is distinct from ancien
+       and public.chemin_de_ce_candidat(new.id, new.bubble_id, g, ch) then
       update public.candidat_document d
          set principal = false
        where d.candidat_id = new.id and d.genre = g and d.principal and d.chemin <> ch;
@@ -325,6 +410,7 @@ select c.id, 'cv', 'CV', c.cv_chemin,
        coalesce(c.candidature_completee_le, c.cree_le), 'reprise'
   from public.candidat c
  where c.cv_chemin is not null
+   and public.chemin_de_ce_candidat(c.id, c.bubble_id, 'cv', c.cv_chemin)
 on conflict (chemin) do nothing;
 
 insert into public.candidat_document (candidat_id, genre, nom, chemin, format, principal, depose_le, depose_par)
@@ -335,6 +421,7 @@ select c.id, 'lettre', 'Lettre de motivation', c.lettre_motivation_chemin,
        coalesce(c.candidature_completee_le, c.cree_le), 'reprise'
   from public.candidat c
  where c.lettre_motivation_chemin is not null
+   and public.chemin_de_ce_candidat(c.id, c.bubble_id, 'lettre', c.lettre_motivation_chemin)
 on conflict (chemin) do nothing;
 
 -- 3d. Les gestes du candidat sur ses documents.
@@ -505,9 +592,10 @@ create index if not exists candidat_message_candidat_idx
   on public.candidat_message (candidat_id, ecrit_le desc);
 
 alter table public.candidat_message enable row level security;
-revoke all on public.candidat_message from public, anon, authenticated;
-grant select on public.candidat_message to authenticated;
-grant all on public.candidat_message to service_role;
+-- Lecture seule pour tous, clé de service comprise : on n'écrit que par les
+-- fonctions, et rien ne s'efface ni ne se vide (pas de `truncate`).
+revoke all on public.candidat_message from public, anon, authenticated, service_role;
+grant select on public.candidat_message to authenticated, service_role;
 
 drop policy if exists candidat_message_lecture on public.candidat_message;
 create policy candidat_message_lecture on public.candidat_message
@@ -523,6 +611,15 @@ language plpgsql
 set search_path = public
 as $$
 begin
+  -- Le compte qui l'a écrit est supprimé (`on delete set null`) : on oublie
+  -- qui l'a écrit, et rien d'autre ne bouge. Sans cette porte, un vieux
+  -- message empêcherait de supprimer le compte de son auteur.
+  if new.ecrit_par is null and old.ecrit_par is not null
+     and (new.id, new.candidat_id, new.texte, new.ecrit_le, new.corrige_le)
+         is not distinct from (old.id, old.candidat_id, old.texte, old.ecrit_le, old.corrige_le) then
+    return new;
+  end if;
+
   if old.ecrit_le <= now() - interval '24 hours' then
     raise exception 'Ce message est gardé tel quel : il a plus de 24 heures'
       using errcode = 'object_not_in_prerequisite_state';
@@ -540,6 +637,50 @@ drop trigger if exists candidat_message_correction on public.candidat_message;
 create trigger candidat_message_correction
   before update on public.candidat_message
   for each row execute function public.candidat_message_avant_correction();
+
+-- Un message naît maintenant, jamais corrigé : personne ne l'antidate pour
+-- échapper aux 24 heures. Seul un super-utilisateur (une reprise, un test)
+-- pose une autre date.
+create or replace function public.candidat_message_a_la_naissance()
+returns trigger
+language plpgsql
+set search_path = public
+as $$
+begin
+  if not coalesce((select r.rolsuper from pg_roles r where r.rolname = current_user), false) then
+    new.ecrit_le   := now();
+    new.corrige_le := null;
+  end if;
+  return new;
+end
+$$;
+
+drop trigger if exists candidat_message_naissance on public.candidat_message;
+create trigger candidat_message_naissance
+  before insert on public.candidat_message
+  for each row execute function public.candidat_message_a_la_naissance();
+
+-- Rien ne s'efface, sauf avec le dossier (la cascade) ou par un
+-- super-utilisateur : effacer puis réécrire serait corriger sans trace.
+create or replace function public.candidat_message_avant_effacement()
+returns trigger
+language plpgsql
+set search_path = public
+as $$
+begin
+  if pg_trigger_depth() > 1
+     or coalesce((select r.rolsuper from pg_roles r where r.rolname = current_user), false) then
+    return old;
+  end if;
+  raise exception 'Un message ne s''efface pas : il part avec le dossier'
+    using errcode = 'insufficient_privilege';
+end
+$$;
+
+drop trigger if exists candidat_message_effacement on public.candidat_message;
+create trigger candidat_message_effacement
+  before delete on public.candidat_message
+  for each row execute function public.candidat_message_avant_effacement();
 
 create or replace function public.ecrire_mon_message(le_texte text)
 returns uuid
@@ -866,8 +1007,14 @@ begin
   if le_chemin is null or le_chemin !~ ('^candidat/photo/' || dossier::text || '\.(jpg|png|webp)$') then
     raise exception 'Chemin de photo refusé' using errcode = 'check_violation';
   end if;
-  select c.photo_chemin into ancien from public.candidat c where c.id = dossier;
+  select case when public.chemin_de_ce_candidat(c.id, c.bubble_id, 'photo', c.photo_chemin)
+              then c.photo_chemin end
+    into ancien
+    from public.candidat c where c.id = dossier;
+  perform set_config('heracles.documents_du_candidat', 'oui', true);
   update public.candidat set photo_chemin = le_chemin where id = dossier;
+  perform set_config('heracles.documents_du_candidat', '', true);
+  -- L'ancien fichier, à retirer du seau — seulement s'il est bien à lui.
   return case when ancien is distinct from le_chemin then ancien end;
 end
 $$;
@@ -885,8 +1032,14 @@ begin
   if dossier is null then
     raise exception 'Aucun dossier pour ce compte' using errcode = 'insufficient_privilege';
   end if;
-  select c.photo_chemin into ancien from public.candidat c where c.id = dossier;
-  update public.candidat set photo_chemin = null where id = dossier and photo_chemin is not null;
+  select case when public.chemin_de_ce_candidat(c.id, c.bubble_id, 'photo', c.photo_chemin)
+              then c.photo_chemin end
+    into ancien
+    from public.candidat c where c.id = dossier;
+  perform set_config('heracles.documents_du_candidat', 'oui', true);
+  update public.candidat set photo_chemin = null, photo_url = null
+   where id = dossier and photo_chemin is not null;
+  perform set_config('heracles.documents_du_candidat', '', true);
   return ancien;
 end
 $$;
@@ -1065,11 +1218,13 @@ begin
   end if;
 
   insert into public.page_candidat as p
-         (candidat_id, invitation_empreinte, invitation_expire_le, invitee_le, invitee_par)
-  values (le_candidat, empreinte, now() + interval '30 days', now(), public.referent_courant())
+         (candidat_id, invitation_empreinte, invitation_expire_le, invitation_email, invitee_le, invitee_par)
+  values (le_candidat, empreinte, now() + interval '30 days', lower(btrim(la_fiche.email)), now(),
+          public.referent_courant())
   on conflict (candidat_id) do update
      set invitation_empreinte = excluded.invitation_empreinte,
          invitation_expire_le = excluded.invitation_expire_le,
+         invitation_email     = excluded.invitation_email,
          invitee_le           = excluded.invitee_le,
          invitee_par          = excluded.invitee_par;
 
@@ -1103,11 +1258,12 @@ begin
   end if;
 
   insert into public.page_candidat as p
-         (candidat_id, invitation_empreinte, invitation_expire_le, invitee_le, invitee_par)
-  values (le_candidat, empreinte, now() + interval '30 days', now(), null)
+         (candidat_id, invitation_empreinte, invitation_expire_le, invitation_email, invitee_le, invitee_par)
+  values (le_candidat, empreinte, now() + interval '30 days', lower(btrim(la_fiche.email)), now(), null)
   on conflict (candidat_id) do update
      set invitation_empreinte = excluded.invitation_empreinte,
          invitation_expire_le = excluded.invitation_expire_le,
+         invitation_email     = excluded.invitation_email,
          invitee_le           = excluded.invitee_le,
          invitee_par          = null;
 
@@ -1117,6 +1273,8 @@ begin
 end
 $$;
 
+-- L'invitation ne vaut que pour l'adresse à laquelle elle est partie : si la
+-- fiche a changé d'adresse depuis, l'ancien lien ne mène plus nulle part.
 create or replace function public.invitation_a_la_page(empreinte text)
 returns table (candidat_id uuid, email text, prenom text, valable boolean)
 language sql
@@ -1124,8 +1282,10 @@ stable
 security definer
 set search_path = public
 as $$
-  select c.id, nullif(btrim(c.email), ''), c.prenom,
-         p.invitation_expire_le > now() and nullif(btrim(c.email), '') is not null
+  select c.id, p.invitation_email, c.prenom,
+         p.invitation_expire_le > now()
+           and p.invitation_email is not null
+           and lower(btrim(coalesce(c.email, ''))) = p.invitation_email
     from public.page_candidat p
     join public.candidat c on c.id = p.candidat_id
    where empreinte ~ '^[0-9a-f]{64}$'
@@ -1148,21 +1308,31 @@ as $$
    limit 1
 $$;
 
+-- Rend le dossier, et si ce compte y était DÉJÀ relié : l'invitation ne sert
+-- alors pas à ouvrir une session — un lien qui circule ne doit pas donner le
+-- compte d'un candidat à qui le tient.
+drop function if exists public.accepter_l_invitation_a_la_page(text, uuid);
 create or replace function public.accepter_l_invitation_a_la_page(empreinte text, le_profil uuid)
-returns uuid
+returns table (candidat_id uuid, deja_relie boolean)
 language plpgsql
 security definer
 set search_path = public
 as $$
+#variable_conflict use_column
 declare
   la_page  public.page_candidat%rowtype;
   le_role  text;
+  avant    uuid;
 begin
   perform public.exiger_une_empreinte(empreinte);
   select * into la_page from public.page_candidat p
    where p.invitation_empreinte = empreinte
      for update;
-  if la_page.candidat_id is null or la_page.invitation_expire_le <= now() then
+  if la_page.candidat_id is null or la_page.invitation_expire_le <= now()
+     or la_page.invitation_email is distinct from
+        (select lower(btrim(coalesce(c.email, ''))) from public.candidat c where c.id = la_page.candidat_id)
+     or la_page.invitation_email is distinct from
+        (select lower(btrim(coalesce(u.email::text, ''))) from auth.users u where u.id = le_profil) then
     raise exception 'Ce lien ne vaut plus' using errcode = 'invalid_authorization_specification';
   end if;
 
@@ -1176,13 +1346,14 @@ begin
     raise exception 'Ce compte est déjà relié à un autre dossier' using errcode = 'unique_violation';
   end if;
 
+  select c.profil_id into avant from public.candidat c where c.id = la_page.candidat_id;
   update public.candidat set profil_id = le_profil where id = la_page.candidat_id;
   -- Le lien ne sert qu'une fois.
   update public.page_candidat
      set invitation_empreinte = null, invitation_expire_le = null
-   where candidat_id = la_page.candidat_id;
+   where page_candidat.candidat_id = la_page.candidat_id;
 
-  return la_page.candidat_id;
+  return query select la_page.candidat_id, avant is not distinct from le_profil;
 end
 $$;
 
@@ -1292,3 +1463,71 @@ comment on function public.supprimer_un_candidat(uuid) is
 
 revoke all on function public.supprimer_un_candidat(uuid) from public, anon;
 grant execute on function public.supprimer_un_candidat(uuid) to authenticated;
+
+-- ---------------------------------------------------------------------------
+-- 9. Être connecté ne veut plus dire être membre
+--
+--    Ces lectures étaient ouvertes à toute session, parce que toute session
+--    était celle d'un membre invité. Avec la page candidat, un candidat a une
+--    session : le collège de la loge (ses titres et leurs effectifs), la date
+--    et le lieu des réunions, les modèles de courriels, la mise en page des
+--    documents de la commission ne le regardent pas — et l'un d'eux dirait
+--    l'appartenance de son parrain à qui ne la connaît pas.
+-- ---------------------------------------------------------------------------
+drop policy if exists college_lecture on public.college;
+create policy college_lecture on public.college
+  for select to authenticated
+  using ((select public.est_referent_ou_admin()));
+
+drop policy if exists parametre_lecture on public.parametre;
+create policy parametre_lecture on public.parametre
+  for select to authenticated
+  using ((select public.est_referent_ou_admin()));
+
+drop policy if exists mise_en_page_lecture on public.mise_en_page;
+create policy mise_en_page_lecture on public.mise_en_page
+  for select to authenticated
+  using ((select public.est_referent_ou_admin()));
+
+drop policy if exists mise_en_page_image_lecture on public.mise_en_page_image;
+create policy mise_en_page_image_lecture on public.mise_en_page_image
+  for select to authenticated
+  using ((select public.est_referent_ou_admin()));
+
+-- Les mêmes corps qu'en 0017 et 0067, réservés aux référents et à l'administration.
+create or replace function public.liste_college()
+returns table (id uuid, nom text, rang integer, utilisations integer)
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select c.id, c.nom, c.rang,
+         (select count(*)::integer
+            from public.referent r
+           where lower(btrim(r.college)) = lower(btrim(c.nom)))
+    from public.college c
+   where public.est_referent_ou_admin() or auth.uid() is null
+   order by c.rang, c.nom
+$$;
+
+create or replace function public.offres_de_la_commission()
+returns table (
+  ajoutee_le date,
+  poste      text,
+  societe    text,
+  ville      text,
+  contact    text,
+  email      text
+)
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select e.cree_le::date, null::text, e.nom, null::text, null::text, null::text
+    from public.entreprise e
+   where e.propose_offre is true
+     and (public.est_referent_ou_admin() or auth.uid() is null)
+   order by e.cree_le, e.nom
+$$;

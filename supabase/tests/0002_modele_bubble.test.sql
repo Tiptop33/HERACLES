@@ -111,8 +111,10 @@ begin;
     'aucun candidat visible — être connecté ne donne accès à personne');
   select public.verifier((select count(*) from public.referent) = 0,
     'aucun référent visible');
-  select public.verifier((select count(*) from public.parametre) = 1,
-    'les réglages, eux, sont lisibles : ils ne contiennent personne');
+  -- Lisibles par toute session jusqu'à 0105 ; depuis que les candidats ont
+  -- une session, seuls les référents et l'administration les lisent.
+  select public.verifier((select count(*) from public.parametre) = 0,
+    'les réglages ne se lisent pas sans être référent (0105)');
 commit;
 
 \echo ''

@@ -471,7 +471,7 @@ export function courrielDeConnexion(lien: string): Message {
     texte: [
       'Bonjour,',
       `Voici votre lien pour ouvrir votre espace HERACLES :\n${lien}`,
-      'Il vaut trente minutes et ne sert qu’une fois.',
+      'Il ne sert qu’une fois, et pour peu de temps : s’il a expiré, demandez-en un autre.',
       'Vous n’avez rien demandé ? Ignorez ce message : personne ne peut se connecter sans ce lien.',
     ].join('\n\n'),
   };

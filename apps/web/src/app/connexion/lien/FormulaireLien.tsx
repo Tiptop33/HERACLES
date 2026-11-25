@@ -57,8 +57,8 @@ export default function FormulaireLien({
 
       {envoye && (
         <p className="encart" role="status">
-          Si cette adresse est celle d’un espace candidat, un lien vient de partir. Il vaut trente
-          minutes et ne sert qu’une fois. Rien reçu&nbsp;? Regardez dans les courriers indésirables.
+          Si cette adresse est celle d’un espace candidat, un lien vient de partir. Il ne sert qu’une
+          fois, et pour peu de temps. Rien reçu&nbsp;? Regardez dans les courriers indésirables.
         </p>
       )}
     </form>

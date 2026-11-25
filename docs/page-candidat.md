@@ -37,13 +37,20 @@ référent : « Inviter Inès à sa page »          candidature complétée
                                          ▼
                                  /espace/chercheur
                                          ▲
-   visites suivantes : /connexion/lien → courriel → /connexion/lien/ouvrir (30 minutes, une fois)
+   visites suivantes : /connexion/lien → courriel → /connexion/lien/ouvrir (une fois, peu de temps)
 ```
 
-- **C'est l'adresse de la fiche qui désigne le compte**, jamais une adresse saisie à
-  l'ouverture du lien. L'inscription libre en rôle candidat (migration 0001) ne relie donc
-  personne à rien : un compte ne rejoint une fiche que par l'invitation envoyée à l'adresse
-  de cette fiche.
+- **C'est l'adresse à laquelle l'invitation est partie qui désigne le compte**, jamais une
+  adresse saisie à l'ouverture du lien. Si la fiche change d'adresse entre-temps, le lien ne
+  vaut plus. Un compte ne rejoint une fiche que par l'invitation envoyée à l'adresse de cette
+  fiche.
+- **Un compte de candidat que rien ne relie encore est recréé à neuf** à l'acceptation : il a
+  pu être ouvert, avec un mot de passe, par quelqu'un d'autre au temps où l'inscription était
+  libre. L'inscription est fermée en production (`DISABLE_SIGNUP`), c'est une seconde barrière.
+- **Une invitation n'ouvre de session que la première fois.** Pour un compte déjà relié, elle
+  renvoie vers « Recevoir un lien de connexion » : un lien d'invitation qui circule ne donne
+  pas le compte d'un candidat. Et le référent ne reçoit le lien à transmettre que si le
+  courriel n'est pas parti, pour un espace pas encore ouvert.
 - Une adresse qui est déjà celle d'un compte de référent est refusée : il faut une autre
   adresse sur la fiche.
 - **Un bouton, pas le lien lui-même**, ouvre la session : les messageries d'entreprise
@@ -52,8 +59,9 @@ référent : « Inviter Inès à sa page »          candidature complétée
 - Le lien de connexion est fabriqué par GoTrue (`generateLink`) mais **envoyé par
   HERACLES**, avec sa page d'arrivée : il s'ouvre sur n'importe quel appareil. Il ne part
   qu'aux comptes de candidats reliés à une fiche (`generateLink` créerait sinon le compte),
-  trois au plus par quart d'heure et par adresse. Sa durée est celle des liens de GoTrue
-  (`GOTRUE_MAILER_OTP_EXP`) : trente minutes, comme la réinitialisation du mot de passe.
+  trois au plus par quart d'heure et par adresse. La réponse part avant l'envoi (`after`) : sa
+  durée ne trahit pas les adresses connues. Le lien vaut ce que valent les liens de GoTrue
+  (`GOTRUE_MAILER_OTP_EXP`) — voir « Ce qui reste ».
 
 ## Ce que le candidat voit, et ce qu'il ne voit pas
 
@@ -89,9 +97,11 @@ de son référent, comme dans le formulaire de candidature. Ce qui était confir
 
 ## Les messages
 
-- `candidat_message` : corrigeables **24 heures**, puis la base refuse toute modification,
-  clé de service comprise (déclencheur `candidat_message_correction`). Aucune suppression ;
-  ils partent avec le dossier.
+- `candidat_message` : corrigeables **24 heures**, puis la base refuse toute modification
+  (déclencheur `candidat_message_correction`). Un message naît à l'heure de son écriture,
+  jamais antidaté ; il ne s'efface pas, sauf avec son dossier. La clé de service n'a que la
+  lecture : ni écriture, ni effacement, ni `truncate`. Supprimer le compte d'un candidat
+  laisse ses messages, sans auteur.
 - Vingt par jour au plus : chacun envoie un courriel au référent.
 - Le courriel au référent nomme le candidat et son numéro, et renvoie à l'onglet Suivi de sa
   fiche. **Le texte n'y est jamais recopié.** Sans référent (une nouvelle demande), personne
@@ -104,6 +114,21 @@ l'un de ses secteurs, confirmés ou non. Les départements cochés sont retenus
 (`page_candidat.departements`) ; avant tout choix, celui de son code postal ; aucun coché,
 tous. « Nouvelle » : parue depuis sa visite précédente — une visite commence après trente
 minutes sans rien, pour qu'un clic sur un filtre n'éteigne pas les badges.
+
+## Ce que la relecture de sécurité a fait changer
+
+Une relecture indépendante, le 25 novembre, a trouvé et fait corriger :
+
+- **une porte ouverte depuis 0006** : `rattacher_referent_au_compte` n'avait jamais été
+  fermée. Toute session pouvait se rattacher une fiche de référent libre — avec la page
+  candidat, chaque candidat a une session. Fermée ; un test vérifie désormais qu'aucune
+  fonction `security definer` ne reste ouverte à tous ;
+- **les chemins de fichiers** d'une fiche ne s'écrivent plus depuis une session
+  (`candidat_chemins_proteges`), et un chemin qui n'est pas celui du candidat
+  (`chemin_de_ce_candidat`) ne devient pas un document ni ne s'efface du seau ;
+- **être connecté ne veut plus dire être membre** : le collège, les réglages (dates et lieux
+  des réunions, modèles de courriels) et la mise en page des documents ne se lisent plus
+  qu'en référent ou en administrateur. Le test de 0002 qui disait l'inverse a été mis à jour.
 
 ## Les écrans et les routes
 
@@ -131,6 +156,10 @@ son référent et son parrain.
   les dossiers des candidats qui ont ouvert leur page ne se suppriment plus depuis l'écran.
   À trancher avec la procédure des droits (registre, § 10).
 - **Le plafond des liens** vit en mémoire : un redémarrage de l'application le remet à zéro.
+- **La durée du lien de connexion** n'est réglée nulle part : c'est la valeur par défaut de
+  GoTrue qui s'applique. À fixer (`GOTRUE_MAILER_OTP_EXP` dans la composition de la pile
+  Supabase), puis à écrire dans le courriel et sur l'écran, qui disent seulement « pour peu de
+  temps ». La page « Mot de passe oublié » annonce trente minutes : même réglage.
 - **Le consentement** des fiches reprises de Bubble : l'invitation pourrait le recueillir
   (registre, § 4 bis).
 - **Les secteurs ajoutés par le candidat** n'envoient rien au référent : il les voit « à

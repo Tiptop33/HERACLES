@@ -1,6 +1,5 @@
 import Link from 'next/link';
-import { lienSur, pointsDuDetail, type DetailDOffre } from '@/lib/offres';
-import { nomDuDepartement } from '@/lib/offres';
+import { lienSur, nomDuDepartement, pointsDuDetail, type DetailDOffre } from '@/lib/offres';
 import { departementsAProposer, parueIlYA, type OffresPourMoi } from '@/lib/page-candidat';
 import type { SecteurDuCandidat } from '@/lib/secteurs';
 import DepartementsDesOffres from './DepartementsDesOffres';

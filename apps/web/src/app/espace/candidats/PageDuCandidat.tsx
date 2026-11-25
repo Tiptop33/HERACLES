@@ -34,6 +34,7 @@ export default function PageDuCandidat({
         envoye?: boolean;
         email?: string;
         lien?: string;
+        deja_ouverte?: boolean;
         erreur?: string;
       } | null;
       if (!reponse.ok || !lu) {
@@ -44,7 +45,13 @@ export default function PageDuCandidat({
       setIssue(
         lu.envoye
           ? { texte: `Invitation envoyée à ${lu.email}. Le lien vaut trente jours.` }
-          : { texte: 'Le courriel n’est pas parti. Transmettez ce lien au candidat :', lien: lu.lien },
+          : lu.deja_ouverte || !lu.lien
+            ? {
+                texte:
+                  'Le courriel n’est pas parti. Son espace est déjà ouvert : il peut recevoir un lien de connexion depuis la page de connexion d’HERACLES.',
+                erreur: true,
+              }
+            : { texte: 'Le courriel n’est pas parti. Transmettez ce lien au candidat :', lien: lu.lien },
       );
     } catch {
       setIssue({ texte: 'Le serveur ne répond pas. L’invitation n’est pas partie.', erreur: true });

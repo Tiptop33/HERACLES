@@ -42,7 +42,22 @@ export async function POST(_requete: Request, { params }: { params: Promise<{ je
 
     // 2. Le compte de cette adresse.
     const { data: comptes } = await admin.rpc('compte_pour_la_page', { adresse: invitation.email });
-    let compte = ((comptes as { id: string; role: string | null }[] | null) ?? [])[0]?.id ?? null;
+    const existant = ((comptes as { id: string; role: string | null; candidat_id: string | null }[] | null) ?? [])[0];
+    let compte: string | null = existant?.id ?? null;
+
+    // Un compte de candidat que rien ne relie encore à une fiche a pu être
+    // ouvert par n'importe qui, avec un mot de passe à lui, avant que
+    // l'inscription libre ne soit fermée : il est recréé à neuf, sans mot de
+    // passe ni session. Ce compte ne porte rien d'autre que son profil.
+    if (existant && existant.role === 'chercheur' && !existant.candidat_id) {
+      const { error: souci } = await admin.auth.admin.deleteUser(existant.id);
+      if (souci) {
+        console.error('[invitation-candidat] compte orphelin non recréé', souci.status);
+        return page('echec');
+      }
+      compte = null;
+    }
+
     if (!compte) {
       const { data: cree, error } = await admin.auth.admin.createUser({
         email: invitation.email,
@@ -57,7 +72,7 @@ export async function POST(_requete: Request, { params }: { params: Promise<{ je
     }
 
     // 3. La base relie, et refuse ce qui ne doit pas l'être.
-    const { error: refus } = await admin.rpc('accepter_l_invitation_a_la_page', {
+    const { data: acceptee, error: refus } = await admin.rpc('accepter_l_invitation_a_la_page', {
       empreinte: lEmpreinte,
       le_profil: compte,
     });
@@ -69,7 +84,13 @@ export async function POST(_requete: Request, { params }: { params: Promise<{ je
       return page('echec');
     }
 
-    // 4. La session.
+    // 4. La session — seulement quand l'invitation vient de relier le compte.
+    //    Un compte déjà relié se connecte par un lien reçu à son adresse : un
+    //    lien d'invitation qui circule ne donne pas le compte d'un candidat.
+    const issue = ((acceptee as { candidat_id: string; deja_relie: boolean }[] | null) ?? [])[0];
+    if (issue?.deja_relie) {
+      return NextResponse.redirect(new URL('/connexion/lien?deja=1', racine), 303);
+    }
     if (!(await ouvrirLaSessionDe(invitation.email))) {
       // Le compte est relié : un lien de connexion suffira.
       return NextResponse.redirect(new URL('/connexion/lien?erreur=lien', racine), 303);

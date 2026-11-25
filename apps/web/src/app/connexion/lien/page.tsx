@@ -6,7 +6,7 @@ export const metadata = { title: 'Mon espace candidat — HERACLES' };
 
 const ERREURS: Record<string, string> = {
   adresse: 'Cette adresse e-mail ne se lit pas.',
-  lien: 'Ce lien ne vaut plus : il a déjà servi, ou il a plus de trente minutes. Demandez-en un nouveau.',
+  lien: 'Ce lien ne vaut plus : il a déjà servi, ou il a expiré. Demandez-en un nouveau.',
 };
 
 /**
@@ -16,9 +16,9 @@ const ERREURS: Record<string, string> = {
 export default async function ConnexionParLien({
   searchParams,
 }: {
-  searchParams: Promise<{ envoye?: string; erreur?: string }>;
+  searchParams: Promise<{ envoye?: string; erreur?: string; deja?: string }>;
 }) {
-  const { envoye, erreur } = await searchParams;
+  const { envoye, erreur, deja } = await searchParams;
 
   return (
     <main className="entree">
@@ -32,6 +32,12 @@ export default async function ConnexionParLien({
           Entrez l’adresse e-mail que vous avez donnée lors de votre candidature. Vous recevrez un
           lien pour ouvrir votre espace, sans mot de passe.
         </p>
+
+        {deja && (
+          <p className="encart" role="status">
+            Votre espace est déjà ouvert. Recevez un lien de connexion à votre adresse.
+          </p>
+        )}
 
         <FormulaireLien erreurInitiale={erreur ? (ERREURS[erreur] ?? null) : null} dejaEnvoye={Boolean(envoye)} />
 

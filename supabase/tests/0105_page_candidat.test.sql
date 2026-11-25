@@ -150,16 +150,16 @@ begin;
     'le compte d''Inès se retrouve par son adresse, sans fiche encore');
 commit;
 
--- Une adresse de référent ne devient pas un compte candidat.
+-- Le lien ne vaut que pour le compte de l'adresse invitée.
 do $$
 begin
   set local role service_role;
   perform public.accepter_l_invitation_a_la_page(
     '1111111111111111111111111111111111111111111111111111111111111111',
-    'aaaaaaaa-0105-0000-0000-000000000001');
-  raise exception 'ÉCHEC — un compte de référent a été relié à une fiche de candidat';
-exception when insufficient_privilege then
-  raise notice '  ok — un compte de référent n''est pas relié';
+    'aaaaaaaa-0105-0000-0000-000000000006');
+  raise exception 'ÉCHEC — le compte d''une autre adresse a été relié à la fiche';
+exception when invalid_authorization_specification then
+  raise notice '  ok — le compte d''une autre adresse n''est pas relié';
 end
 $$;
 reset role;
@@ -167,7 +167,8 @@ reset role;
 begin;
   set local role service_role;
   select public.verifier(
-    public.accepter_l_invitation_a_la_page(:'empreinte1', :'ines') = :'c_ines'::uuid,
+    (select candidat_id = :'c_ines'::uuid and not deja_relie
+       from public.accepter_l_invitation_a_la_page(:'empreinte1', :'ines')),
     'l''invitation relie le compte d''Inès à sa fiche');
 commit;
 
@@ -188,12 +189,21 @@ end
 $$;
 reset role;
 
--- Ève ne peut pas être reliée à la fiche d'Inès, ni Inès à une seconde fiche.
+-- Une nouvelle invitation, pour un compte déjà relié : elle ne sert pas à
+-- ouvrir une session — la route le sait par `deja_relie`.
 begin;
   set local role authenticated;
   set local request.jwt.claims = '{"sub":"aaaaaaaa-0105-0000-0000-000000000001"}';
   select * from public.inviter_le_candidat_a_sa_page(:'c_ines', :'empreinte2');
 commit;
+begin;
+  set local role service_role;
+  select public.verifier(
+    (select deja_relie from public.accepter_l_invitation_a_la_page(:'empreinte2', :'ines')),
+    'un compte déjà relié est reconnu comme tel');
+commit;
+
+-- Inès ne peut pas être reliée à une seconde fiche.
 insert into public.candidat (id, loge_id, numero, nom, prenom, email, referent_id)
 values ('cccccccc-0105-0000-0000-000000000003', :'lyon', 953, 'Autre', 'A', 'ines0105@example.org', :'r_remi')
 on conflict do nothing;
@@ -212,6 +222,57 @@ begin
   raise exception 'ÉCHEC — un compte a été relié à deux fiches';
 exception when unique_violation then
   raise notice '  ok — un compte n''a qu''une fiche';
+end
+$$;
+reset role;
+
+-- La fiche change d'adresse après l'invitation : l'ancien lien ne vaut plus.
+begin;
+  set local role authenticated;
+  set local request.jwt.claims = '{"sub":"aaaaaaaa-0105-0000-0000-000000000001"}';
+  select * from public.inviter_le_candidat_a_sa_page('cccccccc-0105-0000-0000-000000000003',
+    '6666666666666666666666666666666666666666666666666666666666666666');
+commit;
+update public.candidat set email = 'eve0105@example.org' where id = 'cccccccc-0105-0000-0000-000000000003';
+begin;
+  set local role service_role;
+  select public.verifier(
+    (select not valable from public.invitation_a_la_page(
+       '6666666666666666666666666666666666666666666666666666666666666666')),
+    'l''adresse de la fiche a changé : l''invitation ne vaut plus');
+commit;
+do $$
+begin
+  set local role service_role;
+  perform public.accepter_l_invitation_a_la_page(
+    '6666666666666666666666666666666666666666666666666666666666666666',
+    'aaaaaaaa-0105-0000-0000-000000000006');
+  raise exception 'ÉCHEC — l''ancien lien a ouvert la nouvelle adresse';
+exception when invalid_authorization_specification then
+  raise notice '  ok — l''ancien lien n''ouvre pas la nouvelle adresse';
+end
+$$;
+reset role;
+
+-- Une fiche à l'adresse d'un compte de référent : le compte n'est pas relié.
+insert into public.candidat (id, loge_id, numero, nom, prenom, email, referent_id)
+values ('cccccccc-0105-0000-0000-000000000004', :'lyon', 954, 'Homonyme', 'H', 'odile0105@example.org', :'r_remi')
+on conflict do nothing;
+begin;
+  set local role authenticated;
+  set local request.jwt.claims = '{"sub":"aaaaaaaa-0105-0000-0000-000000000001"}';
+  select * from public.inviter_le_candidat_a_sa_page('cccccccc-0105-0000-0000-000000000004',
+    '5555555555555555555555555555555555555555555555555555555555555555');
+commit;
+do $$
+begin
+  set local role service_role;
+  perform public.accepter_l_invitation_a_la_page(
+    '5555555555555555555555555555555555555555555555555555555555555555',
+    'aaaaaaaa-0105-0000-0000-000000000003');
+  raise exception 'ÉCHEC — un compte de référent a été relié à une fiche de candidat';
+exception when insufficient_privilege then
+  raise notice '  ok — un compte de référent n''est pas relié';
 end
 $$;
 reset role;
@@ -507,11 +568,21 @@ begin
   set local role service_role;
   update public.candidat_message set texte = 'Réécrit' where id = 'eeeeeeee-0105-0000-0000-000000000001';
   raise exception 'ÉCHEC — la clé de service a réécrit un vieux message';
-exception when object_not_in_prerequisite_state then
-  raise notice '  ok — même la clé de service ne le réécrit pas';
+exception when insufficient_privilege then
+  raise notice '  ok — la clé de service n''écrit rien dans les messages';
 end
 $$;
 reset role;
+
+-- Le verrou tient même sans passer par les fonctions.
+do $$
+begin
+  update public.candidat_message set texte = 'Réécrit' where id = 'eeeeeeee-0105-0000-0000-000000000001';
+  raise exception 'ÉCHEC — un vieux message a été réécrit';
+exception when object_not_in_prerequisite_state then
+  raise notice '  ok — après 24 heures, la base refuse toute réécriture';
+end
+$$;
 
 do $$
 begin
@@ -524,6 +595,65 @@ exception when insufficient_privilege then
 end
 $$;
 reset role;
+
+do $$
+begin
+  set local role service_role;
+  delete from public.candidat_message where id = 'eeeeeeee-0105-0000-0000-000000000001';
+  raise exception 'ÉCHEC — la clé de service a effacé un message';
+exception when insufficient_privilege then
+  raise notice '  ok — la clé de service n''efface pas un message';
+end
+$$;
+reset role;
+
+do $$
+begin
+  set local role service_role;
+  insert into public.candidat_message (candidat_id, texte, ecrit_le)
+  values ('cccccccc-0105-0000-0000-000000000001', 'Antidaté', now() - interval '3 days');
+  raise exception 'ÉCHEC — la clé de service a écrit un message antidaté';
+exception when insufficient_privilege then
+  raise notice '  ok — la clé de service n''écrit pas de message';
+end
+$$;
+reset role;
+
+do $$
+begin
+  set local role service_role;
+  truncate public.candidat_message;
+  raise exception 'ÉCHEC — la clé de service a vidé les messages';
+exception when insufficient_privilege then
+  raise notice '  ok — la table des messages ne se vide pas';
+end
+$$;
+reset role;
+
+-- Même un propriétaire qui écrirait sans être super-utilisateur ne date pas
+-- un message à sa guise.
+-- Un rôle de grappe : il peut survivre à une base de test précédente.
+do $$
+begin
+  if not exists (select 1 from pg_roles where rolname = 'ecrivain_0105') then
+    create role ecrivain_0105 nologin bypassrls;
+  end if;
+end
+$$;
+alter role ecrivain_0105 bypassrls;
+grant insert, select on public.candidat_message to ecrivain_0105;
+set role ecrivain_0105;
+insert into public.candidat_message (id, candidat_id, texte, ecrit_le, corrige_le)
+values ('eeeeeeee-0105-0000-0000-000000000002', 'cccccccc-0105-0000-0000-000000000001',
+        'Antidaté', now() - interval '3 days', now() - interval '2 days');
+reset role;
+select public.verifier(
+  (select ecrit_le > now() - interval '1 minute' and corrige_le is null
+     from public.candidat_message where id = 'eeeeeeee-0105-0000-0000-000000000002'),
+  'un message naît maintenant, jamais corrigé');
+delete from public.candidat_message where id = 'eeeeeeee-0105-0000-0000-000000000002';
+revoke all on public.candidat_message from ecrivain_0105;
+drop role ecrivain_0105;
 
 begin;
   set local role authenticated;
@@ -604,6 +734,83 @@ begin;
 commit;
 
 -- ---------------------------------------------------------------------------
+\echo '— les chemins de fichiers'
+-- ---------------------------------------------------------------------------
+begin;
+  set local role authenticated;
+  set local request.jwt.claims = '{"sub":"aaaaaaaa-0105-0000-0000-000000000001"}';
+  update public.candidat
+     set cv_chemin = 'candidat/cv/cccccccc-0105-0000-0000-000000000002.pdf',
+         photo_chemin = 'candidat/photo/cccccccc-0105-0000-0000-000000000002.jpg',
+         ville = 'Pessac'
+   where id = :'c_ines';
+commit;
+select public.verifier(
+  (select ville = 'Pessac' and cv_chemin like '%000000000001/%' and photo_chemin is null
+     from public.candidat where id = :'c_ines'),
+  'un référent corrige la fiche, pas ses chemins de fichiers');
+
+-- Posé par une reprise sous la clé de service, un chemin étranger ne devient
+-- pas un document, et la page ne l'efface pas.
+update public.candidat
+   set lettre_motivation_chemin = 'referent/photo/quelquun.jpg',
+       photo_chemin = 'candidat/photo/cccccccc-0105-0000-0000-000000000002.jpg'
+ where id = :'c_ines';
+select public.verifier(
+  (select count(*) = 0 from public.candidat_document
+    where candidat_id = :'c_ines' and genre = 'lettre'),
+  'un chemin étranger ne devient pas un document');
+begin;
+  set local role authenticated;
+  set local request.jwt.claims = '{"sub":"aaaaaaaa-0105-0000-0000-000000000005"}';
+  select public.verifier(public.retirer_la_photo_de_ma_fiche() is null,
+    'retirer une photo étrangère ne rend rien à effacer du seau');
+commit;
+select public.verifier(public.chemin_de_ce_candidat(:'c_bob', null, 'cv',
+  'candidat/cv/cccccccc-0105-0000-0000-000000000002.pdf'), 'le chemin de la candidature est le sien');
+select public.verifier(public.chemin_de_ce_candidat(:'c_bob', 'b0105', 'lettre',
+  'candidat/lettre/b0105/ma lettre.pdf'), 'le chemin du rapatriement de Bubble aussi');
+select public.verifier(not public.chemin_de_ce_candidat(:'c_bob', 'b0105', 'lettre',
+  'candidat/lettre/b0105/../../referent/x.pdf'), 'un chemin qui remonte est refusé');
+
+-- ---------------------------------------------------------------------------
+\echo '— être connecté ne veut plus dire être membre'
+-- ---------------------------------------------------------------------------
+insert into public.college (nom, rang) values ('Titre 0105', 99) on conflict do nothing;
+begin;
+  set local role authenticated;
+  set local request.jwt.claims = '{"sub":"aaaaaaaa-0105-0000-0000-000000000005"}';
+  select public.verifier((select count(*) = 0 from public.college), 'le candidat ne lit pas le collège');
+  select public.verifier((select count(*) = 0 from public.liste_college()), 'ni par sa fonction');
+  select public.verifier((select count(*) = 0 from public.parametre), 'ni les réglages');
+  select public.verifier((select count(*) = 0 from public.mise_en_page), 'ni la mise en page');
+commit;
+begin;
+  set local role authenticated;
+  set local request.jwt.claims = '{"sub":"aaaaaaaa-0105-0000-0000-000000000001"}';
+  select public.verifier((select count(*) > 0 from public.liste_college()), 'un référent lit toujours le collège');
+commit;
+
+do $$
+begin
+  set local role authenticated;
+  perform set_config('request.jwt.claims', '{"sub":"aaaaaaaa-0105-0000-0000-000000000005"}', true);
+  perform public.rattacher_referent_au_compte('aaaaaaaa-0105-0000-0000-000000000005', 'paula0105@example.org');
+  raise exception 'ÉCHEC — un candidat a pu se rattacher une fiche de référent';
+exception when insufficient_privilege then
+  raise notice '  ok — personne ne se rattache une fiche de référent depuis sa session';
+end
+$$;
+reset role;
+
+select public.verifier(
+  (select count(*) = 0
+     from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+    where n.nspname = 'public' and p.prosecdef and p.proacl is null
+      and p.prorettype <> 'trigger'::regtype),
+  'aucune fonction « security definer » n''est restée ouverte à tous');
+
+-- ---------------------------------------------------------------------------
 \echo '— supprimer un dossier emporte ses documents'
 -- ---------------------------------------------------------------------------
 begin;
@@ -633,6 +840,18 @@ exception when insufficient_privilege then
 end
 $$;
 reset role;
+
+-- ---------------------------------------------------------------------------
+\echo '— supprimer le compte d''un candidat qui a écrit'
+-- ---------------------------------------------------------------------------
+delete from auth.users where id = :'ines';
+select public.verifier(
+  (select count(*) = 2 and bool_and(ecrit_par is null)
+     from public.candidat_message where candidat_id = :'c_ines'),
+  'le compte part ; ses messages restent, sans auteur');
+select public.verifier(
+  (select profil_id is null from public.candidat where id = :'c_ines'),
+  'et la fiche n''est plus reliée');
 
 \o
 \echo '0105 : tout est passé.'

@@ -16,6 +16,9 @@ import { supabaseServer } from '@/lib/supabase-server';
  *
  * Si le courriel ne part pas, le lien revient au référent, en réponse à
  * `fetch` seulement — jamais dans une adresse —, pour qu'il le transmette.
+ * Seulement dans ce cas, et seulement pour un candidat dont l'espace n'est pas
+ * encore ouvert : pour un compte déjà relié, le lien n'ouvre de toute façon
+ * pas de session, et le candidat reçoit un lien de connexion à son adresse.
  */
 export async function POST(requete: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -49,7 +52,9 @@ export async function POST(requete: Request, { params }: { params: Promise<{ id:
     return NextResponse.json({ erreur: 'L’invitation n’a pas pu partir. Réessayez.' }, { status: 503 });
   }
 
-  const dossier = ((data as { email: string; prenom: string | null; loge_nom: string | null }[] | null) ?? [])[0];
+  const dossier = (
+    (data as { email: string; prenom: string | null; loge_nom: string | null; a_deja_un_compte: boolean }[] | null) ?? []
+  )[0];
   if (!dossier) return NextResponse.json({ erreur: 'Dossier introuvable.' }, { status: 404 });
 
   const lien = lienDInvitation(origine(requete), jeton);
@@ -60,5 +65,14 @@ export async function POST(requete: Request, { params }: { params: Promise<{ id:
     repondreA: user.email ?? null,
   });
 
-  return NextResponse.json({ ok: true, envoye: issue.envoye, email: dossier.email, lien });
+  if (issue.envoye) return NextResponse.json({ ok: true, envoye: true, email: dossier.email });
+  if (dossier.a_deja_un_compte) {
+    return NextResponse.json({
+      ok: true,
+      envoye: false,
+      email: dossier.email,
+      deja_ouverte: true,
+    });
+  }
+  return NextResponse.json({ ok: true, envoye: false, email: dossier.email, lien });
 }
