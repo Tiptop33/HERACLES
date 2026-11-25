@@ -333,7 +333,15 @@ export type Modeles = {
   mot_candidat?: string | null;
 };
 
-type Message = { sujet: string; texte: string };
+type Message = {
+  sujet: string;
+  texte: string;
+  /** Le lien que le courriel en HTML montre sous un libellé, plutôt qu'en toutes lettres. */
+  lienNomme?: { url: string; libelle: string };
+};
+
+/** Ce que le candidat lit à la place de l'adresse de sa fiche. */
+const LIBELLE_DU_LIEN_CANDIDAT = 'Cliquez ici';
 
 /**
  * Un lien vers l'application Bubble, resté dans un modèle repris tel quel :
@@ -428,6 +436,7 @@ export function courrielAuCandidat(
       lien,
       loge ? `Commission HERACLES — ${loge}` : 'Commission HERACLES',
     ),
+    lienNomme: { url: lien, libelle: LIBELLE_DU_LIEN_CANDIDAT },
   };
 }
 
@@ -453,6 +462,7 @@ export function courrielAuCandidatSansParrain(
       lien,
       signature,
     ),
+    lienNomme: { url: lien, libelle: LIBELLE_DU_LIEN_CANDIDAT },
   };
 }
 

@@ -71,6 +71,7 @@ export async function POST(requete: Request, { params }: { params: Promise<{ id:
     a: dossier.email,
     sujet: message.sujet,
     texte: message.texte,
+    lienNomme: message.lienNomme,
     nomExpediteur: dossier.loge_nom,
     repondreA: user.email ?? null,
   });

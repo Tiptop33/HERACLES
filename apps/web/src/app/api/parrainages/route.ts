@@ -158,6 +158,7 @@ async function ouvrirSansParrain(
     a: adresse,
     sujet: message.sujet,
     texte: message.texte,
+    lienNomme: message.lienNomme,
     nomExpediteur: loge,
     repondreA: emailDeLExpediteur,
   });

@@ -22,6 +22,17 @@ describe('enHtml', () => {
     );
     expect(enHtml('javascript:alert(1)')).not.toContain('<a ');
   });
+
+  it('montre le lien nommé sous son libellé, et laisse les autres en toutes lettres', () => {
+    const lien = 'https://heracles.example.fr/candidature/AbC_-1';
+    const html = enHtml(`Votre fiche :\n${lien}\n\nNotre site : https://heracles.example.fr/`, {
+      url: lien,
+      libelle: 'Cliquez <ici>',
+    });
+    expect(html).toContain(`<a href="${lien}">Cliquez &lt;ici&gt;</a>`);
+    expect(html).not.toContain(`>${lien}</a>`);
+    expect(html).toContain('<a href="https://heracles.example.fr/">https://heracles.example.fr/</a>');
+  });
 });
 
 describe('envoyerCourriel', () => {

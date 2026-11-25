@@ -92,6 +92,7 @@ async function traiter(requete: Request, jeton: string) {
     a: lu.data.candidat_email,
     sujet: message.sujet,
     texte: message.texte,
+    lienNomme: message.lienNomme,
     nomExpediteur: ouvert.loge_nom,
   });
   if (!issue.envoye) {

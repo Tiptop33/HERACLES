@@ -70,6 +70,10 @@ Un modèle qui porte encore un lien vers Bubble (`https://oaf-heracles.fr/…`) 
 l'envoi : le lien d'HERACLES prend la place de l'ancien, et n'est alors pas répété à la fin.
 Le texte enregistré dans `parametre`, lui, n'est pas modifié.
 
+Dans les courriels au candidat, le lien vers sa fiche s'affiche sous le libellé « Cliquez
+ici ». La version texte du message, lue par les messageries sans HTML, garde l'adresse en
+toutes lettres. Les courriels au parrain ne sont pas concernés.
+
 ## La relance — désactivée
 
 Décision du 8 novembre 2026 : pas de relance automatique, ni par n8n ni par une tâche
