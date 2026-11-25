@@ -79,6 +79,7 @@ export async function POST(requete: Request) {
       a: parrainage.parrain_email,
       sujet: message.sujet,
       texte: message.texte,
+      lienNomme: message.lienNomme,
       nomExpediteur: parrainage.loge_nom,
     });
 

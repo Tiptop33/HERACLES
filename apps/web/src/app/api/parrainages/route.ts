@@ -102,6 +102,7 @@ async function traiter(requete: Request) {
     a: adresseDuParrain,
     sujet: message.sujet,
     texte: message.texte,
+    lienNomme: message.lienNomme,
     nomExpediteur: moi?.loge ?? null,
     repondreA: user.email ?? null,
   });

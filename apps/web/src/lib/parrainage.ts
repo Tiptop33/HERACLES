@@ -340,8 +340,8 @@ type Message = {
   lienNomme?: { url: string; libelle: string };
 };
 
-/** Ce que le candidat lit à la place de l'adresse de sa fiche. */
-const LIBELLE_DU_LIEN_CANDIDAT = 'Cliquez ici';
+/** Ce que le candidat ou le parrain lit à la place de l'adresse de son formulaire. */
+const LIBELLE_DU_LIEN = 'Cliquez ici';
 
 /**
  * Un lien vers l'application Bubble, resté dans un modèle repris tel quel :
@@ -397,6 +397,7 @@ export function courrielAuParrain(
       lien,
       signature,
     ),
+    lienNomme: { url: lien, libelle: LIBELLE_DU_LIEN },
   };
 }
 
@@ -418,6 +419,7 @@ export function courrielDeRelance(
         .filter(Boolean)
         .join('\n'),
     ),
+    lienNomme: { url: lien, libelle: LIBELLE_DU_LIEN },
   };
 }
 
@@ -436,7 +438,7 @@ export function courrielAuCandidat(
       lien,
       loge ? `Commission HERACLES — ${loge}` : 'Commission HERACLES',
     ),
-    lienNomme: { url: lien, libelle: LIBELLE_DU_LIEN_CANDIDAT },
+    lienNomme: { url: lien, libelle: LIBELLE_DU_LIEN },
   };
 }
 
@@ -462,7 +464,7 @@ export function courrielAuCandidatSansParrain(
       lien,
       signature,
     ),
-    lienNomme: { url: lien, libelle: LIBELLE_DU_LIEN_CANDIDAT },
+    lienNomme: { url: lien, libelle: LIBELLE_DU_LIEN },
   };
 }
 
