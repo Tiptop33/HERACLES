@@ -1,6 +1,8 @@
 'use client';
 
 import { useState } from 'react';
+import ZoneDeDepot, { useGardeDuGlisser } from '@/components/ZoneDeDepot';
+import { refusDuDocument } from '@/lib/depot';
 import {
   ACCEPTE_DOCUMENT,
   DOCUMENTS_PAR_GENRE,
@@ -17,12 +19,19 @@ import {
  * « Mes documents » (0105) : jusqu'à cinq CV et cinq lettres, un principal de
  * chaque. Supprimer demande une confirmation, sur place : le fichier part pour
  * de bon.
+ *
+ * Un document se choisit ou se lâche sur « Ajouter … » (25 novembre 2026) :
+ * dans les deux cas il part aussitôt.
  */
 export default function DocumentsDuCandidat({ initiaux }: { initiaux: DocumentDuCandidat[] }) {
   const [documents, setDocuments] = useState(initiaux);
   const [aConfirmer, setAConfirmer] = useState<string | null>(null);
   const [envoi, setEnvoi] = useState<GenreDeDocument | null>(null);
   const [avis, setAvis] = useState<Partial<Record<GenreDeDocument | string, { texte: string; erreur?: boolean }>>>({});
+
+  // Un fichier lâché à côté d'une zone n'ouvre pas le document à la place de
+  // la page : un message en cours d'écriture serait perdu.
+  useGardeDuGlisser();
 
   const dire = (cle: string, texte: string | null, erreur = false) =>
     setAvis((a) => {
@@ -171,10 +180,21 @@ export default function DocumentsDuCandidat({ initiaux }: { initiaux: DocumentDu
               {plein ? (
                 <p className="pc-depot pc-depot--plein">Cinq au plus : supprimez-en un pour ajouter {un}.</p>
               ) : (
-                <label className="pc-depot">
+                <ZoneDeDepot
+                  comme="label"
+                  className="pc-depot"
+                  envoyer={(f) => void deposer(genre, f)}
+                  refus={refusDuDocument}
+                  refuser={(message) => dire(genre, message, true)}
+                  tailleMaximale={TAILLE_MAXIMALE_DU_DOCUMENT}
+                  desactivee={envoi !== null}
+                >
                   <span>
                     {envoi === genre ? 'Envoi…' : `Ajouter ${un}`}
-                    <small>PDF, Word, OpenDocument, RTF ou image · 10 Mo au plus</small>
+                    <small>
+                      Choisissez votre fichier, ou glissez-le ici. PDF, Word, OpenDocument, RTF ou image · 10 Mo
+                      au plus
+                    </small>
                   </span>
                   <input
                     type="file"
@@ -187,7 +207,7 @@ export default function DocumentsDuCandidat({ initiaux }: { initiaux: DocumentDu
                       if (f) void deposer(genre, f);
                     }}
                   />
-                </label>
+                </ZoneDeDepot>
               )}
               {avis[genre] && (
                 <p className={avis[genre]?.erreur ? 'pc-erreur' : 'pc-avis'} role="status">
