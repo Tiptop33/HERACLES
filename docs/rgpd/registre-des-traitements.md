@@ -26,7 +26,7 @@ traitements.
 | Représentant légal | ⚠️ *nom, qualité (président…)* |
 | Délégué à la protection des données | ⚠️ *aucun désigné, ou nom et contact* |
 | Contact pour exercer ses droits | ⚠️ *adresse électronique à afficher aux candidats* |
-| Dernière mise à jour du registre | 13 novembre 2026 |
+| Dernière mise à jour du registre | 25 novembre 2026 |
 
 ---
 
@@ -95,12 +95,28 @@ traitements.
 
 | | |
 | --- | --- |
-| **Finalité** | Envoyer le lien au parrain, le lien au candidat, le lien au Secrétaire d'une loge du réseau (§ 3 bis), et les courriels de connexion. |
+| **Finalité** | Envoyer le lien au parrain, le lien au candidat, le lien au Secrétaire d'une loge du réseau (§ 3 bis), et les courriels de connexion. Depuis la migration 0105 : l'invitation du candidat à sa page, ses liens de connexion, et l'alerte au référent quand son candidat lui écrit — l'alerte nomme le candidat et son numéro de dossier, **jamais le texte du message**. |
 | **Base légale** | Celle du traitement que le courriel sert (§ 1 à 3). |
 | **Données** | Adresse électronique et prénom du destinataire, nom de la loge, texte du courriel, lien personnel. |
 | **Sous-traitant** | Brevo, société française — hébergement dans l'Union européenne. Voir `docs/brevo.md`. |
 | **Transferts hors UE** | Aucun. |
 | **Durée de conservation** | ⚠️ *Celle des journaux d'envoi chez Brevo : à relever dans le compte Brevo.* |
+
+## 4 bis. La page du candidat
+
+| | |
+| --- | --- |
+| **Finalité** | Laisser le candidat tenir lui-même sa fiche à jour, déposer ses CV et ses lettres de motivation, voir les offres de ses secteurs et dire à son référent où il en est (migration 0105, décision du 25 novembre 2026). |
+| **Base légale** | Celle du § 1 : le consentement donné avec la fiche. ⚖️ *Pour les 107 fiches reprises de Bubble, l'invitation à la page est l'occasion de recueillir ce consentement, qui manque : à trancher.* |
+| **Personnes concernées** | Les candidats ; leur référent et leur parrain, destinataires des messages. |
+| **Données** | Le compte du candidat (adresse électronique, sans mot de passe) et son rattachement à sa fiche ; les champs de la fiche qu'il saisit lui-même (ceux du § 1, sauf l'adresse électronique, que seul le référent change) ; sa photo ; jusqu'à cinq CV et cinq lettres de motivation, avec leur nom, leur format, leur taille et leur date de dépôt ; ses messages, datés, avec la date de leur correction ; la date de son invitation, de sa première et de sa dernière visite ; les départements qu'il coche pour ses offres. |
+| **Ce que le candidat ne voit pas** | Tout ce qui relève de l'accompagnement : l'appréciation, l'urgence, ce qu'il sait de l'appartenance du parrain, si un membre peut se dévoiler, la loge. La base le lui ferme : il n'a aucun droit de lecture sur la table `candidat`, et sa fiche lui est rendue par une fonction qui nomme ses colonnes. |
+| **Données sensibles** | Les messages et les documents sont libres : ils peuvent en recevoir. Même remarque qu'au § 1. |
+| **Destinataires** | Le candidat lui-même. Ses documents : les mêmes personnes que sa fiche (§ 1). Ses messages : **son référent et son parrain seulement** — ni le reste de la loge, ni l'administration. |
+| **Sous-traitants** | Hostinger (hébergement), Brevo (invitation, liens de connexion, alerte au référent). |
+| **Transferts hors UE** | Aucun. |
+| **Durée de conservation** | ⚠️ *Celle du dossier (§ 1).* Un document que le candidat supprime quitte la base et le stockage aussitôt, sans corbeille. Un message ne se supprime pas : il se corrige pendant 24 heures, puis il est gardé tel quel, et ne part qu'avec le dossier. ⚖️ *Le droit à l'effacement d'un message isolé est à prévoir dans la procédure du § 10.* |
+| **Sécurité** | Le compte n'est relié à une fiche que par l'invitation envoyée à l'adresse de cette fiche : jeton de 32 octets, dont seule l'empreinte est gardée, valable 30 jours, qui ne sert qu'une fois — une adresse identique ne suffit jamais. Les liens de connexion ne partent qu'aux comptes de candidats reliés à une fiche, trois au plus par quart d'heure et par adresse ; ils valent trente minutes et ne servent qu'une fois. La réponse du formulaire ne dit jamais si une adresse est connue. Les fichiers restent dans le seau privé, servis par l'application après contrôle des droits. |
 
 ## 5. La lecture du CV pour pré-remplir la fiche
 

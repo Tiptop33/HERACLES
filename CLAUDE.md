@@ -199,6 +199,9 @@ sert**, pas la liste des fichiers touchés.
 - **Offres de France Travail** — `docs/france-travail.md` : la réception des
   offres par l'application (route planifiée, minuterie sur le serveur), les
   identifiants `FRANCE_TRAVAIL_*`, et ce qui reste à confirmer.
+- **Page candidat** — `docs/page-candidat.md` : la page où le candidat tient
+  sa fiche, ses CV et lettres, voit ses offres et écrit à son référent ;
+  l'invitation, la connexion par lien, et ce que le candidat ne voit jamais.
 - **Aide intégrée** — `docs/aide.md` : le bouton « Aide », le catalogue des
   parcours, les ancres `data-aide` et le personnage qui désigne. Tout écran qui
   porte une ancre la garde, ou le test de l'aide casse.
