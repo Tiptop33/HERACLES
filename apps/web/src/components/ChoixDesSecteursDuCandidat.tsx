@@ -22,13 +22,16 @@ import {
  *     affichée est celle que la base a rendue. Ce qu'il ajoute est confirmé
  *     d'office ; un secteur proposé par le candidat attend son « Confirmer ».
  *   · « lecture » — sur la fiche, pour les autres référents de la loge.
+ *   · « espace » — sur la page du candidat (0105). Chaque geste s'enregistre
+ *     aussitôt, comme pour le référent ; ce qu'il ajoute attend la
+ *     confirmation de son référent, et il n'a pas de bouton « Confirmer ».
  *
  * Un secteur est une section (« F — Construction ») ou une division
  * (« 43 — Travaux de construction spécialisés »). On le trouve par un mot ou
  * un code, ou en parcourant la liste.
  */
 
-type Mode = 'candidat' | 'referent' | 'lecture';
+type Mode = 'candidat' | 'referent' | 'lecture' | 'espace';
 
 /** Ce que le composant sait d'un secteur choisi. */
 type Choisi = Pick<SecteurDuCandidat, 'code' | 'intitule' | 'niveau' | 'section' | 'section_intitule'> &
@@ -238,7 +241,9 @@ export default function ChoixDesSecteursDuCandidat({
         <p className="secteurs-aide">
           {mode === 'candidat'
             ? 'Dans quels secteurs cherchez-vous ? Jusqu’à trois, le premier étant votre secteur principal.'
-            : 'Jusqu’à trois, le premier est le secteur principal. Ce que vous ajoutez ou modifiez est confirmé d’office.'}
+            : mode === 'espace'
+              ? 'Jusqu’à trois, le premier étant votre secteur principal. Un secteur ajouté sert tout de suite à vos offres ; votre référent le confirme ensuite.'
+              : 'Jusqu’à trois, le premier est le secteur principal. Ce que vous ajoutez ou modifiez est confirmé d’office.'}
         </p>
       )}
 
@@ -250,11 +255,17 @@ export default function ChoixDesSecteursDuCandidat({
             const sous = c.niveau === 'section' ? 'grand secteur, toutes ses divisions' : `${c.section} — ${c.section_intitule}`;
             const statut =
               mode === 'candidat' ? null : c.confirme_le ? (
-                <span className="confirme">✓ confirmé{c.confirme_par ? ` par ${c.confirme_par}` : ''}</span>
+                <span className="confirme">
+                  {mode === 'espace'
+                    ? '✓ confirmé par votre référent'
+                    : `✓ confirmé${c.confirme_par ? ` par ${c.confirme_par}` : ''}`}
+                </span>
               ) : (
                 <>
                   <span className="a-confirmer">
-                    {c.propose_par === 'reprise' ? 'repris de Bubble' : 'proposé par le candidat'} · à confirmer
+                    {mode === 'espace'
+                      ? 'à confirmer par votre référent'
+                      : `${c.propose_par === 'reprise' ? 'repris de Bubble' : 'proposé par le candidat'} · à confirmer`}
                   </span>
                   {mode === 'referent' && (
                     <button type="button" className="confirmer" onClick={() => void confirmerUn(c.code)} disabled={occupe}>
@@ -428,7 +439,7 @@ export default function ChoixDesSecteursDuCandidat({
           </>
         ))}
 
-      {mode === 'referent' && (
+      {(mode === 'referent' || mode === 'espace') && (
         <div className={`secteurs-enregistre${mot ? ' secteurs-enregistre--visible' : ''}`} role="status" aria-live="polite">
           {mot ?? ''}
         </div>

@@ -39,6 +39,10 @@ export default async function Connexion({
         <p className="entree-pied">
           Pas encore de compte ? <Link href="/inscription">En créer un</Link>
         </p>
+        {/* Les candidats n'ont pas de mot de passe : un lien par courriel (0105). */}
+        <p className="entree-pied">
+          Vous êtes candidat ? <Link href="/connexion/lien">Recevoir un lien de connexion</Link>
+        </p>
       </div>
     </main>
   );
