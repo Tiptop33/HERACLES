@@ -124,6 +124,10 @@ export async function POST(requete: Request, { params }: { params: Promise<{ jet
     if (issue.raison === 'illisible') {
       return refuser(`Votre CV n’a pas pu être lu. ${A_LA_MAIN}`, 422, 'illisible');
     }
+    // Même message pour le candidat, qui n'y peut rien ; le journal, lui, nomme la cause.
+    if (issue.raison === 'limite-de-depense') {
+      return refuser(`La lecture de votre CV n’a pas abouti. ${A_LA_MAIN}`, 502, 'limite-de-depense');
+    }
     return refuser(`La lecture de votre CV n’a pas abouti. ${A_LA_MAIN}`, 502, 'echec-lecture');
   } catch (souci) {
     console.error('[lecture-cv] échec inattendu', souci instanceof Error ? souci.name : 'inconnu');

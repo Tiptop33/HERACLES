@@ -31,7 +31,23 @@ export type PhotoLue = { type: 'image/jpeg' | 'image/png'; base64: string };
 
 export type IssueDeLecture =
   | { ok: true; extrait: Extrait; photo: PhotoLue | null }
-  | { ok: false; raison: 'indisponible' | 'illisible' | 'echec' };
+  | { ok: false; raison: 'indisponible' | 'illisible' | 'echec' | 'limite-de-depense' };
+
+/**
+ * Le compte Anthropic a-t-il atteint sa limite de dépense ? Rend alors le jour
+ * où l'accès revient, s'il est donné, ou `''`. Sinon `null`.
+ *
+ * L'API ne donne à ce refus ni statut ni type à lui : c'est un 400
+ * `invalid_request_error`, que seul son message distingue (panne du
+ * 25 novembre 2026). Le lire dans le texte est donc le seul moyen ; si
+ * Anthropic le reformule, le refus retombe dans le 400 ordinaire, noté en
+ * entier — rien n'est perdu, la ligne est seulement moins lisible.
+ */
+export function limiteDeDepense(erreur: unknown): string | null {
+  if (!(erreur instanceof Anthropic.BadRequestError)) return null;
+  if (!/usage limits?/i.test(erreur.message)) return null;
+  return /regain access on (\d{4}-\d{2}-\d{2})/i.exec(erreur.message)?.[1] ?? '';
+}
 
 const MEDIAS_DES_PHOTOS = { jpg: 'image/jpeg', png: 'image/png', webp: 'image/webp' } as const;
 
@@ -135,8 +151,16 @@ export async function lireLeCv(
       reponse = await demander(montrees);
     } catch (erreur) {
       // Une image que l'API refuse ne doit pas coûter la lecture : elle se
-      // refait sans images — le formulaire se remplit, sans photo.
-      if (montrees.length === 0 || !(erreur instanceof Anthropic.BadRequestError)) throw erreur;
+      // refait sans images — le formulaire se remplit, sans photo. Mais une
+      // limite de dépense atteinte ne tient pas aux images : la refaire ne
+      // ferait qu'un second appel refusé.
+      if (
+        montrees.length === 0 ||
+        !(erreur instanceof Anthropic.BadRequestError) ||
+        limiteDeDepense(erreur) !== null
+      ) {
+        throw erreur;
+      }
       console.warn('[lecture-cv] images refusées par l’API, lecture refaite sans elles :', erreur.message);
       montrees = [];
       reponse = await demander(montrees);
@@ -165,6 +189,15 @@ export async function lireLeCv(
 
     return { ok: true, extrait: nettoyerLecture(lecture), photo };
   } catch (erreur) {
+    const retour = limiteDeDepense(erreur);
+    if (retour !== null) {
+      // Rien à corriger dans le code : la limite se relève dans la Console
+      // d'Anthropic, ou l'accès revient au jour dit (docs/lecture-du-cv.md).
+      console.error(
+        `[lecture-cv] limite de dépense du compte Anthropic atteinte${retour ? `, retour le ${retour}` : ''} : aucune lecture d’ici là, sauf à relever la limite dans la Console`,
+      );
+      return { ok: false, raison: 'limite-de-depense' };
+    }
     if (erreur instanceof Anthropic.AuthenticationError) {
       console.error('[lecture-cv] clé ANTHROPIC_API_KEY refusée');
     } else if (erreur instanceof Anthropic.BadRequestError) {

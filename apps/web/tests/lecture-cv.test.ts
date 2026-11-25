@@ -25,7 +25,7 @@ vi.mock('@anthropic-ai/sdk', async (importOriginal) => {
   return { ...reel, default: Double };
 });
 
-const { blocDuCv, lireLeCv } = await import('../src/lib/lecture-cv-serveur');
+const { blocDuCv, limiteDeDepense, lireLeCv } = await import('../src/lib/lecture-cv-serveur');
 
 /** Une lecture où rien n'a été trouvé — des chaînes vides —, à compléter case par case. */
 const vide: Lecture = {
@@ -266,6 +266,38 @@ describe('la lecture par Claude', () => {
     // Le second essai ne porte plus d'image.
     const second = parse.mock.calls[1][0].messages[0].content;
     expect(second.map((bloc: { type: string }) => bloc.type)).toEqual(['document', 'text']);
+  });
+
+  // Le refus tel que l'API le rend : le SDK compose son message du corps reçu.
+  const refusDeLApi = (message: string) =>
+    new Anthropic.BadRequestError(
+      400,
+      { type: 'error', error: { type: 'invalid_request_error', message } },
+      undefined,
+      new Headers(),
+    );
+  const LIMITE =
+    'You have reached your specified API usage limits. You will regain access on 2026-12-01 at 00:00 UTC.';
+
+  it('ne refait pas la lecture quand le compte a atteint sa limite de dépense, et le dit au journal', async () => {
+    parse.mockRejectedValue(refusDeLApi(LIMITE));
+    const journal = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    // Un CV avec images : c'est le cas où un 400 faisait rejouer la lecture.
+    const issue = await lireLeCv(await cvAvecQrCodeEtPhoto(), 'pdf');
+    expect(issue).toEqual({ ok: false, raison: 'limite-de-depense' });
+    expect(parse).toHaveBeenCalledTimes(1);
+    expect(journal).toHaveBeenCalledTimes(1);
+    expect(journal.mock.calls[0][0]).toContain('limite de dépense');
+    expect(journal.mock.calls[0][0]).toContain('retour le 2026-12-01');
+    journal.mockRestore();
+  });
+
+  it('reconnaît la limite de dépense à son message, et rien d’autre', () => {
+    expect(limiteDeDepense(refusDeLApi(LIMITE))).toBe('2026-12-01');
+    expect(limiteDeDepense(refusDeLApi('You have reached your specified API usage limits.'))).toBe('');
+    expect(limiteDeDepense(refusDeLApi('Could not process image'))).toBeNull();
+    expect(limiteDeDepense(new Error('usage limits'))).toBeNull();
   });
 
   it('rend un échec, sans lever, quand la lecture est refusée', async () => {
