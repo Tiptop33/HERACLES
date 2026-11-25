@@ -39,6 +39,47 @@ export function refusDeLEcusson(
   return null;
 }
 
+/** Les formats de document acceptés pour un CV : ceux que le serveur reconnaît dans les octets. */
+const TYPES_DE_DOCUMENT = [
+  'application/pdf',
+  'application/msword',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'application/vnd.oasis.opendocument.text',
+  'application/rtf',
+  'text/rtf',
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+] as const;
+
+const EXTENSIONS_DE_DOCUMENT = /\.(pdf|docx?|odt|rtf|jpe?g|png|webp)$/i;
+
+/**
+ * Pourquoi ce fichier ne peut pas être un CV, ou `null` s'il peut l'être —
+ * le glisser-déposer du formulaire « Votre fiche » (demande du 25 novembre
+ * 2026).
+ *
+ * Le type annoncé par le système varie d'un poste à l'autre pour un Word ou
+ * un RTF, et manque souvent : l'extension suffit à laisser passer. Le serveur
+ * lit de toute façon le format dans les octets (`formatDeDocument`).
+ */
+export function refusDuDocument(
+  fichier: { name: string; type: string; size: number },
+  tailleMaximale: number,
+): string | null {
+  const type = fichier.type.trim().toLowerCase();
+  const reconnu =
+    (TYPES_DE_DOCUMENT as readonly string[]).includes(type) || EXTENSIONS_DE_DOCUMENT.test(fichier.name);
+  if (!reconnu) {
+    return 'Ce fichier n’est pas reconnu : PDF, Word, OpenDocument, RTF ou photo (JPEG, PNG, WebP).';
+  }
+  if (fichier.size === 0) return 'Ce fichier est vide.';
+  if (fichier.size > tailleMaximale) {
+    return `Ce fichier dépasse ${Math.round(tailleMaximale / (1024 * 1024))} Mo.`;
+  }
+  return null;
+}
+
 /** Le glisser en cours porte-t-il des fichiers ? Un texte ou un lien glissés ne sont pas pour nous. */
 export function porteDesFichiers(donnees: Pick<DataTransfer, 'types'> | null | undefined): boolean {
   return Boolean(donnees && Array.from(donnees.types ?? []).includes('Files'));
