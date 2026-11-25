@@ -3,14 +3,17 @@
 import { useRouter } from 'next/navigation';
 import { useRef, useState } from 'react';
 import { casesARemplir, type ChampLu, type Extrait } from '@/lib/lecture-cv';
+import { refusDuDocument } from '@/lib/depot';
 import {
   MOBILITES,
   OUI_NON,
   SITUATIONS_FAMILIALES,
+  TAILLE_MAXIMALE_DOCUMENT,
   TYPES_DE_RECHERCHE,
   estUnStage,
 } from '@/lib/parrainage';
 import ChoixDesSecteursDuCandidat from '@/components/ChoixDesSecteursDuCandidat';
+import ZoneDeDepot, { useGardeDuGlisser } from '@/components/ZoneDeDepot';
 
 /**
  * La fiche que le candidat remplit lui-même — `renseignement_candidat` chez
@@ -59,6 +62,9 @@ export default function FormulaireCandidature({
   const [envoi, setEnvoi] = useState(false);
   const [type, setType] = useState(initial.type_emploi);
   const [cv, setCv] = useState<File | null>(null);
+  // Le refus d'un fichier lâché sur le champ du CV : il s'écrit sous le champ.
+  const [refusDuCv, setRefusDuCv] = useState<string | null>(null);
+  const [refusDeLaLettre, setRefusDeLaLettre] = useState<string | null>(null);
   const [lecture, setLecture] = useState<Lecture>({ etat: 'attente' });
   const [photo, setPhoto] = useState<Photo | null>(null);
   const formulaire = useRef<HTMLFormElement>(null);
@@ -67,12 +73,17 @@ export default function FormulaireCandidature({
   const derniereLecture = useRef(0);
 
   /** Un autre fichier : la lecture du précédent, finie ou non, ne compte plus. */
-  function choisirLeCv(evenement: React.ChangeEvent<HTMLInputElement>) {
+  function choisirLeCv(fichier: File | null) {
     derniereLecture.current++;
-    setCv(evenement.currentTarget.files?.[0] ?? null);
+    setCv(fichier);
+    setRefusDuCv(null);
     setLecture({ etat: 'attente' });
     garderLaPhoto(null);
   }
+
+  // Un fichier lâché à côté du champ n'ouvre pas le document à la place de
+  // la page : ce qui a été tapé serait perdu.
+  useGardeDuGlisser();
 
   /** Garde une photo — ou aucune —, et libère l'aperçu de la précédente. */
   function garderLaPhoto(nouvelle: Photo | null) {
@@ -181,12 +192,32 @@ export default function FormulaireCandidature({
 
       <fieldset>
         <legend data-aide="candidature-cv">Votre CV</legend>
-        <div className="champ">
+        {/* Le CV se choisit ou se lâche sur le champ : le fichier y prend
+            place et part avec le reste de la fiche. */}
+        <ZoneDeDepot
+          className="champ"
+          refus={refusDuDocument}
+          refuser={setRefusDuCv}
+          pose={choisirLeCv}
+          tailleMaximale={TAILLE_MAXIMALE_DOCUMENT}
+        >
           <label htmlFor="c-cv">CV</label>
-          <input {...champ('cv')} type="file" accept={ACCEPTES} onChange={choisirLeCv} />
-        </div>
+          <input
+            {...champ('cv')}
+            type="file"
+            accept={ACCEPTES}
+            aria-describedby={refusDuCv ? 'c-cv-refus' : undefined}
+            onChange={(e) => choisirLeCv(e.currentTarget.files?.[0] ?? null)}
+          />
+          {refusDuCv && (
+            <span className="erreur-champ" id="c-cv-refus" role="alert">
+              {refusDuCv}
+            </span>
+          )}
+        </ZoneDeDepot>
         <p className="aide">
-          PDF, Word, OpenDocument, RTF ou photo (JPEG, PNG, WebP), 10 Mo au plus.
+          Choisissez votre fichier, ou glissez-le sur le champ. PDF, Word, OpenDocument, RTF ou
+          photo (JPEG, PNG, WebP), 10 Mo au plus.
         </p>
         {lectureDisponible && (
           <>
@@ -415,11 +446,32 @@ export default function FormulaireCandidature({
 
       <fieldset>
         <legend data-aide="candidature-documents">Vos documents</legend>
-        <div className="champ">
+        {/* Comme le CV : la lettre se choisit ou se lâche sur le champ. */}
+        <ZoneDeDepot
+          className="champ"
+          refus={refusDuDocument}
+          refuser={setRefusDeLaLettre}
+          pose={() => setRefusDeLaLettre(null)}
+          tailleMaximale={TAILLE_MAXIMALE_DOCUMENT}
+        >
           <label htmlFor="c-lettre">Lettre de motivation</label>
-          <input {...champ('lettre')} type="file" accept={ACCEPTES} />
-        </div>
-        <p className="aide">PDF, Word, OpenDocument, RTF ou photo (JPEG, PNG, WebP), 10 Mo au plus.</p>
+          <input
+            {...champ('lettre')}
+            type="file"
+            accept={ACCEPTES}
+            aria-describedby={refusDeLaLettre ? 'c-lettre-refus' : undefined}
+            onChange={() => setRefusDeLaLettre(null)}
+          />
+          {refusDeLaLettre && (
+            <span className="erreur-champ" id="c-lettre-refus" role="alert">
+              {refusDeLaLettre}
+            </span>
+          )}
+        </ZoneDeDepot>
+        <p className="aide">
+          Choisissez votre fichier, ou glissez-le sur le champ. PDF, Word, OpenDocument, RTF ou
+          photo (JPEG, PNG, WebP), 10 Mo au plus.
+        </p>
       </fieldset>
 
       <label

@@ -18,6 +18,11 @@ import { porteDesFichiers, refusDeLEcusson } from '@/lib/depot';
  * Un fichier qui ne peut pas être un écusson n'est ni envoyé ni gardé : la
  * zone le dit par `refuser`. Le serveur revérifie de toute façon.
  *
+ * La zone sert aussi au CV du formulaire « Votre fiche » (25 novembre 2026) :
+ * `refus` dit alors ce qu'est un fichier acceptable, et `pose` prévient le
+ * formulaire qu'un fichier a pris place dans son champ — poser `files` par
+ * script ne déclenche pas `change`.
+ *
  * Le dépôt est un complément pour la souris et le doigt : au clavier,
  * « Parcourir » reste le chemin.
  */
@@ -26,6 +31,8 @@ export default function ZoneDeDepot({
   className = '',
   comme = 'div',
   envoyer,
+  pose,
+  refus = refusDeLEcusson,
   refuser,
   tailleMaximale,
   desactivee = false,
@@ -36,6 +43,10 @@ export default function ZoneDeDepot({
   /** L'élément rendu : `label` quand la zone est le libellé du champ. */
   comme?: 'div' | 'label';
   envoyer?: (fichier: File) => void;
+  /** Sans `envoyer` : le fichier vient d'être posé dans le champ de la zone. */
+  pose?: (fichier: File) => void;
+  /** Pourquoi ce fichier est refusé, ou `null`. Par défaut, la règle des écussons. */
+  refus?: (fichier: File, tailleMaximale: number) => string | null;
   refuser: (message: string) => void;
   tailleMaximale: number;
   desactivee?: boolean;
@@ -75,9 +86,9 @@ export default function ZoneDeDepot({
 
     const fichier = e.dataTransfer.files?.[0];
     if (!fichier) return;
-    const refus = refusDeLEcusson(fichier, tailleMaximale);
-    if (refus) {
-      refuser(refus);
+    const motif = refus(fichier, tailleMaximale);
+    if (motif) {
+      refuser(motif);
       return;
     }
 
@@ -93,6 +104,7 @@ export default function ZoneDeDepot({
       transfert.items.add(fichier);
       if (!champ) throw new Error('pas de champ');
       champ.files = transfert.files;
+      pose?.(fichier);
     } catch {
       refuser('Ce navigateur ne permet pas de déposer ici : utilisez « Parcourir ».');
     }
