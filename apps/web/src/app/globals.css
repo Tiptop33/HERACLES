@@ -6544,3 +6544,816 @@ a.poste-document .poste-document-type {
     gap: 0.1rem;
   }
 }
+
+/* ===========================================================================
+   La page du candidat (0105) — maquette docs/maquettes/page-candidat.html
+   ---------------------------------------------------------------------------
+   Une personne vulnérable y tient sa recherche à jour : beaucoup d'air, de
+   grands boutons, l'accent cyan pour l'action et lui seul. Les états gardent
+   leurs couleurs d'ailleurs : ambre = en attente (un message encore
+   modifiable), violet = clos (un message gardé tel quel).
+   =========================================================================== */
+
+.pc {
+  min-height: 100vh;
+  background: var(--fond);
+}
+
+.pc-barre {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem max(1rem, 3vw);
+  background: var(--surface);
+  border-bottom: 1px solid var(--bordure);
+}
+
+.pc-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  color: var(--encre);
+  text-decoration: none;
+}
+
+.pc-qui {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.9rem;
+}
+
+.pc-portrait {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 2.1rem;
+  height: 2.1rem;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--candidat-clair);
+  color: var(--marque);
+  font-weight: 700;
+  font-size: 0.85rem;
+  text-decoration: none;
+}
+
+.pc-portrait img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.pc-portrait--grand {
+  width: 4.5rem;
+  height: 4.5rem;
+  font-size: 1.5rem;
+  box-shadow: 0 0 0 3px var(--surface), 0 0 0 4px var(--bordure);
+}
+
+.pc-portrait--moyen {
+  width: 6rem;
+  height: 6rem;
+  font-size: 1.8rem;
+}
+
+.pc-lien {
+  background: none;
+  border: 0;
+  padding: 0.35rem 0.1rem;
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--marque);
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.pc-lien:hover {
+  text-decoration: underline;
+}
+
+.pc-lien--alerte {
+  color: var(--alerte);
+}
+
+.pc-enveloppe {
+  max-width: 74rem;
+  margin: 0 auto;
+  padding: clamp(1rem, 3vw, 2rem) max(1rem, 3vw) 4rem;
+}
+
+.pc-tete {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) minmax(0, 22rem);
+  gap: 0.75rem 1.5rem;
+  align-items: center;
+  margin-bottom: 1.1rem;
+}
+
+.pc-tete h1 {
+  margin: 0;
+  font-size: clamp(1.6rem, 1.2rem + 1.4vw, 2.3rem);
+  line-height: 1.1;
+}
+
+.pc-suivi {
+  margin: 0.4rem 0 0;
+  color: var(--encre-douce);
+}
+
+.pc-jauge {
+  background: var(--surface);
+  border: 1px solid var(--bordure);
+  border-radius: 10px;
+  padding: 0.85rem 1rem;
+}
+
+.pc-jauge-ligne {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-weight: 650;
+}
+
+.pc-jauge-ligne span {
+  color: var(--marque);
+  white-space: nowrap;
+}
+
+.pc-piste {
+  height: 8px;
+  margin: 0.5rem 0;
+  border-radius: 99px;
+  background: var(--surface-creuse);
+  overflow: hidden;
+}
+
+.pc-piste i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--marque);
+  transition: width 0.4s;
+}
+
+.pc-manque {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 0.6rem;
+  font-size: 0.85rem;
+  color: var(--encre-douce);
+}
+
+.pc-ancres {
+  display: flex;
+  gap: 0.4rem;
+  overflow-x: auto;
+  padding: 0.25rem 0 0.9rem;
+}
+
+.pc-ancres a {
+  flex: none;
+  padding: 0.5rem 0.9rem;
+  border-radius: 999px;
+  border: 1px solid var(--bordure);
+  background: var(--surface);
+  color: var(--encre);
+  font-size: 0.9rem;
+  font-weight: 550;
+  text-decoration: none;
+}
+
+.pc-grille {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+  gap: 1.25rem;
+  align-items: start;
+}
+
+.pc-col {
+  display: grid;
+  gap: 1.25rem;
+  min-width: 0;
+}
+
+.pc-bloc {
+  background: var(--surface);
+  border: 1px solid var(--bordure);
+  border-radius: 12px;
+  padding: clamp(1rem, 2vw, 1.4rem);
+  min-width: 0;
+  scroll-margin-top: 1rem;
+}
+
+.pc-bloc > header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.25rem 0.75rem;
+  margin-bottom: 0.35rem;
+}
+
+.pc-bloc h2 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.pc-bloc h3 {
+  margin: 0 0 0.4rem;
+  font-size: 0.95rem;
+}
+
+.pc-aide {
+  margin: 0 0 0.9rem;
+  color: var(--encre-douce);
+  font-size: 0.9rem;
+}
+
+.pc-note {
+  margin: 0.25rem 0 0;
+  color: var(--encre-douce);
+  font-size: 0.82rem;
+}
+
+.pc-compteur {
+  color: var(--encre-douce);
+  font-size: 0.88rem;
+  font-weight: 400;
+  white-space: nowrap;
+}
+
+.pc-erreur {
+  margin: 0.3rem 0 0;
+  color: var(--alerte);
+  font-size: 0.86rem;
+}
+
+.pc-avis {
+  margin: 0.3rem 0 0;
+  color: var(--referent);
+  font-size: 0.86rem;
+}
+
+.pc-vide {
+  margin: 0.75rem 0 0;
+  padding: 1rem;
+  border-radius: 10px;
+  background: var(--surface-creuse);
+  color: var(--encre-douce);
+  text-align: center;
+}
+
+.pc-etiquette {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.1rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.pc-etiquette--marque {
+  background: var(--candidat-clair);
+  color: var(--marque);
+}
+
+.pc-etiquette--attente {
+  background: var(--attention-clair);
+  color: var(--attention);
+}
+
+.pc-etiquette--clos {
+  background: var(--clos-clair);
+  color: var(--clos);
+}
+
+.pc-puce {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 2.4rem;
+  padding: 0.35rem 0.8rem;
+  border: 1px solid var(--bordure);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--encre);
+  font: inherit;
+  font-size: 0.88rem;
+  cursor: pointer;
+}
+
+.pc-puce[aria-pressed='true'] {
+  background: var(--marque);
+  border-color: var(--marque);
+  color: var(--sur-marque);
+}
+
+.pc-puce--fixe {
+  cursor: default;
+}
+
+.pc-puce--propose {
+  border-style: dashed;
+}
+
+.pc-puce-nombre {
+  font-size: 0.78rem;
+  opacity: 0.75;
+}
+
+.pc-filtres {
+  display: grid;
+  gap: 0.6rem;
+  margin-bottom: 0.75rem;
+}
+
+.pc-rang {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.pc-rang-titre {
+  width: 7.5rem;
+  color: var(--encre-douce);
+  font-size: 0.84rem;
+}
+
+.pc-recherche input,
+.pc-fiche input:not([type='file']),
+.pc-fiche select,
+.pc-fiche textarea,
+.pc-ecrire textarea,
+.pc-journal textarea {
+  width: 100%;
+  font: inherit;
+  font-size: 16px;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--bordure);
+  border-radius: 8px;
+  background: var(--surface-creuse);
+  color: var(--encre);
+}
+
+.pc-fiche textarea,
+.pc-ecrire textarea,
+.pc-journal textarea {
+  resize: vertical;
+}
+
+.pc-offres {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--bordure);
+}
+
+.pc-offre {
+  border-bottom: 1px solid var(--bordure);
+}
+
+.pc-offre-tete {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.15rem 0.75rem;
+  padding: 0.75rem 0.25rem;
+  color: var(--encre);
+  text-decoration: none;
+}
+
+.pc-offre-titre {
+  font-weight: 650;
+}
+
+.pc-offre-sous {
+  color: var(--encre-douce);
+  font-size: 0.88rem;
+}
+
+.pc-offre-droite {
+  grid-row: span 2;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.25rem;
+  color: var(--encre-douce);
+  font-size: 0.82rem;
+  white-space: nowrap;
+}
+
+.pc-offre-detail {
+  display: grid;
+  gap: 0.6rem;
+  padding: 0 0.25rem 0.9rem;
+}
+
+.pc-offre-description {
+  margin: 0;
+  white-space: pre-line;
+}
+
+.pc-points {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: 0.5rem;
+  margin: 0;
+}
+
+.pc-points div {
+  padding: 0.5rem 0.65rem;
+  border-radius: 8px;
+  background: var(--surface-creuse);
+  font-size: 0.86rem;
+}
+
+.pc-points dt {
+  color: var(--encre-douce);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.pc-points dd {
+  margin: 0;
+}
+
+.pc-plus {
+  margin: 0.75rem 0 0;
+}
+
+.pc-fiche details {
+  border-top: 1px solid var(--bordure);
+}
+
+.pc-fiche summary {
+  padding: 0.75rem 0;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.pc-champs {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: 0.75rem 0.9rem;
+  padding-bottom: 0.9rem;
+}
+
+.pc-champ {
+  display: grid;
+  gap: 0.25rem;
+  align-content: start;
+  min-width: 0;
+}
+
+.pc-champ--large {
+  grid-column: 1 / -1;
+}
+
+.pc-champ--faux input,
+.pc-champ--faux textarea {
+  border-color: var(--alerte);
+}
+
+.pc-libelle {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  color: var(--encre-douce);
+  font-size: 0.86rem;
+  font-weight: 600;
+}
+
+.pc-valeur {
+  margin: 0;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.pc-ok {
+  color: var(--referent);
+  font-size: 0.8rem;
+  opacity: 0;
+}
+
+.pc-ok--vu {
+  animation: pc-apparait 2s ease-out;
+}
+
+@keyframes pc-apparait {
+  0%,
+  60% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.pc-enregistre {
+  color: var(--referent);
+  font-size: 0.84rem;
+}
+
+.pc-choix {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.pc-photo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
+}
+
+.pc-photo-gestes {
+  display: grid;
+  justify-items: start;
+  gap: 0.35rem;
+  flex: 1 1 14rem;
+}
+
+.pc-ecrire {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.pc-ecrire-pied {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.pc-journal {
+  list-style: none;
+  display: grid;
+  gap: 0.75rem;
+  margin: 1.1rem 0 0;
+  padding: 0;
+}
+
+.pc-journal li {
+  padding: 0.1rem 0 0.1rem 0.75rem;
+  border-left: 3px solid var(--bordure);
+}
+
+.pc-journal li.pc-vivant {
+  border-left-color: var(--attention);
+}
+
+.pc-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 0.6rem;
+  margin-bottom: 0.25rem;
+  color: var(--encre-douce);
+  font-size: 0.84rem;
+}
+
+.pc-texte {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.pc-docs {
+  display: grid;
+  gap: 1.1rem;
+}
+
+.pc-liste-docs {
+  list-style: none;
+  display: grid;
+  gap: 0.5rem;
+  margin: 0.4rem 0 0.6rem;
+  padding: 0;
+}
+
+.pc-doc {
+  display: grid;
+  grid-template-columns: 2.5rem minmax(0, 1fr) auto;
+  gap: 0.25rem 0.6rem;
+  align-items: center;
+  padding: 0.6rem;
+  border: 1px solid var(--bordure);
+  border-radius: 10px;
+}
+
+.pc-doc--principal {
+  border-color: var(--marque);
+  background: color-mix(in srgb, var(--candidat-clair) 60%, var(--surface));
+}
+
+.pc-format {
+  grid-row: span 2;
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.9rem;
+  border-radius: 6px;
+  background: var(--surface-creuse);
+  color: var(--encre-douce);
+  font-size: 0.66rem;
+  font-weight: 800;
+}
+
+.pc-doc-nom {
+  width: 100%;
+  min-width: 0;
+  padding: 0.25rem 0.4rem;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--encre);
+  font: inherit;
+  font-weight: 600;
+}
+
+.pc-doc-nom:hover,
+.pc-doc-nom:focus {
+  border-color: var(--bordure);
+  background: var(--surface);
+}
+
+.pc-doc-coin {
+  grid-row: 1;
+  grid-column: 3;
+}
+
+.pc-doc-meta {
+  padding-left: 0.4rem;
+  color: var(--encre-douce);
+  font-size: 0.82rem;
+}
+
+.pc-doc-gestes,
+.pc-doc-avis {
+  grid-column: 2 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 0.9rem;
+  padding-left: 0.4rem;
+}
+
+.pc-confirmer {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem;
+  border-radius: 8px;
+  background: var(--alerte-clair);
+}
+
+.pc-bouton-alerte {
+  background: var(--alerte);
+  border-color: var(--alerte);
+  color: var(--surface);
+}
+
+.pc-depot {
+  display: block;
+  padding: 0.75rem;
+  border: 1.5px dashed var(--bordure-nette);
+  border-radius: 10px;
+  color: var(--marque);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.pc-depot:focus-within {
+  outline: 3px solid color-mix(in srgb, var(--marque) 55%, transparent);
+  outline-offset: 2px;
+}
+
+.pc-depot small {
+  display: block;
+  color: var(--encre-douce);
+  font-weight: 400;
+}
+
+.pc-depot--plein {
+  margin: 0;
+  color: var(--encre-douce);
+  cursor: default;
+}
+
+/* Sur un téléphone : une seule colonne, dans l'ordre où l'on s'en sert. */
+@media (max-width: 56rem) {
+  .pc-grille {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .pc-col {
+    display: contents;
+  }
+
+  #pc-messages {
+    order: 1;
+  }
+
+  #pc-offres {
+    order: 2;
+  }
+
+  #pc-documents {
+    order: 3;
+  }
+
+  #pc-fiche {
+    order: 4;
+  }
+
+  .pc-tete {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .pc-tete .pc-jauge {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 37rem) {
+  .pc-nom {
+    display: none;
+  }
+
+  .pc-portrait--grand {
+    width: 3.5rem;
+    height: 3.5rem;
+    font-size: 1.2rem;
+  }
+
+  .pc-rang-titre {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pc-piste i {
+    transition: none;
+  }
+
+  .pc-ok--vu {
+    animation: none;
+    opacity: 1;
+  }
+}
+
+/* --- Sur la fiche, côté référent (0105) ----------------------------------- */
+
+.page-candidat-etat {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 0.9rem;
+  margin: 0.6rem 0 0;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid var(--bordure);
+  border-radius: 10px;
+  background: var(--surface);
+  font-size: 0.9rem;
+}
+
+.page-candidat-etat strong {
+  font-weight: 650;
+}
+
+.messages-du-candidat {
+  margin-bottom: 1.25rem;
+}
+
+.messages-du-candidat ol {
+  list-style: none;
+  display: grid;
+  gap: 0.7rem;
+  margin: 0.6rem 0 0;
+  padding: 0;
+}
+
+.messages-du-candidat li {
+  padding: 0.1rem 0 0.1rem 0.75rem;
+  border-left: 3px solid var(--bordure);
+}
+
+.messages-du-candidat li.pc-vivant {
+  border-left-color: var(--attention);
+}
+
+.poste-document--principal {
+  border-color: var(--marque);
+}

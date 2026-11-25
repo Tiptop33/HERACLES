@@ -15,7 +15,7 @@ const TEXTES = {
   candidat: {
     titre: 'Votre fiche est envoyée',
     chapo:
-      'Merci. La commission a bien reçu votre fiche et votre CV. Un membre de la commission vous contactera.',
+      'Merci. La commission a bien reçu votre fiche et votre CV. Un membre de la commission vous contactera. Vous allez aussi recevoir un e-mail pour ouvrir votre espace candidat, où vous pourrez tenir votre fiche à jour.',
   },
 } as const;
 

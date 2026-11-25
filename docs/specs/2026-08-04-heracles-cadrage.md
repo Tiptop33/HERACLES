@@ -196,3 +196,11 @@ Conséquence pour la construction : **l'espace référent passe devant**. C'est 
 quotidien — un référent ouvre la fiche d'un candidat, la complète, la suit. Un accès direct pour
 les candidats reste possible plus tard, mais ce n'est pas ce que l'usage réclame aujourd'hui, et
 le construire d'abord reviendrait à bâtir pour personne.
+
+**Revu le 2026-11-25 — les candidats ont leur page.** La décision ci-dessus a fait passer
+l'espace référent devant ; elle reste juste pour l'ordre des lots. Le 25 novembre, la page
+candidat est demandée et construite (migration 0105, maquette
+`docs/maquettes/page-candidat.html`, mode d'emploi `docs/page-candidat.md`) : le candidat s'y
+connecte sans mot de passe, par un lien reçu par courriel, après une invitation de son référent
+ou celle que HERACLES envoie à la fin de la candidature. Mise en service décidée **avant** la
+bascule du 5 décembre, en connaissance du risque sur les deux semaines de vérification.

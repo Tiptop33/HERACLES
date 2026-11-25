@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { formatDImage, formatDeDocument, typeDeFichier } from '@/lib/fichiers';
-import { retourAvecCode, vientDUnFormulaire } from '@/lib/formulaire';
+import { origine, retourAvecCode, vientDUnFormulaire } from '@/lib/formulaire';
 import { empreinte } from '@/lib/invitation';
 import {
   FormulaireCandidature,
@@ -9,6 +9,7 @@ import {
   cheminDuDocument,
   premiereErreur,
 } from '@/lib/parrainage';
+import { inviterApresLaCandidature } from '@/lib/page-candidat-serveur';
 import { lireCandidature } from '@/lib/parrainage-serveur';
 import { lireCodesDuCandidat } from '@/lib/secteurs';
 import { supabaseAdmin } from '@/lib/supabase-admin';
@@ -173,6 +174,10 @@ async function traiter(requete: Request, jeton: string) {
     console.error('[candidature] enregistrement refusé', error.code);
     return refuser('echec', 'Votre fiche n’a pas pu être enregistrée. Réessayez.');
   }
+
+  // La fiche est complète : HERACLES l'invite à sa page (0105). Au mieux — un
+  // courriel qui ne part pas ne défait pas la candidature.
+  await inviterApresLaCandidature(candidature.candidat_id, origine(requete));
 
   if (natif) return retourAvecCode(requete, '/merci', { pour: 'candidat' });
   return NextResponse.json({ ok: true });

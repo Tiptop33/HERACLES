@@ -41,6 +41,7 @@ import { accueilDuRole } from '@/lib/roles';
 import OuvrirNouveauCandidat from '@/components/OuvrirNouveauCandidat';
 import PanneauFiche, { estOnglet, type Collegue, type Onglet } from './PanneauFiche';
 import { lireLesSecteursDuCandidat } from '@/lib/secteurs-du-candidat-serveur';
+import { lireEtatDeLaPage, lireLesDocuments, lireLesMessagesSiPermis } from '@/lib/page-candidat-serveur';
 
 export const metadata = { title: 'Candidats — HERACLES' };
 
@@ -224,6 +225,13 @@ export default async function PosteDeTravail({
   // Les secteurs d'activité du candidat (0092) : seulement sous l'onglet
   // « Profil », où le bloc « Sa recherche » les montre.
   const secteurs = fiche && onglet === 'profil' ? await lireLesSecteursDuCandidat(fiche.id) : null;
+  // La page candidat (0105) : son état sous l'en-tête, toujours ; ses CV et
+  // lettres sous « Documents » ; ses messages sous « Suivi », pour son
+  // référent et son parrain seulement.
+  const pageCandidat = fiche ? await lireEtatDeLaPage(fiche.id) : null;
+  const documentsDuCandidat = fiche && onglet === 'documents' ? await lireLesDocuments(fiche.id) : [];
+  const messagesDuCandidat = fiche && onglet === 'suivi' ? await lireLesMessagesSiPermis(fiche.id) : null;
+  const maintenant = new Date().getTime();
 
   // Le bouton « Clôturer le dossier » (0071) : un dossier en cours, et le
   // droit de le faire. La base revérifie l'un et l'autre en clôturant.
@@ -435,6 +443,10 @@ export default async function PosteDeTravail({
             cvAnonyme={cvAnonyme}
             refusCvAnonyme={REFUS_DU_CV_ANONYME[premier(parametres.cvanonyme)] ?? null}
             secteurs={secteurs}
+            pageCandidat={pageCandidat}
+            documentsDuCandidat={documentsDuCandidat}
+            messagesDuCandidat={messagesDuCandidat}
+            maintenant={maintenant}
           />
         ) : demande ? (
           // Ni « introuvable », ni « interdit ». La base n'a rien rendu, et

@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Page candidat HERACLES</title>
+<style>
+/* VOICE  quotidien et rassurant : une personne vulnérable tient sa recherche à jour, sans jargon
+   IDEA   le carnet de recherche du candidat : sa fiche, ses documents, ses offres, son journal
+   PICTURE l'en-tête porte la jauge de la fiche ; les quatre blocs vivants sont le reste du tableau
+   COLOUR identité HERACLES : fond gris clair, surfaces blanches, cyan = action, vert = référent, ambre = en attente, violet = figé
+   TYPE   system-ui, comme l'application
+   LAYOUT ≥ 900 px : offres + fiche à gauche, journal + documents à droite ; téléphone : une colonne, journal d'abord */
+:root{color-scheme:light dark;
+--fond:light-dark(#f2f4f7,#0d141c);--surface:light-dark(#fff,#141e29);--creux:light-dark(#eaeef3,#1a2733);
+--bord:light-dark(#dbe1e9,#283747);--bord-net:light-dark(#b6c1cf,#3c4f63);
+--encre:light-dark(#16202e,#e7eef6);--doux:light-dark(#5a6b7f,#9dadbe);--tres-doux:light-dark(#7a8a9b,#74879b);
+--marque:light-dark(#2f8fb3,#56b3d4);--sur-marque:light-dark(#fff,#06222e);--marque-clair:light-dark(#e4f1f7,#102b36);
+--vert:light-dark(#0f6b52,#5ec8a4);--vert-clair:light-dark(#e4f2ed,#0f2a22);
+--ambre:light-dark(#92400e,#e0a95e);--ambre-clair:light-dark(#fdf1e0,#2b2114);
+--clos:light-dark(#6b5b95,#b0a2d8);--clos-clair:light-dark(#efecf6,#221d30);
+--alerte:light-dark(#b42318,#f2867c);--alerte-clair:light-dark(#fdf3f2,#2a1614);
+--emploi:light-dark(#2563c9,#79a9f2)}
+:root[data-theme=light]{color-scheme:light}
+:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+[hidden]{display:none!important}
+html{scroll-padding-top:16px}
+body{margin:0;background:var(--fond);color:var(--encre);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;overflow-x:clip}
+h1,h2,h3{margin:0;line-height:1.15;letter-spacing:-.01em;text-wrap:balance}
+h1{font-size:clamp(1.6rem,1.2rem + 1.4vw,2.3rem);font-weight:750}
+h2{font-size:1.2rem;font-weight:700}
+h3{font-size:.95rem;font-weight:650}
+p{margin:0}
+button,input,select,textarea{font:inherit;color:inherit}
+a{color:var(--marque)}
+.discret{color:var(--doux);font-size:.88rem}
+.maq{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;padding:8px max(16px,3vw);background:var(--encre);color:var(--fond);font-size:.85rem}
+.maq b{font-weight:650}
+.maq nav{display:flex;flex-wrap:wrap;gap:4px}
+.maq a{color:inherit;text-decoration:none;padding:6px 12px;border-radius:999px;border:1px solid color-mix(in srgb,var(--fond) 30%,transparent)}
+.maq a[aria-current=page]{background:var(--fond);color:var(--encre)}
+.maq .horloge{margin-left:auto;display:flex;gap:6px;align-items:center}
+.maq button{background:transparent;border:1px solid color-mix(in srgb,var(--fond) 30%,transparent);border-radius:999px;padding:5px 11px;cursor:pointer;color:inherit}
+.barre{display:flex;align-items:center;gap:12px;padding:10px max(16px,3vw);background:var(--surface);border-bottom:1px solid var(--bord)}
+.logo{display:flex;align-items:center;gap:8px;font-weight:800;letter-spacing:.02em}
+.logo svg{width:30px;height:30px}
+.barre .qui{margin-left:auto;display:flex;align-items:center;gap:10px;font-size:.9rem}
+.portrait{display:grid;place-items:center;flex:none;border-radius:50%;overflow:hidden;background:var(--marque-clair);color:var(--marque);font-weight:700;width:34px;height:34px;font-size:.85rem;text-decoration:none}
+.portrait img{width:100%;height:100%;object-fit:cover;display:block}
+.portrait.grand{width:72px;height:72px;font-size:1.5rem;box-shadow:0 0 0 3px var(--surface),0 0 0 4px var(--bord)}
+.portrait.moyen{width:96px;height:96px;font-size:1.8rem}
+.photo-champ{display:flex;flex-wrap:wrap;gap:16px;align-items:center}
+.photo-champ .gestes{display:grid;gap:6px;justify-items:start;flex:1 1 14rem}
+.cache-visuel{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden}
+.pastille{display:inline-grid;place-items:center;width:34px;height:34px;border-radius:50%;background:var(--marque-clair);color:var(--marque);font-weight:700;font-size:.85rem}
+.lien-btn{background:none;border:0;padding:6px 2px;color:var(--marque);font-weight:600;cursor:pointer;font-size:.88rem}
+.enveloppe{max-width:1180px;margin:0 auto;padding:clamp(16px,3vw,32px) max(16px,3vw) 64px}
+.tete{display:grid;grid-template-columns:auto minmax(0,1fr) minmax(0,22rem);gap:12px 24px;align-items:center;margin-bottom:18px}
+.tete .suivi{color:var(--doux);margin-top:6px}
+.jauge{background:var(--surface);border:1px solid var(--bord);border-radius:10px;padding:14px 16px}
+.jauge .ligne{display:flex;justify-content:space-between;gap:8px;font-weight:650}
+.jauge .ligne span{color:var(--marque);white-space:nowrap}
+.piste{height:8px;border-radius:99px;background:var(--creux);margin:8px 0;overflow:hidden}
+.piste i{display:block;height:100%;background:var(--marque);border-radius:inherit;transition:width .4s}
+.manque{display:flex;flex-wrap:wrap;gap:2px 10px;font-size:.85rem;color:var(--doux)}
+.ancres{display:flex;gap:6px;overflow-x:auto;padding:4px 0 14px;margin-bottom:6px}
+.ancres a{flex:none;padding:8px 14px;border-radius:999px;background:var(--surface);border:1px solid var(--bord);text-decoration:none;color:var(--encre);font-size:.9rem;font-weight:550}
+.ancres a span{color:var(--marque);margin-left:4px}
+.grille{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:20px;align-items:start}
+.col{display:grid;gap:20px}
+.bloc{background:var(--surface);border:1px solid var(--bord);border-radius:12px;padding:clamp(16px,2vw,22px)}
+.bloc>header{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:4px 12px;margin-bottom:6px}
+.bloc>p.aide{color:var(--doux);font-size:.9rem;margin-bottom:14px}
+.compteur{color:var(--doux);font-size:.88rem;white-space:nowrap}
+.bouton{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:44px;padding:8px 16px;border:1px solid var(--bord-net);border-radius:9px;background:var(--surface);font-weight:600;font-size:.92rem;cursor:pointer;text-decoration:none;color:var(--encre)}
+.bouton--fort{background:var(--marque);border-color:var(--marque);color:var(--sur-marque)}
+.bouton--alerte{background:var(--alerte);border-color:var(--alerte);color:var(--surface)}
+.bouton:disabled{opacity:.5;cursor:not-allowed}
+.bouton:focus-visible,.lien-btn:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,.offre>button:focus-visible,.ancres a:focus-visible{outline:3px solid color-mix(in srgb,var(--marque) 55%,transparent);outline-offset:2px}
+textarea,input[type=text],input[type=email],input[type=tel],input[type=number],input[type=date],input[type=search],select{width:100%;font-size:16px;padding:10px 12px;border:1px solid var(--bord);border-radius:8px;background:var(--creux)}
+textarea{resize:vertical;min-height:96px}
+.erreur{color:var(--alerte);font-size:.85rem;margin-top:4px}
+.etiquette{display:inline-flex;align-items:center;gap:4px;padding:2px 9px;border-radius:999px;font-size:.78rem;font-weight:650;white-space:nowrap}
+.e-marque{background:var(--marque-clair);color:var(--marque)}
+.e-ambre{background:var(--ambre-clair);color:var(--ambre)}
+.e-clos{background:var(--clos-clair);color:var(--clos)}
+.e-vert{background:var(--vert-clair);color:var(--vert)}
+.e-neutre{background:var(--creux);color:var(--doux)}
+svg.i{width:16px;height:16px;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.ecrire{display:grid;gap:8px}
+.ecrire .pied{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.journal{list-style:none;margin:18px 0 0;padding:0;display:grid;gap:12px}
+.journal li{border-left:3px solid var(--bord);padding:2px 0 2px 12px}
+.journal li.vivant{border-left-color:var(--ambre)}
+.journal .meta{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;font-size:.84rem;color:var(--doux);margin-bottom:4px}
+.journal .texte{white-space:pre-wrap;overflow-wrap:anywhere}
+.journal textarea{min-height:80px}
+.docs{display:grid;gap:18px}
+.docs ul{list-style:none;margin:8px 0 10px;padding:0;display:grid;gap:8px}
+.doc{display:grid;grid-template-columns:40px minmax(0,1fr) auto;gap:4px 10px;align-items:center;padding:10px;border:1px solid var(--bord);border-radius:10px}
+.doc.principal{border-color:var(--marque);background:color-mix(in srgb,var(--marque-clair) 60%,var(--surface))}
+.format{display:grid;place-items:center;width:40px;height:46px;border-radius:6px;background:var(--creux);font-size:.68rem;font-weight:800;color:var(--doux);grid-row:span 2}
+.doc input{background:transparent;border-color:transparent;padding:4px 6px;font-weight:600}
+.doc input:hover{border-color:var(--bord)}
+.doc .meta{font-size:.82rem;color:var(--doux);padding-left:6px}
+.doc .actions{grid-column:2 / -1;display:flex;flex-wrap:wrap;gap:4px 14px;align-items:center;padding-left:6px}
+.doc .coin{grid-row:1;grid-column:3}
+.confirmer{grid-column:1 / -1;display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:10px;border-radius:8px;background:var(--alerte-clair)}
+.depot{display:flex;align-items:center;gap:10px;padding:12px;border:1.5px dashed var(--bord-net);border-radius:10px;cursor:pointer;color:var(--marque);font-weight:600}
+.depot small{display:block;color:var(--doux);font-weight:400}
+.depot input{position:absolute;opacity:0;width:1px;height:1px}
+.depot.plein{color:var(--doux);cursor:not-allowed}
+.avis{font-size:.86rem;color:var(--vert);margin-top:4px}
+.filtres{display:grid;gap:10px;margin-bottom:12px}
+.rang{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.rang>span:first-child{font-size:.84rem;color:var(--doux);width:7.5rem}
+.puce{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;border:1px solid var(--bord);background:var(--surface);font-size:.86rem;cursor:pointer;min-height:36px}
+.puce[aria-pressed=true]{background:var(--marque);border-color:var(--marque);color:var(--sur-marque)}
+.puce.propose{border-style:dashed}
+.offres{list-style:none;margin:0;padding:0;border-top:1px solid var(--bord)}
+.offre{border-bottom:1px solid var(--bord)}
+.offre>button{all:unset;box-sizing:border-box;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 12px;width:100%;padding:12px 4px;cursor:pointer}
+.offre .titre{font-weight:650}
+.offre .sous{font-size:.88rem;color:var(--doux)}
+.offre .droite{grid-row:span 2;display:flex;flex-direction:column;align-items:flex-end;gap:4px;font-size:.82rem;color:var(--doux);white-space:nowrap}
+.offre .detail{padding:0 4px 14px;display:grid;gap:10px}
+.points{display:grid;grid-template-columns:repeat(auto-fit,minmax(9rem,1fr));gap:8px}
+.points div{background:var(--creux);border-radius:8px;padding:8px 10px;font-size:.86rem}
+.points b{display:block;font-size:.78rem;color:var(--doux);font-weight:600}
+.vide{padding:18px;text-align:center;color:var(--doux);background:var(--creux);border-radius:10px}
+.fiche details{border-top:1px solid var(--bord);padding:4px 0}
+.fiche summary{cursor:pointer;padding:12px 0;font-weight:650;list-style-position:outside}
+.champs{display:grid;grid-template-columns:repeat(auto-fit,minmax(14rem,1fr));gap:12px 14px;padding-bottom:14px}
+.champ{display:grid;gap:4px;align-content:start}
+.champ.large{grid-column:1 / -1}
+.champ label,.champ .lib{font-size:.86rem;font-weight:600;color:var(--doux);display:flex;justify-content:space-between;gap:8px}
+.ok{color:var(--vert);font-weight:600;font-size:.8rem;opacity:0;transition:opacity .3s}
+.ok.vu{opacity:1}
+.note{font-size:.82rem;color:var(--doux)}
+.choix{display:flex;flex-wrap:wrap;gap:6px}
+.secteurs{display:grid;gap:6px}
+.secteur{display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--bord);border-radius:8px}
+.secteur .rg{font-weight:800;color:var(--marque);width:1.2rem}
+.secteur .code{font-family:ui-monospace,Menlo,monospace;font-size:.82rem;color:var(--doux)}
+.secteur .x{margin-left:auto}
+.suggest{list-style:none;margin:4px 0 0;padding:4px;border:1px solid var(--bord);border-radius:8px;background:var(--surface)}
+.suggest button{all:unset;display:block;width:100%;box-sizing:border-box;padding:8px 10px;border-radius:6px;cursor:pointer}
+.suggest button:hover,.suggest button:focus-visible{background:var(--marque-clair)}
+.enregistre{font-size:.84rem;color:var(--vert)}
+.connexion{display:grid;grid-template-columns:minmax(0,26rem) minmax(0,26rem);gap:28px;justify-content:center;align-items:start;padding-top:24px}
+.carte-mail{background:var(--surface);border:1px solid var(--bord);border-radius:12px;overflow:hidden}
+.carte-mail .ent{padding:12px 16px;border-bottom:1px solid var(--bord);font-size:.86rem;color:var(--doux);display:grid;gap:2px}
+.carte-mail .ent b{color:var(--encre)}
+.carte-mail .corps{padding:18px 16px;display:grid;gap:12px;font-size:.95rem}
+.legende{font-size:.82rem;color:var(--doux);margin:0 0 8px}
+.ref-tete{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;justify-content:space-between;padding:16px 18px;background:var(--surface);border:1px solid var(--bord);border-left:4px solid var(--emploi);border-radius:12px;margin-bottom:18px}
+.nouveau{position:relative;outline:2px dashed var(--marque);outline-offset:4px}
+.nouveau::before{content:"Nouveau";position:absolute;top:-14px;right:12px;background:var(--marque);color:var(--sur-marque);font-size:.72rem;font-weight:700;padding:2px 8px;border-radius:999px}
+.fantome{display:grid;gap:8px}
+.fantome i{display:block;height:10px;border-radius:5px;background:var(--creux)}
+.vue[hidden]{display:none}
+@media (max-width:899px){
+.grille{display:flex;flex-direction:column}
+.col{display:contents}
+#b-messages{order:1}#b-offres{order:2}#b-documents{order:3}#b-fiche{order:4}
+.tete{grid-template-columns:auto minmax(0,1fr)}
+.tete .jauge{grid-column:1 / -1}
+.connexion{grid-template-columns:minmax(0,1fr)}
+}
+@media (max-width:600px){
+.portrait.grand{width:56px;height:56px;font-size:1.2rem}
+.rang>span:first-child{width:100%}
+.maq .horloge{margin-left:0}
+.barre .qui span.nom{display:none}
+}
+@media (prefers-reduced-motion:reduce){.piste i,.ok{transition:none}}
+</style>
+</head>
+<body>
+
+<div class="maq" role="region" aria-label="Commandes de la maquette">
+  <b>Maquette · données fictives</b>
+  <nav id="maq-nav">
+    <a href="#connexion">Connexion</a>
+    <a href="#candidat">Page candidat</a>
+    <a href="#referent">Fiche vue par le référent</a>
+  </nav>
+  <div class="horloge"><span id="maq-heure"></span><button type="button" id="maq-plus">Avancer de 6 h</button><button type="button" id="maq-zero" hidden>Revenir à maintenant</button></div>
+</div>
+
+<!-- ===================== 1. CONNEXION ===================== -->
+<section class="vue" id="v-connexion" hidden>
+  <div class="barre"><div class="logo"><svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="var(--marque)"/><path d="M10 8v16M22 8v16M10 16h12" stroke="var(--sur-marque)" stroke-width="3.2" stroke-linecap="round"/></svg>HERACLES</div></div>
+  <div class="enveloppe">
+    <div class="connexion">
+      <div class="bloc">
+        <h1>Mon espace candidat</h1>
+        <p class="discret" style="margin:10px 0 18px">Entrez l’adresse e-mail que vous avez donnée lors de votre candidature. Vous recevrez un lien pour ouvrir votre espace, sans mot de passe.</p>
+        <form id="f-connexion" novalidate>
+          <div class="champ"><label for="c-email">Adresse e-mail</label><input type="email" id="c-email" autocomplete="email" value="ines.moreau@exemple.fr"></div>
+          <p class="erreur" id="c-erreur" hidden></p>
+          <button class="bouton bouton--fort" style="width:100%;margin-top:14px" id="c-envoyer">Recevoir mon lien de connexion</button>
+        </form>
+        <div id="c-envoye" hidden style="margin-top:16px">
+          <p class="avis" style="font-size:.95rem">Si cette adresse est connue, un lien vient de partir. Il est valable une heure et ne sert qu’une fois.</p>
+          <p class="discret" style="margin-top:8px">Rien reçu dans quelques minutes ? Regardez dans les courriers indésirables, ou <button type="button" class="lien-btn" id="c-renvoi">renvoyez le lien</button>.</p>
+        </div>
+        <p class="discret" style="margin-top:20px;border-top:1px solid var(--bord);padding-top:14px">Vous êtes référent ? <a href="#connexion">Connexion avec mot de passe</a></p>
+      </div>
+      <div>
+        <p class="legende">L’e-mail que reçoit le candidat</p>
+        <div class="carte-mail">
+          <div class="ent"><span>De : <b>HERACLES</b></span><span>Objet : <b>Votre lien pour ouvrir votre espace</b></span></div>
+          <div class="corps">
+            <p>Bonjour Inès,</p>
+            <p>Voici votre lien pour ouvrir votre espace HERACLES. Il est valable une heure et ne sert qu’une fois.</p>
+            <p><a class="bouton bouton--fort" href="#candidat">Ouvrir mon espace</a></p>
+            <p class="discret">Vous n’avez rien demandé ? Ignorez ce message : personne ne peut se connecter sans ce lien.</p>
+          </div>
+        </div>
+        <p class="legende" style="margin-top:12px">L’invitation envoyée par le référent, ou automatiquement après la candidature, suit le même modèle avec le titre « Votre espace candidat est prêt ».</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 2. PAGE CANDIDAT ===================== -->
+<section class="vue" id="v-candidat" hidden>
+  <div class="barre">
+    <div class="logo"><svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="var(--marque)"/><path d="M10 8v16M22 8v16M10 16h12" stroke="var(--sur-marque)" stroke-width="3.2" stroke-linecap="round"/></svg>HERACLES</div>
+    <div class="qui"><span class="portrait" id="h-portrait"></span><span class="nom" id="h-nom">Inès Moreau</span><a class="lien-btn" href="#connexion">Se déconnecter</a></div>
+  </div>
+  <div class="enveloppe">
+    <div class="tete">
+      <a class="portrait grand" id="t-portrait" href="#f-photo-bloc" title="Changer ma photo"></a>
+      <div>
+        <h1 id="t-bonjour">Bonjour Inès</h1>
+        <p class="suivi">Marc Delorme, votre référent, suit votre recherche.</p>
+      </div>
+      <div class="jauge" aria-live="polite">
+        <div class="ligne">Votre fiche est remplie <span id="j-pct">0 %</span></div>
+        <div class="piste"><i id="j-barre" style="width:0"></i></div>
+        <div class="manque" id="j-manque"></div>
+      </div>
+    </div>
+    <nav class="ancres" aria-label="Aller à">
+      <a href="#b-messages">Où j’en suis</a>
+      <a href="#b-offres">Offres pour moi<span id="a-nb"></span></a>
+      <a href="#b-documents">Mes documents</a>
+      <a href="#b-fiche">Ma fiche</a>
+    </nav>
+
+    <div class="grille">
+      <div class="col">
+        <section class="bloc" id="b-offres" aria-labelledby="o-titre">
+          <header><h2 id="o-titre">Offres pour moi</h2><span class="compteur" id="o-nb"></span></header>
+          <p class="aide">Les offres France Travail en cours dans vos secteurs d’activité. Elles arrivent toutes les trois heures.</p>
+          <div class="filtres">
+            <div class="rang"><span>Vos secteurs</span><span id="o-secteurs" class="rang"></span><a href="#f-secteurs" class="lien-btn">Modifier</a></div>
+            <div class="rang" role="group" aria-label="Départements"><span>Départements</span><span id="o-deps" class="rang"></span></div>
+            <input type="search" id="o-recherche" placeholder="Chercher un mot : métier, entreprise, ville…" aria-label="Chercher dans les offres">
+          </div>
+          <ul class="offres" id="o-liste"></ul>
+          <div id="o-plus" style="margin-top:12px"></div>
+        </section>
+
+        <section class="bloc fiche" id="b-fiche" aria-labelledby="f-titre">
+          <header><h2 id="f-titre">Ma fiche</h2><span class="enregistre" id="f-etat" aria-live="polite"></span></header>
+          <p class="aide">Chaque modification est enregistrée dès que vous quittez le champ. Votre référent et votre parrain voient votre fiche à jour.</p>
+          <div id="f-corps"></div>
+        </section>
+      </div>
+
+      <div class="col">
+        <section class="bloc" id="b-messages" aria-labelledby="m-titre">
+          <header><h2 id="m-titre">Où j’en suis</h2></header>
+          <p class="aide">Dites à votre référent et à votre parrain où en est votre recherche : une candidature envoyée, un entretien, une réponse.</p>
+          <form class="ecrire" id="m-form" novalidate>
+            <label for="m-texte" class="discret">Votre message</label>
+            <textarea id="m-texte" maxlength="2000" placeholder="Par exemple : entretien jeudi à 10 h chez Garonne Construction."></textarea>
+            <div class="pied"><span class="compteur" id="m-compte">0 / 2000</span><button class="bouton bouton--fort" id="m-envoyer" disabled>Envoyer</button></div>
+            <p class="note">Vous pourrez corriger un message pendant 24 heures. Ensuite, il est gardé tel quel.</p>
+          </form>
+          <ol class="journal" id="m-liste" aria-label="Vos messages"></ol>
+        </section>
+
+        <section class="bloc" id="b-documents" aria-labelledby="d-titre">
+          <header><h2 id="d-titre">Mes documents</h2></header>
+          <p class="aide">Le document principal est celui que votre référent ouvre en premier. Il voit aussi tous les autres.</p>
+          <div class="docs" id="d-corps"></div>
+        </section>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 3. FICHE VUE PAR LE RÉFÉRENT ===================== -->
+<section class="vue" id="v-referent" hidden>
+  <div class="barre">
+    <div class="logo"><svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="var(--marque)"/><path d="M10 8v16M22 8v16M10 16h12" stroke="var(--sur-marque)" stroke-width="3.2" stroke-linecap="round"/></svg>HERACLES</div>
+    <div class="qui"><span class="pastille" style="background:var(--vert-clair);color:var(--vert)">MD</span><span class="nom">Marc Delorme · Référent</span></div>
+  </div>
+  <div class="enveloppe">
+    <p class="legende">Seuls les éléments marqués « Nouveau » s’ajoutent à la fiche actuelle. Le reste ne change pas.</p>
+    <div class="ref-tete">
+      <div style="display:flex;gap:14px;align-items:center"><span class="portrait grand" id="r-portrait"></span><div><p class="discret">Dossier n° 857 · Emploi</p><h1 id="r-nom" style="font-size:1.6rem">Inès Moreau</h1><p class="discret" id="r-emploi"></p></div></div>
+      <div class="nouveau" style="display:grid;gap:6px;padding:10px 12px;border-radius:10px" id="r-invit"></div>
+    </div>
+    <div class="grille">
+      <div class="col">
+        <section class="bloc nouveau" aria-labelledby="rm-titre">
+          <header><h2 id="rm-titre">Messages du candidat</h2><span class="compteur" id="rm-nb"></span></header>
+          <p class="aide">Lus par vous et par le parrain. Les autres membres de la loge ne les voient pas. Vous recevez un e-mail à chaque nouveau message.</p>
+          <ol class="journal" id="rm-liste"></ol>
+        </section>
+        <section class="bloc" aria-label="Reste de la fiche"><div class="fantome"><i style="width:40%"></i><i></i><i style="width:85%"></i><i style="width:70%"></i></div><p class="discret" style="margin-top:10px">Sa recherche, son parcours, le suivi et les tâches : inchangés.</p></section>
+      </div>
+      <div class="col">
+        <section class="bloc nouveau" aria-labelledby="rd-titre">
+          <header><h2 id="rd-titre">Documents</h2></header>
+          <p class="aide">Tous les CV et toutes les lettres que le candidat a déposés.</p>
+          <div class="docs" id="rd-corps"></div>
+        </section>
+        <div>
+          <p class="legende">L’e-mail reçu par le référent</p>
+          <div class="carte-mail">
+            <div class="ent"><span>De : <b>HERACLES</b></span><span>Objet : <b id="rmail-objet">Inès Moreau vous a laissé un message</b></span></div>
+            <div class="corps"><p>Bonjour Marc,</p><p id="rmail-corps">Inès Moreau (dossier n° 857) vous a laissé un message dans HERACLES.</p><p><a class="bouton bouton--fort" href="#referent">Ouvrir sa fiche</a></p><p class="discret">Le message lui-même reste dans HERACLES : il n’est jamais recopié dans un e-mail.</p></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+{
+const H = 3600e3, J = 24 * H, T0 = Date.now();
+let decalage = 0;
+const maintenant = () => T0 + decalage;
+const $ = (s) => document.querySelector(s);
+const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const sansAccent = (s) => String(s).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+const icone = {
+  cadenas: '<svg class="i" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>',
+  crayon: '<svg class="i" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg>',
+  horloge: '<svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
+  sortie: '<svg class="i" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9M18 14v6H4V6h6"/></svg>',
+  plus: '<svg class="i" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>',
+  etoile: '<svg class="i" viewBox="0 0 24 24" style="fill:currentColor;stroke:none"><path d="M12 3l2.6 5.6 6.1.7-4.5 4.1 1.2 6L12 16.5 6.6 19.4l1.2-6L3.3 9.3l6.1-.7z"/></svg>'
+};
+
+/* ---------- Le portrait fictif, dessiné : aucune vraie photo dans une maquette ---------- */
+const PORTRAIT = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120"><rect width="120" height="120" fill="#cfe6f0"/><circle cx="96" cy="22" r="30" fill="#e4f1f7"/><path d="M14 120c4-27 22-40 46-40s42 13 46 40z" fill="#2f6f8f"/><path d="M48 70h24v16c0 7-24 7-24 0z" fill="#c98f6b"/><ellipse cx="60" cy="52" rx="21" ry="24" fill="#d9a07c"/><path d="M37 54c-4-24 10-36 25-35 17 1 27 14 22 37-3-10-9-16-20-18-9 4-20 6-27 16z" fill="#3b2a24"/><path d="M38 52c-6 12-4 30 4 36l6-30zM82 50c6 12 4 30-4 38l-6-32z" fill="#3b2a24"/></svg>');
+
+/* ---------- Dates à la française ---------- */
+const MOIS = ['janv.','févr.','mars','avr.','mai','juin','juil.','août','sept.','oct.','nov.','déc.'];
+const heure = (d) => `${d.getHours()} h ${String(d.getMinutes()).padStart(2,'0')}`;
+function quand(ts) {
+  const d = new Date(ts), n = new Date(maintenant());
+  const jour = (x) => new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime();
+  const ecart = Math.round((jour(n) - jour(d)) / J);
+  if (ecart === 0) return `Aujourd’hui, ${heure(d)}`;
+  if (ecart === 1) return `Hier, ${heure(d)}`;
+  return `${d.getDate()} ${MOIS[d.getMonth()]}, ${heure(d)}`;
+}
+const jourCourt = (ts) => { const d = new Date(ts); return `${d.getDate()} ${MOIS[d.getMonth()]}`; };
+function restant(ts) {
+  const ms = ts + J - maintenant();
+  if (ms <= 0) return null;
+  return ms >= H ? `${Math.floor(ms / H)} h` : `${Math.max(1, Math.ceil(ms / 60000))} min`;
+}
+const taille = (o) => o >= 1048576 ? `${(o / 1048576).toFixed(1).replace('.', ',')} Mo` : `${Math.max(1, Math.round(o / 1024))} Ko`;
+
+/* ---------- L’état : une seule source pour les deux écrans ---------- */
+const etat = {
+  fiche: {
+    prenom: 'Inès', nom: 'Moreau', email: 'ines.moreau@exemple.fr', telephone: '06 12 34 56 78', age: '24',
+    photo: PORTRAIT, situation: 'Célibataire', adresse: '12 rue des Pins', code_postal: '33700', ville: 'Mérignac',
+    type: 'emploi', emploi: 'Assistante conductrice de travaux',
+    definition: 'Suivi de chantier en gros œuvre ou en second œuvre, préparation des réunions, commandes et métrés.',
+    mobilite: 'Départementale', debut: '', fin: '',
+    vl: 'Oui', moto: 'Non', pl: 'Non', vehicule: 'Oui',
+    formations: 'BTS Bâtiment, 2022. Baccalauréat STI2D, 2020.',
+    experiences: 'Deux ans d’alternance chez un constructeur de maisons individuelles : métrés, suivi de trois chantiers, relation avec les sous-traitants.',
+    competences: 'Lecture de plans, métrés, planning de chantier, réglementation thermique.',
+    informatique: '', savoir: 'Rigueur, sens du contact, ponctualité.', centres: ''
+  },
+  secteurs: [
+    { code: 'F', lib: 'Construction', etat: 'confirme' },
+    { code: '43', lib: 'Travaux de construction spécialisés', etat: 'confirme' },
+    { code: '71', lib: 'Activités d’architecture et d’ingénierie', etat: 'propose' }
+  ],
+  deps: new Set(['33']),
+  recherche: '',
+  ouvertes: new Set(),
+  toutes: false,
+  docs: {
+    cv: [
+      { id: 'c1', nom: 'CV conductrice de travaux', format: 'PDF', taille: 421000, depose: T0 - 7 * J, principal: true },
+      { id: 'c2', nom: 'CV métreuse', format: 'PDF', taille: 389000, depose: T0 - 4 * J, principal: false }
+    ],
+    lettre: [
+      { id: 'l1', nom: 'Lettre générale', format: 'DOCX', taille: 65000, depose: T0 - 7 * J, principal: true },
+      { id: 'l2', nom: 'Lettre Garonne Construction', format: 'PDF', taille: 98000, depose: T0 - 1 * J - 3 * H, principal: false }
+    ]
+  },
+  confirmer: null,
+  avisDocs: {},
+  messages: [
+    { id: 'm3', texte: 'J’ai relancé Garonne Construction par téléphone. Ils me rappellent vendredi pour un deuxième entretien.', ecrit: T0 - 2 * H - 20 * 60000, corrige: null },
+    { id: 'm2', texte: 'Premier entretien passé chez Garonne Construction (Libourne). Bon contact avec le conducteur de travaux.', ecrit: T0 - 30 * H, corrige: T0 - 29 * H },
+    { id: 'm1', texte: 'J’ai envoyé mon CV à trois entreprises de Mérignac et Pessac.', ecrit: T0 - 6 * J, corrige: null }
+  ],
+  edition: null,
+  invitation: { envoyee: T0 - 9 * J, ouverte: T0 - 9 * J + 5 * H }
+};
+
+const OFFRES = [
+  { id: 'o1', titre: 'Assistant conducteur de travaux H/F', ent: 'Bâtisseurs de l’Estuaire', ville: 'Mérignac', dep: '33', contrat: 'CDI', age: 1, s: ['F','41'], salaire: '2 200 à 2 500 € brut', duree: '35 h', exp: 'Débutant accepté', desc: 'Vous assistez le conducteur de travaux sur des chantiers de logements collectifs : préparation, suivi des sous-traitants, réunions de chantier et réception des travaux.' },
+  { id: 'o2', titre: 'Conducteur de travaux gros œuvre H/F', ent: 'Garonne Construction', ville: 'Libourne', dep: '33', contrat: 'CDI', age: 2, s: ['F','41'], salaire: 'Selon profil', duree: '39 h', exp: '2 ans', desc: 'Pilotage de deux à trois chantiers de maisons et petits collectifs. Véhicule de service.' },
+  { id: 'o3', titre: 'Métreur / métreuse', ent: 'Cabinet Ardoise Économie', ville: 'Bordeaux', dep: '33', contrat: 'CDD 12 mois', age: 4, s: ['71'], salaire: '2 100 € brut', duree: '35 h', exp: '1 an', desc: 'Métrés tous corps d’état sur plans, rédaction de DPGF, suivi des situations de travaux.' },
+  { id: 'o4', titre: 'Chargé d’études de prix second œuvre', ent: 'Atlantique Second Œuvre', ville: 'Pessac', dep: '33', contrat: 'CDI', age: 6, s: ['F','43'], salaire: '2 400 € brut', duree: '35 h', exp: '2 ans', desc: 'Chiffrage des appels d’offres en plâtrerie et menuiseries intérieures, consultation des fournisseurs.' },
+  { id: 'o5', titre: 'Coordinateur sécurité chantier', ent: 'Intérim Gironde Bâtiment', ville: 'Bordeaux', dep: '33', contrat: 'Intérim 6 mois', age: 9, s: ['F','43'], salaire: '15 € brut / h', duree: '35 h', exp: '1 an', desc: 'Mission de coordination sécurité sur un chantier de réhabilitation. Permis B demandé.' },
+  { id: 'o6', titre: 'Économiste de la construction', ent: 'Bureau Bassin Ingénierie', ville: 'Arcachon', dep: '33', contrat: 'CDI', age: 12, s: ['71'], salaire: '2 600 à 3 000 € brut', duree: '35 h', exp: '3 ans', desc: 'Estimation des projets, rédaction des pièces écrites, analyse des offres des entreprises.' },
+  { id: 'o7', titre: 'Technicien bureau d’études VRD', ent: 'Ingénierie des Landes', ville: 'Mont-de-Marsan', dep: '40', contrat: 'CDI', age: 1, s: ['71'], salaire: '2 300 € brut', duree: '35 h', exp: 'Débutant accepté', desc: 'Conception de réseaux et voiries pour des lotissements, plans sur logiciel de DAO.' },
+  { id: 'o8', titre: 'Assistant travaux en alternance', ent: 'Maisons de l’Adour', ville: 'Dax', dep: '40', contrat: 'Alternance', age: 3, s: ['F','41'], salaire: 'Grille alternance', duree: '35 h', exp: 'Aucune', desc: 'Alternance de deux ans en licence professionnelle conduite de travaux.' },
+  { id: 'o9', titre: 'Dessinateur projeteur bâtiment', ent: 'Atelier Pruneaux Conception', ville: 'Agen', dep: '47', contrat: 'CDI', age: 5, s: ['71'], salaire: '2 200 € brut', duree: '35 h', exp: '2 ans', desc: 'Plans d’exécution et de détails, maquette numérique.' },
+  { id: 'o10', titre: 'Aide conducteur de travaux', ent: 'Béarn Rénovation', ville: 'Pau', dep: '64', contrat: 'CDD 6 mois', age: 2, s: ['F','43'], salaire: '2 000 € brut', duree: '35 h', exp: 'Débutant accepté', desc: 'Rénovation énergétique de logements sociaux : suivi des équipes et des approvisionnements.' },
+  { id: 'o11', titre: 'Plaquiste confirmé', ent: 'Atlantique Second Œuvre', ville: 'Mérignac', dep: '33', contrat: 'CDI', age: 3, s: ['F','43'], salaire: '1 900 € brut', duree: '35 h', exp: '3 ans', desc: 'Pose de cloisons et faux plafonds sur chantiers tertiaires.' }
+];
+const DEPS = [['33','Gironde'],['40','Landes'],['47','Lot-et-Garonne'],['64','Pyrénées-Atlantiques']];
+const NAF = [
+  ['F','Construction'],['41','Construction de bâtiments'],['42','Génie civil'],['43','Travaux de construction spécialisés'],
+  ['71','Activités d’architecture et d’ingénierie'],['68','Activités immobilières'],['49','Transports terrestres'],
+  ['47','Commerce de détail'],['56','Restauration'],['86','Activités pour la santé humaine'],['85','Enseignement'],['I','Hébergement et restauration']
+];
+const NOUVEAU_DEPUIS = 2; // jours : arrivée depuis la dernière visite
+
+/* ---------- Les champs de la fiche ---------- */
+const SECTIONS = [
+  { titre: 'Identité et contact', ouvert: true, champs: [
+    ['photo','Ma photo','photo',null,null,true],
+    ['prenom','Prénom','text'],['nom','Nom','text'],
+    ['email','Adresse e-mail','email','Elle sert aussi à vous connecter : un lien de confirmation part à la nouvelle adresse.'],
+    ['telephone','Téléphone','tel'],['age','Âge','number'],
+    ['situation','Situation familiale','select',null,['','Célibataire','Pacsé','Marié','Veuf','Divorcé']],
+    ['adresse','Adresse','text',null,null,true],['code_postal','Code postal','text'],['ville','Ville','text']
+  ]},
+  { titre: 'Ma recherche', ouvert: true, champs: [
+    ['type','Je cherche','radio',null,[['emploi','Un emploi'],["changement","Un changement d’emploi"],['alternance','Une alternance'],['stage','Un stage']],true],
+    ['debut','Début du stage','date'],['fin','Fin du stage','date'],
+    ['emploi','Métier visé','text',null,null,true],
+    ['definition','Ce que je cherche, en quelques lignes','textarea',null,null,true],
+    ['secteurs','Mes secteurs d’activité (trois au plus)','secteurs',null,null,true],
+    ['mobilite','Jusqu’où je peux aller','select',null,['','Agglomération','Départementale','Régionale','France','International']]
+  ]},
+  { titre: 'Permis et véhicule', ouvert: false, champs: [
+    ['vl','Permis B','ouinon'],['moto','Permis moto','ouinon'],['pl','Permis poids lourd','ouinon'],['vehicule','Véhicule','ouinon']
+  ]},
+  { titre: 'Mon parcours', ouvert: false, champs: [
+    ['formations','Formations','textarea',null,null,true],['experiences','Expériences','textarea',null,null,true],
+    ['competences','Compétences','textarea',null,null,true],['informatique','Informatique','textarea'],
+    ['savoir','Savoir-être','textarea'],['centres','Centres d’intérêt','textarea']
+  ]}
+];
+const LIBELLES = Object.fromEntries(SECTIONS.flatMap((s) => s.champs.map((c) => [c[0], c[1]])));
+const estStage = () => ['stage','alternance'].includes(etat.fiche.type);
+
+function champHTML([cle, lib, genre, note, options, large]) {
+  const v = etat.fiche[cle] ?? '';
+  const id = `f-${cle}`;
+  const tete = `<label for="${id}">${esc(lib)}<span class="ok" id="ok-${cle}">Enregistré</span></label>`;
+  const cache = (cle === 'debut' || cle === 'fin') && !estStage() ? ' hidden' : '';
+  let corps = '';
+  if (genre === 'textarea') corps = `<textarea id="${id}" data-cle="${cle}" maxlength="5000">${esc(v)}</textarea>`;
+  else if (genre === 'select') corps = `<select id="${id}" data-cle="${cle}">${options.map((o) => `<option value="${esc(o)}"${o === v ? ' selected' : ''}>${o ? esc(o) : 'À choisir'}</option>`).join('')}</select>`;
+  else if (genre === 'radio' || genre === 'ouinon') {
+    const opts = genre === 'ouinon' ? [['Oui','Oui'],['Non','Non']] : options;
+    return `<div class="champ${large ? ' large' : ''}" role="group" aria-labelledby="lib-${cle}"><span class="lib" id="lib-${cle}">${esc(lib)}<span class="ok" id="ok-${cle}">Enregistré</span></span><div class="choix">${opts.map(([val, txt]) => `<button type="button" class="puce" data-choix="${cle}" data-val="${esc(val)}" aria-pressed="${val === v}">${esc(txt)}</button>`).join('')}</div></div>`;
+  } else if (genre === 'photo') {
+    return `<div class="champ large" id="f-photo-bloc"><span class="lib">${esc(lib)}<span class="ok" id="ok-photo">Enregistré</span></span><div class="photo-champ"><span class="portrait moyen" id="f-portrait"></span><div class="gestes"><label class="bouton" for="f-photo" id="f-photo-lib">Choisir une photo</label><input type="file" id="f-photo" class="cache-visuel" accept="image/jpeg,image/png,image/webp"><button type="button" class="lien-btn" id="f-retirer-photo" style="color:var(--alerte)">Retirer ma photo</button><p class="note">JPEG, PNG ou WebP, 2 Mo au plus. Votre référent et votre parrain la voient sur votre fiche.</p><p class="erreur" id="err-photo" hidden></p></div></div></div>`;
+  } else if (genre === 'secteurs') {
+    return `<div class="champ large" id="f-secteurs"><span class="lib">${esc(lib)}<span class="ok" id="ok-secteurs">Enregistré</span></span><div class="secteurs" id="s-liste"></div><div id="s-ajout"></div><p class="note">Un secteur que vous ajoutez sert tout de suite à vos offres ; votre référent le confirme ensuite.</p></div>`;
+  } else corps = `<input type="${genre}" id="${id}" data-cle="${cle}" value="${esc(v)}"${genre === 'number' ? ' min="14" max="99" inputmode="numeric"' : ''}${genre === 'email' ? ' autocomplete="email"' : ''}>`;
+  return `<div class="champ${large ? ' large' : ''}"${cache} data-bloc="${cle}">${tete}${corps}${note ? `<p class="note">${esc(note)}</p>` : ''}<p class="erreur" id="err-${cle}" hidden></p></div>`;
+}
+function rendreFiche() {
+  $('#f-corps').innerHTML = SECTIONS.map((s) => `<details${s.ouvert ? ' open' : ''}><summary>${esc(s.titre)}</summary><div class="champs">${s.champs.map(champHTML).join('')}</div></details>`).join('');
+  rendreSecteurs();
+}
+function rendreSecteurs() {
+  $('#s-liste').innerHTML = etat.secteurs.map((s, i) => `<div class="secteur"><span class="rg">${i + 1}</span><span class="code">${esc(s.code)}</span><span>${esc(s.lib)}</span>${s.etat === 'propose' ? '<span class="etiquette e-ambre">à confirmer</span>' : '<span class="etiquette e-vert">confirmé</span>'}<button type="button" class="lien-btn x" data-retirer-secteur="${i}" aria-label="Retirer ${esc(s.lib)}">Retirer</button></div>`).join('') || '<p class="note">Aucun secteur : vos offres restent vides tant que vous n’en choisissez pas un.</p>';
+  $('#s-ajout').innerHTML = etat.secteurs.length < 3
+    ? `<input type="search" id="s-cherche" placeholder="Ajouter un secteur : bâtiment, restauration, santé…" aria-label="Chercher un secteur" autocomplete="off"><ul class="suggest" id="s-suggest" hidden></ul>`
+    : '<p class="note">Trois secteurs au plus : retirez-en un pour en choisir un autre.</p>';
+}
+
+/* ---------- Validation et enregistrement immédiat ---------- */
+const REGLES = {
+  prenom: (v) => v.trim() ? null : 'Indiquez votre prénom.',
+  nom: (v) => v.trim() ? null : 'Indiquez votre nom.',
+  email: (v) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v.trim()) ? null : 'Cette adresse e-mail ne se lit pas.',
+  telephone: (v) => v.replace(/\D/g, '').length >= 10 ? null : 'Indiquez un numéro à 10 chiffres.',
+  age: (v) => !v || (Number(v) >= 14 && Number(v) <= 99) ? null : 'L’âge doit être compris entre 14 et 99 ans.',
+  code_postal: (v) => !v || /^[0-9A-Za-z -]{3,10}$/.test(v) ? null : 'Ce code postal ne se lit pas.',
+  fin: (v) => !v || !etat.fiche.debut || etat.fiche.debut <= v ? null : 'La fin du stage précède son début.'
+};
+function signalerEnregistre(cle) {
+  const ok = document.getElementById(`ok-${cle}`);
+  if (ok) { ok.classList.add('vu'); clearTimeout(ok._t); ok._t = setTimeout(() => ok.classList.remove('vu'), 1800); }
+  $('#f-etat').textContent = `Enregistré à ${heure(new Date(maintenant()))}`;
+  rendreJauge(); rendreReferent();
+}
+function enregistrer(cle, valeur) {
+  const err = document.getElementById(`err-${cle}`);
+  const probleme = REGLES[cle]?.(valeur) ?? null;
+  if (err) { err.className = 'erreur'; err.hidden = !probleme; err.textContent = probleme ?? ''; }
+  if (probleme) return;
+  const avant = etat.fiche[cle];
+  if (avant === valeur) return;
+  etat.fiche[cle] = valeur;
+  if (cle === 'email' && err) { err.hidden = false; err.className = 'avis'; err.textContent = `Un lien de confirmation est parti à ${valeur}. L’ancienne adresse reste valable jusqu’à ce que vous l’ouvriez.`; }
+  if (cle === 'prenom' || cle === 'nom') rendreEntete();
+  if (cle === 'type') document.querySelectorAll('[data-bloc=debut],[data-bloc=fin]').forEach((b) => { b.hidden = !estStage(); });
+  signalerEnregistre(cle);
+}
+
+/* ---------- La jauge et l’en-tête ---------- */
+function rendrePortraits() {
+  const f = etat.fiche, init = esc(`${(f.prenom[0] || '').toUpperCase()}${(f.nom[0] || '').toUpperCase()}`);
+  const html = f.photo ? `<img src="${esc(f.photo)}" alt="">` : init;
+  ['#t-portrait','#h-portrait','#f-portrait','#r-portrait'].forEach((s) => { const el = $(s); if (el) el.innerHTML = html; });
+  const retirer = $('#f-retirer-photo'); if (retirer) retirer.hidden = !f.photo;
+  const lib = $('#f-photo-lib'); if (lib) lib.textContent = f.photo ? 'Changer de photo' : 'Choisir une photo';
+}
+function rendreEntete() {
+  const f = etat.fiche;
+  rendrePortraits();
+  $('#t-bonjour').textContent = `Bonjour ${f.prenom}`;
+  $('#h-nom').textContent = `${f.prenom} ${f.nom}`;
+}
+function rendreJauge() {
+  const cles = Object.keys(LIBELLES).filter((k) => k !== 'secteurs' && ((k !== 'debut' && k !== 'fin') || estStage()));
+  const vides = cles.filter((k) => !String(etat.fiche[k] ?? '').trim());
+  if (!etat.secteurs.length) vides.push('secteurs');
+  const total = cles.length + 1, pct = Math.round(((total - vides.length) / total) * 100);
+  $('#j-pct').textContent = `${pct} %`;
+  $('#j-barre').style.width = `${pct}%`;
+  $('#j-manque').innerHTML = vides.length
+    ? `À compléter : ${vides.map((k) => `<button type="button" class="lien-btn" data-aller="${k}">${esc(LIBELLES[k])}</button>`).join('')}`
+    : 'Votre fiche est complète.';
+}
+
+/* ---------- Les offres ---------- */
+function offresVisibles() {
+  const codes = new Set(etat.secteurs.map((s) => s.code));
+  const mots = sansAccent(etat.recherche).split(/\s+/).filter(Boolean);
+  return OFFRES.filter((o) => etat.deps.has(o.dep) && o.s.some((c) => codes.has(c)))
+    .filter((o) => mots.every((m) => sansAccent(`${o.titre} ${o.ent} ${o.ville} ${o.desc}`).includes(m)))
+    .sort((a, b) => a.age - b.age);
+}
+function rendreOffres() {
+  $('#o-secteurs').innerHTML = etat.secteurs.map((s) => `<span class="puce${s.etat === 'propose' ? ' propose' : ''}" title="${s.etat === 'propose' ? 'À confirmer par votre référent' : 'Confirmé'}">${esc(s.lib)}</span>`).join('') || '<span class="discret">aucun</span>';
+  $('#o-deps').innerHTML = DEPS.map(([n, nom]) => `<button type="button" class="puce" data-dep="${n}" aria-pressed="${etat.deps.has(n)}">${n} · ${nom}</button>`).join('');
+  const liste = offresVisibles(), montrees = etat.toutes ? liste : liste.slice(0, 5);
+  const nouvelles = liste.filter((o) => o.age <= NOUVEAU_DEPUIS).length;
+  $('#o-nb').textContent = `${liste.length} offre${liste.length > 1 ? 's' : ''}${nouvelles ? ` · ${nouvelles} nouvelle${nouvelles > 1 ? 's' : ''}` : ''}`;
+  $('#a-nb').textContent = liste.length ? ` ${liste.length}` : '';
+  $('#o-liste').innerHTML = montrees.map((o) => {
+    const ouverte = etat.ouvertes.has(o.id);
+    return `<li class="offre"><button type="button" data-offre="${o.id}" aria-expanded="${ouverte}">
+      <span class="titre">${esc(o.titre)}</span>
+      <span class="droite">${o.age <= NOUVEAU_DEPUIS ? '<span class="etiquette e-marque">Nouvelle</span>' : ''}<span>${o.age === 1 ? 'hier' : `il y a ${o.age} j`}</span></span>
+      <span class="sous">${esc(o.ent)} · ${esc(o.ville)} (${o.dep}) · ${esc(o.contrat)}</span></button>
+      ${ouverte ? `<div class="detail"><p>${esc(o.desc)}</p><div class="points"><div><b>Contrat</b>${esc(o.contrat)}</div><div><b>Salaire</b>${esc(o.salaire)}</div><div><b>Durée</b>${esc(o.duree)} par semaine</div><div><b>Expérience</b>${esc(o.exp)}</div></div><p><a class="bouton" href="https://www.francetravail.fr" target="_blank" rel="noopener">${icone.sortie}Voir l’offre sur France Travail</a></p></div>` : ''}</li>`;
+  }).join('');
+  if (!liste.length) $('#o-liste').innerHTML = `<li class="vide">${etat.secteurs.length ? 'Aucune offre en cours ici. Cochez un autre département, ou ajoutez un secteur dans votre fiche.' : 'Choisissez au moins un secteur dans votre fiche pour voir des offres.'}</li>`;
+  $('#o-plus').innerHTML = liste.length > 5 ? `<button type="button" class="bouton" id="o-toutes">${etat.toutes ? 'Voir moins' : `Voir les ${liste.length - 5} autres`}</button>` : '';
+}
+
+/* ---------- Les documents ---------- */
+const GENRES = [['cv','CV','un CV'],['lettre','Lettres de motivation','une lettre']];
+const FORMATS = ['pdf','doc','docx','odt','rtf','jpg','jpeg','png','webp'];
+function docHTML(genre, d, lecture) {
+  const conf = etat.confirmer === d.id;
+  return `<li class="doc${d.principal ? ' principal' : ''}">
+    <span class="format">${esc(d.format)}</span>
+    ${lecture ? `<strong style="padding-left:6px">${esc(d.nom)}</strong>` : `<input type="text" value="${esc(d.nom)}" data-renommer="${genre}:${d.id}" aria-label="Nom du document" maxlength="80">`}
+    <span class="coin">${d.principal ? `<span class="etiquette e-marque">${icone.etoile}Principal</span>` : ''}</span>
+    <span class="meta">Déposé le ${jourCourt(d.depose)} · ${taille(d.taille)}</span>
+    <span class="actions">${lecture ? '<button type="button" class="lien-btn">Ouvrir</button>' : `<button type="button" class="lien-btn">Ouvrir</button>${d.principal ? '' : `<button type="button" class="lien-btn" data-principal="${genre}:${d.id}">En faire le principal</button>`}<button type="button" class="lien-btn" style="color:var(--alerte)" data-supprimer="${d.id}">Supprimer</button>`}</span>
+    ${conf && !lecture ? `<div class="confirmer" role="group" aria-label="Confirmer la suppression"><span>Supprimer « ${esc(d.nom)} » pour de bon ? Il ne pourra pas être récupéré.</span><button type="button" class="bouton bouton--alerte" data-oui="${genre}:${d.id}">Supprimer</button><button type="button" class="bouton" data-non>Garder</button></div>` : ''}
+  </li>`;
+}
+function rendreDocs() {
+  $('#d-corps').innerHTML = GENRES.map(([g, titre, un]) => {
+    const l = etat.docs[g], plein = l.length >= 5;
+    return `<div><h3>${titre} <span class="compteur">${l.length} sur 5</span></h3><ul>${l.map((d) => docHTML(g, d, false)).join('')}</ul>
+      <label class="depot${plein ? ' plein' : ''}">${icone.plus}<span>${plein ? `Cinq au plus : supprimez-en un pour ajouter ${un}` : `Ajouter ${un}`}<small>PDF, Word, OpenDocument, RTF ou image · 10 Mo au plus</small></span>${plein ? '' : `<input type="file" data-depot="${g}" accept=".pdf,.doc,.docx,.odt,.rtf,.jpg,.jpeg,.png,.webp">`}</label>
+      <p class="${etat.avisDocs[g]?.erreur ? 'erreur' : 'avis'}" ${etat.avisDocs[g] ? '' : 'hidden'}>${esc(etat.avisDocs[g]?.texte ?? '')}</p></div>`;
+  }).join('');
+}
+function trouverDoc(cle) { const [g, id] = cle.split(':'); return { g, l: etat.docs[g], d: etat.docs[g].find((x) => x.id === id) }; }
+
+/* ---------- Les messages ---------- */
+function messageHTML(m, lecture) {
+  const reste = restant(m.ecrit), ed = etat.edition === m.id && reste && !lecture;
+  const statut = reste
+    ? `<span class="etiquette e-ambre">${icone.horloge}${lecture ? 'Le candidat peut encore le corriger' : 'Modifiable encore'} ${reste}</span>`
+    : `<span class="etiquette e-clos">${icone.cadenas}Conservé</span>`;
+  return `<li class="${reste ? 'vivant' : ''}"><div class="meta"><span>${quand(m.ecrit)}</span>${m.corrige ? `<span>· corrigé ${quand(m.corrige).toLowerCase()}</span>` : ''}${statut}</div>
+    ${ed ? `<textarea data-editer="${m.id}" maxlength="2000" aria-label="Corriger le message">${esc(m.texte)}</textarea><p class="note">La correction est enregistrée dès que vous quittez le champ.</p>`
+         : `<p class="texte">${esc(m.texte)}</p>${reste && !lecture ? `<button type="button" class="lien-btn" data-corriger="${m.id}">${icone.crayon} Corriger</button>` : ''}`}</li>`;
+}
+function rendreMessages() {
+  const tries = [...etat.messages].sort((a, b) => b.ecrit - a.ecrit);
+  $('#m-liste').innerHTML = tries.map((m) => messageHTML(m, false)).join('') || '<li class="vide">Vous n’avez encore rien écrit.</li>';
+}
+
+/* ---------- La fiche vue par le référent ---------- */
+function rendreReferent() {
+  const f = etat.fiche;
+  $('#r-nom').textContent = `${f.prenom} ${f.nom}`;
+  $('#r-emploi').textContent = f.emploi;
+  const inv = etat.invitation;
+  $('#r-invit').innerHTML = `<span class="discret">Page candidat</span><strong>${inv.ouverte ? `Ouverte le ${jourCourt(inv.ouverte)} à ${heure(new Date(inv.ouverte))}` : `Invitation envoyée le ${jourCourt(inv.envoyee)}`}</strong><button type="button" class="bouton" id="r-renvoyer">Renvoyer le lien d’invitation</button><span class="note" id="r-note">Avant la première invitation, ce bouton s’intitule « Inviter ${esc(f.prenom)} à sa page ».</span>`;
+  const tries = [...etat.messages].sort((a, b) => b.ecrit - a.ecrit);
+  $('#rm-liste').innerHTML = tries.map((m) => messageHTML(m, true)).join('') || '<li class="vide">Aucun message.</li>';
+  $('#rm-nb').textContent = `${tries.length} message${tries.length > 1 ? 's' : ''}`;
+  $('#rmail-objet').textContent = `${f.prenom} ${f.nom} vous a laissé un message`;
+  $('#rmail-corps').textContent = `${f.prenom} ${f.nom} (dossier n° 857) vous a laissé un message dans HERACLES.`;
+  $('#rd-corps').innerHTML = GENRES.map(([g, titre]) => `<div><h3>${titre} <span class="compteur">${etat.docs[g].length}</span></h3><ul>${etat.docs[g].map((d) => docHTML(g, d, true)).join('') || '<li class="vide">Aucun document.</li>'}</ul></div>`).join('');
+}
+
+/* ---------- Horloge de la maquette ---------- */
+function rendreHorloge() {
+  $('#maq-heure').textContent = decalage ? `Heure simulée : ${quand(maintenant()).toLowerCase()}` : '';
+  $('#maq-zero').hidden = !decalage;
+}
+function toutRendre() { rendreEntete(); rendreJauge(); rendreOffres(); rendreDocs(); rendreMessages(); rendreReferent(); rendreHorloge(); }
+
+/* ---------- Événements ---------- */
+document.addEventListener('click', (e) => {
+  const c = e.target.closest('button,[data-aller]');
+  if (!c) return;
+  const ds = c.dataset;
+  if (ds.dep) { etat.deps.has(ds.dep) ? etat.deps.delete(ds.dep) : etat.deps.add(ds.dep); rendreOffres(); }
+  else if (ds.offre) { etat.ouvertes.has(ds.offre) ? etat.ouvertes.delete(ds.offre) : etat.ouvertes.add(ds.offre); rendreOffres(); }
+  else if (c.id === 'o-toutes') { etat.toutes = !etat.toutes; rendreOffres(); }
+  else if (ds.choix) { document.querySelectorAll(`[data-choix="${ds.choix}"]`).forEach((b) => b.setAttribute('aria-pressed', String(b === c))); enregistrer(ds.choix, ds.val); }
+  else if (ds.retirerSecteur !== undefined) { etat.secteurs.splice(Number(ds.retirerSecteur), 1); rendreSecteurs(); rendreOffres(); signalerEnregistre('secteurs'); }
+  else if (ds.ajouterSecteur) { const [code, lib] = NAF.find((n) => n[0] === ds.ajouterSecteur); etat.secteurs.push({ code, lib, etat: 'propose' }); rendreSecteurs(); rendreOffres(); signalerEnregistre('secteurs'); $('#s-cherche')?.focus(); }
+  else if (ds.aller) { const k = ds.aller, cible = k === 'secteurs' ? $('#s-cherche') : document.getElementById(`f-${k}`) || document.querySelector(`[data-choix="${k}"]`); cible?.closest('details')?.setAttribute('open', ''); cible?.scrollIntoView({ block: 'center' }); cible?.focus({ preventScroll: true }); }
+  else if (ds.principal) { const { l, d } = trouverDoc(ds.principal); l.forEach((x) => { x.principal = x === d; }); etat.avisDocs = {}; rendreDocs(); rendreReferent(); }
+  else if (ds.supprimer) { etat.confirmer = ds.supprimer; rendreDocs(); }
+  else if (ds.non !== undefined) { etat.confirmer = null; rendreDocs(); }
+  else if (ds.oui) {
+    const { g, l, d } = trouverDoc(ds.oui);
+    l.splice(l.indexOf(d), 1); etat.confirmer = null; etat.avisDocs = {};
+    let texte = `« ${d.nom} » est supprimé.`;
+    if (d.principal && l.length) { const recent = [...l].sort((a, b) => b.depose - a.depose)[0]; recent.principal = true; texte += ` « ${recent.nom} » devient votre document principal.`; }
+    etat.avisDocs[g] = { texte }; rendreDocs(); rendreReferent();
+  }
+  else if (ds.corriger) { etat.edition = ds.corriger; rendreMessages(); document.querySelector(`[data-editer="${ds.corriger}"]`)?.focus(); }
+  else if (c.id === 'maq-plus') { decalage += 6 * H; toutRendre(); }
+  else if (c.id === 'maq-zero') { decalage = 0; toutRendre(); }
+  else if (c.id === 'r-renvoyer') { etat.invitation = { envoyee: maintenant(), ouverte: null }; rendreReferent(); $('#r-note').textContent = `Lien envoyé à ${etat.fiche.email}. Il vaut 30 jours.`; }
+  else if (c.id === 'f-retirer-photo') { etat.fiche.photo = ''; rendrePortraits(); signalerEnregistre('photo'); $('#f-photo-lib').focus(); }
+  else if (c.id === 'c-renvoi') { $('#c-envoye').hidden = true; $('#f-connexion').hidden = false; }
+});
+document.addEventListener('change', (e) => {
+  const t = e.target;
+  if (t.dataset.cle) enregistrer(t.dataset.cle, t.value);
+  else if (t.id === 'f-photo') {
+    const f = t.files?.[0], err = $('#err-photo');
+    if (!f) return;
+    const probleme = !['image/jpeg','image/png','image/webp'].includes(f.type) ? 'Cette photo n’est pas reconnue : JPEG, PNG ou WebP.' : f.size > 2 * 1048576 ? 'La photo dépasse 2 Mo.' : null;
+    err.hidden = !probleme; err.textContent = probleme ?? '';
+    if (!probleme) { etat.fiche.photo = URL.createObjectURL(f); rendrePortraits(); signalerEnregistre('photo'); }
+    t.value = '';
+  }
+  else if (t.dataset.renommer) { const { d } = trouverDoc(t.dataset.renommer); const nom = t.value.trim(); if (nom) { d.nom = nom; rendreReferent(); } else t.value = d.nom; }
+  else if (t.dataset.depot) {
+    const g = t.dataset.depot, f = t.files?.[0];
+    if (!f) return;
+    const ext = (f.name.split('.').pop() || '').toLowerCase();
+    if (!FORMATS.includes(ext)) etat.avisDocs[g] = { erreur: true, texte: 'Ce fichier n’est pas reconnu : PDF, Word, OpenDocument, RTF, JPEG, PNG ou WebP.' };
+    else if (f.size > 10 * 1048576) etat.avisDocs[g] = { erreur: true, texte: 'Ce fichier dépasse 10 Mo.' };
+    else {
+      const l = etat.docs[g];
+      l.push({ id: `n${Date.now()}`, nom: f.name.replace(/\.[^.]+$/, '').slice(0, 80), format: ext === 'jpeg' ? 'JPG' : ext.toUpperCase(), taille: f.size, depose: maintenant(), principal: !l.length });
+      etat.avisDocs = { [g]: { texte: `« ${f.name} » est déposé. Donnez-lui un nom parlant pour vous y retrouver.` } };
+    }
+    rendreDocs(); rendreReferent();
+  }
+});
+document.addEventListener('focusout', (e) => {
+  const t = e.target;
+  if (t.dataset?.editer) {
+    const m = etat.messages.find((x) => x.id === t.dataset.editer), v = t.value.trim();
+    if (m && v && v !== m.texte && restant(m.ecrit)) { m.texte = v; m.corrige = maintenant(); }
+    etat.edition = null; rendreMessages(); rendreReferent();
+  }
+});
+document.addEventListener('input', (e) => {
+  const t = e.target;
+  if (t.id === 'o-recherche') { etat.recherche = t.value; rendreOffres(); }
+  else if (t.id === 'm-texte') { const n = t.value.length; $('#m-compte').textContent = `${n} / 2000`; $('#m-envoyer').disabled = !t.value.trim(); }
+  else if (t.id === 's-cherche') {
+    const q = sansAccent(t.value.trim()), pris = new Set(etat.secteurs.map((s) => s.code)), ul = $('#s-suggest');
+    const res = q ? NAF.filter(([c, l]) => !pris.has(c) && (sansAccent(l).includes(q) || c.toLowerCase() === q)).slice(0, 6) : [];
+    ul.hidden = !res.length;
+    ul.innerHTML = res.map(([c, l]) => `<li><button type="button" data-ajouter-secteur="${c}"><span class="code">${c}</span> ${esc(l)}</button></li>`).join('');
+  }
+});
+$('#m-form').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const t = $('#m-texte'), v = t.value.trim();
+  if (!v) return;
+  etat.messages.push({ id: `m${Date.now()}`, texte: v, ecrit: maintenant(), corrige: null });
+  t.value = ''; $('#m-compte').textContent = '0 / 2000'; $('#m-envoyer').disabled = true;
+  rendreMessages(); rendreReferent();
+});
+$('#f-connexion').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const v = $('#c-email').value.trim(), err = $('#c-erreur');
+  if (!REGLES.email(v)) { err.hidden = true; $('#f-connexion').hidden = true; $('#c-envoye').hidden = false; }
+  else { err.hidden = false; err.textContent = REGLES.email(v); }
+});
+
+/* ---------- Les trois écrans, par l’adresse ---------- */
+function router() {
+  const vue = ['connexion','candidat','referent'].includes(location.hash.slice(1)) ? location.hash.slice(1) : 'candidat';
+  document.querySelectorAll('.vue').forEach((v) => { v.hidden = v.id !== `v-${vue}`; });
+  document.querySelectorAll('#maq-nav a').forEach((a) => a.toggleAttribute('aria-current', a.getAttribute('href') === `#${vue}`));
+  document.querySelectorAll('#maq-nav a').forEach((a) => { if (a.hasAttribute('aria-current')) a.setAttribute('aria-current', 'page'); });
+  if (['connexion','candidat','referent'].includes(location.hash.slice(1))) window.scrollTo(0, 0);
+}
+window.addEventListener('hashchange', router);
+rendreFiche(); toutRendre(); router();
+}
+</script>
+</body>
+</html>
