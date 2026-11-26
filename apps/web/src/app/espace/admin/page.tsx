@@ -55,7 +55,10 @@ export default async function EspaceAdmin({
   return (
     <>
 
-      <main className="corps">
+      {/* Toute la largeur de l'écran, et une seule ligne par invitation : à la
+          demande du 26 novembre 2026, pour lire chaque adresse d'un coup d'œil.
+          Sur un écran étroit, c'est le tableau qui défile de côté. */}
+      <main className="corps corps--large">
         <div className="entete-liste">
           <div>
             <h1>Invitations</h1>
@@ -84,7 +87,7 @@ export default async function EspaceAdmin({
 
         {invitations.length > 0 && (
           <div className="tableau-enveloppe">
-            <table>
+            <table className="tableau-sur-une-ligne">
               <thead>
                 <tr>
                   <th scope="col">Adresse</th>

@@ -30,6 +30,12 @@ create table if not exists auth.users (
   created_at          timestamptz not null default now()
 );
 
+-- Le compte a-t-il été ouvert ? Chez Supabase, la colonne reste vide tant que
+-- la personne n'a pas cliqué son lien. Ici elle est remplie par défaut : un
+-- utilisateur de test est un compte ouvert, sauf si le test dit le contraire.
+alter table auth.users
+  add column if not exists email_confirmed_at timestamptz default now();
+
 -- auth.uid() : l'identifiant de l'utilisateur porté par le jeton de la requête.
 -- Même définition que chez Supabase — elle lit un paramètre de session, ce qui
 -- permet aux tests de « devenir » n'importe quel utilisateur.
