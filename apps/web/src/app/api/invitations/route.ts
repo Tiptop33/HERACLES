@@ -110,3 +110,83 @@ async function traiter(requete: Request) {
   // boîte mail de la personne invitée.
   return NextResponse.json({ ok: true, id: identifiant });
 }
+
+/**
+ * Corriger le rôle et la loge d'une invitation **en attente**. Réservé aux
+ * administrateurs.
+ *
+ * Même ordre que pour émettre : la session, le droit métier, puis seulement la
+ * clé service_role. `modifier_invitation` refait le contrôle côté base, et
+ * refuse une invitation acceptée, révoquée ou périmée.
+ */
+
+const Modification = z.object({
+  id: z.uuid("L'invitation n'est pas reconnue."),
+  role: z.enum(['referent', 'chercheur', 'admin'], { message: "Ce rôle n'existe pas." }),
+  loge_id: z.uuid('Cette loge n’est pas reconnue.').nullable(),
+});
+
+export async function PATCH(requete: Request) {
+  try {
+    return await modifier(requete);
+  } catch (souci) {
+    console.error('[invitations] échec inattendu de la modification', souci);
+    return NextResponse.json(
+      { erreur: 'Le service est momentanément indisponible. Réessayez dans un instant.' },
+      { status: 503 },
+    );
+  }
+}
+
+async function modifier(requete: Request) {
+  const brut = await requete.json().catch(() => null);
+  const lu = Modification.safeParse(brut);
+  if (!lu.success) {
+    return NextResponse.json(
+      { erreur: lu.error.issues[0]?.message ?? 'Modification invalide.' },
+      { status: 400 },
+    );
+  }
+
+  // 1. La session.
+  const supabase = await supabaseServer();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    return NextResponse.json({ erreur: 'Session expirée.' }, { status: 401 });
+  }
+
+  // 2. Le droit métier.
+  const { data: profil } = await supabase.from('profil').select('role').single();
+  if (profil?.role !== 'admin') {
+    return NextResponse.json(
+      { erreur: 'Seul un administrateur peut modifier une invitation.' },
+      { status: 403 },
+    );
+  }
+
+  // 3. La clé qui contourne la RLS.
+  const { error: souci } = await supabaseAdmin().rpc('modifier_invitation', {
+    emetteur: user.id,
+    cible: lu.data.id,
+    role_vise: lu.data.role,
+    loge_visee: lu.data.loge_id,
+  });
+
+  if (souci) {
+    const caduque = souci.code === '22023' || souci.code === 'P0002';
+    return NextResponse.json(
+      {
+        erreur: caduque
+          ? "Cette invitation n'est plus en attente : elle ne se modifie plus."
+          : souci.code === '23503'
+            ? 'Cette loge n’existe plus.'
+            : "L'invitation n'a pas pu être modifiée.",
+      },
+      { status: caduque ? 409 : 400 },
+    );
+  }
+
+  return NextResponse.json({ ok: true });
+}

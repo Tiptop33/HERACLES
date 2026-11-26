@@ -69,6 +69,10 @@ create policy loge_lecture_admin on public.loge
 --    de celui qui invite, jamais de `jeton_empreinte`. Ce qui n'est pas montré
 --    ne peut pas fuir.
 -- ---------------------------------------------------------------------------
+-- Supprimée puis recréée : la migration 0106 lui ajoute `loge_id`, et `create
+-- or replace view` refuse de retirer une colonne quand celle-ci se rejoue.
+drop view if exists public.invitation_visible;
+
 create or replace view public.invitation_visible
 with (security_invoker = true)
 as
