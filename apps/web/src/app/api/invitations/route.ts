@@ -112,19 +112,35 @@ async function traiter(requete: Request) {
 }
 
 /**
- * Corriger le rôle et la loge d'une invitation **en attente**. Réservé aux
- * administrateurs.
+ * Corriger une invitation, **quel que soit son état**. Réservé aux
+ * administrateurs. Deux corrections, envoyées séparément par l'écran :
+ *
+ *   * le rôle et la loge (`modifier_invitation`, migration 0108) — sur une
+ *     invitation acceptée, c'est le compte qui change, et sa fiche référent ;
+ *   * l'adresse :
+ *       - invitation pas encore acceptée : un nouveau lien part à la nouvelle
+ *         adresse, l'ancien cesse de valoir (`readresser_invitation`), et le
+ *         compte vide que l'ancien envoi avait créé est retiré s'il n'a jamais
+ *         servi ;
+ *       - invitation acceptée : l'adresse de connexion du compte change chez
+ *         l'authentification, puis l'invitation et la fiche suivent
+ *         (`noter_adresse_du_compte`).
  *
  * Même ordre que pour émettre : la session, le droit métier, puis seulement la
- * clé service_role. `modifier_invitation` refait le contrôle côté base, et
- * refuse une invitation acceptée, révoquée ou périmée.
+ * clé service_role. Les fonctions refont le contrôle côté base.
  */
 
-const Modification = z.object({
-  id: z.uuid("L'invitation n'est pas reconnue."),
-  role: z.enum(['referent', 'chercheur', 'admin'], { message: "Ce rôle n'existe pas." }),
-  loge_id: z.uuid('Cette loge n’est pas reconnue.').nullable(),
-});
+const Modification = z.union([
+  z.object({
+    id: z.uuid("L'invitation n'est pas reconnue."),
+    role: z.enum(['referent', 'chercheur', 'admin'], { message: "Ce rôle n'existe pas." }),
+    loge_id: z.uuid('Cette loge n’est pas reconnue.').nullable(),
+  }),
+  z.object({
+    id: z.uuid("L'invitation n'est pas reconnue."),
+    email: z.string().trim().pipe(z.email("L'adresse e-mail n'est pas valide.")),
+  }),
+]);
 
 export async function PATCH(requete: Request) {
   try {
@@ -138,14 +154,39 @@ export async function PATCH(requete: Request) {
   }
 }
 
+/** Ce que la base répond, traduit pour la personne qui a modifié. */
+function refusDeLaBase(code: string | undefined): { erreur: string; statut: number } {
+  switch (code) {
+    case 'P0002':
+      return { erreur: "Cette invitation n'existe plus.", statut: 404 };
+    case '23503':
+      return { erreur: 'Cette loge n’existe plus.', statut: 400 };
+    case '23514':
+      return { erreur: 'Vous ne pouvez pas changer votre propre rôle.', statut: 409 };
+    case '23001':
+      return {
+        erreur:
+          'Ce compte accompagne encore des candidats : confiez-les à quelqu’un d’autre avant de lui retirer le rôle de référent.',
+        statut: 409,
+      };
+    case '23505':
+      return { erreur: 'Cette adresse a déjà un compte.', statut: 409 };
+    case '42501':
+      return { erreur: 'Seul un administrateur peut modifier une invitation.', statut: 403 };
+    default:
+      return { erreur: "L'invitation n'a pas pu être modifiée.", statut: 400 };
+  }
+}
+
+function refuser(erreur: string, statut: number) {
+  return NextResponse.json({ erreur }, { status: statut });
+}
+
 async function modifier(requete: Request) {
   const brut = await requete.json().catch(() => null);
   const lu = Modification.safeParse(brut);
   if (!lu.success) {
-    return NextResponse.json(
-      { erreur: lu.error.issues[0]?.message ?? 'Modification invalide.' },
-      { status: 400 },
-    );
+    return refuser(lu.error.issues[0]?.message ?? 'Modification invalide.', 400);
   }
 
   // 1. La session.
@@ -153,21 +194,20 @@ async function modifier(requete: Request) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) {
-    return NextResponse.json({ erreur: 'Session expirée.' }, { status: 401 });
-  }
+  if (!user) return refuser('Session expirée.', 401);
 
   // 2. Le droit métier.
   const { data: profil } = await supabase.from('profil').select('role').single();
   if (profil?.role !== 'admin') {
-    return NextResponse.json(
-      { erreur: 'Seul un administrateur peut modifier une invitation.' },
-      { status: 403 },
-    );
+    return refuser('Seul un administrateur peut modifier une invitation.', 403);
   }
 
   // 3. La clé qui contourne la RLS.
-  const { error: souci } = await supabaseAdmin().rpc('modifier_invitation', {
+  const admin = supabaseAdmin();
+
+  if ('email' in lu.data) return changerAdresse(admin, user.id, lu.data.id, lu.data.email);
+
+  const { error: souci } = await admin.rpc('modifier_invitation', {
     emetteur: user.id,
     cible: lu.data.id,
     role_vise: lu.data.role,
@@ -175,17 +215,109 @@ async function modifier(requete: Request) {
   });
 
   if (souci) {
-    const caduque = souci.code === '22023' || souci.code === 'P0002';
-    return NextResponse.json(
-      {
-        erreur: caduque
-          ? "Cette invitation n'est plus en attente : elle ne se modifie plus."
-          : souci.code === '23503'
-            ? 'Cette loge n’existe plus.'
-            : "L'invitation n'a pas pu être modifiée.",
-      },
-      { status: caduque ? 409 : 400 },
+    const refus = refusDeLaBase(souci.code);
+    if (refus.statut === 400) console.error('[invitations] modification refusée', souci);
+    return refuser(refus.erreur, refus.statut);
+  }
+
+  return NextResponse.json({ ok: true });
+}
+
+async function changerAdresse(
+  admin: ReturnType<typeof supabaseAdmin>,
+  emetteur: string,
+  id: string,
+  adresseBrute: string,
+) {
+  const adresse = adresseBrute.toLowerCase();
+
+  const { data: invitation } = await admin
+    .from('invitation')
+    .select('email, etat, profil_id')
+    .eq('id', id)
+    .maybeSingle();
+  if (!invitation) return refuser("Cette invitation n'existe plus.", 404);
+
+  // Rien à faire : l'écran n'envoie que ce qui change, mais une requête à la
+  // main ne doit pas renvoyer un courriel pour autant.
+  if (invitation.email.toLowerCase() === adresse) return NextResponse.json({ ok: true });
+
+  // — Acceptée : c'est l'adresse de connexion du compte qui change.
+  if (invitation.etat === 'acceptee') {
+    if (!invitation.profil_id) return refuser("Le compte de cette invitation n'existe plus.", 404);
+
+    // `email_confirm` : l'administrateur fait foi, aucun courriel de
+    // confirmation ne part. Le mot de passe ne change pas.
+    const { error: souciCompte } = await admin.auth.admin.updateUserById(invitation.profil_id, {
+      email: adresse,
+      email_confirm: true,
+    });
+    if (souciCompte) {
+      const prise = souciCompte.code === 'email_exists' || souciCompte.status === 422;
+      if (!prise) console.error('[invitations] adresse de connexion refusée', souciCompte);
+      return refuser(
+        prise ? 'Cette adresse a déjà un compte.' : "L'adresse de connexion n'a pas pu changer.",
+        prise ? 409 : 400,
+      );
+    }
+
+    const { error: souci } = await admin.rpc('noter_adresse_du_compte', {
+      emetteur,
+      cible: id,
+      adresse,
+    });
+    if (souci) {
+      // On remet l'ancienne adresse : mieux vaut une correction refusée qu'un
+      // compte qui se connecte sous une adresse que le tableau ne montre pas.
+      await admin.auth.admin.updateUserById(invitation.profil_id, {
+        email: invitation.email,
+        email_confirm: true,
+      });
+      console.error('[invitations] adresse du compte non reportée', souci);
+      const refus = refusDeLaBase(souci.code);
+      return refuser(refus.erreur, refus.statut);
+    }
+
+    return NextResponse.json({ ok: true });
+  }
+
+  // — Pas encore acceptée : un nouveau lien part à la nouvelle adresse.
+  const jeton = fabriquerJeton();
+  const { data: ancienCompte, error: souci } = await admin.rpc('readresser_invitation', {
+    emetteur,
+    cible: id,
+    adresse,
+    empreinte: empreinte(jeton),
+  });
+  if (souci) {
+    const refus = refusDeLaBase(souci.code);
+    if (refus.statut === 400) console.error('[invitations] nouvelle adresse refusée', souci);
+    return refuser(refus.erreur, refus.statut);
+  }
+
+  const racine = process.env.NEXT_PUBLIC_APP_URL ?? '';
+  const { error: souciEnvoi } = await admin.auth.admin.inviteUserByEmail(adresse, {
+    redirectTo: `${racine}/invitation/${jeton}`,
+  });
+  if (souciEnvoi) {
+    // Comme à l'émission : pas de lien vivant que nul ne connaît.
+    await admin.rpc('refuser_invitation', { empreinte: empreinte(jeton) });
+    console.error('[invitations] courriel vers la nouvelle adresse non parti', souciEnvoi);
+    return refuser(
+      "L'adresse est changée, mais l'e-mail n'a pas pu partir : l'invitation est révoquée. Corrigez de nouveau l'adresse pour la renvoyer.",
+      502,
     );
+  }
+
+  // Le compte vide laissé par l'ancien envoi : la base l'a désigné parce que
+  // rien ne le relie ; on vérifie en plus qu'il n'a jamais servi.
+  if (typeof ancienCompte === 'string') {
+    const { data: lu } = await admin.auth.admin.getUserById(ancienCompte);
+    const jamaisServi = lu?.user && !lu.user.email_confirmed_at && !lu.user.last_sign_in_at;
+    if (jamaisServi) {
+      const { error: souciRetrait } = await admin.auth.admin.deleteUser(ancienCompte);
+      if (souciRetrait) console.error('[invitations] compte vide non retiré', souciRetrait);
+    }
   }
 
   return NextResponse.json({ ok: true });
