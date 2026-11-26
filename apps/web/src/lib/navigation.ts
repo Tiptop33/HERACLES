@@ -92,9 +92,13 @@ export const FAMILLES: readonly Famille[] = [
       { libelle: 'Nouveau candidat', vers: '/espace/candidats/nouveau' },
       { libelle: 'Loges', vers: null, lot: 'lot 5' },
       { libelle: "Secteur d'activité", vers: null, lot: 'lot 5' },
+      // Ajoutée le 26 novembre 2026, à la demande : le rôle et la loge de tout
+      // compte, y compris ceux qui ne sont pas entrés par une invitation
+      // (migration 0109). En fin de famille, pour ne déplacer aucune entrée.
+      { libelle: 'Comptes', vers: '/espace/admin/comptes' },
       // Ajoutée le 26 novembre 2026, à la demande : le journal des connexions
-      // des référents — date, heure, durée (migration 0109). En fin de
-      // famille, pour ne déplacer aucune entrée.
+      // des référents — date, heure, durée (migration 0110). En fin de
+      // famille, après « Comptes », pour ne déplacer aucune entrée.
       { libelle: 'Connexions', vers: '/espace/admin/connexions' },
     ],
   },

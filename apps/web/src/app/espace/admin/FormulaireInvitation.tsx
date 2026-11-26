@@ -14,6 +14,15 @@ export default function FormulaireInvitation({ loges }: { loges: LogeBreve[] }) 
   const router = useRouter();
   const [erreur, setErreur] = useState<string | null>(null);
   const [envoi, setEnvoi] = useState(false);
+  const logeParDefaut =
+    loges.find(
+      (l) =>
+        (l.nom ?? '')
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '')
+          .trim()
+          .toUpperCase() === 'HERACLES',
+    )?.id ?? '';
   const [envoyee, setEnvoyee] = useState<string | null>(null);
 
   async function soumettre(evenement: React.FormEvent<HTMLFormElement>) {
@@ -85,7 +94,10 @@ export default function FormulaireInvitation({ loges }: { loges: LogeBreve[] }) 
 
         <div className="champ">
           <label htmlFor="inv-loge">Loge</label>
-          <select id="inv-loge" name="loge_id" defaultValue="">
+          {/* La loge HERACLES d'abord, à la demande du 26 novembre 2026 : c'est
+              là qu'entrent la plupart des invitations. Sans loge de ce nom,
+              le menu part sur « aucune ». */}
+          <select id="inv-loge" name="loge_id" defaultValue={logeParDefaut}>
             <option value="">— aucune pour l&apos;instant —</option>
             {loges.map((loge) => (
               <option key={loge.id} value={loge.id}>

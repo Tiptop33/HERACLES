@@ -18,8 +18,9 @@ describe('les cinq familles', () => {
     // « Action / Candidat » retiré du menu le 8 août 2026, plus « Nouveau
     // candidat » ajouté à Admin le 8 novembre 2026, plus « Province » ajoutée
     // à Réseau le 10 novembre 2026, plus « Documents » ajouté à Réseau le
-    // 11 novembre 2026, plus « Connexions » ajouté à Admin le 26 novembre 2026.
-    expect(total).toBe(19);
+    // 11 novembre 2026, plus « Comptes » et « Connexions » ajoutés à Admin le
+    // 26 novembre 2026.
+    expect(total).toBe(20);
   });
 
   it('ne propose plus « Action / Candidat »', () => {

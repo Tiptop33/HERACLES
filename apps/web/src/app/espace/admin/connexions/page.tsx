@@ -11,7 +11,7 @@ export const dynamic = 'force-dynamic';
 
 /**
  * Les connexions des référents : qui, quel jour, à quelle heure, combien de
- * temps (migration 0109).
+ * temps (migration 0110).
  *
  * Réservé aux administrateurs. La redirection ci-dessous évite d'afficher une
  * porte fermée ; le contrôle, lui, est en base — la fonction ne rend rien à

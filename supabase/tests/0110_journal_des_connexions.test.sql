@@ -1,46 +1,46 @@
--- Tests de la migration 0109_journal_des_connexions.sql.
+-- Tests de la migration 0110_journal_des_connexions.sql.
 --
 --   · Chef   administrateur, celui qui lit le tableau
---   · Rose   référente à Agen-0109, celle dont les connexions sont notées
---   · Sami   référent  à Agen-0109, qui ne doit rien lire
+--   · Rose   référente à Agen-0110, celle dont les connexions sont notées
+--   · Sami   référent  à Agen-0110, qui ne doit rien lire
 --   · Cléo   candidate (compte sans fiche référent) : rien n'est noté pour elle
 
 \set ON_ERROR_STOP on
 \o /dev/null
 
-\set chef 'aaaaaaaa-0109-0000-0000-000000000001'
-\set rose 'aaaaaaaa-0109-0000-0000-000000000002'
-\set sami 'aaaaaaaa-0109-0000-0000-000000000003'
-\set cleo 'aaaaaaaa-0109-0000-0000-000000000004'
+\set chef 'aaaaaaaa-0110-0000-0000-000000000001'
+\set rose 'aaaaaaaa-0110-0000-0000-000000000002'
+\set sami 'aaaaaaaa-0110-0000-0000-000000000003'
+\set cleo 'aaaaaaaa-0110-0000-0000-000000000004'
 
 insert into auth.users (id, email, raw_user_meta_data) values
-  (:'chef', 'chef0109@example.org', '{"role":"referent"}'),
-  (:'rose', 'rose0109@example.org', '{"role":"referent"}'),
-  (:'sami', 'sami0109@example.org', '{"role":"referent"}'),
-  (:'cleo', 'cleo0109@example.org', '{"role":"chercheur"}');
+  (:'chef', 'chef0110@example.org', '{"role":"referent"}'),
+  (:'rose', 'rose0110@example.org', '{"role":"referent"}'),
+  (:'sami', 'sami0110@example.org', '{"role":"referent"}'),
+  (:'cleo', 'cleo0110@example.org', '{"role":"chercheur"}');
 
 update public.profil set role = 'admin' where id = :'chef';
 
 insert into public.loge (bubble_id, nom) values
-  ('loge-0109-agen', 'Agen — 0109')
+  ('loge-0110-agen', 'Agen — 0110')
 on conflict do nothing;
 
 insert into public.referent (bubble_id, profil_id, nom, prenom, email, loge_id) values
-  ('ref-0109-rose', :'rose', 'Rose', 'R', 'rose0109@example.org',
-   (select id from public.loge where bubble_id = 'loge-0109-agen')),
-  ('ref-0109-sami', :'sami', 'Sami', 'S', 'sami0109@example.org',
-   (select id from public.loge where bubble_id = 'loge-0109-agen'))
+  ('ref-0110-rose', :'rose', 'Rose', 'R', 'rose0110@example.org',
+   (select id from public.loge where bubble_id = 'loge-0110-agen')),
+  ('ref-0110-sami', :'sami', 'Sami', 'S', 'sami0110@example.org',
+   (select id from public.loge where bubble_id = 'loge-0110-agen'))
 on conflict do nothing;
 
-select id as rose_ref from public.referent where bubble_id = 'ref-0109-rose' \gset
-select id as sami_ref from public.referent where bubble_id = 'ref-0109-sami' \gset
+select id as rose_ref from public.referent where bubble_id = 'ref-0110-rose' \gset
+select id as sami_ref from public.referent where bubble_id = 'ref-0110-sami' \gset
 
 -- ---------------------------------------------------------------------------
 \echo '— se connecter ouvre une ligne au journal'
 -- ---------------------------------------------------------------------------
 begin;
   set local role authenticated;
-  set local request.jwt.claims = '{"sub":"aaaaaaaa-0109-0000-0000-000000000002"}';
+  set local request.jwt.claims = '{"sub":"aaaaaaaa-0110-0000-0000-000000000002"}';
   select public.je_me_connecte();
 commit;
 
@@ -59,7 +59,7 @@ update public.connexion_referent
 
 begin;
   set local role authenticated;
-  set local request.jwt.claims = '{"sub":"aaaaaaaa-0109-0000-0000-000000000002"}';
+  set local request.jwt.claims = '{"sub":"aaaaaaaa-0110-0000-0000-000000000002"}';
   select public.je_suis_la();
   -- Un second onglet qui se reconnecte : toujours la même connexion.
   select public.je_me_connecte();
@@ -83,7 +83,7 @@ update public.connexion_referent
 
 begin;
   set local role authenticated;
-  set local request.jwt.claims = '{"sub":"aaaaaaaa-0109-0000-0000-000000000002"}';
+  set local request.jwt.claims = '{"sub":"aaaaaaaa-0110-0000-0000-000000000002"}';
   select public.je_suis_la();
 commit;
 
@@ -101,7 +101,7 @@ select public.verifier(
 -- ---------------------------------------------------------------------------
 begin;
   set local role authenticated;
-  set local request.jwt.claims = '{"sub":"aaaaaaaa-0109-0000-0000-000000000002"}';
+  set local request.jwt.claims = '{"sub":"aaaaaaaa-0110-0000-0000-000000000002"}';
   select public.je_me_deconnecte();
 commit;
 
@@ -120,7 +120,7 @@ select public.verifier(
 -- ---------------------------------------------------------------------------
 begin;
   set local role authenticated;
-  set local request.jwt.claims = '{"sub":"aaaaaaaa-0109-0000-0000-000000000002"}';
+  set local request.jwt.claims = '{"sub":"aaaaaaaa-0110-0000-0000-000000000002"}';
   select public.je_suis_la();
 commit;
 
@@ -133,7 +133,7 @@ select public.verifier(
 -- ---------------------------------------------------------------------------
 begin;
   set local role authenticated;
-  set local request.jwt.claims = '{"sub":"aaaaaaaa-0109-0000-0000-000000000002"}';
+  set local request.jwt.claims = '{"sub":"aaaaaaaa-0110-0000-0000-000000000002"}';
   select public.je_me_connecte();
 commit;
 
@@ -148,7 +148,7 @@ select count(*) as avant from public.connexion_referent \gset
 
 begin;
   set local role authenticated;
-  set local request.jwt.claims = '{"sub":"aaaaaaaa-0109-0000-0000-000000000004"}';
+  set local request.jwt.claims = '{"sub":"aaaaaaaa-0110-0000-0000-000000000004"}';
   select public.je_me_connecte();
   select public.je_suis_la();
   select public.je_me_deconnecte();
@@ -163,14 +163,14 @@ select public.verifier(
 -- ---------------------------------------------------------------------------
 begin;
   set local role authenticated;
-  set local request.jwt.claims = '{"sub":"aaaaaaaa-0109-0000-0000-000000000001"}';
+  set local request.jwt.claims = '{"sub":"aaaaaaaa-0110-0000-0000-000000000001"}';
   select public.verifier(
     (select count(*) from public.les_connexions_des_referents()
       where referent_id = :'rose_ref') = 3,
     'les trois connexions de Rose');
   select public.verifier(
     (select count(*) from public.les_connexions_des_referents()
-      where referent_id = :'rose_ref' and nom = 'Rose' and loge_nom = 'Agen — 0109') = 3,
+      where referent_id = :'rose_ref' and nom = 'Rose' and loge_nom = 'Agen — 0110') = 3,
     'avec son nom et sa loge');
   select public.verifier(
     (select duree_secondes between 3590 and 3610
@@ -195,7 +195,7 @@ commit;
 -- ---------------------------------------------------------------------------
 begin;
   set local role authenticated;
-  set local request.jwt.claims = '{"sub":"aaaaaaaa-0109-0000-0000-000000000003"}';
+  set local request.jwt.claims = '{"sub":"aaaaaaaa-0110-0000-0000-000000000003"}';
   select public.je_me_connecte();
   select public.verifier(
     (select count(*) from public.les_connexions_des_referents()) = 0,
@@ -216,7 +216,7 @@ do $$
 begin
   set local role authenticated;
   perform set_config('request.jwt.claims',
-    '{"sub":"aaaaaaaa-0109-0000-0000-000000000001"}', true);
+    '{"sub":"aaaaaaaa-0110-0000-0000-000000000001"}', true);
   begin
     delete from public.connexion_referent;
     raise exception 'ÉCHEC — un administrateur a pu effacer le journal';
@@ -261,7 +261,7 @@ update public.connexion_referent
 
 begin;
   set local role authenticated;
-  set local request.jwt.claims = '{"sub":"aaaaaaaa-0109-0000-0000-000000000003"}';
+  set local request.jwt.claims = '{"sub":"aaaaaaaa-0110-0000-0000-000000000003"}';
   select public.je_me_connecte();
 commit;
 

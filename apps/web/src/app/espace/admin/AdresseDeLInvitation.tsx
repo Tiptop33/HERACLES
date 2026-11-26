@@ -86,7 +86,11 @@ export default function AdresseDeLInvitation({ id, email, acceptee }: Props) {
         disabled={envoi}
         autoComplete="off"
         spellCheck={false}
-        style={{ fontWeight: 600, minWidth: '14rem', width: '100%' }}
+        // Le champ prend la longueur de l'adresse : elle se lit en entier, sur
+        // la ligne de l'invitation. `size` compte en largeur de caractère
+        // moyenne, plus large qu'une adresse en minuscules : on la resserre.
+        size={Math.max(Math.ceil(saisie.length * 0.85), 16)}
+        style={{ fontWeight: 600 }}
         onChange={(e) => setSaisie(e.target.value)}
         onBlur={enregistrer}
         onKeyDown={(e) => {

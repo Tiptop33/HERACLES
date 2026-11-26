@@ -1,7 +1,7 @@
 import { supabaseServer } from './supabase-server';
 
 /**
- * Le journal des connexions des référents (migration 0109).
+ * Le journal des connexions des référents (migration 0110).
  *
  * Une ligne par présence continue devant l'écran : elle commence à la
  * connexion, se prolonge à chaque signe de vie, et se clôt à la déconnexion ou

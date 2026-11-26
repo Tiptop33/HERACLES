@@ -1,5 +1,5 @@
 -- ---------------------------------------------------------------------------
--- 0109 — le journal des connexions des référents
+-- 0110 — le journal des connexions des référents
 --
 -- Ce que ça change : chaque connexion d'un référent est enregistrée — sa date,
 -- son heure, sa durée — et l'administration les lit dans un tableau
@@ -100,12 +100,12 @@ create policy connexion_referent_lecture_admin on public.connexion_referent
 -- Les commentaires de 0042 et 0058 promettaient l'absence d'historique.
 comment on column public.profil.connecte_depuis is
   'Début de la session en cours, ou nul. Sert à afficher « qui est là » ; '
-  'effacée à la déconnexion. L''historique, lui, est tenu depuis 0109 dans '
+  'effacée à la déconnexion. L''historique, lui, est tenu depuis 0110 dans '
   '`connexion_referent`.';
 comment on column public.profil.vu_le is
   'Dernier signe de vie de la session en cours, ou nul. Écrasée à chaque '
   'passage, effacée à la déconnexion. L''historique, lui, est tenu depuis '
-  '0109 dans `connexion_referent`.';
+  '0110 dans `connexion_referent`.';
 
 -- ---------------------------------------------------------------------------
 -- Noter un signe de vie au journal
@@ -203,7 +203,7 @@ $$;
 
 comment on function public.je_me_connecte() is
   'Marque la session comme ouverte (0051) et note la connexion au journal '
-  '(0109). Rejouable : tant que la session est vivante, une seconde connexion '
+  '(0110). Rejouable : tant que la session est vivante, une seconde connexion '
   'ne décale pas l''heure de début.';
 
 create or replace function public.je_suis_la()
@@ -228,7 +228,7 @@ $$;
 
 comment on function public.je_suis_la() is
   'Note un signe de vie sur ma session (0058) et prolonge ma connexion au '
-  'journal (0109). Sans effet sur une session close.';
+  'journal (0110). Sans effet sur une session close.';
 
 create or replace function public.je_me_deconnecte()
 returns void
@@ -248,7 +248,7 @@ $$;
 
 comment on function public.je_me_deconnecte() is
   'Marque la session comme close, efface le dernier signe de vie (0058) et '
-  'clôt la connexion au journal (0109). Appelée avant `signOut()`.';
+  'clôt la connexion au journal (0110). Appelée avant `signOut()`.';
 
 revoke all on function public.je_me_connecte() from public, anon;
 revoke all on function public.je_suis_la() from public, anon;

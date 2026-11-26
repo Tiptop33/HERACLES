@@ -58,7 +58,7 @@ export function heureEnClair(valeur: string | null | undefined): string | null {
 /**
  * Une durée en secondes, dite en clair : « moins d'une minute », « 12 min »,
  * « 1 h 05 ». Les secondes ne s'affichent pas : le journal des connexions
- * (migration 0109) n'est précis qu'à trente secondes près.
+ * (migration 0110) n'est précis qu'à trente secondes près.
  */
 export function dureeEnClair(secondes: number | null | undefined): string | null {
   if (secondes === null || secondes === undefined || !Number.isFinite(secondes)) return null;
