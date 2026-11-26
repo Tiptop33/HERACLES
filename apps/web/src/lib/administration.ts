@@ -18,6 +18,7 @@ export type InvitationVisible = {
   repondu_le: string | null;
   perimee: boolean;
   loge_nom: string | null;
+  loge_id: string | null;
   invite_par_nom: string | null;
 };
 

@@ -4,6 +4,7 @@ import { dateEnLettres, depuis } from '@/lib/format';
 import { libelleRoleInvitation } from '@/lib/invitation';
 import { exigerProfil } from '@/lib/profil';
 import { accueilDuRole } from '@/lib/roles';
+import ChoixDeLInvitation from './ChoixDeLInvitation';
 import FormulaireInvitation from './FormulaireInvitation';
 
 export const metadata = { title: 'Administration — HERACLES' };
@@ -65,8 +66,25 @@ export default async function EspaceAdmin() {
                       <td>
                         <strong>{invitation.email}</strong>
                       </td>
-                      <td className="maigre">{libelleRoleInvitation(invitation.role)}</td>
-                      <td className="maigre">{invitation.loge_nom ?? '—'}</td>
+                      {/* Seule une invitation en attente se corrige : une fois
+                          acceptée, son rôle est déjà posé sur un compte. */}
+                      {invitation.etat === 'envoyee' && !invitation.perimee ? (
+                        <ChoixDeLInvitation
+                          // La clé suit les valeurs enregistrées : après relecture,
+                          // les menus repartent de ce que dit la base.
+                          key={`${invitation.id}-${invitation.role}-${invitation.loge_id ?? ''}`}
+                          id={invitation.id}
+                          email={invitation.email}
+                          role={invitation.role}
+                          logeId={invitation.loge_id}
+                          loges={loges}
+                        />
+                      ) : (
+                        <>
+                          <td className="maigre">{libelleRoleInvitation(invitation.role)}</td>
+                          <td className="maigre">{invitation.loge_nom ?? '—'}</td>
+                        </>
+                      )}
                       <td>
                         <span className={`etat etat--${etat.etat}`}>{etat.libelle}</span>
                       </td>

@@ -47,14 +47,6 @@ export async function lireInvitation(jeton: string): Promise<Invitation | null> 
   return data[0] as Invitation;
 }
 
-/** Le libellé d'un rôle, tel que l'écran d'invitation l'annonce. */
-export function libelleRoleInvitation(role: string): string {
-  switch (role) {
-    case 'admin':
-      return 'Administrateur';
-    case 'chercheur':
-      return 'Candidat';
-    default:
-      return 'Référent';
-  }
-}
+// Le libellé vit dans un module sans dépendance serveur, pour que les menus de
+// l'écran d'administration (composants client) puissent s'en servir.
+export { libelleRoleInvitation } from './libelle-role';
