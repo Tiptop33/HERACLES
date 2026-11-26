@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { initiales, nomAffichable } from '@/lib/format';
 import type { Connecte } from '@/lib/presence';
 
@@ -8,9 +8,17 @@ import type { Connecte } from '@/lib/presence';
  * « Qui est là » — les référents de la loge qui sont devant leur écran en ce
  * moment, sous votre nom dans la colonne de gauche.
  *
- * Une photo par personne, et son nom au survol. La vignette est un `title`
- * doublé d'un `aria-label` : pas d'infobulle maison, celle du navigateur
- * s'affiche partout, y compris au clavier et sous lecteur d'écran.
+ * Une photo par personne, et son prénom et son nom dans une bulle au survol.
+ * L'infobulle du navigateur (`title`) ne suffisait pas : elle arrive tard, et
+ * jamais au doigt — sur iPad, on ne savait pas qui était en ligne. La bulle
+ * s'ouvre au survol, au clavier (chaque vignette prend le focus) et au toucher,
+ * qui donne le focus. Le nom reste aussi en `aria-label` pour les lecteurs
+ * d'écran.
+ *
+ * La bulle est en position fixe : la colonne défile, et une bulle placée dans
+ * son flux y serait coupée sur les bords. Son centre est borné à la largeur de
+ * la colonne, pour qu'une vignette en bout de rangée n'envoie pas son nom
+ * dehors.
  *
  * **Le seul endroit de l'application où un script est nécessaire.** La liste
  * vieillirait sans lui : une page rendue par le serveur ne bouge plus une fois
@@ -37,8 +45,35 @@ import type { Connecte } from '@/lib/presence';
  */
 const CADENCE = 30_000;
 
+/** La moitié de la largeur maximale de la bulle (10 rem), plus une marge. */
+const DEMI_BULLE = 88;
+
+/** `pointe` : l'écart entre le centre de la bulle et celui de la vignette. */
+type Bulle = { nom: string; haut: number; centre: number; pointe: number };
+
 export default function Connectes({ initiaux }: { initiaux: Connecte[] }) {
   const [connectes, setConnectes] = useState(initiaux);
+  const [bulle, setBulle] = useState<Bulle | null>(null);
+  const cadre = useRef<HTMLDivElement>(null);
+
+  const montrer = (nom: string, vignette: HTMLElement) => {
+    const r = vignette.getBoundingClientRect();
+    const colonne = cadre.current?.getBoundingClientRect();
+    const gauche = colonne ? colonne.left + DEMI_BULLE : r.left;
+    const droite = colonne ? colonne.right - DEMI_BULLE : r.right;
+    const vise = r.left + r.width / 2;
+    const centre = droite > gauche ? Math.min(Math.max(vise, gauche), droite) : vise;
+    setBulle({ nom, haut: r.bottom + 8, centre, pointe: vise - centre });
+  };
+  const cacher = () => setBulle(null);
+
+  // La colonne qui défile emporte la vignette : la bulle fixe resterait en
+  // l'air, à côté de personne.
+  useEffect(() => {
+    if (!bulle) return;
+    window.addEventListener('scroll', cacher, true);
+    return () => window.removeEventListener('scroll', cacher, true);
+  }, [bulle]);
 
   useEffect(() => {
     let vivant = true;
@@ -79,7 +114,7 @@ export default function Connectes({ initiaux }: { initiaux: Connecte[] }) {
   if (connectes.length === 0) return null;
 
   return (
-    <div className="colonne-connectes" data-aide="connectes">
+    <div className="colonne-connectes" data-aide="connectes" ref={cadre}>
       <p className="colonne-connectes-titre">
         {connectes.length === 1 ? 'Aussi en ligne' : `Aussi en ligne — ${connectes.length}`}
       </p>
@@ -88,18 +123,25 @@ export default function Connectes({ initiaux }: { initiaux: Connecte[] }) {
         {connectes.map((c) => {
           const nom = nomAffichable(c.prenom, c.nom, null) ?? 'Référent sans nom';
           return (
-            <li key={c.referent_id}>
+            <li
+              key={c.referent_id}
+              tabIndex={0}
+              aria-label={nom}
+              onMouseEnter={(e) => montrer(nom, e.currentTarget)}
+              onMouseLeave={cacher}
+              onFocus={(e) => montrer(nom, e.currentTarget)}
+              onBlur={cacher}
+            >
               {c.a_une_photo ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={`/espace/referents/${c.referent_id}/photo`}
-                  alt={nom}
-                  title={nom}
+                  alt=""
                   width={30}
                   height={30}
                 />
               ) : (
-                <span className="connecte-initiales" title={nom} aria-label={nom} role="img">
+                <span className="connecte-initiales" aria-hidden="true">
                   {initiales(c.prenom, c.nom)}
                 </span>
               )}
@@ -107,6 +149,22 @@ export default function Connectes({ initiaux }: { initiaux: Connecte[] }) {
           );
         })}
       </ul>
+
+      {bulle && (
+        <span
+          className="connecte-bulle"
+          role="tooltip"
+          style={
+            {
+              top: bulle.haut,
+              left: bulle.centre,
+              '--pointe': `${bulle.pointe}px`,
+            } as CSSProperties
+          }
+        >
+          {bulle.nom}
+        </span>
+      )}
     </div>
   );
 }

@@ -1692,7 +1692,47 @@ tbody tr:focus-within {
   list-style: none;
 }
 
-.connectes-visages li { display: flex; }
+.connectes-visages li {
+  display: flex;
+  border-radius: 50%;
+  cursor: default;
+}
+
+.connectes-visages li:focus-visible {
+  outline: 2px solid var(--referent);
+  outline-offset: 3px;
+}
+
+/* Le nom de la personne en ligne, dans une bulle sous sa vignette. Position
+   fixe : la colonne défile, et la couperait sinon (Connectes.tsx). */
+.connecte-bulle {
+  position: fixed;
+  z-index: 70;
+  transform: translateX(-50%);
+  max-width: 10rem;
+  padding: 0.3rem 0.55rem;
+  border-radius: 6px;
+  background: var(--encre);
+  color: var(--surface);
+  font-size: 0.74rem;
+  font-weight: 600;
+  line-height: 1.3;
+  text-align: center;
+  white-space: normal;
+  pointer-events: none;
+  box-shadow: 0 6px 16px rgb(11 20 30 / 22%);
+}
+
+/* La pointe, vers la vignette. */
+.connecte-bulle::before {
+  content: '';
+  position: absolute;
+  bottom: 100%;
+  left: calc(50% + var(--pointe, 0px));
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-bottom-color: var(--encre);
+}
 
 .connectes-visages img,
 .connecte-initiales {
