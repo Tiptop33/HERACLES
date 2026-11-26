@@ -102,8 +102,10 @@ cat <<'FIN'
 
   Et le geste qui manque encore, à faire depuis VOTRE poste :
 
-    rsync -avz --remove-source-files=no \
-      root@<le-serveur>:/var/backups/heracles/ ~/sauvegardes-heracles/
+    rsync -avz root@<le-serveur>:/var/backups/heracles/ ~/sauvegardes-heracles/
+
+  (rsync copie sans rien effacer, ni sur le serveur ni chez vous : les
+  archives que le serveur a supprimées restent sur votre poste.)
 
   Tant que cette ligne n'est pas passée, la sauvegarde et ce qu'elle protège
   sont sur le même disque.
