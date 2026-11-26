@@ -13,6 +13,7 @@ const ROLES = [
 export default function FormulaireInvitation({
   loges,
   emailInitial = '',
+  logeInitiale = '',
 }: {
   loges: LogeBreve[];
   /**
@@ -20,6 +21,8 @@ export default function FormulaireInvitation({
    * 2026). Vide quand on arrive d'ailleurs. Elle reste corrigeable.
    */
   emailInitial?: string;
+  /** La loge de ce même référent. Vide : le choix habituel, HERACLES. */
+  logeInitiale?: string;
 }) {
   const router = useRouter();
   // Champ tenu par l'état, et non par `defaultValue` : après l'envoi il doit
@@ -37,6 +40,12 @@ export default function FormulaireInvitation({
           .toUpperCase() === 'HERACLES',
     )?.id ?? '';
   const [envoyee, setEnvoyee] = useState<string | null>(null);
+  // Tenue par l'état pour la même raison que l'adresse : après l'envoi, le
+  // menu revient à son choix habituel, et non à la loge du référent invité.
+  const [loge, setLoge] = useState(logeInitiale || logeParDefaut);
+  // Le rôle de même : les trois champs tenus par l'état, la remise à zéro ne
+  // passe plus par `reset()`, qui ramènerait un menu tenu à sa première ligne.
+  const [role, setRole] = useState('referent');
 
   async function soumettre(evenement: React.FormEvent<HTMLFormElement>) {
     evenement.preventDefault();
@@ -44,9 +53,6 @@ export default function FormulaireInvitation({
     setEnvoyee(null);
     setEnvoi(true);
 
-    const formulaire = evenement.currentTarget;
-    const champs = new FormData(formulaire);
-    const loge = String(champs.get('loge_id') ?? '');
 
     try {
       const reponse = await fetch('/api/invitations', {
@@ -54,7 +60,7 @@ export default function FormulaireInvitation({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email,
-          role: String(champs.get('role') ?? 'referent'),
+          role,
           loge_id: loge === '' ? null : loge,
         }),
       });
@@ -67,7 +73,8 @@ export default function FormulaireInvitation({
 
       setEnvoyee(email);
       setEmail('');
-      formulaire.reset();
+      setLoge(logeParDefaut);
+      setRole('referent');
       // La liste vit côté serveur : on la fait relire plutôt que de la
       // recomposer ici, au risque qu'elle diverge de la base.
       router.refresh();
@@ -104,7 +111,12 @@ export default function FormulaireInvitation({
 
         <div className="champ">
           <label htmlFor="inv-role">Rôle</label>
-          <select id="inv-role" name="role" defaultValue="referent">
+          <select
+            id="inv-role"
+            name="role"
+            value={role}
+            onChange={(e) => setRole(e.target.value)}
+          >
             {ROLES.map((r) => (
               <option key={r.valeur} value={r.valeur}>
                 {r.libelle}
@@ -117,8 +129,14 @@ export default function FormulaireInvitation({
           <label htmlFor="inv-loge">Loge</label>
           {/* La loge HERACLES d'abord, à la demande du 26 novembre 2026 : c'est
               là qu'entrent la plupart des invitations. Sans loge de ce nom,
-              le menu part sur « aucune ». */}
-          <select id="inv-loge" name="loge_id" defaultValue={logeParDefaut}>
+              le menu part sur « aucune ». Venu de la fiche d'un référent, il part
+              sur la loge de ce référent. */}
+          <select
+            id="inv-loge"
+            name="loge_id"
+            value={loge}
+            onChange={(e) => setLoge(e.target.value)}
+          >
             <option value="">— aucune pour l&apos;instant —</option>
             {loges.map((loge) => (
               <option key={loge.id} value={loge.id}>

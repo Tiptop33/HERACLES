@@ -62,6 +62,10 @@ export default async function EspaceAdmin({
   ]);
   // Fiche inconnue ou sans adresse : le formulaire s'ouvre vide, comme toujours.
   const emailDuReferent = fiche?.email?.trim() ?? '';
+  // Sa loge aussi, si elle figure parmi celles qu'on peut choisir ; sinon le
+  // menu garde son choix habituel.
+  const logeDuReferent =
+    fiche?.loge_id && loges.some((l) => l.id === fiche.loge_id) ? fiche.loge_id : '';
 
   const enAttente = invitations.filter((i) => i.etat === 'envoyee' && !i.perimee).length;
   const acceptees = invitations.filter((i) => i.etat === 'acceptee').length;
@@ -102,12 +106,13 @@ export default async function EspaceAdmin({
             La personne reçoit un lien valable sept jours. Il ne sert qu&apos;une fois, et ne vaut
             que pour l&apos;adresse à laquelle il part.
           </p>
-          {/* La clé suit l'adresse proposée : venir d'une autre fiche repart
+          {/* La clé suit l'adresse et la loge proposées : venir d'une autre fiche repart
               d'un formulaire neuf, et non de ce qui restait saisi. */}
           <FormulaireInvitation
-            key={emailDuReferent}
+            key={`${emailDuReferent}-${logeDuReferent}`}
             loges={loges}
             emailInitial={emailDuReferent}
+            logeInitiale={logeDuReferent}
           />
         </section>
 

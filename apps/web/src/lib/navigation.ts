@@ -168,5 +168,13 @@ const FICHE_REFERENT =
 export function adresseDeLEntree(vers: string, chemin: string): string {
   if (vers !== INVITATIONS) return vers;
   const fiche = FICHE_REFERENT.exec(chemin);
-  return fiche ? `${vers}?referent=${fiche[1].toLowerCase()}` : vers;
+  return fiche ? adresseDInvitation(fiche[1].toLowerCase()) : vers;
+}
+
+/**
+ * Le formulaire d'invitation, ouvert sur un référent : son adresse e-mail et
+ * sa loge y sont proposées. C'est aussi où mène l'enveloppe de sa carte.
+ */
+export function adresseDInvitation(referentId: string): string {
+  return `${INVITATIONS}?referent=${referentId}`;
 }

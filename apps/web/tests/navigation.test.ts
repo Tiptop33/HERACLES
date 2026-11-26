@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   FAMILLES,
   PARAMETRES,
+  adresseDInvitation,
   adresseDeLEntree,
   estCourante,
   famillesDuRole,
@@ -208,6 +209,12 @@ describe('« Invitations » depuis la fiche d’un référent', () => {
   it('ne touche à aucune autre entrée', () => {
     expect(adresseDeLEntree('/espace/admin/comptes', `/espace/referents/${id}/modifier`)).toBe(
       '/espace/admin/comptes',
+    );
+  });
+
+  it('mène à la même adresse que l’enveloppe de la carte', () => {
+    expect(adresseDInvitation(id)).toBe(
+      adresseDeLEntree('/espace/admin', `/espace/referents/${id}/modifier`),
     );
   });
 });
