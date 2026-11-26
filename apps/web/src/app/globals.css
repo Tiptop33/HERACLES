@@ -1095,6 +1095,25 @@ h3 {
 
 /* ————— Le tableau des candidats ————— */
 
+/* Une page qui prend toute la largeur : son tableau a plus de colonnes que
+   72 rem n'en tiennent sur une ligne (Administration › Invitations). */
+.corps--large {
+  max-width: none;
+}
+
+/* Une ligne par enregistrement : rien ne passe à la ligne dans les cellules.
+   Ce qui ne tient pas fait défiler le tableau de côté, dans son enveloppe.
+   Un message d'erreur sous un champ, lui, se lit en entier. */
+.tableau-sur-une-ligne th,
+.tableau-sur-une-ligne td {
+  white-space: nowrap;
+}
+
+.tableau-sur-une-ligne td .erreur {
+  white-space: normal;
+  max-width: 22rem;
+}
+
 .tableau-enveloppe {
   overflow-x: auto;
   border: 1px solid var(--bordure);
