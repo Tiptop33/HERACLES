@@ -73,7 +73,7 @@ traitements.
 | **Destinataires** | Les membres de la loge, selon leur fonction ; les administrateurs. |
 | **Sous-traitants** | Hostinger, Brevo (courriels de connexion et de réinitialisation). |
 | **Transferts hors UE** | Aucun. |
-| **Durée de conservation** | ⚠️ *À fixer : jusqu'au départ de la loge, puis… ?* Les invitations (adresse, rôle, loge, état) se suppriment à la main depuis Administration › Invitations depuis la migration 0107, quel que soit leur état ; aucune purge automatique n'est encore fixée. |
+| **Durée de conservation** | ⚠️ *À fixer : jusqu'au départ de la loge, puis… ?* Les invitations (adresse, rôle, loge, état) se suppriment à la main depuis Administration › Invitations depuis la migration 0107, quel que soit leur état ; aucune purge automatique n'est encore fixée. Depuis la migration 0108, l'administration y corrige aussi l'adresse : une invitation pas encore acceptée repart à la nouvelle adresse, et le compte vide laissé par l'ancien envoi — jamais utilisé, relié à rien — est retiré ; une invitation acceptée change l'adresse de connexion du compte et celle de sa fiche référent. |
 | **Sécurité** | Entrée sur invitation seulement ; mots de passe hachés ; messages d'erreur qui ne révèlent pas qu'une adresse est inscrite. |
 
 ## 3 bis. Les loges du réseau et leurs secteurs d'activité

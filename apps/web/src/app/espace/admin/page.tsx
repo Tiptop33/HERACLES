@@ -8,9 +8,9 @@ import {
   type InvitationVisible,
 } from '@/lib/administration';
 import { dateEnLettres, depuis } from '@/lib/format';
-import { libelleRoleInvitation } from '@/lib/invitation';
 import { exigerProfil } from '@/lib/profil';
 import { accueilDuRole } from '@/lib/roles';
+import AdresseDeLInvitation from './AdresseDeLInvitation';
 import ChoixDeLInvitation from './ChoixDeLInvitation';
 import FormulaireInvitation from './FormulaireInvitation';
 
@@ -104,28 +104,24 @@ export default async function EspaceAdmin({
                   const etat = etatInvitation(invitation);
                   return (
                     <tr key={invitation.id}>
-                      <td>
-                        <strong>{invitation.email}</strong>
-                      </td>
-                      {/* Seule une invitation en attente se corrige : une fois
-                          acceptée, son rôle est déjà posé sur un compte. */}
-                      {invitation.etat === 'envoyee' && !invitation.perimee ? (
-                        <ChoixDeLInvitation
-                          // La clé suit les valeurs enregistrées : après relecture,
-                          // les menus repartent de ce que dit la base.
-                          key={`${invitation.id}-${invitation.role}-${invitation.loge_id ?? ''}`}
-                          id={invitation.id}
-                          email={invitation.email}
-                          role={invitation.role}
-                          logeId={invitation.loge_id}
-                          loges={loges}
-                        />
-                      ) : (
-                        <>
-                          <td className="maigre">{libelleRoleInvitation(invitation.role)}</td>
-                          <td className="maigre">{invitation.loge_nom ?? '—'}</td>
-                        </>
-                      )}
+                      <AdresseDeLInvitation
+                        // La clé suit l'adresse enregistrée : après relecture,
+                        // le champ repart de ce que dit la base.
+                        key={`${invitation.id}-${invitation.email}`}
+                        id={invitation.id}
+                        email={invitation.email}
+                        acceptee={invitation.etat === 'acceptee'}
+                      />
+                      {/* Toutes les lignes se corrigent (migration 0108). Une
+                          invitation acceptée corrige le compte lui-même. */}
+                      <ChoixDeLInvitation
+                        key={`${invitation.id}-${invitation.role}-${invitation.loge_id ?? ''}`}
+                        id={invitation.id}
+                        email={invitation.email}
+                        role={invitation.role}
+                        logeId={invitation.loge_id}
+                        loges={loges}
+                      />
                       <td>
                         <span className={`etat etat--${etat.etat}`}>{etat.libelle}</span>
                       </td>

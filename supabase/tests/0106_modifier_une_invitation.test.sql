@@ -1,7 +1,8 @@
 -- Tests de la migration 0106_modifier_une_invitation.sql.
 --
--- Trois promesses : seul un administrateur modifie, seule une invitation en
--- attente se modifie, et la modification ne passe que par la fonction.
+-- Deux promesses : seul un administrateur modifie, et la modification ne passe
+-- que par la fonction. (La troisième, « seule une invitation en attente se
+-- modifie », a été levée par 0108.)
 
 \set ON_ERROR_STOP on
 \o /dev/null
@@ -70,22 +71,8 @@ begin
 end
 $$;
 
-\echo '— une invitation acceptée ou périmée ne se modifie plus'
-do $$
-declare
-  e text;
-begin
-  foreach e in array array['empreinte-0106-acceptee', 'empreinte-0106-perimee'] loop
-    begin
-      perform public.modifier_invitation('cccccccc-0106-0000-0000-00000000000a'::uuid,
-        (select id from public.invitation where jeton_empreinte = e), 'admin', null);
-      raise exception 'ÉCHEC — % a été modifiée', e;
-    exception when invalid_parameter_value then
-      raise notice '  ok — % reste telle quelle', e;
-    end;
-  end loop;
-end
-$$;
+-- Une invitation acceptée ou périmée se modifie désormais, compte compris :
+-- 0108 a levé cette limite, et son test l'éprouve.
 
 \echo '— une loge inconnue est refusée'
 do $$

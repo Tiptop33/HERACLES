@@ -16,8 +16,9 @@ type Props = {
 };
 
 /**
- * Les cellules « Rôle » et « Loge » d'une invitation en attente, sous forme de
- * menus. Le choix s'applique aussitôt : pas de bouton à valider.
+ * Les cellules « Rôle » et « Loge » d'une invitation, quel que soit son état,
+ * sous forme de menus. Sur une invitation acceptée, c'est le compte qui change.
+ * Le choix s'applique aussitôt : pas de bouton à valider.
  *
  * L'écran montre d'abord le nouveau choix, puis revient à l'ancien si le
  * serveur refuse — la base reste la seule à dire ce qui est enregistré.
