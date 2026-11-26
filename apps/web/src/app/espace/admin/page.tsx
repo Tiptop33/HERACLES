@@ -139,7 +139,7 @@ export default async function EspaceAdmin({
                       <td>
                         <span className="gestes">
                           {/* Renvoyer le lien : toute invitation pas encore
-                              acceptée (migration 0110). Une acceptée n'attend
+                              acceptée (migration 0111). Une acceptée n'attend
                               plus de lien. */}
                           {invitation.etat !== 'acceptee' && (
                             <BoutonRenvoyer id={invitation.id} email={invitation.email} />

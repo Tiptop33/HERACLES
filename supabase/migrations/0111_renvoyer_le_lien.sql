@@ -1,4 +1,4 @@
--- 0110_renvoyer_le_lien.sql
+-- 0111_renvoyer_le_lien.sql
 -- L'administrateur renvoie le lien d'une invitation, à la même adresse.
 --
 -- Une invitation périmée ne se relançait pas : le formulaire refuse une

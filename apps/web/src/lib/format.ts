@@ -36,6 +36,40 @@ export function dateEnLettres(valeur: string | null | undefined): string | null 
   return enLettres.format(date).replace(/^1 /, '1er ');
 }
 
+const heureMinute = new Intl.DateTimeFormat('fr-FR', {
+  hour: '2-digit',
+  minute: '2-digit',
+  hour12: false,
+  timeZone: PARIS,
+});
+
+/** « 14 h 05 », à l'heure de Paris. */
+export function heureEnClair(valeur: string | null | undefined): string | null {
+  const date = lire(valeur);
+  if (!date) return null;
+
+  const morceaux = heureMinute.formatToParts(date);
+  const heure = morceaux.find((m) => m.type === 'hour')?.value ?? '00';
+  const minute = morceaux.find((m) => m.type === 'minute')?.value ?? '00';
+  // « 24 » : ce que certains moteurs rendent pour minuit.
+  return `${Number(heure) % 24} h ${minute}`;
+}
+
+/**
+ * Une durée en secondes, dite en clair : « moins d'une minute », « 12 min »,
+ * « 1 h 05 ». Les secondes ne s'affichent pas : le journal des connexions
+ * (migration 0110) n'est précis qu'à trente secondes près.
+ */
+export function dureeEnClair(secondes: number | null | undefined): string | null {
+  if (secondes === null || secondes === undefined || !Number.isFinite(secondes)) return null;
+  if (secondes < 60) return "moins d'une minute";
+
+  const minutes = Math.floor(secondes / 60);
+  if (minutes < 60) return `${minutes} min`;
+
+  return `${Math.floor(minutes / 60)} h ${String(minutes % 60).padStart(2, '0')}`;
+}
+
 /** La même date au format qu'attend `<input type="date">` : 2026-09-01. */
 export function datePourChamp(valeur: string | null | undefined): string {
   const date = lire(valeur);

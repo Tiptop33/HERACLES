@@ -9,7 +9,7 @@ import { supabaseServer } from '@/lib/supabase-server';
  * **Réservé aux administrateurs.**
  *
  * Même ordre que pour émettre : la session, le droit métier, puis seulement la
- * clé service_role. `renouveler_invitation` (migration 0110) pose un nouveau
+ * clé service_role. `renouveler_invitation` (migration 0111) pose un nouveau
  * jeton valable sept jours — l'ancien lien cesse de valoir — et refait le
  * contrôle d'administrateur. Puis le courriel part.
  *
