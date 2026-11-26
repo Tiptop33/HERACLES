@@ -203,3 +203,36 @@ describe('telephone', () => {
     expect(telephone('   ')).toBeNull();
   });
 });
+
+describe('heureEnClair', () => {
+  it('dit l’heure de Paris, été comme hiver', async () => {
+    const { heureEnClair } = await import('../src/lib/format');
+    expect(heureEnClair('2026-11-26T13:05:00Z')).toBe('14 h 05');
+    expect(heureEnClair('2026-07-01T07:30:00Z')).toBe('9 h 30');
+  });
+
+  it('écrit minuit « 0 h 00 », et ne rend rien sans date', async () => {
+    const { heureEnClair } = await import('../src/lib/format');
+    expect(heureEnClair('2026-11-25T23:00:00Z')).toBe('0 h 00');
+    expect(heureEnClair(null)).toBeNull();
+    expect(heureEnClair('pas une date')).toBeNull();
+  });
+});
+
+describe('dureeEnClair', () => {
+  it('dit une durée comme on la lirait', async () => {
+    const { dureeEnClair } = await import('../src/lib/format');
+    expect(dureeEnClair(0)).toBe("moins d'une minute");
+    expect(dureeEnClair(59)).toBe("moins d'une minute");
+    expect(dureeEnClair(60)).toBe('1 min');
+    expect(dureeEnClair(59 * 60 + 59)).toBe('59 min');
+    expect(dureeEnClair(3900)).toBe('1 h 05');
+    expect(dureeEnClair(13 * 3600)).toBe('13 h 00');
+  });
+
+  it('ne rend rien sans durée', async () => {
+    const { dureeEnClair } = await import('../src/lib/format');
+    expect(dureeEnClair(null)).toBeNull();
+    expect(dureeEnClair(Number.NaN)).toBeNull();
+  });
+});
