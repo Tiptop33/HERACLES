@@ -1,7 +1,8 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { LIEN_RENVOYE, type LienRenvoye } from './BoutonRenvoyer';
 
 type Props = {
   id: string;
@@ -27,6 +28,24 @@ export default function AdresseDeLInvitation({ id, email, acceptee }: Props) {
   const [saisie, setSaisie] = useState(email);
   const [envoi, setEnvoi] = useState(false);
   const [erreur, setErreur] = useState<string | null>(null);
+  // Ce qu'a répondu le bouton « Renvoyer le lien » de cette ligne.
+  const [renvoi, setRenvoi] = useState<string | null>(null);
+
+  useEffect(() => {
+    const ecouter = (e: Event) => {
+      const { detail } = e as CustomEvent<LienRenvoye>;
+      if (detail.id !== id) return;
+      if (detail.reussi) {
+        setErreur(null);
+        setRenvoi(detail.message);
+      } else {
+        setRenvoi(null);
+        setErreur(detail.message);
+      }
+    };
+    window.addEventListener(LIEN_RENVOYE, ecouter);
+    return () => window.removeEventListener(LIEN_RENVOYE, ecouter);
+  }, [id]);
   // Échap rend l'adresse puis quitte le champ : la sortie ne doit pas
   // enregistrer ce qu'on vient justement d'abandonner.
   const abandon = useRef(false);
@@ -108,6 +127,11 @@ export default function AdresseDeLInvitation({ id, email, acceptee }: Props) {
       {erreur && (
         <p className="erreur" role="alert" style={{ margin: '0.3rem 0 0' }}>
           {erreur}
+        </p>
+      )}
+      {renvoi && !erreur && (
+        <p className="aide" role="status" style={{ margin: '0.3rem 0 0' }}>
+          {renvoi}
         </p>
       )}
     </td>

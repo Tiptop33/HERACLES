@@ -11,6 +11,7 @@ import { dateEnLettres, depuis } from '@/lib/format';
 import { exigerProfil } from '@/lib/profil';
 import { accueilDuRole } from '@/lib/roles';
 import AdresseDeLInvitation from './AdresseDeLInvitation';
+import BoutonRenvoyer from './BoutonRenvoyer';
 import ChoixDeLInvitation from './ChoixDeLInvitation';
 import FormulaireInvitation from './FormulaireInvitation';
 
@@ -98,7 +99,7 @@ export default async function EspaceAdmin({
                   <th scope="col">Envoyée</th>
                   <th scope="col">Expire</th>
                   <th scope="col">
-                    <span className="visuellement-cache">Supprimer</span>
+                    <span className="visuellement-cache">Renvoyer ou supprimer</span>
                   </th>
                 </tr>
               </thead>
@@ -136,15 +137,23 @@ export default async function EspaceAdmin({
                           : '—'}
                       </td>
                       <td>
-                        <Link
-                          href={`/espace/admin?supprimer=${invitation.id}`}
-                          className="geste geste--retirer"
-                          aria-label={`Supprimer l’invitation de ${invitation.email}`}
-                          title="Supprimer cette invitation"
-                          scroll={false}
-                        >
-                          <Corbeille />
-                        </Link>
+                        <span className="gestes">
+                          {/* Renvoyer le lien : toute invitation pas encore
+                              acceptée (migration 0111). Une acceptée n'attend
+                              plus de lien. */}
+                          {invitation.etat !== 'acceptee' && (
+                            <BoutonRenvoyer id={invitation.id} email={invitation.email} />
+                          )}
+                          <Link
+                            href={`/espace/admin?supprimer=${invitation.id}`}
+                            className="geste geste--retirer"
+                            aria-label={`Supprimer l’invitation de ${invitation.email}`}
+                            title="Supprimer cette invitation"
+                            scroll={false}
+                          >
+                            <Corbeille />
+                          </Link>
+                        </span>
                       </td>
                     </tr>
                   );
