@@ -1,26 +1,27 @@
 # MAJBUBBLE — la reprise finale des données Bubble
 
-> **Abandonnée — décision du 24 novembre 2026.** Ce qui reste dans Bubble n'est
-> plus repris : HERACLES fait foi, et Bubble peut être arrêté sans reprise
-> finale. Les quatre reprises que `mettre-a-jour.sh` rejouait à chaque mise en
-> ligne (PDF de la commission, dates des candidats, provinces, loges de Guyenne
-> et Gascogne) ont été retirées le même jour.
+> **Rétablie le 26 novembre 2026.** L'abandon décidé le 24 novembre est
+> annulé : une reprise complète est rejouée, avec ses fichiers, par la commande
+> ci-dessous. Les quatre reprises partielles que `mettre-a-jour.sh` rejouait à
+> chaque mise en ligne restent retirées : la reprise se lance à la main.
 >
-> Ce que la décision laisse derrière elle, en connaissance de cause :
+> Ce que cette décision accepte, en connaissance de cause : la reprise
+> remplace, sur chaque fiche qui existe aussi dans Bubble, tout champ que Bubble
+> renseigne — coordonnées, recherche, appréciation d'un candidat, réglages,
+> textes des courriels. Ce qui a été corrigé dans HERACLES depuis la dernière
+> reprise complète, sur ces champs-là, est défait. Restent protégés, comme
+> avant : une clôture ou un archivage faits dans HERACLES (migrations 0071,
+> 0072), un référent choisi dans HERACLES (0063), les secteurs confirmés par un
+> référent (0093), ce que l'administration a saisi sur les provinces et les
+> loges de Guyenne et Gascogne (0094, 0096).
 >
-> - tout ce qui a été saisi ou modifié dans Bubble depuis la dernière reprise
->   complète ;
-> - les fichiers que Bubble refusait de servir — au dernier bilan, 1 CV sur 95
->   et 9 PDF sur 188, dont six comptes rendus et affiches en « HTTP 403 ».
+> **Sauvegarder avant, et sortir l'archive du VPS** : c'est le seul moyen de
+> revenir en arrière.
 >
-> Pourquoi ne pas l'avoir rejouée « au cas où » : la reprise remplace, sur
-> chaque fiche qui existe aussi dans Bubble, tout champ que Bubble renseigne —
-> coordonnées, recherche, appréciation d'un candidat, réglages, textes des
-> courriels. Elle aurait défait ce qui a été corrigé dans HERACLES depuis.
->
-> La suite de ce document reste comme mémoire de ce qui a été fait, et comme
-> mode d'emploi de `reprendre-bubble.sh`, qui fonctionne tant que Bubble
-> répond. **Plus rien ici n'est à faire avant la bascule.**
+> *Pour mémoire* — la décision du 24 novembre : ne plus rien reprendre, HERACLES
+> faisant foi, en laissant derrière elle ce qui avait été saisi dans Bubble
+> depuis la dernière reprise complète, et les fichiers que Bubble refusait de
+> servir (1 CV sur 95, 9 PDF sur 188, dont six en « HTTP 403 »).
 
 - **Nom retenu :** `MAJBUBBLE`
 - **Échéance :** au plus tard le **5 décembre 2026**, jour de la bascule

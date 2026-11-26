@@ -26,12 +26,13 @@ Toute décision qui décale un lot doit être signalée : la date de bascule, el
 | Site | Adresse | Ce qu'on y fait |
 | --- | --- | --- |
 | **HERACLES, essai** | `essai.oaf-heracles.cloud` | toutes les modifications demandées |
-| **Bubble** | `oaf-heracles.fr` | **rien** — plus rien n'y est lu non plus depuis le 24 novembre 2026 (reprise abandonnée) |
+| **Bubble** | `oaf-heracles.fr` | **rien** — on n'y modifie rien ; ses données sont relues par la reprise complète rétablie le 26 novembre 2026 |
 
 Une demande de modification vise **toujours** le site d'essai. L'application Bubble ne se
 modifie en aucun cas : ni ses données, ni ses réglages, ni ses écrans. Elle reste telle
-qu'elle est jusqu'à son arrêt ; HERACLES n'en lit plus rien non plus — la reprise a été
-abandonnée le 24 novembre 2026, HERACLES fait foi.
+qu'elle est jusqu'à son arrêt. L'abandon de la reprise, décidé le 24 novembre 2026, a été
+annulé le 26 : une reprise complète (`reprendre-bubble.sh --fichiers`) est rejouée, et
+remplace sur les fiches communes ce que Bubble renseigne.
 
 ## Langue
 
@@ -174,10 +175,10 @@ sert**, pas la liste des fichiers touchés.
 - Modèle repris de Bubble : `docs/specs/2026-08-04-modele-bubble.md`
 - Plans par lot : `docs/plans/`
 - **MAJBUBBLE** — `docs/MAJBUBBLE.md` : la reprise des données Bubble.
-  **Abandonnée le 24 novembre 2026** : ce qui reste dans Bubble n'est plus
-  repris, HERACLES fait foi, et plus aucune mise en ligne n'interroge Bubble.
-  Le document reste comme mémoire, et comme mode d'emploi de
-  `reprendre-bubble.sh` tant que Bubble répond.
+  Abandonnée le 24 novembre 2026, **rétablie le 26** : une reprise complète
+  est rejouée à la main sur le serveur ; les mises en ligne, elles,
+  n'interrogent toujours plus Bubble. Le document est le mode d'emploi de
+  `reprendre-bubble.sh`, qui fonctionne tant que Bubble répond.
 - **Courriels** — `docs/brevo.md` : les deux canaux d'envoi (authentification
   en SMTP, application par l'API) et le paramétrage de Brevo.
 - **Lecture du CV** — `docs/lecture-du-cv.md` : le CV du candidat lu par Claude
