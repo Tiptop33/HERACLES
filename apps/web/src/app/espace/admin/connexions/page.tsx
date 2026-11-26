@@ -1,8 +1,14 @@
 import { redirect } from 'next/navigation';
-import { LIMITE_DES_CONNEXIONS, listerLesConnexions } from '@/lib/connexions';
+import {
+  LIMITE_DES_CONNEXIONS,
+  listerLesConnexions,
+  listerLesReferentsDuJournal,
+  referentDemande,
+} from '@/lib/connexions';
 import { dateEnLettres, dureeEnClair, heureEnClair, nomComplet } from '@/lib/format';
 import { exigerProfil } from '@/lib/profil';
 import { accueilDuRole } from '@/lib/roles';
+import FiltreParReferent from './FiltreParReferent';
 
 export const metadata = { title: 'Connexions — HERACLES' };
 
@@ -16,12 +22,23 @@ export const dynamic = 'force-dynamic';
  * Réservé aux administrateurs. La redirection ci-dessous évite d'afficher une
  * porte fermée ; le contrôle, lui, est en base — la fonction ne rend rien à
  * qui n'est pas administrateur.
+ *
+ * `?referent=<id>` restreint le tableau aux connexions d'un référent
+ * (migration 0111) ; le menu au-dessus du tableau écrit cette adresse.
  */
-export default async function ConnexionsDesReferents() {
+export default async function ConnexionsDesReferents({
+  searchParams,
+}: {
+  searchParams: Promise<{ referent?: string | string[] }>;
+}) {
   const profil = await exigerProfil();
   if (profil.role !== 'admin') redirect(accueilDuRole(profil.role));
 
-  const connexions = await listerLesConnexions();
+  const referentId = referentDemande((await searchParams).referent);
+  const [connexions, referents] = await Promise.all([
+    listerLesConnexions(referentId),
+    listerLesReferentsDuJournal(),
+  ]);
   const enCours = connexions.filter((c) => c.en_cours).length;
 
   return (
@@ -31,7 +48,9 @@ export default async function ConnexionsDesReferents() {
           <h1>Connexions</h1>
           <span className="compte">
             {connexions.length === 0
-              ? 'aucune connexion enregistrée pour l’instant'
+              ? referentId
+                ? 'aucune connexion enregistrée pour ce référent'
+                : 'aucune connexion enregistrée pour l’instant'
               : `${connexions.length} connexion${connexions.length > 1 ? 's' : ''} · ${enCours} en cours`}
           </span>
         </div>
@@ -46,6 +65,18 @@ export default async function ConnexionsDesReferents() {
           ? ` ; seules les ${LIMITE_DES_CONNEXIONS} dernières connexions sont affichées.`
           : '.'}
       </p>
+
+      {referents.length > 0 && (
+        <FiltreParReferent
+          choisi={referentId ?? ''}
+          referents={referents.map((r) => ({
+            id: r.referent_id,
+            libelle: r.loge_nom
+              ? `${nomComplet(r.prenom, r.nom)} — ${r.loge_nom}`
+              : nomComplet(r.prenom, r.nom),
+          }))}
+        />
+      )}
 
       {connexions.length > 0 && (
         <div className="tableau-enveloppe">
