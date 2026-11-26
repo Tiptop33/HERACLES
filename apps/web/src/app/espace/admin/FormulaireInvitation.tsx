@@ -10,8 +10,21 @@ const ROLES = [
   { valeur: 'admin', libelle: 'Administrateur — peut inviter à son tour' },
 ];
 
-export default function FormulaireInvitation({ loges }: { loges: LogeBreve[] }) {
+export default function FormulaireInvitation({
+  loges,
+  emailInitial = '',
+}: {
+  loges: LogeBreve[];
+  /**
+   * L'adresse du référent de la fiche d'où l'on vient (demande du 26 novembre
+   * 2026). Vide quand on arrive d'ailleurs. Elle reste corrigeable.
+   */
+  emailInitial?: string;
+}) {
   const router = useRouter();
+  // Champ tenu par l'état, et non par `defaultValue` : après l'envoi il doit
+  // se vider pour de bon, alors que `reset()` y remettrait l'adresse proposée.
+  const [email, setEmail] = useState(emailInitial);
   const [erreur, setErreur] = useState<string | null>(null);
   const [envoi, setEnvoi] = useState(false);
   const logeParDefaut =
@@ -33,7 +46,6 @@ export default function FormulaireInvitation({ loges }: { loges: LogeBreve[] }) 
 
     const formulaire = evenement.currentTarget;
     const champs = new FormData(formulaire);
-    const email = String(champs.get('email') ?? '');
     const loge = String(champs.get('loge_id') ?? '');
 
     try {
@@ -54,6 +66,7 @@ export default function FormulaireInvitation({ loges }: { loges: LogeBreve[] }) 
       }
 
       setEnvoyee(email);
+      setEmail('');
       formulaire.reset();
       // La liste vit côté serveur : on la fait relire plutôt que de la
       // recomposer ici, au risque qu'elle diverge de la base.
@@ -78,7 +91,15 @@ export default function FormulaireInvitation({ loges }: { loges: LogeBreve[] }) 
       <div className="ligne-edition">
         <div className="champ">
           <label htmlFor="inv-email">Adresse e-mail</label>
-          <input id="inv-email" name="email" type="email" autoComplete="off" required />
+          <input
+            id="inv-email"
+            name="email"
+            type="email"
+            autoComplete="off"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
         </div>
 
         <div className="champ">

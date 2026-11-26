@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { PARAMETRES, estCourante, famillesDuRole } from '@/lib/navigation';
+import { PARAMETRES, adresseDeLEntree, estCourante, famillesDuRole } from '@/lib/navigation';
 import { ANCRES_DES_ONGLETS, SIGNAL_MENU, SIGNAL_OUVRIR_L_AIDE } from '@/lib/aide/signaux';
 import { nomAffichable } from '@/lib/format';
 import type { Connecte } from '@/lib/presence';
@@ -163,7 +163,10 @@ export default function Colonne({
             ) : entree.vers ? (
               <Link
                 key={entree.libelle}
-                href={entree.vers}
+                // Depuis la fiche d'un référent, « Invitations » emporte cette
+                // fiche. L'ancre de l'aide et la surbrillance, elles, restent
+                // sur l'adresse nue.
+                href={adresseDeLEntree(entree.vers, chemin)}
                 data-aide={`menu:${entree.vers}`}
                 aria-current={estCourante(entree, chemin, visibles) ? 'page' : undefined}
                 className={`colonne-entree${estCourante(entree, chemin, visibles) ? ' colonne-entree--courante' : ''}`}

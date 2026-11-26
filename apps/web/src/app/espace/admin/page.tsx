@@ -7,6 +7,7 @@ import {
   listerLoges,
   type InvitationVisible,
 } from '@/lib/administration';
+import { lireFicheAnnuaire } from '@/lib/annuaire';
 import { dateEnLettres, depuis } from '@/lib/format';
 import { exigerProfil } from '@/lib/profil';
 import { accueilDuRole } from '@/lib/roles';
@@ -23,6 +24,9 @@ function premier(valeur: string | string[] | undefined): string {
   return valeur ?? '';
 }
 
+/** La forme d'un identifiant de fiche. */
+const IDENTIFIANT = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 /** Ce que la route de suppression renvoie, dit à qui a cliqué. */
 const REFUS: Record<string, string> = {
   droit: 'Seul un administrateur peut supprimer une invitation.',
@@ -34,7 +38,11 @@ const REFUS: Record<string, string> = {
 export default async function EspaceAdmin({
   searchParams,
 }: {
-  searchParams: Promise<{ supprimer?: string | string[]; erreur?: string | string[] }>;
+  searchParams: Promise<{
+    supprimer?: string | string[];
+    erreur?: string | string[];
+    referent?: string | string[];
+  }>;
 }) {
   const profil = await exigerProfil();
   if (profil.role !== 'admin') redirect(accueilDuRole(profil.role));
@@ -42,7 +50,18 @@ export default async function EspaceAdmin({
 
   // Ces deux lectures ne filtrent rien à la main : la RLS (migration 0010) ne
   // les ouvre qu'aux administrateurs. Sans elle, la page serait vide.
-  const [invitations, loges] = await Promise.all([listerInvitations(), listerLoges()]);
+  //
+  // `referent` : l'identifiant de la fiche d'où l'on vient, posé par le menu.
+  // Il vient de l'adresse, donc de n'importe qui : on ne lit une fiche que
+  // s'il a la forme d'un identifiant, et l'annuaire lui-même passe par la RLS.
+  const referent = premier(parametres.referent);
+  const [invitations, loges, fiche] = await Promise.all([
+    listerInvitations(),
+    listerLoges(),
+    IDENTIFIANT.test(referent) ? lireFicheAnnuaire(referent) : null,
+  ]);
+  // Fiche inconnue ou sans adresse : le formulaire s'ouvre vide, comme toujours.
+  const emailDuReferent = fiche?.email?.trim() ?? '';
 
   const enAttente = invitations.filter((i) => i.etat === 'envoyee' && !i.perimee).length;
   const acceptees = invitations.filter((i) => i.etat === 'acceptee').length;
@@ -83,7 +102,13 @@ export default async function EspaceAdmin({
             La personne reçoit un lien valable sept jours. Il ne sert qu&apos;une fois, et ne vaut
             que pour l&apos;adresse à laquelle il part.
           </p>
-          <FormulaireInvitation loges={loges} />
+          {/* La clé suit l'adresse proposée : venir d'une autre fiche repart
+              d'un formulaire neuf, et non de ce qui restait saisi. */}
+          <FormulaireInvitation
+            key={emailDuReferent}
+            loges={loges}
+            emailInitial={emailDuReferent}
+          />
         </section>
 
         {invitations.length > 0 && (
