@@ -111,6 +111,28 @@ export function FlecheRetour() {
   );
 }
 
+/**
+ * La flèche qui repart, dans le sens des aiguilles d'une montre : renvoyer le
+ * lien d'une invitation. L'inverse de `FlecheRetour`, qui revient en arrière.
+ */
+export function Renvoyer() {
+  return (
+    <svg
+      className="icone icone--renvoyer"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M21 12a9 9 0 1 1-9-9 9.7 9.7 0 0 1 6.7 2.7L21 8" />
+      <path d="M21 3v5h-5" />
+    </svg>
+  );
+}
+
 /** La feuille cornée : un document déposé, qui s'ouvre. */
 export function Feuille() {
   return (

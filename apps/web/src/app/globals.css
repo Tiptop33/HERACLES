@@ -2292,6 +2292,24 @@ tbody tr:focus-within {
   color: #c2660f;
 }
 
+/* Renvoyer le lien d'une invitation : un geste sans risque, dans la couleur
+   de la marque plutôt que dans le rouge de la corbeille voisine. */
+.geste--renvoyer {
+  color: var(--marque);
+}
+
+/* Dans le tableau des invitations, les gestes se calent à droite : la
+   corbeille reste dans sa colonne, qu'un « renvoyer » la précède ou non. Le
+   tableau des réunions, lui, garde l'alignement qu'il avait. */
+.tableau-sur-une-ligne td > .gestes {
+  justify-content: flex-end;
+}
+
+.geste--renvoyer:disabled {
+  opacity: 0.45;
+  cursor: progress;
+}
+
 .geste--retirer {
   color: var(--alerte);
 }
