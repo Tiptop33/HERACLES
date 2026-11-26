@@ -1,5 +1,5 @@
 -- ---------------------------------------------------------------------------
--- 0111 — les connexions d'un seul référent
+-- 0112 — les connexions d'un seul référent
 --
 -- Ce que ça change : dans Admin › Connexions, l'administrateur choisit un
 -- référent et ne voit plus que ses connexions. Demandé le 26 novembre 2026.

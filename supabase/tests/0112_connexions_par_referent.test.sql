@@ -1,42 +1,42 @@
--- Tests de la migration 0111_connexions_par_referent.sql.
+-- Tests de la migration 0112_connexions_par_referent.sql.
 --
 --   · Chef   administrateur, celui qui filtre
---   · Lina   référente à Auch-0111, deux connexions
---   · Marc   référent  à Auch-0111, une connexion
---   · Noé    référent  à Auch-0111, jamais connecté
+--   · Lina   référente à Auch-0112, deux connexions
+--   · Marc   référent  à Auch-0112, une connexion
+--   · Noé    référent  à Auch-0112, jamais connecté
 
 \set ON_ERROR_STOP on
 \o /dev/null
 
-\set chef 'aaaaaaaa-0111-0000-0000-000000000001'
-\set lina 'aaaaaaaa-0111-0000-0000-000000000002'
-\set marc 'aaaaaaaa-0111-0000-0000-000000000003'
-\set noe  'aaaaaaaa-0111-0000-0000-000000000004'
+\set chef 'aaaaaaaa-0112-0000-0000-000000000001'
+\set lina 'aaaaaaaa-0112-0000-0000-000000000002'
+\set marc 'aaaaaaaa-0112-0000-0000-000000000003'
+\set noe  'aaaaaaaa-0112-0000-0000-000000000004'
 
 insert into auth.users (id, email, raw_user_meta_data) values
-  (:'chef', 'chef0111@example.org', '{"role":"referent"}'),
-  (:'lina', 'lina0111@example.org', '{"role":"referent"}'),
-  (:'marc', 'marc0111@example.org', '{"role":"referent"}'),
-  (:'noe',  'noe0111@example.org',  '{"role":"referent"}');
+  (:'chef', 'chef0112@example.org', '{"role":"referent"}'),
+  (:'lina', 'lina0112@example.org', '{"role":"referent"}'),
+  (:'marc', 'marc0112@example.org', '{"role":"referent"}'),
+  (:'noe',  'noe0112@example.org',  '{"role":"referent"}');
 
 update public.profil set role = 'admin' where id = :'chef';
 
 insert into public.loge (bubble_id, nom) values
-  ('loge-0111-auch', 'Auch — 0111')
+  ('loge-0112-auch', 'Auch — 0112')
 on conflict do nothing;
 
 insert into public.referent (bubble_id, profil_id, nom, prenom, email, loge_id) values
-  ('ref-0111-lina', :'lina', 'Zzz-Lina', 'L', 'lina0111@example.org',
-   (select id from public.loge where bubble_id = 'loge-0111-auch')),
-  ('ref-0111-marc', :'marc', 'Zzz-Marc', 'M', 'marc0111@example.org',
-   (select id from public.loge where bubble_id = 'loge-0111-auch')),
-  ('ref-0111-noe', :'noe', 'Zzz-Noe', 'N', 'noe0111@example.org',
-   (select id from public.loge where bubble_id = 'loge-0111-auch'))
+  ('ref-0112-lina', :'lina', 'Zzz-Lina', 'L', 'lina0112@example.org',
+   (select id from public.loge where bubble_id = 'loge-0112-auch')),
+  ('ref-0112-marc', :'marc', 'Zzz-Marc', 'M', 'marc0112@example.org',
+   (select id from public.loge where bubble_id = 'loge-0112-auch')),
+  ('ref-0112-noe', :'noe', 'Zzz-Noe', 'N', 'noe0112@example.org',
+   (select id from public.loge where bubble_id = 'loge-0112-auch'))
 on conflict do nothing;
 
-select id as lina_ref from public.referent where bubble_id = 'ref-0111-lina' \gset
-select id as marc_ref from public.referent where bubble_id = 'ref-0111-marc' \gset
-select id as noe_ref  from public.referent where bubble_id = 'ref-0111-noe'  \gset
+select id as lina_ref from public.referent where bubble_id = 'ref-0112-lina' \gset
+select id as marc_ref from public.referent where bubble_id = 'ref-0112-marc' \gset
+select id as noe_ref  from public.referent where bubble_id = 'ref-0112-noe'  \gset
 
 -- Lina : une connexion ancienne, close par le silence, puis une neuve.
 insert into public.connexion_referent (referent_id, debut, dernier_signe) values
@@ -44,12 +44,12 @@ insert into public.connexion_referent (referent_id, debut, dernier_signe) values
 
 begin;
   set local role authenticated;
-  set local request.jwt.claims = '{"sub":"aaaaaaaa-0111-0000-0000-000000000002"}';
+  set local request.jwt.claims = '{"sub":"aaaaaaaa-0112-0000-0000-000000000002"}';
   select public.je_me_connecte();
 commit;
 begin;
   set local role authenticated;
-  set local request.jwt.claims = '{"sub":"aaaaaaaa-0111-0000-0000-000000000003"}';
+  set local request.jwt.claims = '{"sub":"aaaaaaaa-0112-0000-0000-000000000003"}';
   select public.je_me_connecte();
 commit;
 
@@ -66,7 +66,7 @@ select public.verifier(
 -- ---------------------------------------------------------------------------
 begin;
   set local role authenticated;
-  set local request.jwt.claims = '{"sub":"aaaaaaaa-0111-0000-0000-000000000001"}';
+  set local request.jwt.claims = '{"sub":"aaaaaaaa-0112-0000-0000-000000000001"}';
   select public.verifier(
     (select count(*) from public.les_connexions_des_referents(500, :'lina_ref')) = 2,
     'les deux connexions de Lina');
@@ -93,7 +93,7 @@ commit;
 -- ---------------------------------------------------------------------------
 begin;
   set local role authenticated;
-  set local request.jwt.claims = '{"sub":"aaaaaaaa-0111-0000-0000-000000000001"}';
+  set local request.jwt.claims = '{"sub":"aaaaaaaa-0112-0000-0000-000000000001"}';
   select public.verifier(
     (select count(*) from public.les_connexions_des_referents()
       where referent_id in (:'lina_ref', :'marc_ref')) = 3,
@@ -109,7 +109,7 @@ commit;
 -- ---------------------------------------------------------------------------
 begin;
   set local role authenticated;
-  set local request.jwt.claims = '{"sub":"aaaaaaaa-0111-0000-0000-000000000001"}';
+  set local request.jwt.claims = '{"sub":"aaaaaaaa-0112-0000-0000-000000000001"}';
   select public.verifier(
     (select array_agg(nom order by rang)
        from (select nom, row_number() over () as rang
@@ -118,7 +118,7 @@ begin;
     'Lina puis Marc, sans Noe');
   select public.verifier(
     (select count(*) from public.les_referents_du_journal()
-      where referent_id = :'lina_ref' and loge_nom = 'Auch — 0111') = 1,
+      where referent_id = :'lina_ref' and loge_nom = 'Auch — 0112') = 1,
     'une ligne par referent, avec sa loge');
 commit;
 
@@ -127,7 +127,7 @@ commit;
 -- ---------------------------------------------------------------------------
 begin;
   set local role authenticated;
-  set local request.jwt.claims = '{"sub":"aaaaaaaa-0111-0000-0000-000000000002"}';
+  set local request.jwt.claims = '{"sub":"aaaaaaaa-0112-0000-0000-000000000002"}';
   select public.verifier(
     (select count(*) from public.les_connexions_des_referents(500, :'lina_ref')) = 0,
     'Lina ne lit pas ses propres connexions');

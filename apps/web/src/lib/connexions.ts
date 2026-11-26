@@ -45,7 +45,7 @@ export function referentDemande(valeur: string | string[] | undefined): string |
 
 /**
  * Les connexions, les plus récentes d'abord — toutes, ou celles d'un seul
- * référent (migration 0111). Le filtre se fait en base, avant la limite : un
+ * référent (migration 0112). Le filtre se fait en base, avant la limite : un
  * référent dont la dernière connexion est ancienne se retrouve quand même.
  */
 export async function listerLesConnexions(

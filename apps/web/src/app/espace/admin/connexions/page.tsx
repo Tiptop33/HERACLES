@@ -24,7 +24,7 @@ export const dynamic = 'force-dynamic';
  * qui n'est pas administrateur.
  *
  * `?referent=<id>` restreint le tableau aux connexions d'un référent
- * (migration 0111) ; le menu au-dessus du tableau écrit cette adresse.
+ * (migration 0112) ; le menu au-dessus du tableau écrit cette adresse.
  */
 export default async function ConnexionsDesReferents({
   searchParams,
