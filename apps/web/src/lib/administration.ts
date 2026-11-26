@@ -51,3 +51,41 @@ export function etatInvitation(invitation: InvitationVisible): {
   if (invitation.perimee) return { etat: 'clos', libelle: 'Périmée' };
   return { etat: 'attente', libelle: 'En attente' };
 }
+
+/** Un compte, tel que l'écran Admin › Comptes l'affiche (migration 0109). */
+export type CompteVisible = {
+  id: string;
+  nom: string | null;
+  prenom: string | null;
+  email: string | null;
+  role: string;
+  a_une_fiche: boolean;
+  loge_id: string | null;
+  loge_nom: string | null;
+  c_est_moi: boolean;
+};
+
+/**
+ * Les comptes ouverts, sans ceux des candidats. `lister_comptes` ne rend rien
+ * à qui n'est pas administrateur : le contrôle est dans la base, pas ici.
+ */
+export async function listerComptes(): Promise<CompteVisible[]> {
+  const supabase = await supabaseServer();
+  const { data } = await supabase.rpc('lister_comptes');
+  return (data ?? []) as CompteVisible[];
+}
+
+/**
+ * La recherche de l'écran des comptes : nom, prénom ou adresse, sans tenir
+ * compte des accents ni des majuscules. Elle range, elle ne protège rien.
+ */
+export function filtrerComptes(comptes: readonly CompteVisible[], recherche: string): CompteVisible[] {
+  const plier = (texte: string) =>
+    texte.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
+  const mots = plier(recherche).split(/\s+/).filter(Boolean);
+  if (mots.length === 0) return [...comptes];
+  return comptes.filter((c) => {
+    const botte = plier([c.prenom, c.nom, c.email].filter(Boolean).join(' '));
+    return mots.every((mot) => botte.includes(mot));
+  });
+}

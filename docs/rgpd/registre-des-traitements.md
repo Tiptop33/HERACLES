@@ -70,7 +70,7 @@ traitements.
 | **Personnes concernées** | Les référents, les parrains qui ont un compte, les administrateurs. |
 | **Données** | Identité, adresse électronique, téléphone, photo, loge, fonction (Vénérable Maître, Secrétaire…), présences aux réunions, empreintes des derniers mots de passe (pour en interdire la réutilisation). |
 | **Données sensibles** | ⚖️ *Même remarque qu'au § 2 : l'appartenance à une loge.* |
-| **Destinataires** | Les membres de la loge, selon leur fonction ; les administrateurs. |
+| **Destinataires** | Les membres de la loge, selon leur fonction ; les administrateurs. Depuis la migration 0109, l'écran Admin › Comptes montre aux seuls administrateurs le nom, l'adresse de connexion, le rôle et la loge de chaque compte ouvert, hors comptes des candidats. |
 | **Sous-traitants** | Hostinger, Brevo (courriels de connexion et de réinitialisation). |
 | **Transferts hors UE** | Aucun. |
 | **Durée de conservation** | ⚠️ *À fixer : jusqu'au départ de la loge, puis… ?* Les invitations (adresse, rôle, loge, état) se suppriment à la main depuis Administration › Invitations depuis la migration 0107, quel que soit leur état ; aucune purge automatique n'est encore fixée. Depuis la migration 0108, l'administration y corrige aussi l'adresse : une invitation pas encore acceptée repart à la nouvelle adresse, et le compte vide laissé par l'ancien envoi — jamais utilisé, relié à rien — est retiré ; une invitation acceptée change l'adresse de connexion du compte et celle de sa fiche référent. |
