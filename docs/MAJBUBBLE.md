@@ -1,8 +1,9 @@
 # MAJBUBBLE — la reprise finale des données Bubble
 
-> **Rétablie le 26 novembre 2026.** L'abandon décidé le 24 novembre est
-> annulé : une reprise complète est rejouée, avec ses fichiers, par la commande
-> ci-dessous. Les quatre reprises partielles que `mettre-a-jour.sh` rejouait à
+> **Rétablie le 26 novembre 2026, et rejouée le jour même** — bilan dans
+> [« Reprise du 26 novembre 2026 »](#reprise-du-26-novembre-2026). L'abandon
+> décidé le 24 novembre est annulé : une reprise complète se rejoue, avec ses
+> fichiers, par la commande ci-dessous. Les quatre reprises partielles que `mettre-a-jour.sh` rejouait à
 > chaque mise en ligne restent retirées : la reprise se lance à la main.
 >
 > Ce que cette décision accepte, en connaissance de cause : la reprise
@@ -22,6 +23,60 @@
 > faisant foi, en laissant derrière elle ce qui avait été saisi dans Bubble
 > depuis la dernière reprise complète, et les fichiers que Bubble refusait de
 > servir (1 CV sur 95, 9 PDF sur 188, dont six en « HTTP 403 »).
+
+## Reprise du 26 novembre 2026
+
+Rejouée sur l'instance d'essai par `reprendre-bubble.sh --fichiers`, sans
+jeton, après une sauvegarde (`heracles-2026-11-26-154111.tar.gz`, 202 Mo, dans
+`/var/backups/heracles` — la copie vers un poste a échoué : `scp` refusé par
+le serveur ; un instantané Hostinger en tient lieu). Des comptes, jamais un
+nom.
+
+| Table | Avant | Après | Repris de Bubble |
+| --- | ---: | ---: | ---: |
+| `candidat` | 124 | 125 | 123 |
+| `referent` | 75 | 75 | 70 |
+| `loge` | 5 | 5 | 3 |
+| `document` | 191 | 199 | 191 |
+| `suivi` (tâches) | 525 | 543 | 18 créées |
+| `reunion` | — | 34 | 28 déversées |
+| `appel` | — | 487 | 403 pointages |
+| `offre_emploi` | 23 275 | 27 814 | 4 539 |
+| `bubble_brut` | 5 288 | 5 307 | |
+
+Ce qu'il en reste à savoir :
+
+- **Un dossier renuméroté.** Un dossier ouvert dans HERACLES portait un numéro
+  que Bubble avait aussi donné : Bubble l'a gardé, le dossier HERACLES a pris
+  le suivant de sa loge.
+- **Les offres de Bubble sont revenues.** La purge (migration 0101) les avait
+  retirées ; la reprise les réinsère. Toutes antérieures au 25 mai 2026, elles
+  ne paraissent sur aucun écran, et la purge qui suit chaque réception de
+  France Travail les retire de nouveau.
+- **Les fichiers.** 10 rapatriés, 11 en échec — tous en `HTTP 403` sauf un,
+  le CV fictif du jeu d'essai (`demo-cand-nadia`, adresse inexistante). État
+  final :
+
+  | Fichiers | Dans le stockage |
+  | --- | ---: |
+  | CV | 94 sur 95 |
+  | CV anonymes | 0 sur 3 |
+  | lettres | 79 sur 79 |
+  | photos des candidats | 89 sur 89 |
+  | PDF | 189 sur 196 |
+  | logos des loges | 3 sur 3 |
+  | photos des référents | 21 sur 21 |
+
+  Un `403` qui persiste est un fichier que Bubble ne sert plus : la fiche est
+  là, le fichier manque, et relancer n'y change rien.
+- **Rattachements.** `parrain_id` : 104 sans correspondance (le type `parrain`
+  n'a pas de table, il reste en réserve brute) ; tâches : 73 sans auteur
+  reconnu, aucune sans candidat. Les provinces ne sont pas relues sans jeton
+  (0 déversée) : les 6 provinces d'HERACLES restent telles quelles, comme le
+  veut la migration 0096. Secteurs : aucune fiche changée. Loges de Guyenne et
+  Gascogne : 73 lues, aucune modifiée.
+- **Comptes de connexion.** `rattacher_les_comptes_orphelins()` : 0 — tous
+  étaient déjà rattachés.
 
 - **Nom retenu :** `MAJBUBBLE`
 - **Échéance :** au plus tard le **5 décembre 2026**, jour de la bascule
