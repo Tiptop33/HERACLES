@@ -65,16 +65,16 @@ traitements.
 
 | | |
 | --- | --- |
-| **Finalité** | Donner accès à l'application aux référents et aux administrateurs ; tenir l'annuaire, les réunions et les présences de la loge. |
+| **Finalité** | Donner accès à l'application aux référents et aux administrateurs ; tenir l'annuaire, les réunions et les présences de la loge. Depuis la migration 0109 (26 novembre 2026) : tenir le **journal des connexions des référents** — qui s'est connecté, quel jour, à quelle heure, combien de temps — à la demande de l'administration. ⚖️ *La finalité précise de ce journal (sécurité des accès ? suivi de l'usage ?) reste à écrire : elle conditionne sa base légale et l'information due aux référents.* |
 | **Base légale** | ⚖️ *Intérêt légitime de l'association, ou exécution de l'adhésion : à trancher.* |
 | **Personnes concernées** | Les référents, les parrains qui ont un compte, les administrateurs. |
-| **Données** | Identité, adresse électronique, téléphone, photo, loge, fonction (Vénérable Maître, Secrétaire…), présences aux réunions, empreintes des derniers mots de passe (pour en interdire la réutilisation). |
+| **Données** | Identité, adresse électronique, téléphone, photo, loge, fonction (Vénérable Maître, Secrétaire…), présences aux réunions, empreintes des derniers mots de passe (pour en interdire la réutilisation). **Journal des connexions** (table `connexion_referent`, migration 0109) : pour chaque connexion d'un référent, la date et l'heure de début, le dernier signe de vie, l'heure de déconnexion — d'où la durée. Jusqu'à cette migration, « qui est là » ne gardait aucun historique ; ce n'est plus vrai. Rien n'est noté pour les candidats. |
 | **Données sensibles** | ⚖️ *Même remarque qu'au § 2 : l'appartenance à une loge.* |
-| **Destinataires** | Les membres de la loge, selon leur fonction ; les administrateurs. |
+| **Destinataires** | Les membres de la loge, selon leur fonction ; les administrateurs. Le journal des connexions n'est lu que par les administrateurs (Admin › Connexions) : un référent ne lit ni ses connexions ni celles des autres. |
 | **Sous-traitants** | Hostinger, Brevo (courriels de connexion et de réinitialisation). |
 | **Transferts hors UE** | Aucun. |
-| **Durée de conservation** | ⚠️ *À fixer : jusqu'au départ de la loge, puis… ?* Les invitations (adresse, rôle, loge, état) se suppriment à la main depuis Administration › Invitations depuis la migration 0107, quel que soit leur état ; aucune purge automatique n'est encore fixée. Depuis la migration 0108, l'administration y corrige aussi l'adresse : une invitation pas encore acceptée repart à la nouvelle adresse, et le compte vide laissé par l'ancien envoi — jamais utilisé, relié à rien — est retiré ; une invitation acceptée change l'adresse de connexion du compte et celle de sa fiche référent. |
-| **Sécurité** | Entrée sur invitation seulement ; mots de passe hachés ; messages d'erreur qui ne révèlent pas qu'une adresse est inscrite. |
+| **Durée de conservation** | ⚠️ *À fixer : jusqu'au départ de la loge, puis… ?* Les invitations (adresse, rôle, loge, état) se suppriment à la main depuis Administration › Invitations depuis la migration 0107, quel que soit leur état ; aucune purge automatique n'est encore fixée. Depuis la migration 0108, l'administration y corrige aussi l'adresse : une invitation pas encore acceptée repart à la nouvelle adresse, et le compte vide laissé par l'ancien envoi — jamais utilisé, relié à rien — est retiré ; une invitation acceptée change l'adresse de connexion du compte et celle de sa fiche référent. **Journal des connexions : douze mois**, purge automatique à l'ouverture de chaque nouvelle connexion ; supprimer la fiche d'un référent supprime ses connexions. |
+| **Sécurité** | Entrée sur invitation seulement ; mots de passe hachés ; messages d'erreur qui ne révèlent pas qu'une adresse est inscrite. Journal des connexions : RLS, lecture réservée aux administrateurs, aucune écriture directe — seules les fonctions de présence y écrivent, pour la personne connectée. ⚠️ *Les référents doivent être informés de l'existence de ce journal avant sa mise en service.* |
 
 ## 3 bis. Les loges du réseau et leurs secteurs d'activité
 
