@@ -148,3 +148,33 @@ function correspond(vers: string | null, chemin: string): boolean {
   if (!vers) return false;
   return chemin === vers || chemin.startsWith(`${vers}/`);
 }
+
+/** L'entrée « Invitations » de la famille Admin. */
+const INVITATIONS = '/espace/admin';
+
+/** La fiche d'un référent : `/espace/referents/<uuid>` et ce qui suit. */
+const FICHE_REFERENT =
+  /^\/espace\/referents\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})(?:\/|$)/i;
+
+/**
+ * L'adresse où mène une entrée, depuis l'écran où l'on est.
+ *
+ * Une seule dépend de l'écran : « Invitations », touchée depuis la fiche d'un
+ * référent, emporte l'identifiant de cette fiche — le formulaire s'ouvre alors
+ * sur son adresse e-mail (demande du 26 novembre 2026). L'identifiant, et non
+ * l'adresse : une adresse e-mail n'a rien à faire dans une barre d'adresse ni
+ * dans un journal de serveur, et la page la relit sous RLS.
+ */
+export function adresseDeLEntree(vers: string, chemin: string): string {
+  if (vers !== INVITATIONS) return vers;
+  const fiche = FICHE_REFERENT.exec(chemin);
+  return fiche ? adresseDInvitation(fiche[1].toLowerCase()) : vers;
+}
+
+/**
+ * Le formulaire d'invitation, ouvert sur un référent : son adresse e-mail et
+ * sa loge y sont proposées. C'est aussi où mène l'enveloppe de sa carte.
+ */
+export function adresseDInvitation(referentId: string): string {
+  return `${INVITATIONS}?referent=${referentId}`;
+}

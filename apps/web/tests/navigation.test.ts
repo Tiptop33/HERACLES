@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { FAMILLES, PARAMETRES, estCourante, famillesDuRole } from '../src/lib/navigation';
+import {
+  FAMILLES,
+  PARAMETRES,
+  adresseDInvitation,
+  adresseDeLEntree,
+  estCourante,
+  famillesDuRole,
+} from '../src/lib/navigation';
 
 describe('les cinq familles', () => {
   it('sont celles de la maquette, dans l’ordre', () => {
@@ -175,5 +182,39 @@ describe('Documents', () => {
       const libelles = famillesDuRole(role).flatMap((f) => f.entrees.map((e) => e.libelle));
       expect(libelles).toContain('Documents');
     }
+  });
+});
+
+describe('« Invitations » depuis la fiche d’un référent', () => {
+  const id = '0b6f1c2e-3a4d-4e5f-8a9b-0c1d2e3f4a5b';
+
+  it('emporte l’identifiant de la fiche', () => {
+    expect(adresseDeLEntree('/espace/admin', `/espace/referents/${id}/modifier`)).toBe(
+      `/espace/admin?referent=${id}`,
+    );
+    expect(adresseDeLEntree('/espace/admin', `/espace/referents/${id}`)).toBe(
+      `/espace/admin?referent=${id}`,
+    );
+  });
+
+  it('reste nue depuis tout autre écran', () => {
+    expect(adresseDeLEntree('/espace/admin', '/espace/referents')).toBe('/espace/admin');
+    expect(adresseDeLEntree('/espace/admin', '/espace/candidats')).toBe('/espace/admin');
+    // Ce qui suit `/referents/` n'a pas la forme d'un identifiant : rien ne part.
+    expect(adresseDeLEntree('/espace/admin', '/espace/referents/x"><script>/modifier')).toBe(
+      '/espace/admin',
+    );
+  });
+
+  it('ne touche à aucune autre entrée', () => {
+    expect(adresseDeLEntree('/espace/admin/comptes', `/espace/referents/${id}/modifier`)).toBe(
+      '/espace/admin/comptes',
+    );
+  });
+
+  it('mène à la même adresse que l’enveloppe de la carte', () => {
+    expect(adresseDInvitation(id)).toBe(
+      adresseDeLEntree('/espace/admin', `/espace/referents/${id}/modifier`),
+    );
   });
 });

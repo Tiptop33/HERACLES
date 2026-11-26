@@ -2292,6 +2292,12 @@ tbody tr:focus-within {
   color: #c2660f;
 }
 
+/* Inviter depuis la carte d'un référent : la même famille que « renvoyer »,
+   et la même couleur. */
+.geste--inviter {
+  color: var(--marque);
+}
+
 /* Renvoyer le lien d'une invitation : un geste sans risque, dans la couleur
    de la marque plutôt que dans le rouge de la corbeille voisine. */
 .geste--renvoyer {

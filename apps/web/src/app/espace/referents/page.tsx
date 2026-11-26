@@ -11,7 +11,8 @@ import {
 import { initiales, nomComplet, telephone } from '@/lib/format';
 import { exigerProfil } from '@/lib/profil';
 import { DrapeauFrance } from './DrapeauFrance';
-import { Corbeille, Stylo } from '@/components/Icones';
+import { Corbeille, Enveloppe, Stylo } from '@/components/Icones';
+import { adresseDInvitation } from '@/lib/navigation';
 
 export const metadata = { title: 'Référents — HERACLES' };
 
@@ -195,6 +196,21 @@ export default async function Referents({
 
                   {admin && (
                     <span className="gestes">
+                      {/* Inviter, à la demande du 26 novembre 2026 : le
+                          formulaire s'ouvre sur l'adresse et la loge de cette
+                          fiche. Seulement là où l'invitation peut partir — une
+                          fiche sans adresse n'a rien à proposer, et une adresse
+                          qui a déjà un compte serait refusée. */}
+                      {f.email && !f.compte_rattache && (
+                        <Link
+                          href={adresseDInvitation(f.id)}
+                          className="geste geste--inviter"
+                          aria-label={`Inviter ${nom}`}
+                          title="Inviter cette personne"
+                        >
+                          <Enveloppe />
+                        </Link>
+                      )}
                       <Link
                         href={`/espace/referents/${f.id}/modifier`}
                         className="geste geste--corriger"
