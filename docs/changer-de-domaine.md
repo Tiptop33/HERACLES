@@ -5,6 +5,16 @@
   `oaf-heracles.fr`, le domaine de l'application Bubble, et son API passe sur
   `api.oaf-heracles.fr`. Point ouvert n° 3 du cadrage, désormais tranché.
 - **Outil :** `infra/essai/changer-de-domaine.sh`, rejouable.
+- **Fait le 27 novembre 2026**, en avance sur le 5 décembre : lignes `A` `@` et
+  `www` passées sur le VPS chez IONOS, puis le script lancé sur le serveur.
+  Vérifié de l'extérieur le même jour :
+  - `https://oaf-heracles.fr` répond, avec un certificat Let's Encrypt valable ;
+  - `www.oaf-heracles.fr` et `essai.oaf-heracles.cloud` renvoient en 301 vers la
+    même page, paramètres compris ;
+  - `api.oaf-heracles.fr` refuse qui n'a pas de clé (401), et Studio reste
+    fermé (404).
+
+  Les copies de sûreté portent l'horodatage `avant-domaine-20261127-175224`.
 - **Ce document ne contient aucun secret.**
 
 ## Ce que ce changement veut dire

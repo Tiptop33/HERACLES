@@ -21,25 +21,32 @@ l'application Bubble. Jalons visés (détail et marges dans le cadrage, § 10) :
 
 Toute décision qui décale un lot doit être signalée : la date de bascule, elle, ne bouge pas.
 
-## Où l'on travaille : le site d'essai, jamais Bubble
+## Où l'on travaille : HERACLES, jamais Bubble
 
 | Site | Adresse | Ce qu'on y fait |
 | --- | --- | --- |
-| **HERACLES, essai** | `essai.oaf-heracles.cloud` | toutes les modifications demandées |
-| **Bubble** | `oaf-heracles.fr` | **rien** — on n'y modifie rien ; ses données sont relues par la reprise complète rétablie le 26 novembre 2026 |
+| **HERACLES** | `oaf-heracles.fr` — API `api.oaf-heracles.fr` | toutes les modifications demandées |
+| **Bubble** | `heracles-42268.bubbleapps.io` | **rien** — on n'y modifie rien ; ses données sont relues par la reprise complète rétablie le 26 novembre 2026 |
 
-Une demande de modification vise **toujours** le site d'essai. L'application Bubble ne se
-modifie en aucun cas : ni ses données, ni ses réglages, ni ses écrans. Elle reste telle
-qu'elle est jusqu'à son arrêt. L'abandon de la reprise, décidé le 24 novembre 2026, a été
-annulé le 26 : une reprise complète (`reprendre-bubble.sh --fichiers`) est rejouée, et
+**Depuis le 27 novembre 2026, HERACLES est sur `oaf-heracles.fr`**, l'ancien domaine de
+Bubble. La bascule de domaine a été faite ce jour-là, en avance sur le 5 décembre, avec
+`infra/essai/changer-de-domaine.sh` (`docs/changer-de-domaine.md`).
+
+- `essai.oaf-heracles.cloud` et `www.oaf-heracles.fr` renvoient vers `oaf-heracles.fr`, chemin
+  compris : les liens déjà envoyés aboutissent toujours.
+- La zone DNS de `oaf-heracles.fr` est chez **IONOS** ; celle de `oaf-heracles.cloud`, chez
+  Hostinger. L'entrée `essai` de `oaf-heracles.cloud` reste : elle porte la redirection, le
+  déploiement automatique et la sauvegarde du Mac.
+- Sur le serveur, l'instance garde ses noms internes d'essai (`heracles-essai`,
+  `/opt/heracles-essai-depot`, ports 3003 et 8101). Ils ne désignent plus un site de test :
+  c'est l'instance en service, avec ses données réelles.
+
+Une demande de modification vise **toujours** HERACLES. L'application Bubble ne se modifie en
+aucun cas : ni ses données, ni ses réglages, ni ses écrans. Elle reste telle qu'elle est,
+joignable à son adresse d'origine, jusqu'à son arrêt. L'abandon de la reprise, décidé le
+24 novembre 2026, a été annulé le 26 : une reprise complète (`reprendre-bubble.sh --fichiers`)
+peut être rejouée. Elle lit Bubble à son adresse d'origine, jamais `oaf-heracles.fr`, et
 remplace sur les fiches communes ce que Bubble renseigne.
-
-Décision du 27 novembre 2026 : **à la bascule, HERACLES prend `oaf-heracles.fr`**, son API
-`api.oaf-heracles.fr`, et `essai.oaf-heracles.cloud` redirige vers le nouveau nom. C'est le
-DNS de `oaf-heracles.fr` qui change, chez IONOS, où le domaine est enregistré, pas Bubble.
-Le changement de DNS *est* la bascule : il se fait après la dernière reprise, selon
-`docs/changer-de-domaine.md`, et jamais en passant. Ce tableau se met à jour le jour où
-c'est fait.
 
 ## Langue
 
@@ -203,7 +210,7 @@ sert**, pas la liste des fichiers touchés.
   Toute PR qui ajoute une donnée personnelle, un écran qui en montre ou un
   prestataire qui en voit passer le met à jour.
 - **Changer de domaine** — `docs/changer-de-domaine.md` : le passage de HERACLES sur
-  `oaf-heracles.fr` le jour de la bascule, la zone DNS chez IONOS,
+  `oaf-heracles.fr`, fait le 27 novembre 2026 ; la zone DNS chez IONOS,
   `changer-de-domaine.sh`, la redirection des anciens liens et le retour en arrière.
 - **Sauvegarde** — `docs/sauvegarde.md`. Le serveur porte des données réelles :
   base, fichiers, et la copie qui doit en sortir. À lire avant toute opération
