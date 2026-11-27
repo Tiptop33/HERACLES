@@ -1,21 +1,23 @@
 # Les offres saisies à la main
 
-Sur l'écran **« Offres externes »** (famille « Emploi », adresse
-`/espace/france-travail`), un référent ou l'administration saisit une offre
+Sur l'écran **« Offres internes »** (famille « Emploi », adresse
+`/espace/offres-internes`), un référent ou l'administration saisit une offre
 d'emploi, de stage ou de stage en alternance trouvée ailleurs qu'à France
-Travail : une annonce, une entreprise du réseau, un appel. Elle rejoint la
-liste des offres en cours, et la page des candidats de son secteur.
+Travail : une annonce, une entreprise du réseau, un appel. Elle s'affiche sur
+cet écran, à l'accueil, et sur la page des candidats de son secteur. L'écran
+**« Offres externes »**, lui, ne montre que les offres de France Travail.
 
 Décisions du 27 novembre 2026, posées une par une :
-`docs/maquettes/saisie-d-une-offre-propositions-notes.md`. Base : migration
-`0114_offres_saisies.sql`.
+`docs/maquettes/saisie-d-une-offre-propositions-notes.md`. Base : migrations
+`0114_offres_saisies.sql` et `0115_offres_internes.sql`.
 
 ## Ce que voit la personne
 
 | Où | Quoi |
 | --- | --- |
+| L'écran « Offres internes » | le titre, puis une **liste simple** — ni recherche ni filtre : elles sont peu nombreuses |
 | En tête de la liste « Offres d'emploi en cours » | **« + Saisir une offre »**, qui ouvre la fenêtre de saisie — flottante, non modale, une colonne |
-| Dans la liste | l'offre, à sa date, avec **l'étiquette de son type** avant la date : Emploi (bleu), Stage (vert), Alternance (rouge) — les couleurs des familles de recherche |
+| Dans la liste | les offres saisies en ligne, de tous les référents, avec **l'étiquette de leur type** avant la date : Emploi (bleu), Stage (vert), Alternance (rouge) — les couleurs des familles de recherche. La même étiquette les distingue dans la liste de l'accueil |
 | Dans son détail | le type et le contrat (« Emploi — CDD »), la durée, le secteur, la description, le contact, et **« Voir l'annonce »** si un lien est donné |
 | Au pied du détail, pour son auteur et l'administration | « En ligne jusqu'au … », **Modifier**, **Prolonger de 30 jours**, **Retirer l'offre** (avec confirmation, sur place) |
 | Sous la liste | **« Offres saisies sorties de la liste »**, seulement s'il y en a : les siennes pour un référent, toutes pour l'administration |
@@ -95,17 +97,28 @@ filtres par secteur, le menu des secteurs et la page du candidat la
 comprennent. Sur la page du candidat, une offre rangée dans une section
 parvient aussi au candidat qui cherche dans l'une de ses divisions.
 
-## L'écran « Offres externes »
+## Les deux écrans de la famille « Emploi »
 
-Il s'appelait « France Travail » du 23 au 27 novembre 2026, son logo pour
-titre ; il reprend son nom et un titre écrit, puisque toutes ses offres ne
-viennent plus de France Travail. L'adresse ne change pas : les liens déjà
-donnés restent valables. Le logo (`public/logo-france-travail.svg`) a été
-retiré du dépôt ; il reste dans l'historique.
+| Écran | Adresse | Ce qu'il montre | Lecture en base |
+| --- | --- | --- | --- |
+| **Offres internes** | `/espace/offres-internes` | les offres saisies — saisie, gestes, offres sorties de la liste | `offres_internes_en_cours()`, `offres_saisies_echues()` |
+| **Offres externes** | `/espace/france-travail` | les offres de France Travail seulement — recherche, départements, secteur | `offres_en_cours(…)`, `filtres_des_offres()` |
+
+Le 27 novembre au matin, la saisie a d'abord été mise sur « Offres
+externes » ; rectifié le jour même (« offres externes, c'est plutôt offres
+internes ») : migration 0115. « Offres externes » s'appelait « France
+Travail » du 23 au 27 novembre 2026, son logo pour titre ; il a repris son nom
+et un titre écrit. Son adresse ne change pas : les liens déjà donnés restent
+valables. Le logo (`public/logo-france-travail.svg`) a été retiré du dépôt ;
+il reste dans l'historique.
+
+L'accueil (les cinq dernières offres) et la page du candidat montrent
+toujours les deux sortes d'offres.
 
 ## Les tests
 
 - Base : `supabase/tests/0114_offres_saisies.test.sql` — droits de chacun,
-  contrôle des champs, liste et filtres, page du candidat, purge, échues.
+  contrôle des champs, page du candidat, purge, échues ;
+  `0115_offres_internes.test.sql` — chaque écran ne montre que les siennes.
 - Application : `apps/web/tests/offres-saisies.test.ts`, `offres.test.ts`,
   `navigation.test.ts`, `aide.test.ts` (parcours « Saisir une offre »).

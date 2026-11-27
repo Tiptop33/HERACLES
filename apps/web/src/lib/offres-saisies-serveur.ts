@@ -21,6 +21,19 @@ export async function lireOffreAModifierDe(id: string): Promise<OffreAModifier |
 }
 
 /**
+ * Les offres saisies encore en ligne, de tous les référents — l'écran
+ * « Offres internes » (0115). `null` quand la base refuse ou ne répond pas :
+ * l'écran le dit, plutôt que de montrer une liste vide qui se lirait
+ * « aucune offre ».
+ */
+export async function lireLesOffresInternesEnCours(): Promise<OffreEchue[] | null> {
+  const supabase = await supabaseServer();
+  const { data, error } = await supabase.rpc('offres_internes_en_cours');
+  if (error) return null;
+  return lireOffresEchues(data);
+}
+
+/**
  * Les offres saisies sorties de la liste : les siennes pour un référent,
  * toutes pour l'administration. Une liste vide quand la base ne répond pas —
  * le bloc ne s'affiche alors pas, et la liste principale reste.
