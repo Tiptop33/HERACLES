@@ -1542,7 +1542,7 @@ export const PARCOURS: readonly Parcours[] = [
   {
     id: 'connexions',
     titre: 'Voir les connexions des référents',
-    motsCles: ['connexions', 'journal des connexions', 'historique des connexions', 'quand s’est-il connecté', 'dernière connexion', 'durée de connexion', 'activité des référents'],
+    motsCles: ['connexions', 'journal des connexions', 'historique des connexions', 'quand s’est-il connecté', 'dernière connexion', 'durée de connexion', 'durée cumulée', 'temps passé', 'activité des référents'],
     roles: ['admin'],
     destination: CONNEXIONS,
     etapes: [
@@ -1550,6 +1550,14 @@ export const PARCOURS: readonly Parcours[] = [
         ancre: `menu:${CONNEXIONS}`,
         texte: 'Dans la colonne de gauche, famille « Admin », cliquez sur « Connexions ».',
         court: 'Sous « Plus », famille « Admin », touchez « Connexions ».',
+      },
+      {
+        ancre: 'duree-cumulee-des-connexions',
+        ecran: CONNEXIONS,
+        texte:
+          'En haut, une ligne par référent : le temps passé sur l’application, toutes ses connexions additionnées, la plus longue durée en tête. Ce tableau reste complet quel que soit le référent choisi plus bas.',
+        court: 'Le temps total de chaque référent, le plus long en tête.',
+        siAbsent: 'Aucune connexion n’est encore enregistrée.',
       },
       {
         ancre: 'filtre-connexions',

@@ -83,3 +83,33 @@ export async function listerLesReferentsDuJournal(): Promise<ReferentDuJournal[]
   }
   return (data ?? []) as ReferentDuJournal[];
 }
+
+export type DureeCumuleeDeReferent = {
+  referent_id: string;
+  nom: string | null;
+  prenom: string | null;
+  /** Toutes ses connexions additionnées, celle en cours comprise. */
+  duree_secondes: number;
+};
+
+/**
+ * Une ligne par référent qui s'est connecté : la durée de toutes ses
+ * connexions additionnées, la plus longue en tête (migration 0118).
+ *
+ * La somme se fait en base, sur tout le journal — pas sur les
+ * `LIMITE_DES_CONNEXIONS` lignes affichées, qui tronqueraient le total. Vide
+ * pour qui n'est pas administrateur.
+ */
+export async function listerLesDureesCumulees(): Promise<DureeCumuleeDeReferent[]> {
+  const supabase = await supabaseServer();
+  const { data, error } = await supabase.rpc('la_duree_cumulee_des_referents');
+  if (error) {
+    console.error('[connexions] durées cumulées impossibles', error.code);
+    return [];
+  }
+  // `bigint` en base : PostgREST peut le rendre en chaîne, on le relit en nombre.
+  return ((data ?? []) as DureeCumuleeDeReferent[]).map((ligne) => ({
+    ...ligne,
+    duree_secondes: Number(ligne.duree_secondes),
+  }));
+}
