@@ -35,7 +35,10 @@ rôle a le droit d'ouvrir.
 ## Le compte rendu, l'affiche et l'affichette
 
 La question qui revient le plus, d'où quatre parcours qui partent tous de
-**Réunion** et finissent sur **Documents**, là où l'exemplaire est rangé :
+**Réunion** et finissent sur **Documents**, là où l'exemplaire est rangé.
+Depuis le 27 novembre 2026, « Réunion » est dans la famille **Admin** : ces
+quatre parcours, comme tous ceux qui passent par la réunion, sont réservés à
+l'administration (voir plus bas, « Réunion passe dans Admin ») :
 
 | Parcours | Les étapes, dans l'ordre |
 | --- | --- |
@@ -310,6 +313,34 @@ tests vérifient les ancres, les textes, la recherche et la reprise, pas
 l'écran. Premier essai utile sur l'instance d'essai : en référent, « Aide ›
 comment créer le compte rendu », « Montre-moi », et suivre jusqu'au bout — la
 visite doit survivre à « Ouvrir l'appel ».
+
+## Réunion passe dans Admin — 27 novembre 2026
+
+À la demande, l'entrée « Réunion » a quitté la famille « Réseau » pour la fin
+de la famille « Admin », que les référents ne voient pas. L'écran, ses routes
+et les fonctions de la base sont fermés aux référents (migration 0116).
+
+Pour l'aide, cela fait trois changements :
+
+- l'étape du menu dit « famille « Admin » » (`MENU_REUNION`) ;
+- les **onze parcours** qui passent par l'écran Réunion — l'appel, les trois
+  documents et leur pas à pas, le dossier de l'affichette, la prochaine
+  réunion, le registre, retirer, rendre et effacer une réunion — portent
+  `roles: ['admin']`. Le test « ne guide un rôle que vers des entrées de menu
+  qu'il voit » l'exige : un référent ne peut pas être conduit vers une entrée
+  qu'il n'a pas ;
+- une visite de la réunion retenue dans l'onglet ne se reprend pas chez un
+  référent.
+
+**75 parcours** dans l'espace de travail : **42 pour un référent**, 74 pour
+l'administration. Un référent qui demande « créer le compte rendu » ne se voit
+plus proposer la réunion ; « où retrouver un ancien compte rendu » le mène
+toujours à **Documents**, et l'affichette se tire toujours depuis la fiche du
+candidat.
+
+Le premier essai utile de la section précédente se fait donc **en
+administrateur** : « Aide › comment créer le compte rendu », « Montre-moi », et
+suivre jusqu'au bout.
 
 ## Récapitulatif — état au 11 novembre 2026
 

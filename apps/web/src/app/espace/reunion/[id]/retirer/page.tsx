@@ -24,7 +24,9 @@ export default async function RetirerUneReunion({
   params: Promise<{ id: string }>;
 }) {
   const profil = await exigerProfil();
-  if (profil.role === 'chercheur') redirect(accueilDuRole(profil.role));
+  // Réservée à l'administration depuis le 27 novembre 2026 (migration 0116) :
+  // un référent n'a plus l'entrée du menu, ni l'écran par son adresse.
+  if (profil.role !== 'admin') redirect(accueilDuRole(profil.role));
 
   const { id } = await params;
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();

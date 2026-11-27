@@ -4,7 +4,7 @@ import { archiverLeDocument } from '@/lib/documents/archiver';
 import { donneesDuCompteRendu } from '@/lib/documents/donnees';
 import { produireLeCompteRendu } from '@/lib/documents/produire';
 import { enTeteDeTelechargement } from '@/lib/fichiers';
-import { lireUneReunion } from '@/lib/reunion';
+import { REUNION_RESERVEE, administreLesReunions, lireUneReunion } from '@/lib/reunion';
 import { supabaseServer } from '@/lib/supabase-server';
 
 /**
@@ -43,6 +43,9 @@ export async function GET(_requete: Request, { params }: { params: Promise<{ id:
     } = await supabase.auth.getUser();
     if (!user) {
       return NextResponse.json({ erreur: 'Session expirée.' }, { status: 401 });
+    }
+    if (!(await administreLesReunions(supabase))) {
+      return NextResponse.json({ erreur: REUNION_RESERVEE }, { status: 403 });
     }
 
     // Une réunion d'une autre loge est introuvable, pas interdite : la

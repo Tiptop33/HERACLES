@@ -12,6 +12,10 @@
 
 insert into auth.users (id, email, raw_user_meta_data) values
   (:'yuri', 'yuri0046@example.org', '{"role":"referent"}');
+-- Depuis 0116, la réunion est réservée à l'administration : ceux qui la
+-- tiennent ici sont administrateurs. Ce que ce fichier éprouve — la loge,
+-- le registre, les pointages — vaut pour eux à l'identique.
+update public.profil set role = 'admin' where id in (:'yuri');
 
 insert into public.loge (bubble_id, nom) values ('loge-0046', 'Nantes — 0046')
 on conflict do nothing;
@@ -194,9 +198,17 @@ select public.verifier(
 --
 -- Toutes les migrations qui redéfinissent `ouvrir_une_reunion` après 0036 sont
 -- donc rejouées derrière, dans l'ordre, comme le ferait le serveur.
+--
+-- 0116 redéfinit aussi les autres fonctions que 0036 recrée — le registre et
+-- la feuille d'appel comprises, dont 0041 et 0045 ont changé le type de
+-- retour : `create or replace` refuserait de passer sur leur version de 0036.
+-- Ces deux-là sont donc rejouées aussi, à leur rang.
+\i supabase/migrations/0041_effacer_une_reunion.sql
+\i supabase/migrations/0045_assiduite_de_la_reunion_ouverte.sql
 \i supabase/migrations/0046_reunions_de_bubble_meme_jour.sql
 \i supabase/migrations/0053_pointer_a_l_ouverture.sql
 \i supabase/migrations/0054_me_pointer_a_l_ouverture.sql
+\i supabase/migrations/0116_reunion_reservee_a_l_administration.sql
 
 -- Le garde-fou. `ouvrir_une_reunion` porte dans son corps un repère de
 -- version ; il est comparé ici au numéro de la dernière migration qui la
@@ -211,7 +223,7 @@ select public.verifier(
 -- loin sous la forme d'un pointage qui manque — ce qui est exactement arrivé
 -- à 0053.
 select public.verifier(
-  (select prosrc like '%version 0054%'
+  (select prosrc like '%version 0116%'
      from pg_proc p join pg_namespace n on n.oid = p.pronamespace
     where n.nspname = 'public' and p.proname = 'ouvrir_une_reunion'),
   'et ouvrir_une_reunion est bien revenue a sa version courante');

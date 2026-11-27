@@ -26,6 +26,11 @@ insert into auth.users (id, email, raw_user_meta_data) values
   (:'carla', 'carla0067@example.org', '{"role":"referent"}'),
   (:'denis', 'denis0067@example.org', '{"role":"referent"}');
 update public.profil set role = 'admin' where id = :'anne';
+-- Depuis 0116, la réunion est réservée à l'administration : Carla, la
+-- Secrétaire, lit la commission et les dossiers de la réunion en
+-- administratrice. Bruno reste référent : c'est lui qui se voit refuser la
+-- mise en page.
+update public.profil set role = 'admin' where id = :'carla';
 
 insert into public.loge (bubble_id, nom, lieu_reunions) values
   ('loge-0067-pau', 'Pau — 0067', 'Salle des fêtes à 11H30'),
@@ -264,7 +269,7 @@ commit;
 -- ---------------------------------------------------------------------------
 begin;
   set local role authenticated;
-  set local request.jwt.claims = '{"sub":"cccccccc-6700-0000-0000-000000000002"}';
+  set local request.jwt.claims = '{"sub":"cccccccc-6700-0000-0000-000000000003"}';
 
   select public.verifier(
     (select definition_emploi from public.dossiers_en_cours(:'seance'::uuid) where numero = 6701)

@@ -8,7 +8,27 @@ import { supabaseServer } from './supabase-server';
  * fiche de référent — et non `loges_visibles()`, qui y ajouterait les loges
  * des candidats qu'on accompagne. Juste pour ouvrir un dossier, faux pour
  * tenir un registre.
+ *
+ * Depuis le 27 novembre 2026, la réunion est réservée à l'administration
+ * (migration 0116) : l'entrée est dans la famille « Admin », et la base ne
+ * rend rien, n'accepte rien, d'une autre session.
  */
+
+type Client = Awaited<ReturnType<typeof supabaseServer>>;
+
+/** Ce que répond une route de la réunion à une session qui n'administre pas. */
+export const REUNION_RESERVEE = 'La réunion est réservée à l’administration.';
+
+/**
+ * Vrai si la session administre — la seule à qui la réunion est ouverte
+ * (migration 0116). Les fonctions de la base refusent d'elles-mêmes toute
+ * autre session ; ce contrôle-ci, posé juste après celui de la session, répond
+ * clairement avant de rien leur demander.
+ */
+export async function administreLesReunions(supabase: Client): Promise<boolean> {
+  const { data } = await supabase.rpc('est_admin');
+  return data === true;
+}
 
 /** Les trois états de l'appel. Ce sont les mots de Bubble, repris tels quels. */
 export const PRESENT = 'Présent';
