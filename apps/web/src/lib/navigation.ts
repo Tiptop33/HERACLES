@@ -92,6 +92,13 @@ export const FAMILLES: readonly Famille[] = [
     nom: 'Admin',
     rolesAutorises: ['admin'],
     entrees: [
+      // Venue de la famille Réseau le 27 novembre 2026, à la demande : l'appel,
+      // le registre, le compte rendu, l'affiche et l'affichette ne se tiennent
+      // plus que par l'administration (migration 0117). En tête de famille,
+      // à la demande du même jour : c'est l'écran que l'administration ouvre
+      // à chaque séance. L'adresse ne change pas : les liens déjà donnés
+      // restent valables.
+      { libelle: 'Réunion', vers: '/espace/reunion' },
       { libelle: 'Invitations', vers: '/espace/admin' },
       // Ouvrir un dossier depuis l'administration : le même écran que le
       // bouton du volet des candidats (invitation du parrain).
@@ -106,12 +113,6 @@ export const FAMILLES: readonly Famille[] = [
       // des référents — date, heure, durée (migration 0110). En fin de
       // famille, après « Comptes », pour ne déplacer aucune entrée.
       { libelle: 'Connexions', vers: '/espace/admin/connexions' },
-      // Venue de la famille Réseau le 27 novembre 2026, à la demande : l'appel,
-      // le registre, le compte rendu, l'affiche et l'affichette ne se tiennent
-      // plus que par l'administration (migration 0117). En fin de famille,
-      // pour ne déplacer aucune entrée d'Admin. L'adresse ne change pas : les
-      // liens déjà donnés restent valables.
-      { libelle: 'Réunion', vers: '/espace/reunion' },
     ],
   },
 ];

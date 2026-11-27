@@ -186,16 +186,16 @@ describe('Documents', () => {
 });
 
 describe('Réunion', () => {
-  it('ferme la famille Admin, après « Connexions », sans déplacer les autres', () => {
+  it('ouvre la famille Admin, les autres entrées gardant leur ordre', () => {
     const admin = FAMILLES.find((f) => f.nom === 'Admin')!;
     expect(admin.entrees.map((e) => e.libelle)).toEqual([
+      'Réunion',
       'Invitations',
       'Nouveau candidat',
       'Loges',
       "Secteur d'activité",
       'Comptes',
       'Connexions',
-      'Réunion',
     ]);
   });
 

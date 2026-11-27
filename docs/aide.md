@@ -316,8 +316,8 @@ visite doit survivre à « Ouvrir l'appel ».
 
 ## Réunion passe dans Admin — 27 novembre 2026
 
-À la demande, l'entrée « Réunion » a quitté la famille « Réseau » pour la fin
-de la famille « Admin », que les référents ne voient pas. L'écran, ses routes
+À la demande, l'entrée « Réunion » a quitté la famille « Réseau » pour la
+tête de la famille « Admin », que les référents ne voient pas. L'écran, ses routes
 et les fonctions de la base sont fermés aux référents (migration 0117).
 
 Pour l'aide, cela fait trois changements :
