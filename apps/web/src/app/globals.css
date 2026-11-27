@@ -4900,6 +4900,12 @@ a.poste-document .poste-document-type {
   padding-bottom: 5rem;
 }
 
+/* Même marge sur la page du candidat : ses derniers documents remontent
+   au-dessus du bouton. */
+.pc:has(.aide-bouton) .pc-enveloppe {
+  padding-bottom: 5rem;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .aide-halo {
     animation: none;

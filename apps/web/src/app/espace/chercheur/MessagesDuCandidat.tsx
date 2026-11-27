@@ -85,7 +85,12 @@ export default function MessagesDuCandidat({
   }
 
   return (
-    <section className="pc-bloc" id="pc-messages" aria-labelledby="pc-messages-titre">
+    <section
+      className="pc-bloc"
+      id="pc-messages"
+      aria-labelledby="pc-messages-titre"
+      data-aide="candidat-messages"
+    >
       <header>
         <h2 id="pc-messages-titre">Où j’en suis</h2>
       </header>

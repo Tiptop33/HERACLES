@@ -1121,3 +1121,93 @@ describe('la visite qui survit au rechargement de la page', () => {
     expect(clic.indexOf('ecrireLaVisite(')).toBeLessThan(clic.indexOf('avancer(index)'));
   });
 });
+
+describe('l’aide de la page du candidat', () => {
+  const candidat = parcoursDuCatalogue('candidat');
+  const parcours = (id: string) => candidat.find((p) => p.id === id)!;
+  const DOSSIER = join(SRC, 'app', 'espace', 'chercheur');
+  const PAGE = readdirSync(DOSSIER)
+    .filter((nom) => nom.endsWith('.tsx'))
+    .map((nom) => readFileSync(join(DOSSIER, nom), 'utf8'))
+    .join('\n');
+
+  it('est montée sur la page, avec son catalogue, et sans Claude', () => {
+    const espace = readFileSync(join(DOSSIER, 'EspaceCandidat.tsx'), 'utf8');
+    expect(espace).toContain('<Aide catalogue="candidat" />');
+    expect(espace).not.toContain('renfort');
+    // Le compte du candidat n'a toujours rien de l'aide des référents.
+    expect(parcoursDuRole('chercheur')).toEqual([]);
+  });
+
+  it('ne cite que des ancres posées sur la page du candidat', () => {
+    for (const p of candidat) {
+      for (const e of p.etapes) {
+        expect(PAGE, p.id).toContain(`data-aide="${e.ancre}"`);
+      }
+    }
+  });
+
+  it('reste sur la page, une étape par réponse, avec sa version courte', () => {
+    for (const p of candidat) {
+      expect(p.destination, p.id).toBeNull();
+      expect(p.etapes, p.id).toHaveLength(1);
+      const etape = p.etapes[0];
+      expect(etape.ecran, p.id).toBeUndefined();
+      expect(etape.court, p.id).toBeTruthy();
+      expect(etape.court!.length, p.id).toBeLessThanOrEqual(100);
+      expect(etape.court!.length, p.id).toBeLessThan(etape.texte.length);
+    }
+  });
+
+  it('n’a aucun identifiant en commun avec les autres catalogues', () => {
+    const ailleurs = new Set([
+      ...PARCOURS.map((p) => p.id),
+      ...[...CATALOGUES, 'compte' as const].flatMap((c) => parcoursDuCatalogue(c).map((p) => p.id)),
+    ]);
+    for (const p of candidat) expect(ailleurs.has(p.id), p.id).toBe(false);
+  });
+
+  it('parle au candidat avec les mots du produit, et ne nomme personne', () => {
+    const textes = candidat
+      .flatMap((p) => [p.titre, ...p.etapes.flatMap((e) => [e.texte, e.court ?? ''])])
+      .join(' ');
+    expect(textes).not.toMatch(/chercheur|demandeur d’emploi|utilisateur/i);
+  });
+
+  it('dit qui lit ses messages et ses informations, et ce qui ne se rattrape pas', () => {
+    expect(parcours('candidat-messages').etapes[0].texte).toMatch(/eux seuls/);
+    expect(parcours('candidat-messages').etapes[0].texte).toMatch(/sans le texte/);
+    expect(parcours('candidat-messages').etapes[0].court).toMatch(/seuls/);
+    expect(parcours('candidat-messages').etapes[0].court).toMatch(/24 heures/);
+    expect(parcours('candidat-donnees').etapes[0].texte).toMatch(/jamais publiés/);
+    expect(parcours('candidat-donnees').etapes[0].court).toMatch(/jamais publié/);
+    expect(parcours('candidat-supprimer-document').etapes[0].texte).toMatch(/pour de bon/);
+    expect(parcours('candidat-supprimer-document').etapes[0].court).toMatch(/pour de bon/);
+    // La photo se retire sans fenêtre : l'aide ne promet pas de confirmation.
+    expect(parcours('candidat-photo').etapes[0].texte).toMatch(/sans fenêtre de confirmation/);
+  });
+
+  it.each([
+    ['comment écrire à mon référent', 'candidat-messages'],
+    ['corriger un message', 'candidat-messages'],
+    ['qui est mon référent', 'candidat-referent'],
+    ['comment ajouter mon CV', 'candidat-documents'],
+    ['ajouter une lettre de motivation', 'candidat-documents'],
+    ['supprimer mon ancien CV', 'candidat-supprimer-document'],
+    ['je ne vois aucune offre', 'candidat-secteurs'],
+    ['voir les nouvelles offres', 'candidat-offres'],
+    ['changer de département', 'candidat-departements'],
+    ['ce qui manque à ma fiche', 'candidat-jauge'],
+    ['changer mon numéro de téléphone', 'candidat-fiche'],
+    ['changer ma photo', 'candidat-photo'],
+    ['qui voit mes informations', 'candidat-donnees'],
+    ['comment me reconnecter', 'candidat-deconnexion'],
+    ['j’ai oublié mon mot de passe', 'candidat-deconnexion'],
+  ])('« %s » mène à %s', (question, attendu) => {
+    expect(chercherDesParcours(question, candidat)[0]?.id).toBe(attendu);
+  });
+
+  it('propose un exemple que sa propre recherche sait résoudre', () => {
+    expect(chercherDesParcours(EXEMPLES.candidat, candidat)[0]?.id).toBe('candidat-messages');
+  });
+});

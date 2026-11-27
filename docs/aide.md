@@ -206,6 +206,41 @@ Le mot de passe ne se change pas dans « Mon compte » : la page n'a pas de cham
 pour cela. Le parcours « Changer mon mot de passe » renvoie vers « Mot de passe
 oublié ? », sur l'écran de connexion.
 
+## Sur la page du candidat
+
+Demandée le 27 novembre 2026. `/espace/chercheur` a sa propre barre, sans la
+colonne des référents : l'aide y a son catalogue (`candidat`, dans
+`parcours-publics.ts`), sur le modèle de « Mon compte » — une étape par
+réponse, sur la page, sans « Emmène-moi » et **sans Claude** : la question
+tapée par un candidat ne quitte pas son navigateur. Le bouton est monté dans
+`EspaceCandidat.tsx`, en bas à droite comme sur la fiche de candidature, avec
+une marge en bas de page pour que le dernier bloc remonte au-dessus de lui.
+
+Douze réponses : les offres pour moi, les départements, les secteurs
+d'activité, la jauge et ce qui manque, corriger sa fiche, la photo, « Où j'en
+suis », ajouter un CV ou une lettre, supprimer un document, qui suit ma
+recherche, qui voit mes informations, se déconnecter et revenir.
+
+Ce que les tests tiennent :
+
+- chaque ancre citée est posée sur un composant de la page
+  (`candidat-offres`, `candidat-departements`, `candidat-secteurs`,
+  `candidat-jauge`, `candidat-fiche`, `candidat-photo`, `candidat-messages`,
+  `candidat-documents`, `candidat-supprimer-document`, `candidat-referent`,
+  `candidat-deconnexion`) ;
+- chaque réponse a sa version courte de cent caractères au plus ;
+- les textes ne nomment personne et parlent de « candidat », jamais de
+  « chercheur » — le nom de rôle du code ;
+- ce qui protège la personne reste dit, version courte comprise : les messages
+  sont lus par le référent et le parrain **seuls**, le référent est prévenu
+  sans le texte, rien n'est publié, seul le CV anonyme circule, un document
+  supprimé l'est **pour de bon** ; et la photo se retire **sans** fenêtre de
+  confirmation — l'aide ne promet pas une confirmation qui n'existe pas.
+
+Vu dans Chromium, ordinateur et téléphone, sur une page d'essai aux données
+inventées (sans base) : les onze ancres trouvées, le guide placé, la version
+courte sur téléphone, et la visite reprise après un rechargement de la page.
+
 ## Ajouter un parcours
 
 1. Poser une **ancre** sur l'élément à désigner : `data-aide="mon-element"`.
@@ -252,7 +287,8 @@ se trouve le bouton « Aide ». Sa bulle, elle, est déjà à l'arrivée.
 ## Mise à jour du 27 novembre 2026
 
 L'aide a rattrapé ce qui a été livré depuis le 11 novembre. **74 parcours**
-dans l'espace de travail : 52 pour un référent, 73 pour l'administration.
+dans l'espace de travail : 52 pour un référent, 73 pour l'administration. Et
+**12 sur la page du candidat**, qui n'avait pas d'aide (section ci-dessus).
 
 - **Les documents de la réunion** : les quatre parcours ci-dessus, et
   « Faire l'appel » va désormais jusqu'à « Fermer la feuille ».
@@ -305,6 +341,7 @@ dit où l'on en est et ce qui reste à éprouver.
 | Fiche du candidat (formulaire public) | 9 | Une étape par réponse, sans Claude, bulles courtes sur téléphone |
 | Présentation du parrain (formulaire public) | 5 | Idem |
 | Mon compte | 3 | Idem |
+| Page du candidat (ajoutée le 27 novembre) | 12 | Idem |
 
 ### Ce que couvrent les 60 parcours de l'espace de travail
 

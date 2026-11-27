@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Aide from '@/components/aide/Aide';
 import {
   initialesDe,
   remplissage,
@@ -76,7 +77,7 @@ export default function EspaceCandidat({
           <span className="pc-portrait">{portrait}</span>
           <span className="pc-nom">{[fiche.prenom, fiche.nom].filter(Boolean).join(' ')}</span>
           <form action="/api/deconnexion" method="post">
-            <button type="submit" className="pc-lien">
+            <button type="submit" className="pc-lien" data-aide="candidat-deconnexion">
               Se déconnecter
             </button>
           </form>
@@ -90,13 +91,13 @@ export default function EspaceCandidat({
           </a>
           <div>
             <h1>Bonjour {fiche.prenom ?? ''}</h1>
-            <p className="pc-suivi">
+            <p className="pc-suivi" data-aide="candidat-referent">
               {fiche.referent
                 ? `${fiche.referent}, votre référent, suit votre recherche.`
                 : 'Un référent va prendre votre dossier en charge.'}
             </p>
           </div>
-          <div className="pc-jauge" aria-live="polite">
+          <div className="pc-jauge" aria-live="polite" data-aide="candidat-jauge">
             <div className="pc-jauge-ligne">
               Votre fiche est remplie <span>{jauge.pourcentage}&nbsp;%</span>
             </div>
@@ -127,7 +128,12 @@ export default function EspaceCandidat({
 
         <div className="pc-grille">
           <div className="pc-col">
-            <section className="pc-bloc" id="pc-offres" aria-labelledby="pc-offres-titre">
+            <section
+              className="pc-bloc"
+              id="pc-offres"
+              aria-labelledby="pc-offres-titre"
+              data-aide="candidat-offres"
+            >
               {offres}
             </section>
             <FicheDuCandidatEditable
@@ -143,6 +149,11 @@ export default function EspaceCandidat({
           </div>
         </div>
       </main>
+
+      {/* L'aide, demandée le 27 novembre 2026 : son propre catalogue, une
+          réponse par partie de la page, sans Claude — la question du candidat
+          ne quitte pas son navigateur (lib/aide/parcours-publics.ts). */}
+      <Aide catalogue="candidat" />
     </div>
   );
 }
