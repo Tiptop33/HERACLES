@@ -120,8 +120,12 @@ commit;
 Avant tout commit touchant à l'application :
 
 ```bash
-cd apps/web && npm run lint && npm test && npm run build
+cd apps/web && npm run lint && npx tsc --noEmit -p . && npm test && npm run build
 ```
+
+`tsc` est le seul à vérifier les types des tests : Vitest les exécute sans les
+contrôler, et `next build` les exclut. Le CI fait la même vérification, dans
+le même ordre.
 
 ## L'écran ne change pas sans qu'on l'ait demandé
 
