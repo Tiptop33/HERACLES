@@ -3,14 +3,37 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { PARAMETRES, adresseDeLEntree, estCourante, famillesDuRole } from '@/lib/navigation';
+import {
+  COOKIE_FAMILLES_REPLIEES,
+  DUREE_FAMILLES_REPLIEES,
+  PARAMETRES,
+  adresseDeLEntree,
+  ecrireFamillesRepliees,
+  estCourante,
+  familleDeLAncre,
+  famillesDuRole,
+} from '@/lib/navigation';
 import { ANCRES_DES_ONGLETS, SIGNAL_MENU, SIGNAL_OUVRIR_L_AIDE } from '@/lib/aide/signaux';
 import { nomAffichable } from '@/lib/format';
 import type { Connecte } from '@/lib/presence';
 import type { MaPhoto, Profil } from '@/lib/profil';
 import Connectes from './Connectes';
 import OuvrirNouveauCandidat, { ADRESSE_NOUVEAU_CANDIDAT } from './OuvrirNouveauCandidat';
-import { OngletCandidats, OngletDocuments, OngletPlus, OngletReferents, Roue } from './Icones';
+import { Chevron, OngletCandidats, OngletDocuments, OngletPlus, OngletReferents, Roue } from './Icones';
+
+/**
+ * Écrit dans le cookie les familles repliées, pour la prochaine page que le
+ * serveur rendra. Hors du composant : c'est le navigateur qu'on modifie, pas
+ * l'état de React.
+ */
+function retenirLesFamillesRepliees(noms: readonly string[]) {
+  // `Secure` dès que la page l'est : le site d'essai et la production sont en
+  // HTTPS ; le poste de développement, en HTTP, se passerait sinon du cookie.
+  const secure = window.location.protocol === 'https:' ? '; Secure' : '';
+  document.cookie =
+    `${COOKIE_FAMILLES_REPLIEES}=${ecrireFamillesRepliees(noms)}` +
+    `; Path=/; Max-Age=${DUREE_FAMILLES_REPLIEES}; SameSite=Lax${secure}`;
+}
 
 /**
  * La colonne de gauche de la maquette `1a` : la marque, qui l'on est, puis les
@@ -22,12 +45,17 @@ import { OngletCandidats, OngletDocuments, OngletPlus, OngletReferents, Roue } f
  *
  * Les entrées dont l'écran n'existe pas encore sont éteintes plutôt
  * qu'absentes — voir `lib/navigation.ts` pour la raison.
+ *
+ * Chaque famille se replie d'un clic sur son nom, et le navigateur s'en
+ * souvient : la coquille relit ce choix sur le serveur et le passe dans
+ * `famillesRepliees`, pour que la colonne arrive déjà repliée.
  */
 export default function Colonne({
   profil,
   logo,
   connectes = [],
   photo = null,
+  famillesRepliees = [],
 }: {
   profil: Profil;
   logo: string | null;
@@ -38,6 +66,8 @@ export default function Colonne({
    * pour qui n'a pas de fiche.
    */
   photo?: MaPhoto | null;
+  /** Les familles repliées, lues dans le cookie par la coquille. */
+  famillesRepliees?: readonly string[];
 }) {
   const chemin = usePathname() ?? '';
   const familles = famillesDuRole(profil.role);
@@ -56,12 +86,16 @@ export default function Colonne({
   // L'aide le déploie aussi, le temps de désigner une de ses entrées : replié,
   // l'entrée n'est pas à l'écran et le personnage n'aurait rien à montrer.
   const [pourLAide, setPourLAide] = useState(false);
+  // L'entrée que l'aide désigne : sa famille se déplie le temps de l'étape,
+  // même repliée — sans toucher au choix retenu.
+  const [ancreDeLAide, setAncreDeLAide] = useState<string | null>(null);
   useEffect(() => {
     // Candidats, Référents et Documents sont dans la barre d'onglets, pas dans
     // le panneau : l'aide les y désigne, et le panneau reste replié.
     const entendre = (e: Event) => {
       const ancre = (e as CustomEvent<string | null>).detail;
       setPourLAide(typeof ancre === 'string' && !ANCRES_DES_ONGLETS.includes(ancre));
+      setAncreDeLAide(typeof ancre === 'string' ? ancre : null);
     };
     window.addEventListener(SIGNAL_MENU, entendre);
     return () => window.removeEventListener(SIGNAL_MENU, entendre);
@@ -71,6 +105,18 @@ export default function Colonne({
   const basculer = () => {
     setPourLAide(false);
     setOuvertSur(menuOuvert ? null : chemin);
+  };
+
+  // Les familles repliées. Le premier rendu reprend ce que le serveur a lu
+  // dans le cookie ; ensuite c'est ici qu'elles vivent, et le cookie suit.
+  const [repliees, setRepliees] = useState<readonly string[]>(famillesRepliees);
+
+  const basculerLaFamille = (nom: string) => {
+    const suivantes = repliees.includes(nom)
+      ? repliees.filter((n) => n !== nom)
+      : [...repliees, nom];
+    setRepliees(suivantes);
+    retenirLesFamillesRepliees(suivantes);
   };
 
   /** Referme le panneau : un onglet touché sur l'écran où l'on est déjà ne change pas l'adresse. */
@@ -144,48 +190,66 @@ export default function Colonne({
         Accueil
       </Link>
 
-      {familles.map((famille) => (
-        <div key={famille.nom} className="colonne-famille">
-          <p className="colonne-famille-nom">{famille.nom}</p>
+      {familles.map((famille, rang) => {
+        const ouverte =
+          !repliees.includes(famille.nom) || familleDeLAncre(famille, ancreDeLAide);
+        const idDesEntrees = `colonne-famille-${rang}`;
+        return (
+          <div key={famille.nom} className="colonne-famille">
+            {/* Le nom replie ou déplie la famille. Repliée, elle le reste même
+                quand l'écran ouvert lui appartient : c'est le choix demandé. */}
+            <button
+              type="button"
+              className="colonne-famille-nom"
+              aria-expanded={ouverte}
+              aria-controls={idDesEntrees}
+              onClick={() => basculerLaFamille(famille.nom)}
+            >
+              {famille.nom}
+              <Chevron />
+            </button>
 
-          {famille.entrees.map((entree) =>
-            // « Nouveau candidat » ouvre la fenêtre flottante au lieu de
-            // quitter l'écran — un lien quand même, vers la page, sans script.
-            entree.vers === ADRESSE_NOUVEAU_CANDIDAT ? (
-              <OuvrirNouveauCandidat
-                key={entree.libelle}
-                data-aide={`menu:${entree.vers}`}
-                aria-current={estCourante(entree, chemin, visibles) ? 'page' : undefined}
-                className={`colonne-entree${estCourante(entree, chemin, visibles) ? ' colonne-entree--courante' : ''}`}
-              >
-                {entree.libelle}
-              </OuvrirNouveauCandidat>
-            ) : entree.vers ? (
-              <Link
-                key={entree.libelle}
-                // Depuis la fiche d'un référent, « Invitations » emporte cette
-                // fiche. L'ancre de l'aide et la surbrillance, elles, restent
-                // sur l'adresse nue.
-                href={adresseDeLEntree(entree.vers, chemin)}
-                data-aide={`menu:${entree.vers}`}
-                aria-current={estCourante(entree, chemin, visibles) ? 'page' : undefined}
-                className={`colonne-entree${estCourante(entree, chemin, visibles) ? ' colonne-entree--courante' : ''}`}
-              >
-                {entree.libelle}
-              </Link>
-            ) : (
-              <span
-                key={entree.libelle}
-                className="colonne-entree colonne-entree--eteinte"
-                data-aide={`eteint:${entree.libelle}`}
-                title={`À venir — ${entree.lot ?? 'plus tard'}`}
-              >
-                {entree.libelle}
-              </span>
-            ),
-          )}
-        </div>
-      ))}
+            <div id={idDesEntrees} className="colonne-famille-entrees" hidden={!ouverte}>
+              {famille.entrees.map((entree) =>
+                // « Nouveau candidat » ouvre la fenêtre flottante au lieu de
+                // quitter l'écran — un lien quand même, vers la page, sans script.
+                entree.vers === ADRESSE_NOUVEAU_CANDIDAT ? (
+                  <OuvrirNouveauCandidat
+                    key={entree.libelle}
+                    data-aide={`menu:${entree.vers}`}
+                    aria-current={estCourante(entree, chemin, visibles) ? 'page' : undefined}
+                    className={`colonne-entree${estCourante(entree, chemin, visibles) ? ' colonne-entree--courante' : ''}`}
+                  >
+                    {entree.libelle}
+                  </OuvrirNouveauCandidat>
+                ) : entree.vers ? (
+                  <Link
+                    key={entree.libelle}
+                    // Depuis la fiche d'un référent, « Invitations » emporte cette
+                    // fiche. L'ancre de l'aide et la surbrillance, elles, restent
+                    // sur l'adresse nue.
+                    href={adresseDeLEntree(entree.vers, chemin)}
+                    data-aide={`menu:${entree.vers}`}
+                    aria-current={estCourante(entree, chemin, visibles) ? 'page' : undefined}
+                    className={`colonne-entree${estCourante(entree, chemin, visibles) ? ' colonne-entree--courante' : ''}`}
+                  >
+                    {entree.libelle}
+                  </Link>
+                ) : (
+                  <span
+                    key={entree.libelle}
+                    className="colonne-entree colonne-entree--eteinte"
+                    data-aide={`eteint:${entree.libelle}`}
+                    title={`À venir — ${entree.lot ?? 'plus tard'}`}
+                  >
+                    {entree.libelle}
+                  </span>
+                ),
+              )}
+            </div>
+          </div>
+        );
+      })}
 
       {/* En bas de la colonne, et à part : on ne cherche pas ses réglages en
           parcourant les familles, on les cherche là où ils sont toujours. */}

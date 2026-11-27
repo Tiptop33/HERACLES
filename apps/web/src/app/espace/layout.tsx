@@ -1,9 +1,11 @@
+import { cookies } from 'next/headers';
 import Aide from '@/components/aide/Aide';
 import { renfortDisponible } from '@/lib/aide/renfort-serveur';
 import Barre from '@/components/Barre';
 import Colonne from '@/components/Colonne';
 import FenetreNouveauCandidat from '@/components/FenetreNouveauCandidat';
 import { cheminLogo } from '@/lib/logo';
+import { COOKIE_FAMILLES_REPLIEES, lireFamillesRepliees } from '@/lib/navigation';
 import { lireLesConnectes } from '@/lib/presence';
 import { exigerProfil, lireMaPhoto } from '@/lib/profil';
 import { referentCourant } from '@/lib/candidat';
@@ -24,15 +26,25 @@ export default async function EspaceLayout({ children }: { children: React.React
   // fiche de référent, et la fonction rend simplement `null` quand il n'y en
   // a pas. Réserver l'appel aux référents priverait de photo ceux qui en ont
   // une, pour une économie d'une requête.
-  const [referent, connectes, maPhoto] = await Promise.all([
+  const [referent, connectes, maPhoto, magasin] = await Promise.all([
     profil.role === 'referent' ? referentCourant() : Promise.resolve(null),
     lireLesConnectes(),
     lireMaPhoto(),
+    cookies(),
   ]);
+  // Les familles que cette personne a repliées : la colonne arrive repliée,
+  // sans se déplier un instant au rechargement.
+  const famillesRepliees = lireFamillesRepliees(magasin.get(COOKIE_FAMILLES_REPLIEES)?.value);
 
   return (
     <div className="atelier">
-      <Colonne profil={profil} logo={cheminLogo} connectes={connectes} photo={maPhoto} />
+      <Colonne
+        profil={profil}
+        logo={cheminLogo}
+        connectes={connectes}
+        photo={maPhoto}
+        famillesRepliees={famillesRepliees}
+      />
 
       <div className="atelier-corps">
         <Barre

@@ -100,6 +100,12 @@ colonne de se déployer, et de se replier quand l'étape est passée. Les deux
 composants se parlent par deux événements du navigateur, nommés dans
 `apps/web/src/lib/aide/signaux.ts`.
 
+Sur tous les écrans, chaque famille de la colonne se replie d'un clic sur son
+nom, et le navigateur retient ce choix (cookie `heracles-familles-repliees`).
+Quand l'aide désigne une entrée d'une famille repliée, cette famille se déplie
+le temps de l'étape, puis se replie : le choix retenu n'est pas touché
+(`familleDeLAncre`, dans `apps/web/src/lib/navigation.ts`).
+
 Sur « Mon compte », qui n'a pas de menu, le bouton quitte le bas de l'écran,
 où il flottait sur les champs du formulaire : il se range en haut à droite, sur
 la ligne du lien « ← Retour ».
