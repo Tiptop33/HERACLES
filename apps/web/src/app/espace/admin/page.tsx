@@ -117,7 +117,7 @@ export default async function EspaceAdmin({
         </section>
 
         {invitations.length > 0 && (
-          <div className="tableau-enveloppe">
+          <div className="tableau-enveloppe" data-aide="liste-des-invitations">
             <table className="tableau-sur-une-ligne">
               <thead>
                 <tr>
@@ -177,6 +177,7 @@ export default async function EspaceAdmin({
                           <Link
                             href={`/espace/admin?supprimer=${invitation.id}`}
                             className="geste geste--retirer"
+                            data-aide="supprimer-invitation"
                             aria-label={`Supprimer l’invitation de ${invitation.email}`}
                             title="Supprimer cette invitation"
                             scroll={false}

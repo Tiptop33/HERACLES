@@ -204,6 +204,7 @@ export default async function Referents({
                       <Link
                         href={adresseDInvitation(f.id)}
                         className="geste geste--inviter"
+                        data-aide="inviter-referent"
                         aria-label={`Inviter ${nom}`}
                         title="Inviter cette personne"
                       >

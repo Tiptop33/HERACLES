@@ -52,6 +52,7 @@ export default function BoutonRenvoyer({ id, email }: { id: string; email: strin
     <button
       type="button"
       className="geste geste--renvoyer"
+      data-aide="renvoyer-invitation"
       aria-label={`Renvoyer le lien à ${email}`}
       title="Renvoyer le lien"
       disabled={envoi}

@@ -14,6 +14,12 @@ import { CATALOGUES, EXEMPLES, parcoursDuCatalogue } from '../src/lib/aide/parco
 import { placer } from '../src/lib/aide/placement';
 import { chercherDesParcours, motsUtiles, normaliser } from '../src/lib/aide/recherche';
 import {
+  REPRISE_AU_PLUS_TARD_MS,
+  etapeSuivante,
+  reprendreLaVisite,
+  retenirLaVisite,
+} from '../src/lib/aide/visite';
+import {
   MINUTES_DE_LA_FENETRE,
   PROPOSITIONS_AU_PLUS,
   QUESTIONS_PAR_FENETRE,
@@ -173,8 +179,17 @@ describe('la recherche de l’aide', () => {
     ['où sont les dossiers clôturés', 'dossiers-clotures'],
     ['rouvrir un dossier clôturé', 'rouvrir-un-dossier'],
     ['faire l’appel de la réunion', 'faire-l-appel'],
-    ['imprimer le compte rendu', 'documents-de-la-reunion'],
-    ['comment sortir l’affichette de la réunion', 'documents-de-la-reunion'],
+    ['imprimer le compte rendu', 'creer-le-compte-rendu'],
+    ['comment créer un compte rendu', 'creer-le-compte-rendu'],
+    ['faire le compte-rendu de la réunion', 'creer-le-compte-rendu'],
+    ['faire l’affiche de la réunion', 'creer-l-affiche'],
+    ['créer une affiche', 'creer-l-affiche'],
+    ['comment sortir l’affichette de la réunion', 'creer-l-affichette'],
+    ['créer une affichette', 'creer-l-affichette'],
+    ['comment créer le compte rendu, l’affiche et l’affichette', 'documents-de-la-reunion'],
+    ['produire les documents de la réunion', 'documents-de-la-reunion'],
+    ['où retrouver un ancien compte rendu', 'documents-de-la-commission'],
+    ['fermer la feuille d’appel', 'faire-l-appel'],
     ['l’affichette d’un candidat', 'imprimer-la-fiche'],
     ['changer mon mot de passe', 'mot-de-passe'],
     ['changer mon numéro de téléphone', 'mon-compte'],
@@ -192,6 +207,8 @@ describe('la recherche de l’aide', () => {
     ['retrouver une réunion passée', 'registre-des-reunions'],
     ['qui est connecté', 'qui-est-connecte'],
     ['où sont les offres d’emploi', 'offres-en-cours'],
+    ['chercher une offre par département', 'france-travail'],
+    ['les offres de france travail', 'france-travail'],
     ['voir les offres', 'offres-en-cours'],
     ['comment ajouter une offre', 'ecrans-des-offres'],
     ['où sont les offres internes', 'ecrans-des-offres'],
@@ -238,6 +255,18 @@ describe('la recherche de l’aide', () => {
     ['un référent quitte la loge', 'retirer-un-referent'],
     ['retirer un titre du collège', 'retirer-un-titre'],
     ['retirer la photo d’un référent', 'retirer-la-photo-d-un-referent'],
+    ['inviter un référent depuis l’annuaire', 'inviter-depuis-l-annuaire'],
+    ['corriger l’adresse d’une invitation', 'corriger-une-invitation'],
+    ['renvoyer le lien d’une invitation', 'renvoyer-une-invitation'],
+    ['il n’a pas reçu le courriel d’invitation', 'renvoyer-une-invitation'],
+    ['supprimer une invitation', 'supprimer-une-invitation'],
+    ['changer le rôle d’un compte', 'comptes'],
+    ['nommer un référent administrateur', 'comptes'],
+    ['effacer le compte d’une personne', 'effacer-un-compte'],
+    ['voir les connexions des référents', 'connexions'],
+    ['quand s’est-il connecté pour la dernière fois', 'connexions'],
+    ['ajouter une province', 'gerer-les-provinces'],
+    ['le lien du secrétaire d’une loge de Guyenne et Gascogne', 'loges-de-guyenne-et-gascogne'],
   ])('pour l’administration, « %s » mène à %s', (question, attendu) => {
     expect(chercherDesParcours(question, parcoursDuRole('admin'))[0]?.id).toBe(attendu);
   });
@@ -885,5 +914,210 @@ describe('ce que l’aide et le menu se disent', () => {
     const { FAMILLES } = await import('../src/lib/navigation');
     const offertes = FAMILLES.flatMap((f) => f.entrees).map((e) => `menu:${e.vers}`);
     for (const ancre of ANCRES_DES_ONGLETS) expect(offertes).toContain(ancre);
+  });
+});
+
+describe('le compte rendu, l’affiche et l’affichette', () => {
+  const parcours = (id: string) => PARCOURS.find((p) => p.id === id)!;
+  const ancres = (id: string) => parcours(id).etapes.map((e) => e.ancre);
+  const etape = (id: string, ancre: string) => parcours(id).etapes.find((e) => e.ancre === ancre)!;
+  const DOCUMENTS = ['documents-de-la-reunion', 'creer-le-compte-rendu', 'creer-l-affiche', 'creer-l-affichette'];
+
+  it('part de « Réunion », ouvre l’appel, et finit où l’exemplaire est rangé', () => {
+    for (const id of DOCUMENTS) {
+      const a = ancres(id);
+      expect(a[0], id).toBe('menu:/espace/reunion');
+      expect(a[1], id).toBe('bouton-ouvrir-appel');
+      expect(a[a.length - 1], id).toBe('menu:/espace/documents');
+      expect(parcours(id).destination, id).toBe('/espace/reunion');
+      // « Emmène-moi » reprend sur « Ouvrir l'appel » : la feuille n'est pas
+      // encore ouverte à l'arrivée.
+      expect(etapeDArrivee(parcours(id)), id).toBe(1);
+    }
+  });
+
+  it('désigne le bon bouton pour chaque document', () => {
+    expect(ancres('creer-le-compte-rendu')).toContain('bouton-compte-rendu');
+    expect(ancres('creer-l-affiche')).toContain('bouton-affiche');
+    expect(ancres('creer-l-affichette')).toContain('bouton-affichette');
+    // Le compte rendu imprime les présences et la prochaine réunion.
+    expect(ancres('creer-le-compte-rendu')).toEqual(
+      expect.arrayContaining(['compte-de-l-appel', 'prochaine-reunion']),
+    );
+    // L'affichette attend son dossier.
+    const affichette = ancres('creer-l-affichette');
+    expect(affichette.indexOf('choix-affichette')).toBeLessThan(affichette.indexOf('bouton-affichette'));
+    // Le pas à pas complet suit l'ordre d'une séance.
+    expect(ancres('documents-de-la-reunion')).toEqual([
+      'menu:/espace/reunion',
+      'bouton-ouvrir-appel',
+      'compte-de-l-appel',
+      'choix-affichette',
+      'prochaine-reunion',
+      'documents-reunion',
+      'menu:/espace/documents',
+    ]);
+  });
+
+  it('dit ce qui circule et ce qui reste à la commission', () => {
+    expect(etape('creer-le-compte-rendu', 'bouton-compte-rendu').texte).toMatch(/reste à la commission/);
+    expect(etape('creer-l-affiche', 'bouton-affiche').texte).toMatch(/sans aucun nom/);
+    expect(etape('creer-l-affichette', 'bouton-affichette').texte).toMatch(/sans nom/);
+    expect(etape('creer-l-affichette', 'bouton-affichette').texte).toMatch(/Grisé/);
+  });
+
+  it('dit comment ouvrir la feuille quand ce qu’il désigne n’y est pas', () => {
+    const SUR_LA_FEUILLE = [
+      'compte-de-l-appel',
+      'choix-affichette',
+      'prochaine-reunion',
+      'documents-reunion',
+      'bouton-compte-rendu',
+      'bouton-affiche',
+      'bouton-affichette',
+      'fermer-la-feuille',
+    ];
+    for (const id of [...DOCUMENTS, 'faire-l-appel']) {
+      for (const e of parcours(id).etapes) {
+        if (!e.ancre || !SUR_LA_FEUILLE.includes(e.ancre)) continue;
+        expect(e.siAbsent, `${id} → ${e.ancre}`).toMatch(/ouvrez d’abord l’appel/);
+        expect(e.ecran, `${id} → ${e.ancre}`).toBe('/espace/reunion');
+      }
+    }
+  });
+
+  it('suit le bouton « Affichette », allumé comme grisé', () => {
+    // Grisé tant qu'aucun dossier n'est choisi : l'aide doit le trouver aussi.
+    const page = readFileSync(join(SRC, 'app', 'espace', 'reunion', 'page.tsx'), 'utf8');
+    expect(page.match(/data-aide="bouton-affichette"/g)).toHaveLength(2);
+  });
+
+  it('dit, au téléphone, où est l’onglet des documents, sans parler de colonne', () => {
+    for (const id of DOCUMENTS) {
+      const derniere = parcours(id).etapes[parcours(id).etapes.length - 1];
+      expect(texteDeLEtape(derniere, 390), id).toMatch(/onglet « Documents »/);
+      expect(texteDeLEtape(derniere, 1280), id).toMatch(/l’accueil le montre aussi/);
+    }
+  });
+
+  it('ne dit pas qu’une affichette redemandée un autre jour remplace la précédente', () => {
+    // Son nom porte le jour où on la tire : le lendemain, c'est un second exemplaire.
+    const derniere = parcours('creer-l-affichette').etapes.at(-1)!;
+    expect(derniere.texte).toMatch(/le même jour/);
+    expect(derniere.texte).toMatch(/n’est pas rangée/);
+  });
+});
+
+describe('les gestes d’administration livrés depuis le 11 novembre', () => {
+  const parcours = (id: string) => PARCOURS.find((p) => p.id === id)!;
+  const derniere = (id: string) => parcours(id).etapes[parcours(id).etapes.length - 1];
+  const ADMINISTRATION = [
+    'inviter-depuis-l-annuaire',
+    'corriger-une-invitation',
+    'renvoyer-une-invitation',
+    'supprimer-une-invitation',
+    'comptes',
+    'effacer-un-compte',
+    'connexions',
+    'gerer-les-provinces',
+    'loges-de-guyenne-et-gascogne',
+  ];
+
+  it('les réserve à l’administration', () => {
+    const duReferent = parcoursDuRole('referent').map((p) => p.id);
+    for (const id of ADMINISTRATION) {
+      expect(parcours(id).roles, id).toEqual(['admin']);
+      expect(duReferent, id).not.toContain(id);
+    }
+  });
+
+  it('annonce la confirmation, et ce qui ne se défait pas', () => {
+    for (const id of ['effacer-un-compte', 'supprimer-une-invitation']) {
+      expect(derniere(id).texte, id).toMatch(/fenêtre de confirmation/);
+      expect(derniere(id).texte, id).toMatch(/ne se défait pas/);
+      expect(derniere(id).court, id).toMatch(/Ne se défait pas/);
+      expect(parcours(id).destination, id).not.toMatch(/supprimer=|effacer=/);
+    }
+    // Ce qui reste : la fiche de référent, le compte ouvert.
+    expect(derniere('effacer-un-compte').texte).toMatch(/fiche de référent reste/);
+    expect(derniere('effacer-un-compte').texte).toMatch(/nouvelle invitation/);
+    expect(derniere('supprimer-une-invitation').texte).toMatch(/laisse le compte intact/);
+  });
+
+  it('dit que renvoyer un lien se fait sans confirmation, et rend l’ancien caduc', () => {
+    expect(derniere('renvoyer-une-invitation').texte).toMatch(/Pas de fenêtre de confirmation/);
+    expect(derniere('renvoyer-une-invitation').texte).toMatch(/l’ancien ne vaut plus/);
+  });
+
+  it('écrit « Loges de Guyenne et Gascogne » à l’écran, jamais « loges du réseau »', () => {
+    const p = parcours('loges-de-guyenne-et-gascogne');
+    for (const texte of [p.titre, ...p.etapes.map((e) => e.texte)]) {
+      expect(texte).not.toMatch(/loges? du réseau/i);
+    }
+    expect(p.destination).toBe('/espace/parametres/loges-du-reseau');
+  });
+});
+
+describe('la visite qui survit au rechargement de la page', () => {
+  const tous = parcoursDuRole('referent');
+  const compteRendu = tous.find((p) => p.id === 'creer-le-compte-rendu')!;
+  const maintenant = 1_800_000_000_000;
+
+  it('reprend le même parcours, à la même étape', () => {
+    const texte = retenirLaVisite('espace', { parcours: compteRendu, index: 2 }, maintenant);
+    expect(reprendreLaVisite(texte, 'espace', tous, maintenant + 2000)).toEqual({
+      parcours: compteRendu,
+      index: 2,
+    });
+  });
+
+  it('ne retient rien d’autre que le parcours, l’étape et le moment', () => {
+    const texte = retenirLaVisite('espace', { parcours: compteRendu, index: 2 }, maintenant)!;
+    expect(Object.keys(JSON.parse(texte)).sort()).toEqual(['id', 'index', 'le', 'lieu']);
+    expect(retenirLaVisite('espace', null, maintenant)).toBeNull();
+  });
+
+  it('ne reprend pas ailleurs, ni trop tard, ni un parcours que le rôle n’a pas', () => {
+    const texte = retenirLaVisite('espace', { parcours: compteRendu, index: 2 }, maintenant);
+    expect(reprendreLaVisite(texte, 'compte', tous, maintenant)).toBeNull();
+    expect(reprendreLaVisite(texte, 'espace', tous, maintenant + REPRISE_AU_PLUS_TARD_MS + 1)).toBeNull();
+    const comptes = parcoursDuRole('admin').find((p) => p.id === 'comptes')!;
+    const dAdministration = retenirLaVisite('espace', { parcours: comptes, index: 0 }, maintenant);
+    expect(reprendreLaVisite(dAdministration, 'espace', tous, maintenant)).toBeNull();
+  });
+
+  it('ignore ce qui est abîmé ou hors bornes', () => {
+    for (const texte of [
+      null,
+      '',
+      'pas du json',
+      'null',
+      '42',
+      JSON.stringify({ lieu: 'espace', id: 'creer-le-compte-rendu', index: 99, le: maintenant }),
+      JSON.stringify({ lieu: 'espace', id: 'creer-le-compte-rendu', index: -1, le: maintenant }),
+      JSON.stringify({ lieu: 'espace', id: 'creer-le-compte-rendu', index: 1.5, le: maintenant }),
+      JSON.stringify({ lieu: 'espace', id: 'inconnu', index: 0, le: maintenant }),
+      JSON.stringify({ lieu: 'espace', id: 'creer-le-compte-rendu', index: 0 }),
+    ]) {
+      expect(reprendreLaVisite(texte, 'espace', tous, maintenant), String(texte)).toBeNull();
+    }
+  });
+
+  it('passe à l’étape suivante, et finit après la dernière', () => {
+    const derniere = compteRendu.etapes.length - 1;
+    expect(etapeSuivante({ parcours: compteRendu, index: 0 }, 0)).toEqual({ parcours: compteRendu, index: 1 });
+    expect(etapeSuivante({ parcours: compteRendu, index: derniere }, derniere)).toBeNull();
+    // Un clic en retard sur une étape déjà quittée ne fait rien.
+    const visite = { parcours: compteRendu, index: 3 };
+    expect(etapeSuivante(visite, 1)).toBe(visite);
+  });
+
+  it('est branchée sur l’aide : relue au montage, écrite avant que le clic ne recharge', () => {
+    const aide = readFileSync(join(SRC, 'components', 'aide', 'Aide.tsx'), 'utf8');
+    expect(aide).toContain('reprendreLaVisite(lireLaVisite(), lieu, tous, Date.now())');
+    // Dans le gestionnaire du clic, l'écriture précède le passage à l'étape.
+    const clic = aide.slice(aide.indexOf('const clic = (e: MouseEvent)'));
+    expect(clic.indexOf('ecrireLaVisite(')).toBeGreaterThan(0);
+    expect(clic.indexOf('ecrireLaVisite(')).toBeLessThan(clic.indexOf('avancer(index)'));
   });
 });

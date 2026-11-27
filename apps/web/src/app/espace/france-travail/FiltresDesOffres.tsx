@@ -110,7 +110,7 @@ export default function FiltresDesOffres({
   };
 
   return (
-    <div className="filtres-des-offres" aria-busy={enCours}>
+    <div className="filtres-des-offres" aria-busy={enCours} data-aide="filtres-des-offres">
       <form
         role="search"
         onSubmit={(e) => {

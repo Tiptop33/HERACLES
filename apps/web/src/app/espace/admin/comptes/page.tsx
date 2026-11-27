@@ -111,7 +111,7 @@ export default async function Comptes({
       {comptes.length === 0 ? (
         tous.length > 0 && <p className="aide">Aucun compte ne correspond à « {recherche} ».</p>
       ) : (
-        <div className="tableau-enveloppe">
+        <div className="tableau-enveloppe" data-aide="liste-des-comptes">
           <table>
             <thead>
               <tr>
@@ -153,6 +153,7 @@ export default async function Comptes({
                           <Link
                             href={adresseDeLaListe(recherche, compte.id)}
                             className="geste geste--retirer"
+                            data-aide="effacer-compte"
                             aria-label={`Effacer le compte de ${nom}`}
                             title="Effacer ce compte"
                             scroll={false}
