@@ -218,6 +218,28 @@ export function Roue() {
   );
 }
 
+/**
+ * La pointe vers le bas, à côté du nom d'une famille de la colonne : dépliée.
+ * Repliée, la feuille de style la tourne vers la droite. `aria-hidden` : le
+ * bouton dit déjà son état par `aria-expanded`.
+ */
+export function Chevron() {
+  return (
+    <svg
+      className="icone icone--chevron"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="m6 9 6 6 6-6" />
+    </svg>
+  );
+}
+
 /** L'œil ouvert : le mot de passe est masqué, l'appuyer le montre. */
 export function Oeil() {
   return (

@@ -138,6 +138,63 @@ export function famillesDuRole(role: Role): Famille[] {
 }
 
 /**
+ * Les familles qu'on a repliées, retenues par le navigateur (demande du
+ * 27 novembre 2026). Toutes sont dépliées au départ ; chacune se replie d'un
+ * clic sur son nom, indépendamment des autres, et le reste d'une visite à
+ * l'autre — même quand l'écran ouvert lui appartient.
+ *
+ * Un cookie plutôt que `localStorage` : la coquille le lit sur le serveur et
+ * rend la colonne déjà repliée. Avec `localStorage`, chaque rechargement
+ * montrerait tout déplié avant de replier, sous les yeux de l'utilisateur.
+ *
+ * Ce n'est qu'une préférence d'affichage, choisie par la personne elle-même :
+ * des noms de familles, rien qui dise qui elle est ni ce qu'elle a consulté.
+ */
+export const COOKIE_FAMILLES_REPLIEES = 'heracles-familles-repliees';
+
+/** Un an : le temps qu'une préférence d'affichage a de raisons de durer. */
+export const DUREE_FAMILLES_REPLIEES = 60 * 60 * 24 * 365;
+
+const SEPARATEUR = '|';
+
+/**
+ * Les familles repliées, lues dans la valeur du cookie.
+ *
+ * La valeur vient du navigateur : on n'en garde que des noms de familles qui
+ * existent, sans doublon. Une valeur abîmée, ou d'avant un renommage, déplie
+ * tout plutôt que de faire échouer la page.
+ */
+export function lireFamillesRepliees(valeur: string | null | undefined): string[] {
+  if (!valeur) return [];
+  let texte: string;
+  try {
+    texte = decodeURIComponent(valeur);
+  } catch {
+    return [];
+  }
+  const connues = new Set(FAMILLES.map((f) => f.nom));
+  return [...new Set(texte.split(SEPARATEUR))].filter((nom) => connues.has(nom));
+}
+
+/** La valeur du cookie pour ces familles repliées — accents compris. */
+export function ecrireFamillesRepliees(noms: readonly string[]): string {
+  const connues = new Set(FAMILLES.map((f) => f.nom));
+  return encodeURIComponent([...new Set(noms)].filter((nom) => connues.has(nom)).join(SEPARATEUR));
+}
+
+/**
+ * Vrai si l'aide désigne une entrée de cette famille. Repliée, la famille ne
+ * montre pas l'entrée et le personnage n'aurait rien à désigner : elle se
+ * déplie le temps de l'étape, sans changer le choix retenu.
+ */
+export function familleDeLAncre(famille: Famille, ancre: string | null): boolean {
+  if (!ancre) return false;
+  return famille.entrees.some((e) =>
+    e.vers ? ancre === `menu:${e.vers}` : ancre === `eteint:${e.libelle}`,
+  );
+}
+
+/**
  * Vrai si l'adresse courante correspond à cette entrée. On compare le début du
  * chemin : la fiche d'un candidat garde « Candidats » en surbrillance.
  *

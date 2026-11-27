@@ -1836,14 +1836,47 @@ tbody tr:focus-within {
   object-fit: cover;
 }
 
+/* Le nom de la famille est un bouton : il la replie ou la déplie (demande du
+   27 novembre 2026). Il garde l'allure d'un intitulé — mêmes petites
+   capitales, même gris — et ne s'en distingue que par sa pointe. */
 .colonne-famille-nom {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  width: 100%;
   margin: 0.9rem 0 0.25rem;
   padding: 0 1.1rem;
+  font: inherit;
   font-size: 0.62rem;
   font-weight: 800;
   letter-spacing: 0.14em;
   text-transform: uppercase;
+  text-align: left;
   color: var(--encre-tres-douce);
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+.colonne-famille-nom:hover {
+  color: var(--encre-douce);
+}
+
+.colonne-famille-nom:focus-visible {
+  outline: 2px solid var(--candidat);
+  outline-offset: 2px;
+}
+
+/* Pointe en bas : dépliée. Repliée, elle se tourne vers la droite. */
+.colonne-famille-nom .icone--chevron {
+  width: 0.7rem;
+  height: 0.7rem;
+  flex: none;
+  transition: transform 0.15s ease;
+}
+
+.colonne-famille-nom[aria-expanded='false'] .icone--chevron {
+  transform: rotate(-90deg);
 }
 
 .colonne-entree {

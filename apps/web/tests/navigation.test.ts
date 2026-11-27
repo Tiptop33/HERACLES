@@ -4,8 +4,11 @@ import {
   PARAMETRES,
   adresseDInvitation,
   adresseDeLEntree,
+  ecrireFamillesRepliees,
   estCourante,
+  familleDeLAncre,
   famillesDuRole,
+  lireFamillesRepliees,
 } from '../src/lib/navigation';
 
 describe('les cinq familles', () => {
@@ -249,5 +252,42 @@ describe('« Invitations » depuis la fiche d’un référent', () => {
     expect(adresseDInvitation(id)).toBe(
       adresseDeLEntree('/espace/admin', `/espace/referents/${id}/modifier`),
     );
+  });
+});
+
+describe('les familles repliées', () => {
+  const famille = (nom: string) => FAMILLES.find((f) => f.nom === nom)!;
+
+  it('sont toutes dépliées tant que rien n’a été retenu', () => {
+    expect(lireFamillesRepliees(undefined)).toEqual([]);
+    expect(lireFamillesRepliees(null)).toEqual([]);
+    expect(lireFamillesRepliees('')).toEqual([]);
+  });
+
+  it('se relisent telles qu’elles ont été écrites, accents compris', () => {
+    const valeur = ecrireFamillesRepliees(['Membres Héraclés', 'Admin']);
+    // Rien qu'un cookie ne sache transporter : ni espace, ni accent, ni « ; ».
+    expect(valeur).toMatch(/^[A-Za-z0-9%._~-]*$/);
+    expect(lireFamillesRepliees(valeur)).toEqual(['Membres Héraclés', 'Admin']);
+  });
+
+  it('ne retiennent que des familles qui existent, une seule fois chacune', () => {
+    const valeur = encodeURIComponent('Suivi|Inconnue|Suivi|Réseau|<script>');
+    expect(lireFamillesRepliees(valeur)).toEqual(['Suivi']);
+    expect(lireFamillesRepliees(ecrireFamillesRepliees(['Pilotage', 'Pilotage', 'Autre']))).toEqual([
+      'Pilotage',
+    ]);
+  });
+
+  it('déplient tout plutôt que d’échouer sur une valeur abîmée', () => {
+    expect(lireFamillesRepliees('%E9%')).toEqual([]);
+  });
+
+  it('se déplient pour l’entrée que l’aide désigne, et pour elle seule', () => {
+    expect(familleDeLAncre(famille('Emploi'), 'menu:/espace/offres-internes')).toBe(true);
+    expect(familleDeLAncre(famille('Pilotage'), 'eteint:Bilan')).toBe(true);
+    expect(familleDeLAncre(famille('Suivi'), 'menu:/espace/offres-internes')).toBe(false);
+    expect(familleDeLAncre(famille('Suivi'), 'bouton-ouvrir-appel')).toBe(false);
+    expect(familleDeLAncre(famille('Suivi'), null)).toBe(false);
   });
 });
