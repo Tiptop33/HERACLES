@@ -66,9 +66,11 @@ création ; à défaut le jour où HERACLES l'a reçue.
   impossible`.
 - La suppression est définitive. Les sauvegardes nocturnes (`docs/sauvegarde.md`)
   gardent la table telle qu'elle était.
-- **Les offres saisies à la main sont épargnées** (migration 0114) : sorties
-  de la liste au bout de trente jours, elles attendent qu'on les prolonge ou
-  qu'on les retire (`docs/offres-saisies.md`).
+- **Les offres saisies à la main ont leur propre règle** (migrations 0114,
+  0116) : la marge des soixante jours ne les concerne pas ; sorties de la
+  liste au bout de trente jours, elles attendent qu'on les prolonge ou qu'on
+  les retire, et la purge les supprime six mois après leur sortie de la liste
+  (`docs/offres-saisies.md`). Le nombre `purgees` du bilan compte les deux.
 - **Le jour où une offre pourra être proposée à un candidat (lot 4), cette
   purge devra épargner les offres proposées.** Aujourd'hui, aucune table ne
   désigne une offre.
