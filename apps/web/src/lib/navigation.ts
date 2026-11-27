@@ -70,13 +70,8 @@ export const FAMILLES: readonly Famille[] = [
       // déplacer aucune des entrées que les référents connaissent déjà.
       // Visible de tous : c'est un référentiel, il ne dit rien de personne.
       { libelle: 'Province', vers: '/espace/provinces' },
-      // Ajoutée le 11 novembre 2026, à la demande : les comptes rendus,
-      // affiches et affichettes de l'exercice, sur un écran à eux. L'écran est
-      // né pour l'onglet « Documents » du téléphone ; il lui fallait une porte
-      // sur ordinateur aussi. En fin de famille, après « Province », pour ne
-      // déplacer aucune entrée. Visible de tous : la base ne rend à chacun que
-      // les PDF de sa loge.
-      { libelle: 'Documents', vers: '/espace/documents' },
+      // « Documents » fermait la famille jusqu'au 27 novembre 2026 : elle est
+      // passée dans la famille Admin, réservée à l'administration.
     ],
   },
   {
@@ -103,6 +98,13 @@ export const FAMILLES: readonly Famille[] = [
       // Ouvrir un dossier depuis l'administration : le même écran que le
       // bouton du volet des candidats (invitation du parrain).
       { libelle: 'Nouveau candidat', vers: '/espace/candidats/nouveau' },
+      // Ajoutée le 11 novembre 2026 dans la famille Réseau, pour tous : les
+      // comptes rendus, affiches et affichettes de l'exercice, sur un écran à
+      // eux. Venue ici le 27 novembre 2026, à la demande, juste après
+      // « Nouveau candidat » : comme la Réunion qui les produit, elle n'est
+      // plus montrée qu'à l'administration — l'onglet du téléphone et l'aide
+      // suivent. L'adresse ne change pas, et l'écran reste lu sous RLS.
+      { libelle: 'Documents', vers: '/espace/documents' },
       { libelle: 'Loges', vers: null, lot: 'lot 5' },
       { libelle: "Secteur d'activité", vers: null, lot: 'lot 5' },
       // Ajoutée le 26 novembre 2026, à la demande : le rôle et la loge de tout

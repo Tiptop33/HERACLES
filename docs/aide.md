@@ -91,7 +91,8 @@ stockage garde l'aide d'avant, sans reprise.
 Sous 46 rem de large, le bouton flottant disparaît des espaces de travail : il
 recouvrait la fiche du candidat. L'aide devient une entrée « Aide », en bas du
 menu que déploie l'onglet « Plus » de la barre du bas (Référents, Candidats,
-Documents, Plus). Le guide se place au-dessus de cette barre, jamais dessus. Candidats et Référents ne sont que dans la barre, pas dans le panneau « Plus » : leurs onglets portent la même ancre que l'entrée de la colonne (`ANCRES_DES_ONGLETS`), et c'est là que l'aide vient les désigner, sans ouvrir le panneau. Les formulaires publics, qui n'ont pas de menu, gardent leur
+Documents, Plus — Documents pour l'administration seulement depuis le
+27 novembre 2026). Le guide se place au-dessus de cette barre, jamais dessus. Candidats et Référents ne sont que dans la barre, pas dans le panneau « Plus » : leurs onglets portent la même ancre que l'entrée de la colonne (`ANCRES_DES_ONGLETS`), et c'est là que l'aide vient les désigner, sans ouvrir le panneau. Les formulaires publics, qui n'ont pas de menu, gardent leur
 bouton.
 
 Le menu étant replié par défaut, ses entrées ne sont pas à l'écran. Quand une
@@ -347,6 +348,27 @@ candidat.
 Le premier essai utile de la section précédente se fait donc **en
 administrateur** : « Aide › comment créer le compte rendu », « Montre-moi », et
 suivre jusqu'au bout.
+
+## Documents passe dans Admin — 27 novembre 2026
+
+À la demande, l'entrée « Documents » a quitté la fin de la famille « Membres
+Héraclés » pour la famille « Admin », juste après « Nouveau candidat ». Comme
+la famille, l'onglet « Documents » de la barre du téléphone n'est plus montré
+qu'à l'administration : un référent n'a plus que Référents, Candidats et
+Plus. L'écran `/espace/documents` lui-même n'est pas fermé — il est toujours lu
+sous RLS, et l'accueil garde son tableau des PDF.
+
+Pour l'aide :
+
+- l'étape du menu dit « famille « Admin » » (`MENU_DOCUMENTS`), et la
+  dernière étape des quatre parcours du compte rendu aussi ;
+- « Retrouver un compte rendu… » et « Effacer un compte rendu… » portent
+  `roles: ['admin']`, pour la même raison que la Réunion : un référent ne peut
+  pas être conduit vers une entrée qu'il n'a pas.
+
+**75 parcours** dans l'espace de travail : **40 pour un référent**, 74 pour
+l'administration. Un référent qui demande « où retrouver un ancien compte
+rendu » ne se voit plus proposer Documents.
 
 ## Récapitulatif — état au 11 novembre 2026
 

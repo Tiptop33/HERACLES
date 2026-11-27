@@ -178,7 +178,6 @@ describe('la recherche de l’aide', () => {
     ['dossiers archivés', 'dossiers-archives'],
     ['où sont les dossiers clôturés', 'dossiers-clotures'],
     ['rouvrir un dossier clôturé', 'rouvrir-un-dossier'],
-    ['où retrouver un ancien compte rendu', 'documents-de-la-commission'],
     ['l’affichette d’un candidat', 'imprimer-la-fiche'],
     ['changer mon mot de passe', 'mot-de-passe'],
     ['changer mon numéro de téléphone', 'mon-compte'],
@@ -214,8 +213,6 @@ describe('la recherche de l’aide', () => {
     ['retirer une note du suivi', 'retirer-une-note'],
     ['j’ai écrit une note par erreur', 'retirer-une-note'],
     ['j’ai retiré une note par erreur', 'rendre-une-note'],
-    ['supprimer une affiche', 'effacer-un-pdf'],
-    ['effacer un compte rendu', 'effacer-un-pdf'],
   ])('« %s » mène à %s', (question, attendu) => {
     expect(premier(question)).toBe(attendu);
   });
@@ -269,6 +266,11 @@ describe('la recherche de l’aide', () => {
     ['effacer définitivement une réunion', 'effacer-une-reunion'],
     ['quelle est la date de la prochaine réunion', 'prochaine-reunion'],
     ['la prochaine réunion tombe un jour férié', 'prochaine-reunion'],
+    // L'écran Documents est réservé à l'administration depuis le 27 novembre
+    // 2026 : entrée dans la famille Admin, onglet du téléphone pour elle seule.
+    ['où retrouver un ancien compte rendu', 'documents-de-la-commission'],
+    ['supprimer une affiche', 'effacer-un-pdf'],
+    ['effacer un compte rendu', 'effacer-un-pdf'],
   ])('pour l’administration, « %s » mène à %s', (question, attendu) => {
     expect(chercherDesParcours(question, parcoursDuRole('admin'))[0]?.id).toBe(attendu);
   });
@@ -277,6 +279,14 @@ describe('la recherche de l’aide', () => {
     const ids = chercherDesParcours('paramètres et invitations', duReferent).map((p) => p.id);
     expect(ids).not.toContain('parametres');
     expect(ids).not.toContain('invitations');
+  });
+
+  it('ne conduit plus un référent à l’écran Documents', () => {
+    // Depuis le 27 novembre 2026 il n'en a plus ni l'entrée ni l'onglet.
+    const ids = duReferent.map((p) => p.id);
+    expect(ids).not.toContain('documents-de-la-commission');
+    expect(ids).not.toContain('effacer-un-pdf');
+    expect(duReferent.some((p) => p.destination === '/espace/documents')).toBe(false);
   });
 
   it('ne guide plus un référent vers la réunion', () => {
