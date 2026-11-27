@@ -119,9 +119,9 @@ Affichette — ouvrent le PDF **et en rangent un exemplaire** :
 - **Paramètres › Archives** (administration seulement, comme tout Paramètres)
   montre le même tableau à trois colonnes pour **tout ce qui précède**
   l'exercice en cours : un PDF est à l'accueil pendant son exercice, dans les
-  archives ensuite, jamais aux deux endroits. Même corbeille, même fenêtre de
-  confirmation ; l'effacement ramène à la page d'où l'on vient
-  (`ColonnesDesArchives.tsx`, partagé par les deux écrans). Chaque colonne y a
+  archives ensuite, jamais aux deux endroits. Même corbeille et même fenêtre
+  de confirmation que Documents ; l'effacement ramène à la page d'où l'on
+  vient (`ColonnesDesArchives.tsx`, partagé par les trois écrans). Chaque colonne y a
   **son champ de recherche** : le filtre s'applique à chaque lettre, sans
   accents ni majuscules, sur le nom et sur la date en chiffres comme en
   lettres — « octobre » et « 10-2026 » trouvent « Compte-Rendu du 28-10-2026 »
@@ -134,7 +134,8 @@ Affichette — ouvrent le PDF **et en rangent un exemplaire** :
   la largeur de leur plus long nom, **un lien par ligne**, et l'onglet occupe
   toute la largeur de l'écran ; trop étroit pour les trois (iPad en portrait),
   le tableau défile de côté. Sur téléphone, les colonnes s'empilent et la page
-  défile normalement. L'accueil n'a ni recherche, ni nombre, ni en-tête figé.
+  défile normalement. L'accueil n'a ni recherche, ni nombre, ni en-tête figé,
+  ni corbeille.
 - **Trois boutons en tête de Paramètres › Archives** : « Archives » (ces
   colonnes de PDF), « Candidat Clôturé (N) » et « Candidat Archivé (N) ». Les
   deux derniers listent tous les dossiers refermés — toutes loges pour
@@ -188,9 +189,11 @@ Migration 0071.
   cinq minutes, rejouable ; le journal du déploiement finit par un bilan
   chiffré par sorte. À la main : `sudo …/infra/essai/reprendre-bubble.sh
   --pdf-commission`.
-- **Effacer** : la corbeille rouge, sur la ligne du PDF, pour l'administrateur,
-  le Vénérable Maître et le Secrétaire (`puis_je_effacer_des_documents()`),
-  après une fenêtre de confirmation. Un PDF d'HERACLES quitte la base et le
+- **Effacer** : la corbeille rouge, sur la ligne du PDF, dans Documents et
+  Paramètres › Archives — **pas à l'accueil**, qui n'en porte plus depuis le
+  27 novembre 2026 —, pour l'administrateur, le Vénérable Maître et le
+  Secrétaire (`puis_je_effacer_des_documents()`), après une fenêtre de
+  confirmation. Un PDF d'HERACLES quitte la base et le
   seau. Un PDF de Bubble reste en base, marqué `efface_le`, sans fichier : la
   reprise finale ne le fera pas revenir, et `rapatrier-fichiers.mjs` le saute.
 

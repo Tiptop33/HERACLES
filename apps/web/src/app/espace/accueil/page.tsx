@@ -8,7 +8,7 @@ import {
   phraseDeRefusDArchivage,
   saison,
 } from '@/lib/accueil';
-import { phraseDeRefusDocument, SORTES } from '@/lib/documents/archives';
+import { phraseDeRefusDocument } from '@/lib/documents/archives';
 import { lireIdentifiantDOffre } from '@/lib/offres';
 import { lireOffre } from '@/lib/offres-serveur';
 import { exigerProfil } from '@/lib/profil';
@@ -16,7 +16,6 @@ import { exigerProfil } from '@/lib/profil';
 export const metadata = { title: 'Accueil — HERACLES' };
 
 type Parametres = Promise<{
-  effacer?: string | string[];
   document?: string | string[];
   /** « fermee » : la fenêtre d'archivage ne s'ouvre pas cette fois-ci. */
   fenetre?: string | string[];
@@ -57,13 +56,9 @@ export default async function Accueil({ searchParams }: { searchParams: Parametr
     return suite ? `/espace/accueil?${suite}` : '/espace/accueil';
   };
 
-  // La fenêtre d'effacement ne s'ouvre que sur une ligne que la base a dite
-  // effaçable : une adresse fabriquée ne fait pas paraître de bouton rouge sur
-  // le PDF d'une autre loge.
-  const demande = premier(parametres.effacer);
-  const aEffacer =
-    SORTES.flatMap((sorte) => archives[sorte]).find((d) => d.id === demande && d.effacable) ??
-    null;
+  // L'accueil n'efface plus de PDF (27 novembre 2026) : ni corbeille, ni
+  // fenêtre d'effacement, même sur une adresse `?effacer=` tapée à la main.
+  // Effacer se fait dans Documents ou Paramètres › Archives.
 
   return (
     <VueAccueil
@@ -71,7 +66,6 @@ export default async function Accueil({ searchParams }: { searchParams: Parametr
       chiffres={chiffres}
       demandes={demandes}
       archives={archives}
-      aEffacer={aEffacer}
       refusDArchive={phraseDeRefusDocument(premier(parametres.document))}
       offres={offres}
       // Les offres de l'accueil ouvrent leur détail (23 novembre 2026, à la

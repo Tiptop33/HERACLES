@@ -7,7 +7,8 @@ import { supabaseServer } from '@/lib/supabase-server';
 
 /**
  * Effacer un compte rendu, une affiche ou une affichette archivés — la
- * corbeille rouge de l'accueil, après sa fenêtre de confirmation.
+ * corbeille rouge de Documents et de Paramètres › Archives, après sa fenêtre
+ * de confirmation. L'accueil n'en porte plus depuis le 27 novembre 2026.
  *
  * **Administrateur, Vénérable Maître et Secrétaire**, chacun dans sa loge,
  * l'administrateur partout. L'ordre du projet :

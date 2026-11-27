@@ -1,7 +1,6 @@
 import Link from 'next/link';
 import ColonnesDesArchives from '@/components/ColonnesDesArchives';
 import FenetreDArchivage from '@/components/FenetreDArchivage';
-import FenetreDEffacement from '@/components/FenetreDEffacement';
 import type { Chiffres, Demande, DossierAArchiver, Offre } from '@/lib/accueil';
 import ListeDesOffres from './ListeDesOffres';
 import OffreOuverte from './OffreOuverte';
@@ -36,7 +35,6 @@ export default function VueAccueil({
   chiffres,
   demandes,
   archives,
-  aEffacer,
   refusDArchive,
   offres,
   lienDeLOffre,
@@ -52,8 +50,6 @@ export default function VueAccueil({
   demandes: Demande[];
   /** Les PDF archivés de la période, rangés dans leurs trois colonnes (0069). */
   archives: Record<Sorte, DocumentArchive[]>;
-  /** La ligne dont la corbeille a été touchée : la fenêtre de confirmation s'ouvre. */
-  aEffacer: DocumentArchive | null;
   /** Ce que la route d'effacement a refusé, dit en clair. */
   refusDArchive: string | null;
   offres: Offre[];
@@ -150,7 +146,9 @@ export default function VueAccueil({
             {refusDArchive}
           </p>
         )}
-        <ColonnesDesArchives colonnes={archives} adresse="/espace/accueil" />
+        {/* Sans corbeille (27 novembre 2026, à la demande) : l'accueil ouvre
+            les PDF, il ne les efface pas. Effacer se fait dans Documents. */}
+        <ColonnesDesArchives colonnes={archives} adresse="/espace/accueil" corbeille={false} />
       </section>
 
       <section className="bloc" data-aide="offres-en-cours">
@@ -164,17 +162,13 @@ export default function VueAccueil({
         </p>
       )}
 
-      {aEffacer && <FenetreDEffacement archive={aEffacer} adresse="/espace/accueil" />}
-
       {/* Le détail d'une offre, en fenêtre flottante et non modale — la même
-          que sur l'écran France Travail. Pas pendant la confirmation d'un
-          effacement : une fenêtre à la fois. */}
-      {offreDemandee && !aEffacer && (
+          que sur l'écran France Travail. */}
+      {offreDemandee && (
         <OffreOuverte demandee={offreDemandee} offre={offre} fermer={fermerLOffre} />
       )}
 
-      {/* Une fenêtre à la fois : la confirmation d'un effacement passe avant. */}
-      {!aEffacer && aArchiver.length > 0 && (
+      {aArchiver.length > 0 && (
         <FenetreDArchivage dossiers={aArchiver} refus={refusDArchivage} />
       )}
     </main>

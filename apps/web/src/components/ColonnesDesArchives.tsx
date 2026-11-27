@@ -17,12 +17,16 @@ import {
  * Les trois colonnes des PDF archivés — Compte-rendu, Affiche, Affichette
  * (migration 0069).
  *
- * Le même tableau à deux endroits : l'accueil, pour l'exercice en cours, et
- * Paramètres › Archives, pour les exercices précédents. Un seul composant,
- * pour qu'ils ne divergent pas.
+ * Le même tableau à trois endroits : l'accueil et Documents, pour l'exercice
+ * en cours, et Paramètres › Archives, pour les exercices précédents. Un seul
+ * composant, pour qu'ils ne divergent pas.
  *
  * `adresse` est la page qui le montre : la corbeille y ouvre la fenêtre de
  * confirmation, et l'effacement y ramène.
+ *
+ * `corbeille` à `false` (l'accueil, depuis le 27 novembre 2026, à la demande)
+ * retire la corbeille rouge des lignes : on y ouvre les PDF, on ne les efface
+ * pas. L'effacement reste à Documents et à Paramètres › Archives.
  *
  * `compter` met le nombre de PDF à côté de chaque titre (Paramètres › Archives).
  *
@@ -44,6 +48,7 @@ export default function ColonnesDesArchives({
   compter = false,
   recherche = false,
   enTeteFixe = false,
+  corbeille = true,
 }: {
   colonnes: Record<Sorte, DocumentArchive[]>;
   adresse: Adresse;
@@ -55,6 +60,8 @@ export default function ColonnesDesArchives({
   recherche?: boolean;
   /** Les titres restent en place, les listes défilent ; un lien par ligne. */
   enTeteFixe?: boolean;
+  /** La corbeille rouge sur les lignes effaçables. `false` : aucune. */
+  corbeille?: boolean;
 }) {
   const [cherche, setCherche] = useState<Record<Sorte, string>>({
     'compte-rendu': '',
@@ -142,8 +149,8 @@ export default function ColonnesDesArchives({
                     {/* Rouge, sur la ligne même du PDF, et seulement là où la
                         base accepterait d'effacer : administrateur, Vénérable
                         Maître, Secrétaire. La corbeille n'efface pas : elle
-                        ouvre la confirmation. */}
-                    {d.effacable && (
+                        ouvre la confirmation. Jamais sur l'accueil. */}
+                    {corbeille && d.effacable && (
                       <Link
                         href={`${adresse}?effacer=${d.id}`}
                         scroll={false}
