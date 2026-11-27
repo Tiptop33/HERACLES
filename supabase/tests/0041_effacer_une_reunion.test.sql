@@ -78,6 +78,12 @@ begin;
     'et il survit à la suppression du titre dans la liste du collège');
 commit;
 
+-- Depuis 0117, la réunion est réservée à l'administration : effacer exige
+-- d'administrer. Le droit du titre, éprouvé ci-dessus, sert toujours aux
+-- documents (0069). Hugo et Otto, qui effacent plus bas, sont donc
+-- administrateurs ; Lise reste référente, et la porte lui reste fermée.
+update public.profil set role = 'admin' where id in (:'hugo', :'otto');
+
 -- ---------------------------------------------------------------------------
 \echo '— effacer emporte les pointages'
 -- ---------------------------------------------------------------------------

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { lireCorps, origine, vientDUnFormulaire } from '@/lib/formulaire';
+import { REUNION_RESERVEE, administreLesReunions } from '@/lib/reunion';
 import { supabaseServer } from '@/lib/supabase-server';
 
 /**
@@ -57,6 +58,7 @@ async function traiter(requete: Request) {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return repondre('session', 'Session expirée.');
+  if (!(await administreLesReunions(supabase))) return repondre('reservee', REUNION_RESERVEE);
 
   const { data, error } = await supabase.rpc('ouvrir_une_reunion', {
     jour: lu.data.tenue_le || new Date().toISOString().slice(0, 10),

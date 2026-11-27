@@ -18,6 +18,10 @@ insert into auth.users (id, email, raw_user_meta_data) values
   (:'jo',   'jo0054@example.org',   '{"role":"referent"}'),
   (:'kim',  'kim0054@example.org',  '{"role":"referent"}'),
   (:'lior', 'lior0054@example.org', '{"role":"referent"}');
+-- Depuis 0117, la réunion est réservée à l'administration : ceux qui la
+-- tiennent ici sont administrateurs. Ce que ce fichier éprouve — la loge,
+-- le registre, les pointages — vaut pour eux à l'identique.
+update public.profil set role = 'admin' where id in (:'iris', :'jo', :'kim', :'lior');
 
 insert into public.loge (bubble_id, nom) values ('loge-0054-tours', 'Tours — 0054')
 on conflict do nothing;

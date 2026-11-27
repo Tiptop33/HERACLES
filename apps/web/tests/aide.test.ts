@@ -178,18 +178,7 @@ describe('la recherche de l’aide', () => {
     ['dossiers archivés', 'dossiers-archives'],
     ['où sont les dossiers clôturés', 'dossiers-clotures'],
     ['rouvrir un dossier clôturé', 'rouvrir-un-dossier'],
-    ['faire l’appel de la réunion', 'faire-l-appel'],
-    ['imprimer le compte rendu', 'creer-le-compte-rendu'],
-    ['comment créer un compte rendu', 'creer-le-compte-rendu'],
-    ['faire le compte-rendu de la réunion', 'creer-le-compte-rendu'],
-    ['faire l’affiche de la réunion', 'creer-l-affiche'],
-    ['créer une affiche', 'creer-l-affiche'],
-    ['comment sortir l’affichette de la réunion', 'creer-l-affichette'],
-    ['créer une affichette', 'creer-l-affichette'],
-    ['comment créer le compte rendu, l’affiche et l’affichette', 'documents-de-la-reunion'],
-    ['produire les documents de la réunion', 'documents-de-la-reunion'],
     ['où retrouver un ancien compte rendu', 'documents-de-la-commission'],
-    ['fermer la feuille d’appel', 'faire-l-appel'],
     ['l’affichette d’un candidat', 'imprimer-la-fiche'],
     ['changer mon mot de passe', 'mot-de-passe'],
     ['changer mon numéro de téléphone', 'mon-compte'],
@@ -204,7 +193,6 @@ describe('la recherche de l’aide', () => {
     ['valider le cv anonyme', 'valider-le-cv-anonyme'],
     ['imprimer la fiche', 'imprimer-la-fiche'],
     ['où sont les nouvelles demandes urgentes', 'urgences'],
-    ['retrouver une réunion passée', 'registre-des-reunions'],
     ['qui est connecté', 'qui-est-connecte'],
     ['où sont les offres d’emploi', 'offres-en-cours'],
     ['chercher une offre par département', 'france-travail'],
@@ -223,16 +211,11 @@ describe('la recherche de l’aide', () => {
     ['où sont les correspondants', 'correspondants'],
     ['supprimer un dossier', 'supprimer-un-dossier'],
     ['j’ai créé un dossier par erreur', 'supprimer-un-dossier'],
-    ['supprimer une réunion', 'retirer-une-reunion'],
-    ['j’ai retiré une réunion par erreur', 'rendre-une-reunion'],
-    ['effacer définitivement une réunion', 'effacer-une-reunion'],
     ['retirer une note du suivi', 'retirer-une-note'],
     ['j’ai écrit une note par erreur', 'retirer-une-note'],
     ['j’ai retiré une note par erreur', 'rendre-une-note'],
     ['supprimer une affiche', 'effacer-un-pdf'],
     ['effacer un compte rendu', 'effacer-un-pdf'],
-    ['quelle est la date de la prochaine réunion', 'prochaine-reunion'],
-    ['la prochaine réunion tombe un jour férié', 'prochaine-reunion'],
   ])('« %s » mène à %s', (question, attendu) => {
     expect(premier(question)).toBe(attendu);
   });
@@ -267,6 +250,25 @@ describe('la recherche de l’aide', () => {
     ['quand s’est-il connecté pour la dernière fois', 'connexions'],
     ['ajouter une province', 'gerer-les-provinces'],
     ['le lien du secrétaire d’une loge de Guyenne et Gascogne', 'loges-de-guyenne-et-gascogne'],
+    // La réunion est réservée à l'administration depuis le 27 novembre 2026
+    // (migration 0117) : ses questions se posent ici, et non plus côté référent.
+    ['faire l’appel de la réunion', 'faire-l-appel'],
+    ['imprimer le compte rendu', 'creer-le-compte-rendu'],
+    ['comment créer un compte rendu', 'creer-le-compte-rendu'],
+    ['faire le compte-rendu de la réunion', 'creer-le-compte-rendu'],
+    ['faire l’affiche de la réunion', 'creer-l-affiche'],
+    ['créer une affiche', 'creer-l-affiche'],
+    ['comment sortir l’affichette de la réunion', 'creer-l-affichette'],
+    ['créer une affichette', 'creer-l-affichette'],
+    ['comment créer le compte rendu, l’affiche et l’affichette', 'documents-de-la-reunion'],
+    ['produire les documents de la réunion', 'documents-de-la-reunion'],
+    ['fermer la feuille d’appel', 'faire-l-appel'],
+    ['retrouver une réunion passée', 'registre-des-reunions'],
+    ['supprimer une réunion', 'retirer-une-reunion'],
+    ['j’ai retiré une réunion par erreur', 'rendre-une-reunion'],
+    ['effacer définitivement une réunion', 'effacer-une-reunion'],
+    ['quelle est la date de la prochaine réunion', 'prochaine-reunion'],
+    ['la prochaine réunion tombe un jour férié', 'prochaine-reunion'],
   ])('pour l’administration, « %s » mène à %s', (question, attendu) => {
     expect(chercherDesParcours(question, parcoursDuRole('admin'))[0]?.id).toBe(attendu);
   });
@@ -275,6 +277,16 @@ describe('la recherche de l’aide', () => {
     const ids = chercherDesParcours('paramètres et invitations', duReferent).map((p) => p.id);
     expect(ids).not.toContain('parametres');
     expect(ids).not.toContain('invitations');
+  });
+
+  it('ne guide plus un référent vers la réunion', () => {
+    for (const question of ['faire l’appel de la réunion', 'créer le compte rendu', 'créer une affiche']) {
+      const trouves = chercherDesParcours(question, duReferent);
+      for (const p of trouves) {
+        expect(p.destination, `${question} · ${p.id}`).not.toBe('/espace/reunion');
+        expect(p.etapes.map((e) => e.ecran), `${question} · ${p.id}`).not.toContain('/espace/reunion');
+      }
+    }
   });
 });
 
@@ -1059,7 +1071,10 @@ describe('les gestes d’administration livrés depuis le 11 novembre', () => {
 });
 
 describe('la visite qui survit au rechargement de la page', () => {
-  const tous = parcoursDuRole('referent');
+  // Le compte rendu, dont les gestes rechargent la page, est réservé à
+  // l'administration depuis le 27 novembre 2026 (migration 0117).
+  const tous = parcoursDuRole('admin');
+  const duReferent = parcoursDuRole('referent');
   const compteRendu = tous.find((p) => p.id === 'creer-le-compte-rendu')!;
   const maintenant = 1_800_000_000_000;
 
@@ -1083,7 +1098,9 @@ describe('la visite qui survit au rechargement de la page', () => {
     expect(reprendreLaVisite(texte, 'espace', tous, maintenant + REPRISE_AU_PLUS_TARD_MS + 1)).toBeNull();
     const comptes = parcoursDuRole('admin').find((p) => p.id === 'comptes')!;
     const dAdministration = retenirLaVisite('espace', { parcours: comptes, index: 0 }, maintenant);
-    expect(reprendreLaVisite(dAdministration, 'espace', tous, maintenant)).toBeNull();
+    expect(reprendreLaVisite(dAdministration, 'espace', duReferent, maintenant)).toBeNull();
+    // La réunion non plus : un référent ne l'a pas.
+    expect(reprendreLaVisite(texte, 'espace', duReferent, maintenant)).toBeNull();
   });
 
   it('ignore ce qui est abîmé ou hors bornes', () => {

@@ -57,13 +57,14 @@ export const FAMILLES: readonly Famille[] = [
     ],
   },
   {
-    // « Réseau » jusqu'au 27 novembre 2026, renommée à la demande. Mêmes
-    // entrées, même place, mêmes adresses.
+    // « Réseau » jusqu'au 27 novembre 2026, renommée à la demande. Même
+    // place dans la colonne, mêmes adresses.
     nom: 'Membres Héraclés',
     entrees: [
       { libelle: 'Référents', vers: '/espace/referents' },
       { libelle: 'Correspondants', vers: null, lot: 'lot 5' },
-      { libelle: 'Réunion', vers: '/espace/reunion' },
+      // « Réunion » était ici jusqu'au 27 novembre 2026 : elle est passée
+      // dans la famille Admin, réservée à l'administration (migration 0117).
       // Ajoutée le 10 novembre 2026, à la demande : une carte par province,
       // son image puis son nom (migration 0080). En fin de famille, pour ne
       // déplacer aucune des entrées que les référents connaissent déjà.
@@ -105,6 +106,12 @@ export const FAMILLES: readonly Famille[] = [
       // des référents — date, heure, durée (migration 0110). En fin de
       // famille, après « Comptes », pour ne déplacer aucune entrée.
       { libelle: 'Connexions', vers: '/espace/admin/connexions' },
+      // Venue de la famille Réseau le 27 novembre 2026, à la demande : l'appel,
+      // le registre, le compte rendu, l'affiche et l'affichette ne se tiennent
+      // plus que par l'administration (migration 0117). En fin de famille,
+      // pour ne déplacer aucune entrée d'Admin. L'adresse ne change pas : les
+      // liens déjà donnés restent valables.
+      { libelle: 'Réunion', vers: '/espace/reunion' },
     ],
   },
 ];

@@ -6,7 +6,7 @@ import { produireLAffichette } from '@/lib/documents/produire';
 import { enTeteDeTelechargement } from '@/lib/fichiers';
 import { destinationInterne, lireCorps, origine, vientDUnFormulaire } from '@/lib/formulaire';
 import { lireFiche } from '@/lib/poste';
-import { lireLAffichette, lireUneReunion } from '@/lib/reunion';
+import { REUNION_RESERVEE, administreLesReunions, lireLAffichette, lireUneReunion } from '@/lib/reunion';
 import { supabaseServer } from '@/lib/supabase-server';
 
 /**
@@ -67,6 +67,7 @@ async function choisir(requete: Request, reunion: string) {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return repondre('session', 'Session expirée.', 401);
+  if (!(await administreLesReunions(supabase))) return repondre('reservee', REUNION_RESERVEE, 403);
 
   const { data, error } = await supabase.rpc('choisir_l_affichette', {
     reunion_choisie: reunion,
@@ -99,6 +100,9 @@ export async function GET(requete: Request, { params }: { params: Promise<{ id: 
       data: { user },
     } = await supabase.auth.getUser();
     if (!user) return NextResponse.json({ erreur: 'Session expirée.' }, { status: 401 });
+    if (!(await administreLesReunions(supabase))) {
+      return NextResponse.json({ erreur: REUNION_RESERVEE }, { status: 403 });
+    }
 
     const reunion = await lireUneReunion(id);
     if (!reunion) return NextResponse.json({ erreur: 'Cette réunion n’existe pas.' }, { status: 404 });

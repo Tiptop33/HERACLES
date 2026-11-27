@@ -5,7 +5,7 @@ import { donneesDeLAffiche } from '@/lib/documents/donnees';
 import { produireLAffiche } from '@/lib/documents/produire';
 import { enTeteDeTelechargement } from '@/lib/fichiers';
 import { origine } from '@/lib/formulaire';
-import { lireUneReunion } from '@/lib/reunion';
+import { REUNION_RESERVEE, administreLesReunions, lireUneReunion } from '@/lib/reunion';
 import { supabaseServer } from '@/lib/supabase-server';
 
 /**
@@ -34,6 +34,9 @@ export async function GET(requete: Request, { params }: { params: Promise<{ id: 
     } = await supabase.auth.getUser();
     if (!user) {
       return NextResponse.json({ erreur: 'Session expirée.' }, { status: 401 });
+    }
+    if (!(await administreLesReunions(supabase))) {
+      return NextResponse.json({ erreur: REUNION_RESERVEE }, { status: 403 });
     }
 
     const reunion = await lireUneReunion(id);

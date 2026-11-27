@@ -56,7 +56,9 @@ export default async function Reunion({
   }>;
 }) {
   const profil = await exigerProfil();
-  if (profil.role === 'chercheur') redirect(accueilDuRole(profil.role));
+  // Réservée à l'administration depuis le 27 novembre 2026 (migration 0117) :
+  // un référent n'a plus l'entrée du menu, ni l'écran par son adresse.
+  if (profil.role !== 'admin') redirect(accueilDuRole(profil.role));
 
   const parametres = await searchParams;
   const premier = (v: string | string[] | undefined) => (Array.isArray(v) ? (v[0] ?? '') : (v ?? ''));
