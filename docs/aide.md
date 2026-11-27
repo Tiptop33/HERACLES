@@ -25,11 +25,63 @@ elle désigne. Clôturer, archiver, supprimer restent des gestes de la personne.
 | La place du personnage | `apps/web/src/lib/aide/placement.ts` |
 | Le bouton, la fenêtre, le guide | `apps/web/src/components/aide/Aide.tsx` |
 | Le personnage en volume | `apps/web/src/components/aide/Personnage.tsx` |
+| La visite qui survit au rechargement | `apps/web/src/lib/aide/visite.ts` |
 | Les tests | `apps/web/tests/aide.test.ts` |
 
 Elle est montée une fois, dans la coquille des espaces
 (`apps/web/src/app/espace/layout.tsx`), et ne propose que les parcours que le
 rôle a le droit d'ouvrir.
+
+## Le compte rendu, l'affiche et l'affichette
+
+La question qui revient le plus, d'où quatre parcours qui partent tous de
+**Réunion** et finissent sur **Documents**, là où l'exemplaire est rangé :
+
+| Parcours | Les étapes, dans l'ordre |
+| --- | --- |
+| **Créer le compte rendu, l'affiche et l'affichette d'une réunion** (`documents-de-la-reunion`) | Réunion › « Ouvrir l'appel » › l'appel › dossier de l'affichette › prochaine réunion › les trois boutons › Documents |
+| **Créer le compte rendu** (`creer-le-compte-rendu`) | Réunion › « Ouvrir l'appel » › l'appel › prochaine réunion › « Compte rendu » › Documents |
+| **Créer l'affiche** (`creer-l-affiche`) | Réunion › « Ouvrir l'appel » › « Affiche » › Documents |
+| **Créer l'affichette** (`creer-l-affichette`) | Réunion › « Ouvrir l'appel » › dossier de l'affichette › « Affichette » › Documents |
+
+Ce que disent les bulles, et que les tests vérifient :
+
+- le **compte rendu** porte des noms et des coordonnées : il reste à la
+  commission ; l'**affiche** et l'**affichette** ne portent aucun nom, ce sont
+  elles qui se diffusent ;
+- le bouton « Affichette » est **grisé** tant que le dossier n'est pas choisi
+  — l'ancre est posée sur les deux états du bouton ;
+- un document **redemandé** remplace le précédent du même nom ; le nom d'une
+  affichette porte le jour où on la tire, elle ne se remplace donc que le
+  même jour. Celle qu'on tire depuis la fiche du candidat n'est pas rangée ;
+- chaque étape posée sur la feuille d'appel dit, si la feuille n'est pas
+  ouverte, comment l'ouvrir — ou rouvrir une réunion passée par le registre.
+
+« Emmène-moi » ouvre l'écran Réunion et reprend sur « Ouvrir l'appel » : à
+l'arrivée, aucune feuille n'est encore ouverte.
+
+Les ancres de l'écran (`apps/web/src/app/espace/reunion/page.tsx`) :
+`bouton-ouvrir-appel`, `compte-de-l-appel`, `choix-affichette`,
+`prochaine-reunion`, `documents-reunion`, `bouton-affiche`,
+`bouton-compte-rendu`, `bouton-affichette`, `fermer-la-feuille`.
+
+## La visite reprend après un rechargement
+
+« Ouvrir l'appel », le choix du dossier de l'affichette, la date de la
+prochaine réunion, les présences : sur l'écran Réunion, ces gestes envoient
+un formulaire et le navigateur **recharge la page**. L'aide, remontée de zéro,
+oubliait la visite — « Montre-moi » s'arrêtait à la deuxième étape.
+
+La visite en cours est donc retenue dans le `sessionStorage` de l'onglet
+(`visite.ts`) : l'identifiant du parcours, l'étape, le catalogue et le moment.
+Ni la question tapée, ni rien de ce qui est à l'écran. Au clic sur l'élément
+désigné, l'étape suivante est écrite **avant** que le formulaire parte ; à la
+page suivante, l'aide la relit et reprend.
+
+Elle ne reprend pas : dans un autre catalogue (une visite de l'espace de
+travail ne reprend pas sur « Mon compte ») ; un parcours que le rôle n'a pas ;
+une étape qui n'existe plus ; après trente minutes. Un navigateur qui refuse le
+stockage garde l'aide d'avant, sans reprise.
 
 ## Sur un téléphone
 
@@ -154,6 +206,41 @@ Le mot de passe ne se change pas dans « Mon compte » : la page n'a pas de cham
 pour cela. Le parcours « Changer mon mot de passe » renvoie vers « Mot de passe
 oublié ? », sur l'écran de connexion.
 
+## Sur la page du candidat
+
+Demandée le 27 novembre 2026. `/espace/chercheur` a sa propre barre, sans la
+colonne des référents : l'aide y a son catalogue (`candidat`, dans
+`parcours-publics.ts`), sur le modèle de « Mon compte » — une étape par
+réponse, sur la page, sans « Emmène-moi » et **sans Claude** : la question
+tapée par un candidat ne quitte pas son navigateur. Le bouton est monté dans
+`EspaceCandidat.tsx`, en bas à droite comme sur la fiche de candidature, avec
+une marge en bas de page pour que le dernier bloc remonte au-dessus de lui.
+
+Douze réponses : les offres pour moi, les départements, les secteurs
+d'activité, la jauge et ce qui manque, corriger sa fiche, la photo, « Où j'en
+suis », ajouter un CV ou une lettre, supprimer un document, qui suit ma
+recherche, qui voit mes informations, se déconnecter et revenir.
+
+Ce que les tests tiennent :
+
+- chaque ancre citée est posée sur un composant de la page
+  (`candidat-offres`, `candidat-departements`, `candidat-secteurs`,
+  `candidat-jauge`, `candidat-fiche`, `candidat-photo`, `candidat-messages`,
+  `candidat-documents`, `candidat-supprimer-document`, `candidat-referent`,
+  `candidat-deconnexion`) ;
+- chaque réponse a sa version courte de cent caractères au plus ;
+- les textes ne nomment personne et parlent de « candidat », jamais de
+  « chercheur » — le nom de rôle du code ;
+- ce qui protège la personne reste dit, version courte comprise : les messages
+  sont lus par le référent et le parrain **seuls**, le référent est prévenu
+  sans le texte, rien n'est publié, seul le CV anonyme circule, un document
+  supprimé l'est **pour de bon** ; et la photo se retire **sans** fenêtre de
+  confirmation — l'aide ne promet pas une confirmation qui n'existe pas.
+
+Vu dans Chromium, ordinateur et téléphone, sur une page d'essai aux données
+inventées (sans base) : les onze ancres trouvées, le guide placé, la version
+courte sur téléphone, et la visite reprise après un rechargement de la page.
+
 ## Ajouter un parcours
 
 1. Poser une **ancre** sur l'élément à désigner : `data-aide="mon-element"`.
@@ -183,10 +270,12 @@ se trouve le bouton « Aide ». Sa bulle, elle, est déjà à l'arrivée.
 
 ## Ce qui vient après la bascule
 
-- Les vrais parcours des offres, des entreprises et de « Relation », quand
-  leurs écrans existeront. D'ici là, l'aide répond déjà à ces questions : elle
-  montre les offres en cours sur l'accueil, et désigne les entrées grisées en
-  disant qu'elles ne sont pas encore en service. Ses ancres `eteint:` font
+- Les vrais parcours des offres internes, des offres web, des entreprises et
+  de « Relation », quand leurs écrans existeront. D'ici là, l'aide répond déjà
+  à ces questions : elle montre les offres en cours sur l'accueil et l'écran
+  « France Travail », dit que la fiche d'un candidat montre les entreprises qui
+  recrutent dans ses secteurs, et désigne les entrées grisées en disant
+  qu'elles ne sont pas encore en service. Ses ancres `eteint:` font
   casser le test du catalogue le jour où l'écran arrive — c'est le signal pour
   écrire le vrai parcours.
 - De même pour la messagerie, les correspondants, le tableau de bord, le
@@ -194,6 +283,33 @@ se trouve le bouton « Aide ». Sa bulle, elle, est déjà à l'arrivée.
   dit aujourd'hui qu'ils ne sont pas encore en service, et montre ce qui
   existe déjà (les chiffres de l'accueil). Les rubriques grisées des
   paramètres ont le même garde-fou, avec des ancres `rubrique-eteinte:`.
+
+## Mise à jour du 27 novembre 2026
+
+L'aide a rattrapé ce qui a été livré depuis le 11 novembre. **74 parcours**
+dans l'espace de travail : 52 pour un référent, 73 pour l'administration. Et
+**12 sur la page du candidat**, qui n'avait pas d'aide (section ci-dessus).
+
+- **Les documents de la réunion** : les quatre parcours ci-dessus, et
+  « Faire l'appel » va désormais jusqu'à « Fermer la feuille ».
+- **Documents** : « Retrouver un compte rendu… » et « Effacer un compte
+  rendu… » mènent à l'écran Documents (onglet du téléphone, famille
+  « Réseau »), et non plus à l'accueil.
+- **France Travail** : un parcours pour chercher et filtrer les offres.
+- **Administration** : Comptes (rôle et loge, effacer un compte), Connexions,
+  invitations (inviter depuis l'enveloppe de l'annuaire, corriger, renvoyer le
+  lien, supprimer), provinces, Loges de Guyenne et Gascogne.
+- **Textes remis à jour** : l'administration corrige toute fiche de candidat ;
+  la mise en page règle aussi le CV anonyme ; les archives listent aussi les
+  candidats clôturés et archivés ; le registre rouvre une réunion pour refaire
+  ses documents.
+- **La visite reprend après un rechargement de page** (section ci-dessus).
+
+Comme le 11 novembre, rien de cela n'a été joué avec une vraie session : les
+tests vérifient les ancres, les textes, la recherche et la reprise, pas
+l'écran. Premier essai utile sur l'instance d'essai : en référent, « Aide ›
+comment créer le compte rendu », « Montre-moi », et suivre jusqu'au bout — la
+visite doit survivre à « Ouvrir l'appel ».
 
 ## Récapitulatif — état au 11 novembre 2026
 
@@ -225,6 +341,7 @@ dit où l'on en est et ce qui reste à éprouver.
 | Fiche du candidat (formulaire public) | 9 | Une étape par réponse, sans Claude, bulles courtes sur téléphone |
 | Présentation du parrain (formulaire public) | 5 | Idem |
 | Mon compte | 3 | Idem |
+| Page du candidat (ajoutée le 27 novembre) | 12 | Idem |
 
 ### Ce que couvrent les 60 parcours de l'espace de travail
 

@@ -130,6 +130,16 @@ Une relecture indépendante, le 25 novembre, a trouvé et fait corriger :
   des réunions, modèles de courriels) et la mise en page des documents ne se lisent plus
   qu'en référent ou en administrateur. Le test de 0002 qui disait l'inverse a été mis à jour.
 
+## L'aide
+
+Depuis le 27 novembre 2026, la page a son bouton « Aide », en bas à droite :
+douze réponses sur la page même (offres, départements, secteurs, fiche, photo,
+messages, documents, données, connexion), sans Claude — la question ne quitte
+pas le navigateur. Le catalogue est `candidat`, dans
+`apps/web/src/lib/aide/parcours-publics.ts` ; voir `docs/aide.md`. Les
+attributs `data-aide` posés sur les blocs de la page sont ses ancres : un bloc
+refondu doit les garder, ou le test de l'aide casse.
+
 ## Les écrans et les routes
 
 | Où | Quoi |

@@ -245,7 +245,12 @@ export default function FicheDuCandidatEditable({
   }
 
   return (
-    <section className="pc-bloc pc-fiche" id="pc-fiche" aria-labelledby="pc-fiche-titre">
+    <section
+      className="pc-bloc pc-fiche"
+      id="pc-fiche"
+      aria-labelledby="pc-fiche-titre"
+      data-aide="candidat-fiche"
+    >
       <header>
         <h2 id="pc-fiche-titre">Ma fiche</h2>
         <span className="pc-enregistre" role="status">
@@ -263,7 +268,12 @@ export default function FicheDuCandidatEditable({
           <div className="pc-champs">
             {i === 0 && (
               <>
-                <div className="pc-champ pc-champ--large" id="pc-photo" data-champ="photo">
+                <div
+                  className="pc-champ pc-champ--large"
+                  id="pc-photo"
+                  data-champ="photo"
+                  data-aide="candidat-photo"
+                >
                   <span className="pc-libelle">
                     Ma photo
                     {ok('photo')}
@@ -313,7 +323,7 @@ export default function FicheDuCandidatEditable({
               <FragmentDeChamp key={c.cle}>
                 {rendreChamp(c)}
                 {c.cle === 'definition_emploi' && (
-                  <div className="pc-champ pc-champ--large" data-champ="secteurs">
+                  <div className="pc-champ pc-champ--large" data-champ="secteurs" data-aide="candidat-secteurs">
                     <span className="pc-libelle" id="pc-champ-secteurs-lib">
                       Mes secteurs d’activité
                       {ok('secteurs')}

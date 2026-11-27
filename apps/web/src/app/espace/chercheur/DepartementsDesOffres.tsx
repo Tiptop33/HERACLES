@@ -40,7 +40,7 @@ export default function DepartementsDesOffres({
   }
 
   return (
-    <div className="pc-rang" role="group" aria-label="Départements">
+    <div className="pc-rang" role="group" aria-label="Départements" data-aide="candidat-departements">
       <span className="pc-rang-titre">Départements</span>
       {proposes.length === 0 ? (
         <span className="pc-note">aucune offre en cours dans vos secteurs</span>

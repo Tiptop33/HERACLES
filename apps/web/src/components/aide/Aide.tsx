@@ -16,6 +16,13 @@ import { marcheEntre, type Point } from '@/lib/aide/marche';
 import { EXEMPLES, parcoursDuCatalogue, type Catalogue } from '@/lib/aide/parcours-publics';
 import { placer, type Boite } from '@/lib/aide/placement';
 import { chercherDesParcours } from '@/lib/aide/recherche';
+import {
+  CLE_DE_LA_VISITE,
+  etapeSuivante,
+  reprendreLaVisite,
+  retenirLaVisite,
+  type Visite,
+} from '@/lib/aide/visite';
 import type { Role } from '@/lib/roles';
 
 /**
@@ -55,8 +62,6 @@ const PERSONNAGE = { l: 120, h: 140 };
 /** Le temps laissé à un écran pour s'afficher avant de dire « je ne le vois pas ». */
 const PATIENCE_MS = 1200;
 
-type Visite = { parcours: Parcours; index: number };
-
 type Cible = {
   ancre: string | null;
   boite: Boite | null;
@@ -81,6 +86,28 @@ type Renfort = {
 };
 
 const AUCUNE: Cible = { ancre: null, boite: null, introuvable: false };
+
+/**
+ * Écrit — ou efface — la visite retenue pour l'onglet. Un navigateur qui
+ * refuse le stockage (navigation privée stricte) ne retient rien : la visite
+ * marche comme avant, sans reprise après un rechargement.
+ */
+function ecrireLaVisite(texte: string | null) {
+  try {
+    if (texte) window.sessionStorage.setItem(CLE_DE_LA_VISITE, texte);
+    else window.sessionStorage.removeItem(CLE_DE_LA_VISITE);
+  } catch {
+    // Rien à faire : la reprise n'est qu'un confort.
+  }
+}
+
+function lireLaVisite(): string | null {
+  try {
+    return window.sessionStorage.getItem(CLE_DE_LA_VISITE);
+  } catch {
+    return null;
+  }
+}
 
 function selecteur(ancre: string): string {
   return `[data-aide="${ancre.replace(/["\\]/g, '\\$&')}"]`;
@@ -200,6 +227,9 @@ export default function Aide({
     () => (catalogue ? parcoursDuCatalogue(catalogue) : role ? parcoursDuRole(role) : []),
     [catalogue, role],
   );
+  // Le catalogue d'où vient la visite : elle ne reprend que là.
+  const lieu = catalogue ?? 'espace';
+
   // Claude ne répond qu'en espace de travail : sa route exige une session.
   const renfortPossible = renfortOuvert && !catalogue;
   const trouves = useMemo(() => chercherDesParcours(question, tous), [question, tous]);
@@ -236,6 +266,27 @@ export default function Aide({
       window.removeEventListener('resize', mesurer);
     };
   }, []);
+
+  // Une visite commencée avant un rechargement de page reprend à son étape :
+  // « Ouvrir l'appel », le dossier de l'affichette ou la prochaine réunion
+  // s'enregistrent par un formulaire qui recharge tout l'écran. Tant que la
+  // relecture n'est pas faite, rien n'est écrit — sans quoi le premier rendu,
+  // sans visite, effacerait celle qu'on s'apprête à reprendre.
+  const relue = useRef(false);
+  useEffect(() => {
+    const image = requestAnimationFrame(() => {
+      relue.current = true;
+      // Ce qui ne se reprend pas ici (autre catalogue, trop ancien) est
+      // laissé tel quel : ce n'est pas à cette page de l'effacer.
+      const reprise = reprendreLaVisite(lireLaVisite(), lieu, tous, Date.now());
+      if (reprise) setVisite(reprise);
+    });
+    return () => cancelAnimationFrame(image);
+  }, [lieu, tous]);
+
+  useEffect(() => {
+    if (relue.current) ecrireLaVisite(retenirLaVisite(lieu, visite, Date.now()));
+  }, [lieu, visite]);
 
   const ouvrir = useCallback(() => {
     setOuverte(true);
@@ -305,11 +356,8 @@ export default function Aide({
   );
 
   const avancer = useCallback((de: number) => {
-    setVisite((v) => {
-      // Un clic arrivé en retard sur une étape déjà quittée ne compte pas.
-      if (!v || v.index !== de) return v;
-      return de + 1 < v.parcours.etapes.length ? { ...v, index: de + 1 } : null;
-    });
+    // Un clic arrivé en retard sur une étape déjà quittée ne compte pas.
+    setVisite((v) => (v ? etapeSuivante(v, de) : v));
   }, []);
 
   const reculer = useCallback(() => {
@@ -328,15 +376,22 @@ export default function Aide({
   useEffect(() => {
     window.dispatchEvent(new CustomEvent(SIGNAL_MENU, { detail: entreeDuMenu }));
   }, [entreeDuMenu]);
+  const enCours = visite?.parcours ?? null;
   useEffect(() => {
-    if (!ancre) return;
+    if (!ancre || !enCours) return;
     const clic = (e: MouseEvent) => {
       const vise = e.target instanceof Element ? e.target.closest(selecteur(ancre)) : null;
-      if (vise) window.setTimeout(() => avancer(index), 0);
+      if (!vise) return;
+      // Ce clic peut envoyer un formulaire et recharger la page avant le
+      // prochain rendu : l'étape suivante est retenue dès maintenant.
+      ecrireLaVisite(
+        retenirLaVisite(lieu, etapeSuivante({ parcours: enCours, index }, index), Date.now()),
+      );
+      window.setTimeout(() => avancer(index), 0);
     };
     document.addEventListener('click', clic, true);
     return () => document.removeEventListener('click', clic, true);
-  }, [ancre, index, avancer]);
+  }, [ancre, enCours, index, lieu, avancer]);
 
   // Échap referme ce qui est ouvert : la visite d'abord, la fenêtre ensuite.
   useEffect(() => {

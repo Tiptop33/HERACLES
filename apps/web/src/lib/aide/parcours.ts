@@ -69,6 +69,12 @@ const CANDIDATS = '/espace/candidats';
 const REUNION = '/espace/reunion';
 const ACCUEIL = '/espace/accueil';
 const PARAMETRES = '/espace/parametres';
+const DOCUMENTS = '/espace/documents';
+const ADMIN = '/espace/admin';
+const COMPTES = '/espace/admin/comptes';
+const CONNEXIONS = '/espace/admin/connexions';
+const REFERENTS = '/espace/referents';
+const FRANCE_TRAVAIL = '/espace/france-travail';
 
 /** La première étape de presque tous les parcours du suivi. */
 const MENU_CANDIDATS: Etape = {
@@ -123,6 +129,122 @@ const MENU_REUNION: Etape = {
   texte: 'Dans la colonne de gauche, famille « Réseau », cliquez sur « Réunion ».',
   court: 'Sous « Plus », famille « Réseau », touchez « Réunion ».',
 };
+
+const MENU_DOCUMENTS: Etape = {
+  ancre: `menu:${DOCUMENTS}`,
+  texte: 'Dans la colonne de gauche, famille « Réseau », cliquez sur « Documents ».',
+  court: 'Dans la barre du bas, touchez « Documents ».',
+};
+
+const MENU_REFERENTS: Etape = {
+  ancre: `menu:${REFERENTS}`,
+  texte: 'Dans la colonne de gauche, famille « Réseau », cliquez sur « Référents ».',
+  court: 'Dans la barre du bas, touchez « Référents ».',
+};
+
+const MENU_INVITATIONS: Etape = {
+  ancre: `menu:${ADMIN}`,
+  texte: 'Dans la colonne de gauche, famille « Admin », cliquez sur « Invitations ».',
+  court: 'Sous « Plus », famille « Admin », touchez « Invitations ».',
+};
+
+const MENU_COMPTES: Etape = {
+  ancre: `menu:${COMPTES}`,
+  texte: 'Dans la colonne de gauche, famille « Admin », cliquez sur « Comptes ».',
+  court: 'Sous « Plus », famille « Admin », touchez « Comptes ».',
+};
+
+// ——— La réunion et ses trois documents ———
+// Le compte rendu, l'affiche et l'affichette sortent tous de la feuille
+// d'appel. Ces étapes se partagent entre le parcours d'ensemble et ceux de
+// chaque document. La feuille n'est à l'écran qu'une fois l'appel ouvert :
+// chaque étape qui la désigne dit comment l'ouvrir quand elle manque.
+//
+// Plusieurs gestes de la feuille rechargent la page (ouvrir l'appel, choisir
+// le dossier, dire la prochaine réunion) : la visite reprend à l'étape
+// suivante (`visite.ts`).
+
+const FEUILLE_DABORD =
+  'Cet élément est sur la feuille d’appel : ouvrez d’abord l’appel de la réunion, ou cliquez sa date dans le registre, plus bas.';
+
+const OUVRIR_LA_FEUILLE: Etape = {
+  ancre: 'bouton-ouvrir-appel',
+  ecran: REUNION,
+  texte:
+    'Vérifiez le jour de la réunion — aujourd’hui par défaut — et le lieu si vous le souhaitez, puis cliquez « Ouvrir l’appel ». Si elle est déjà ouverte, vous retombez sur sa feuille.',
+  court: 'Vérifiez le jour de la réunion, puis touchez « Ouvrir l’appel ».',
+  siAbsent:
+    'La feuille d’appel est déjà ouverte sur cet écran : cliquez « Suivant ». Pour une réunion passée, cliquez sa date dans le registre, plus bas.',
+};
+
+const FAIRE_L_APPEL: Etape = {
+  ancre: 'compte-de-l-appel',
+  ecran: REUNION,
+  texte:
+    'Faites l’appel sur la feuille : « Présent », « Excusé » ou « Absent » pour chaque référent. Chaque clic s’enregistre, et ces compteurs suivent. « Présents : les … en ligne » coche d’un coup ceux qui sont connectés. L’appel fini, cliquez « Suivant ».',
+  court: 'Faites l’appel : un clic par référent, enregistré aussitôt. Puis « Suivant ».',
+  siAbsent: FEUILLE_DABORD,
+};
+
+const CHOISIR_LE_DOSSIER: Etape = {
+  ancre: 'choix-affichette',
+  ecran: REUNION,
+  texte:
+    'Dans « Dossier de l’affichette », choisissez le dossier retenu en séance, parmi les dossiers en cours de la loge : le choix s’enregistre aussitôt, et le bouton « Affichette » s’allume.',
+  court: 'Choisissez le dossier de l’affichette : il s’enregistre aussitôt.',
+  siAbsent: FEUILLE_DABORD,
+};
+
+const DIRE_LA_PROCHAINE_REUNION: Etape = {
+  ancre: 'prochaine-reunion',
+  ecran: REUNION,
+  texte:
+    'Vérifiez la date de la prochaine réunion : le compte rendu l’imprime. Elle arrive remplie du 2e ou 4e mercredi suivant, reporté si c’est un jour férié ; corrigée, elle s’enregistre aussitôt.',
+  court: 'Vérifiez la date de la prochaine réunion : le compte rendu l’imprime.',
+  siAbsent: FEUILLE_DABORD,
+};
+
+const BOUTON_COMPTE_RENDU: Etape = {
+  ancre: 'bouton-compte-rendu',
+  ecran: REUNION,
+  texte:
+    'Cliquez « Compte rendu » : le PDF s’ouvre dans un nouvel onglet — les présences du jour, la prochaine réunion, puis les candidats en cours avec la dernière note de leur suivi. Il porte des noms et des coordonnées : il reste à la commission.',
+  court: 'Touchez « Compte rendu » : le PDF s’ouvre dans un nouvel onglet.',
+  siAbsent: FEUILLE_DABORD,
+};
+
+const BOUTON_AFFICHE: Etape = {
+  ancre: 'bouton-affiche',
+  ecran: REUNION,
+  texte:
+    'Cliquez « Affiche » : le PDF s’ouvre dans un nouvel onglet — les dossiers en cours de la loge, sans aucun nom : le numéro, la date d’entrée, ce que la personne cherche et le lien de son CV anonyme. C’est le document qui se diffuse.',
+  court: 'Touchez « Affiche » : le PDF s’ouvre dans un nouvel onglet.',
+  siAbsent: FEUILLE_DABORD,
+};
+
+const BOUTON_AFFICHETTE: Etape = {
+  ancre: 'bouton-affichette',
+  ecran: REUNION,
+  texte:
+    'Cliquez « Affichette » : une page pour le dossier choisi, sans nom — son numéro, sa recherche, son rayon d’action et le QR code de son CV anonyme. Grisé, le bouton attend le choix du dossier, juste au-dessus.',
+  court: 'Touchez « Affichette ». Grisé, il attend le choix du dossier.',
+  siAbsent: FEUILLE_DABORD,
+};
+
+/**
+ * La dernière étape : où retrouver l'exemplaire rangé (migration 0069).
+ * `ou` dit la colonne et le nom, `suite` ce que fait un document redemandé —
+ * il remplace celui du même nom, et le nom d'une affichette porte le jour.
+ */
+function rangeDansDocuments(ou: string, suite: string): Etape {
+  return {
+    ...MENU_DOCUMENTS,
+    texte: `Chaque clic range un exemplaire dans « Documents » (famille « Réseau »), ${ou} ; l’accueil le montre aussi. ${suite}`,
+    court: 'Un exemplaire est rangé sous l’onglet « Documents », en bas de l’écran.',
+  };
+}
+
+const REDEMANDE = 'Une correction sur la feuille ? Redemandez le document : le nouveau remplace l’ancien.';
 
 export const PARCOURS: readonly Parcours[] = [
   {
@@ -295,33 +417,148 @@ export const PARCOURS: readonly Parcours[] = [
   {
     id: 'faire-l-appel',
     titre: 'Faire l’appel d’une réunion',
-    motsCles: ['appel', 'réunion', 'présence', 'présents', 'absents', 'feuille', 'commission', 'tenue'],
+    motsCles: ['appel', 'réunion', 'présence', 'présents', 'absents', 'excusés', 'feuille', 'feuille d’appel', 'commission', 'tenue'],
     destination: REUNION,
+    arrivee: 1,
     etapes: [
       MENU_REUNION,
+      OUVRIR_LA_FEUILLE,
+      FAIRE_L_APPEL,
       {
-        ancre: 'ouvrir-appel',
+        ancre: 'fermer-la-feuille',
         ecran: REUNION,
-        texte: 'Choisissez le jour, le lieu si vous le souhaitez, puis « Ouvrir l’appel ».',
-        siAbsent: 'Une feuille d’appel est déjà ouverte : elle est affichée sur cet écran.',
+        texte:
+          '« Fermer la feuille » termine l’appel : les référents qu’on n’a pas nommés sont notés absents. Pour corriger ensuite, rouvrez la réunion depuis le registre.',
+        court: '« Fermer la feuille » termine l’appel : les non-nommés sont notés absents.',
+        siAbsent: FEUILLE_DABORD,
       },
     ],
   },
   {
-    id: 'documents-de-la-reunion',
-    titre: 'Produire l’affiche, le compte rendu ou l’affichette',
-    motsCles: ['affiche', 'affichette', 'compte rendu', 'imprimer', 'sortir', 'pdf', 'document', 'commission', 'réunion'],
+    id: 'creer-le-compte-rendu',
+    titre: 'Créer le compte rendu d’une réunion',
+    motsCles: [
+      // « compte-rendu » se normalise en « compte rendu » : une seule clé.
+      'compte rendu',
+      'cr',
+      'compte rendu de la réunion',
+      'créer le compte rendu',
+      'imprimer le compte rendu',
+      'tirer le compte rendu',
+      'rédiger',
+      'procès-verbal',
+      'pv',
+      'présences',
+    ],
     destination: REUNION,
+    arrivee: 1,
     etapes: [
       MENU_REUNION,
+      OUVRIR_LA_FEUILLE,
+      FAIRE_L_APPEL,
+      DIRE_LA_PROCHAINE_REUNION,
+      BOUTON_COMPTE_RENDU,
+      rangeDansDocuments(
+        'colonne « Compte-rendu », sous le nom « Compte-Rendu du » et la date de la réunion',
+        REDEMANDE,
+      ),
+    ],
+  },
+  {
+    id: 'creer-l-affiche',
+    titre: 'Créer l’affiche d’une réunion',
+    motsCles: [
+      'affiche',
+      'affiche de la réunion',
+      'créer l’affiche',
+      'imprimer l’affiche',
+      'tirer l’affiche',
+      'liste des dossiers',
+      'diffuser',
+      'afficher',
+    ],
+    destination: REUNION,
+    arrivee: 1,
+    etapes: [
+      MENU_REUNION,
+      OUVRIR_LA_FEUILLE,
+      BOUTON_AFFICHE,
+      rangeDansDocuments('colonne « Affiche », sous le nom « Affiche du » et la date de la réunion', REDEMANDE),
+    ],
+  },
+  {
+    id: 'creer-l-affichette',
+    titre: 'Créer l’affichette du dossier choisi en réunion',
+    motsCles: [
+      'affichette',
+      'créer l’affichette',
+      'imprimer l’affichette',
+      'sortir l’affichette',
+      'tirer l’affichette',
+      'affichette de la réunion',
+      'dossier du mois',
+      'qr code',
+    ],
+    destination: REUNION,
+    arrivee: 1,
+    etapes: [
+      MENU_REUNION,
+      OUVRIR_LA_FEUILLE,
+      CHOISIR_LE_DOSSIER,
+      BOUTON_AFFICHETTE,
+      rangeDansDocuments(
+        'colonne « Affichette », sous le numéro du dossier et le jour où vous la tirez',
+        'Redemandée le même jour, elle remplace la précédente. Elle se tire aussi depuis la fiche du candidat ; celle-là n’est pas rangée.',
+      ),
+    ],
+  },
+  // Le pas à pas complet, dans l'ordre d'une séance. Chaque document a aussi
+  // son parcours, plus court, juste avant : à égalité dans la recherche, le
+  // plus précis passe en tête (« compte rendu » seul mène au sien).
+  {
+    id: 'documents-de-la-reunion',
+    titre: 'Créer le compte rendu, l’affiche et l’affichette d’une réunion',
+    motsCles: [
+      'affiche',
+      'affichette',
+      'compte rendu',
+      'documents de la réunion',
+      'compte rendu, affiche et affichette',
+      'affiche et affichette',
+      'affiche et compte rendu',
+      'trois documents',
+      'les trois',
+      'tous les documents',
+      'créer',
+      'produire',
+      'tirer',
+      'sortir',
+      'imprimer',
+      'générer',
+      'pdf',
+      'commission',
+      'réunion',
+    ],
+    destination: REUNION,
+    arrivee: 1,
+    etapes: [
+      MENU_REUNION,
+      OUVRIR_LA_FEUILLE,
+      FAIRE_L_APPEL,
+      CHOISIR_LE_DOSSIER,
+      DIRE_LA_PROCHAINE_REUNION,
       {
         ancre: 'documents-reunion',
         ecran: REUNION,
         texte:
-          'Ces boutons produisent l’affiche, le compte rendu et l’affichette de la réunion ouverte, en PDF.',
-        siAbsent:
-          'Ces boutons apparaissent sur une feuille d’appel ouverte. Ouvrez d’abord l’appel de la réunion.',
+          'Les trois boutons : « Affiche » (les dossiers en cours, sans nom, à diffuser), « Compte rendu » (les présences et les candidats, pour la commission seule), « Affichette » (le dossier choisi). Chacun ouvre son PDF dans un nouvel onglet.',
+        court: '« Affiche », « Compte rendu », « Affichette » : chacun ouvre son PDF.',
+        siAbsent: FEUILLE_DABORD,
       },
+      rangeDansDocuments(
+        'chacun dans sa colonne : Compte-rendu, Affiche, Affichette',
+        'Une correction sur la feuille ? Redemandez le document : il remplace l’ancien — l’affichette, si c’est le même jour.',
+      ),
     ],
   },
   {
@@ -356,6 +593,21 @@ export const PARCOURS: readonly Parcours[] = [
     ],
   },
   {
+    id: 'gerer-les-provinces',
+    titre: 'Ajouter, renommer ou retirer une province',
+    motsCles: ['ajouter une province', 'renommer une province', 'retirer une province', 'écusson d’une province', 'gérer les provinces', 'nouvelle province'],
+    roles: ['admin'],
+    destination: '/espace/provinces',
+    etapes: [
+      {
+        ancre: 'menu:/espace/provinces',
+        texte:
+          'Dans la colonne de gauche, famille « Réseau », « Province ». L’administration y ajoute une province par le formulaire du haut, écusson facultatif. Sur chaque carte, la flèche ▾ ouvre de quoi la renommer, déposer son écusson ou la retirer.',
+        court: 'Sous « Plus », famille « Réseau », touchez « Province » : ajout en haut, ▾ sur chaque carte.',
+      },
+    ],
+  },
+  {
     id: 'urgences',
     titre: 'Voir les nouvelles demandes à traiter',
     motsCles: ['urgence', 'urgences', 'urgent', 'nouvelle demande', 'nouvelles demandes', 'à traiter', 'en attente', 'accueil'],
@@ -372,14 +624,29 @@ export const PARCOURS: readonly Parcours[] = [
   {
     id: 'documents-de-la-commission',
     titre: 'Retrouver un compte rendu, une affiche ou une affichette déjà produits',
-    motsCles: ['déjà produit', 'retrouver', 'ancien compte rendu', 'ancienne affiche', 'documents de la commission', 'télécharger', 'exemplaire'],
-    destination: ACCUEIL,
+    motsCles: [
+      'déjà produit',
+      'retrouver',
+      'ancien compte rendu',
+      'ancienne affiche',
+      'dernier compte rendu',
+      'dernière affiche',
+      'compte rendu de la dernière réunion',
+      'documents de la commission',
+      'télécharger',
+      'exemplaire',
+      'documents',
+      'onglet documents',
+    ],
+    destination: DOCUMENTS,
     etapes: [
-      MENU_ACCUEIL,
+      MENU_DOCUMENTS,
       {
         ancre: 'documents-commission',
-        ecran: ACCUEIL,
-        texte: 'Chaque compte rendu, affiche ou affichette produit est rangé ici, pour l’exercice en cours.',
+        ecran: DOCUMENTS,
+        texte:
+          'Chaque compte rendu, affiche ou affichette tiré de la feuille d’appel est rangé ici, en trois colonnes, du plus récent au plus ancien, pour l’exercice en cours. Un clic l’ouvre. L’accueil montre le même tableau.',
+        court: 'Chaque compte rendu, affiche ou affichette de l’exercice est rangé ici. Touchez pour l’ouvrir.',
       },
     ],
   },
@@ -437,7 +704,7 @@ export const PARCOURS: readonly Parcours[] = [
         ancre: 'corriger-fiche',
         ecran: CANDIDATS,
         texte: 'Le stylo ouvre la fiche en modification : coordonnées, recherche, parcours.',
-        siAbsent: 'Le stylo n’apparaît que pour le référent qui accompagne ce candidat.',
+        siAbsent: 'Le stylo n’apparaît que pour le référent qui accompagne ce candidat, et pour l’administration.',
       },
     ],
   },
@@ -494,7 +761,8 @@ export const PARCOURS: readonly Parcours[] = [
       {
         ancre: 'actions-fiche',
         ecran: CANDIDATS,
-        texte: 'En haut de la fiche : « Imprimer » pour la fiche entière, « Affichette » pour le document à faire circuler.',
+        texte:
+          'En haut de la fiche : « Imprimer » pour la fiche entière, « Affichette » pour le document à faire circuler. Celle-ci n’est pas rangée dans « Documents » ; celle tirée de la feuille d’appel l’est.',
         siAbsent: FICHE_DABORD,
       },
     ],
@@ -548,7 +816,8 @@ export const PARCOURS: readonly Parcours[] = [
       {
         ancre: 'registre-reunions',
         ecran: REUNION,
-        texte: 'Le registre liste les réunions de l’exercice. Un clic sur une date rouvre sa feuille d’appel.',
+        texte:
+          'Le registre liste les réunions de l’exercice. Un clic sur une date rouvre sa feuille d’appel — pour corriger l’appel ou refaire son compte rendu, son affiche ou son affichette.',
         siAbsent: 'Aucune réunion n’a encore été tenue sur cet exercice.',
       },
     ],
@@ -594,7 +863,7 @@ export const PARCOURS: readonly Parcours[] = [
   {
     id: 'offres-en-cours',
     titre: 'Voir les offres d’emploi en cours',
-    motsCles: ['offre', 'offres', 'offres en cours', 'offres d’emploi', 'emploi', 'poste', 'annonce', 'france travail', 'voir les offres'],
+    motsCles: ['offre', 'offres', 'offres en cours', 'offres d’emploi', 'emploi', 'poste', 'annonce', 'voir les offres'],
     destination: ACCUEIL,
     etapes: [
       MENU_ACCUEIL,
@@ -607,9 +876,39 @@ export const PARCOURS: readonly Parcours[] = [
     ],
   },
   {
+    id: 'france-travail',
+    titre: 'Chercher une offre sur l’écran « France Travail »',
+    motsCles: [
+      'france travail',
+      'pôle emploi',
+      'chercher une offre',
+      'rechercher une offre',
+      'filtrer les offres',
+      'offres par département',
+      'offres par secteur',
+      'département',
+      'offres externes',
+    ],
+    destination: FRANCE_TRAVAIL,
+    etapes: [
+      {
+        ancre: `menu:${FRANCE_TRAVAIL}`,
+        texte: 'Dans la colonne de gauche, famille « Emploi », cliquez sur « France Travail ».',
+        court: 'Sous « Plus », famille « Emploi », touchez « France Travail ».',
+      },
+      {
+        ancre: 'filtres-des-offres',
+        ecran: FRANCE_TRAVAIL,
+        texte:
+          'Toutes les offres en cours : cherchez un métier, une entreprise ou un lieu, et filtrez par département et par secteur d’activité. Un clic sur une offre en ouvre le détail.',
+        court: 'Cherchez un mot, filtrez par département et secteur. Touchez une offre pour son détail.',
+      },
+    ],
+  },
+  {
     id: 'ecrans-des-offres',
     titre: 'Chercher, ajouter ou gérer des offres',
-    motsCles: ['offres internes', 'offres externes', 'offres web', 'ajouter une offre', 'créer une offre', 'chercher une offre', 'gérer les offres', 'saisir une offre', 'publier une offre'],
+    motsCles: ['offres internes', 'offres web', 'ajouter une offre', 'créer une offre', 'gérer les offres', 'saisir une offre', 'publier une offre'],
     destination: null,
     etapes: [
       {
@@ -628,7 +927,7 @@ export const PARCOURS: readonly Parcours[] = [
       {
         ancre: 'eteint:Entreprises',
         texte:
-          'L’écran « Entreprises » n’est pas encore en service : son entrée est grisée dans la famille « Emploi ». Le nom de l’entreprise figure déjà sur chaque offre de l’accueil.',
+          'L’écran « Entreprises » n’est pas encore en service : son entrée est grisée dans la famille « Emploi ». En attendant, la fiche d’un candidat montre les entreprises qui recrutent dans ses secteurs, et chaque offre porte le nom de son entreprise.',
       },
     ],
   },
@@ -949,14 +1248,14 @@ export const PARCOURS: readonly Parcours[] = [
     id: 'effacer-un-pdf',
     titre: 'Effacer un compte rendu, une affiche ou une affichette archivés',
     motsCles: ['effacer un pdf', 'supprimer un pdf', 'effacer un compte rendu', 'supprimer une affiche', 'supprimer une affichette', 'document en trop', 'mauvais document', 'corbeille'],
-    destination: ACCUEIL,
+    destination: DOCUMENTS,
     etapes: [
-      MENU_ACCUEIL,
+      MENU_DOCUMENTS,
       {
         ancre: 'effacer-pdf',
-        ecran: ACCUEIL,
+        ecran: DOCUMENTS,
         texte:
-          'La corbeille, sur la ligne du PDF, ouvre une fenêtre de confirmation. Le PDF disparaît alors pour toute la loge, et cela ne se défait pas. Un document se reproduit toutefois depuis sa réunion ou sa fiche.',
+          'La corbeille, sur la ligne du PDF, ouvre une fenêtre de confirmation. Le PDF disparaît alors pour toute la loge, et cela ne se défait pas. Un document se reproduit toutefois depuis sa réunion ou sa fiche. Pour corriger un compte rendu ou une affiche, inutile d’effacer : redemandé depuis sa feuille d’appel, il remplace l’ancien.',
         siAbsent:
           'Aucune corbeille ici : soit aucun PDF n’est rangé, soit ce geste ne vous est pas ouvert. Il est réservé à l’administration, au Vénérable Maître et au Secrétaire.',
       },
@@ -1079,16 +1378,155 @@ export const PARCOURS: readonly Parcours[] = [
     titre: 'Inviter un référent ou un administrateur',
     motsCles: ['invitation', 'invitations', 'inviter', 'nouveau référent', 'accès', 'donner un compte'],
     roles: ['admin'],
-    destination: '/espace/admin',
+    destination: ADMIN,
     etapes: [
       {
-        ancre: 'menu:/espace/admin',
+        ...MENU_INVITATIONS,
         texte: 'Dans la famille « Admin », « Invitations » permet d’envoyer une invitation et de suivre celles déjà parties.',
       },
       {
         ancre: 'inviter',
-        ecran: '/espace/admin',
-        texte: 'Saisissez l’adresse de la personne et son rôle : elle reçoit un lien pour créer son compte.',
+        ecran: ADMIN,
+        texte:
+          'Saisissez l’adresse de la personne, son rôle et sa loge : elle reçoit un lien valable sept jours, qui ne sert qu’une fois, pour créer son compte.',
+        court: 'Adresse, rôle et loge : elle reçoit un lien valable sept jours.',
+      },
+    ],
+  },
+  {
+    id: 'inviter-depuis-l-annuaire',
+    titre: 'Inviter un référent déjà dans l’annuaire',
+    motsCles: ['enveloppe', 'inviter un référent', 'inviter depuis l’annuaire', 'inviter depuis sa fiche', 'envoyer une invitation à un référent', 'référent sans compte'],
+    roles: ['admin'],
+    destination: REFERENTS,
+    etapes: [
+      MENU_REFERENTS,
+      {
+        ancre: 'inviter-referent',
+        ecran: REFERENTS,
+        texte:
+          'L’enveloppe, sur la carte du référent, ouvre le formulaire d’invitation avec son adresse et sa loge déjà remplies. Vérifiez le rôle, puis envoyez.',
+        court: 'L’enveloppe de sa carte ouvre l’invitation, adresse et loge remplies.',
+        siAbsent: 'Aucun référent dans cette liste : changez de loge ou effacez la recherche.',
+      },
+    ],
+  },
+  {
+    id: 'corriger-une-invitation',
+    titre: 'Corriger l’adresse, le rôle ou la loge d’une invitation',
+    motsCles: ['corriger une invitation', 'modifier une invitation', 'mauvaise adresse', 'erreur d’adresse', 'changer le rôle d’une invitation', 'changer la loge d’une invitation', 'suivre les invitations'],
+    roles: ['admin'],
+    destination: ADMIN,
+    etapes: [
+      MENU_INVITATIONS,
+      {
+        ancre: 'liste-des-invitations',
+        ecran: ADMIN,
+        texte:
+          'Une ligne par invitation. L’adresse, le rôle et la loge s’y corrigent sur place, et s’enregistrent aussitôt. Une invitation en attente repart alors avec un nouveau lien ; une invitation acceptée corrige le compte lui-même.',
+        court: 'Adresse, rôle et loge se corrigent sur la ligne, enregistrés aussitôt.',
+        siAbsent: 'Aucune invitation n’est encore partie.',
+      },
+    ],
+  },
+  {
+    id: 'renvoyer-une-invitation',
+    titre: 'Renvoyer le lien d’une invitation',
+    motsCles: ['renvoyer', 'renvoyer le lien', 'renvoyer l’invitation', 'lien expiré', 'lien périmé', 'n’a pas reçu', 'pas reçu le courriel', 'relancer'],
+    roles: ['admin'],
+    destination: ADMIN,
+    etapes: [
+      MENU_INVITATIONS,
+      {
+        ancre: 'renvoyer-invitation',
+        ecran: ADMIN,
+        texte:
+          'La flèche en rond, sur la ligne d’une invitation pas encore acceptée, renvoie un lien neuf à la même adresse, valable sept jours ; l’ancien ne vaut plus. Pas de fenêtre de confirmation : la réponse s’écrit sous l’adresse.',
+        court: 'La flèche en rond de la ligne renvoie un lien neuf, valable sept jours.',
+        siAbsent: 'Aucune invitation en attente : une invitation acceptée n’a plus de lien à renvoyer.',
+      },
+    ],
+  },
+  {
+    id: 'supprimer-une-invitation',
+    titre: 'Supprimer une invitation',
+    motsCles: ['supprimer une invitation', 'annuler une invitation', 'retirer une invitation', 'invitation en trop', 'corbeille'],
+    roles: ['admin'],
+    destination: ADMIN,
+    etapes: [
+      MENU_INVITATIONS,
+      {
+        ancre: 'supprimer-invitation',
+        ecran: ADMIN,
+        texte:
+          'La corbeille, sur la ligne de l’invitation, ouvre une fenêtre de confirmation. La ligne quitte le tableau, et cela ne se défait pas : un lien en attente ne mène plus à rien. Une invitation acceptée, elle, laisse le compte intact.',
+        court: 'La corbeille ouvre une confirmation. Ne se défait pas ; un compte ouvert reste.',
+        siAbsent: 'Aucune invitation dans le tableau.',
+      },
+    ],
+  },
+  {
+    id: 'comptes',
+    titre: 'Changer le rôle ou la loge d’un compte',
+    motsCles: ['comptes', 'compte d’un référent', 'rôle', 'changer de rôle', 'rendre administrateur', 'nommer administrateur', 'changer de loge', 'droits', 'accès d’un référent'],
+    roles: ['admin'],
+    destination: COMPTES,
+    etapes: [
+      MENU_COMPTES,
+      {
+        ancre: 'liste-des-comptes',
+        ecran: COMPTES,
+        texte:
+          'Chaque compte ouvert, avec son rôle et sa loge : changer un menu l’enregistre aussitôt. Votre propre rôle ne se change pas ici. Les comptes des candidats n’y figurent pas.',
+        court: 'Rôle et loge de chaque compte : un menu changé s’enregistre aussitôt.',
+        siAbsent: 'Aucun compte ne correspond à la recherche : effacez-la.',
+      },
+    ],
+  },
+  {
+    id: 'effacer-un-compte',
+    titre: 'Effacer le compte d’une personne',
+    motsCles: ['effacer un compte', 'supprimer un compte', 'fermer un compte', 'retirer l’accès', 'couper l’accès', 'ne doit plus se connecter', 'corbeille'],
+    roles: ['admin'],
+    destination: COMPTES,
+    etapes: [
+      MENU_COMPTES,
+      {
+        ancre: 'effacer-compte',
+        ecran: COMPTES,
+        texte:
+          'La corbeille, sur la ligne du compte, ouvre une fenêtre de confirmation. La personne ne pourra plus se connecter, et cela ne se défait pas : pour revenir, il lui faudra une nouvelle invitation. Sa fiche de référent reste dans l’annuaire. C’est refusé tant qu’elle accompagne des candidats.',
+        court: 'La corbeille ouvre une confirmation. Ne se défait pas ; la fiche de référent reste.',
+        siAbsent:
+          'Aucune corbeille dans cette liste : votre propre compte n’en a pas, on ne s’efface pas soi-même. Effacez la recherche.',
+      },
+    ],
+  },
+  {
+    id: 'connexions',
+    titre: 'Voir les connexions des référents',
+    motsCles: ['connexions', 'journal des connexions', 'historique des connexions', 'quand s’est-il connecté', 'dernière connexion', 'durée de connexion', 'activité des référents'],
+    roles: ['admin'],
+    destination: CONNEXIONS,
+    etapes: [
+      {
+        ancre: `menu:${CONNEXIONS}`,
+        texte: 'Dans la colonne de gauche, famille « Admin », cliquez sur « Connexions ».',
+        court: 'Sous « Plus », famille « Admin », touchez « Connexions ».',
+      },
+      {
+        ancre: 'filtre-connexions',
+        ecran: CONNEXIONS,
+        texte: 'Choisissez un référent pour ne voir que ses connexions ; « Tous les référents » les remontre toutes.',
+        siAbsent: 'Aucune connexion n’est encore enregistrée.',
+      },
+      {
+        ancre: 'journal-des-connexions',
+        ecran: CONNEXIONS,
+        texte:
+          'Une ligne par connexion, la plus récente en tête : la date, l’heure et la durée, « en cours » pour qui est là. L’historique est gardé douze mois.',
+        court: 'Date, heure et durée de chaque connexion, la plus récente en tête.',
+        siAbsent: 'Aucune connexion enregistrée pour ce choix.',
       },
     ],
   },
@@ -1111,14 +1549,31 @@ export const PARCOURS: readonly Parcours[] = [
     'Régler la mise en page des documents',
     ['mise en page', 'logo', 'emblème', 'en-tête', 'modèle', 'gabarit', 'affiche', 'compte rendu'],
     'mise-en-page',
-    '« Mise en page » règle le compte rendu, l’affiche et l’affichette : textes, images, aperçu.',
+    '« Mise en page » règle le compte rendu, l’affiche, l’affichette et le CV anonyme : textes, images, couleurs, avec l’aperçu. Chaque changement s’enregistre aussitôt.',
   ),
   versUneRubrique(
     'parametres-archives',
     'Consulter les archives de la loge',
     ['archives', 'archive', 'anciens documents', 'exercices passés', 'historique'],
     'archives',
-    '« Archives » garde les comptes rendus, affiches et affichettes des exercices précédents. Ceux de l’exercice en cours sont à l’accueil.',
+    '« Archives » garde les comptes rendus, affiches et affichettes des exercices précédents — ceux de l’exercice en cours sont dans « Documents ». Ses boutons « Candidat Clôturé » et « Candidat Archivé » listent les candidats refermés.',
+  ),
+  versUneRubrique(
+    'loges-de-guyenne-et-gascogne',
+    'Gérer les loges de Guyenne et Gascogne',
+    [
+      'guyenne',
+      'gascogne',
+      'guyenne et gascogne',
+      'loges du réseau',
+      'secrétaire d’une loge',
+      'secrétaires',
+      'courriel aux secrétaires',
+      'lien du secrétaire',
+      'secteurs d’une loge',
+    ],
+    'loges-du-reseau',
+    'Dans le menu des paramètres, « Loges de Guyenne et Gascogne » : les 73 loges, leur Secrétaire, et le lien qui lui permet de cocher les secteurs d’activité de sa loge. Chaque changement s’enregistre aussitôt.',
   ),
 ];
 

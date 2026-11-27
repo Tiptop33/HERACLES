@@ -79,7 +79,7 @@ export default async function ConnexionsDesReferents({
       )}
 
       {connexions.length > 0 && (
-        <div className="tableau-enveloppe">
+        <div className="tableau-enveloppe" data-aide="journal-des-connexions">
           <table>
             <thead>
               <tr>

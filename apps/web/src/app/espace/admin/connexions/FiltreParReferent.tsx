@@ -28,7 +28,7 @@ export default function FiltreParReferent({ referents, choisi }: Props) {
   }
 
   return (
-    <label className="champ" style={{ maxWidth: '22rem' }}>
+    <label className="champ" style={{ maxWidth: '22rem' }} data-aide="filtre-connexions">
       <span>Référent</span>
       <select
         value={choisi}
