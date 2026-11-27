@@ -50,11 +50,16 @@ vidé s'efface.
 - **Prolonger** remet ces trente jours à compter d'aujourd'hui. Modifier ne
   prolonge pas.
 - Au-delà, elle **sort de la liste** sans être effacée : la purge des soixante
-  jours (`purger_les_offres_anciennes`) l'épargne. Elle attend dans « Offres
-  saisies sorties de la liste ».
-- **Retirer** la supprime pour de bon, avec la trace de son auteur.
-- ⚠️ Une offre sortie de la liste et jamais retirée reste en base sans
-  limite : une durée maximale reste à fixer.
+  jours des offres de France Travail ne la concerne pas. Elle attend dans
+  « Offres saisies sorties de la liste », prolongeable.
+- **Six mois au plus hors de la liste** (migration 0116, décision du 27
+  novembre 2026) : une offre ni prolongée ni retirée est supprimée quand sa
+  dernière mise en ligne — publication ou prolongation — a plus de trente
+  jours et six mois. C'est la purge (`purger_les_offres_anciennes`) qui s'en
+  charge, à la fin de chaque réception des offres de France Travail, toutes
+  les trois heures. La trace de son auteur part avec elle.
+- **Retirer** la supprime pour de bon, à tout moment, avec la trace de son
+  auteur.
 
 ## Les droits
 
@@ -121,6 +126,8 @@ toujours les deux sortes d'offres.
 
 - Base : `supabase/tests/0114_offres_saisies.test.sql` — droits de chacun,
   contrôle des champs, page du candidat, purge, échues ;
-  `0115_offres_internes.test.sql` — chaque écran ne montre que les siennes.
+  `0115_offres_internes.test.sql` — chaque écran ne montre que les siennes ;
+  `0116_duree_des_offres_saisies.test.sql` — six mois hors de la liste, puis
+  la purge.
 - Application : `apps/web/tests/offres-saisies.test.ts`, `offres.test.ts`,
   `navigation.test.ts`, `aide.test.ts` (parcours « Saisir une offre »).

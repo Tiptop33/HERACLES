@@ -22,6 +22,7 @@ offres externes c'est plutôt offres internes » :
 | --- | --- | --- |
 | 10 | Où vont les offres saisies | **Dans « Offres internes »**, jusque-là grisée : un écran à elles. « Offres externes » garde son nom (décision 2) et ne montre plus que France Travail |
 | 11 | L'écran « Offres internes » | **Une liste simple** : le titre, « + Saisir une offre », les offres en ligne, puis celles sorties de la liste — ni recherche ni filtre |
+| 12 | Combien de temps une offre sortie de la liste reste-t-elle ? | **Six mois au plus** : la purge la supprime six mois après sa sortie de la liste, si personne ne l'a prolongée ni retirée (migration 0116) |
 
 ## Ce qui en est construit
 
