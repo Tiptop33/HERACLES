@@ -56,7 +56,7 @@ export default async function Reunion({
   }>;
 }) {
   const profil = await exigerProfil();
-  // Réservée à l'administration depuis le 27 novembre 2026 (migration 0116) :
+  // Réservée à l'administration depuis le 27 novembre 2026 (migration 0117) :
   // un référent n'a plus l'entrée du menu, ni l'écran par son adresse.
   if (profil.role !== 'admin') redirect(accueilDuRole(profil.role));
 

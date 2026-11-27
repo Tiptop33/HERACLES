@@ -251,7 +251,7 @@ describe('la recherche de l’aide', () => {
     ['ajouter une province', 'gerer-les-provinces'],
     ['le lien du secrétaire d’une loge de Guyenne et Gascogne', 'loges-de-guyenne-et-gascogne'],
     // La réunion est réservée à l'administration depuis le 27 novembre 2026
-    // (migration 0116) : ses questions se posent ici, et non plus côté référent.
+    // (migration 0117) : ses questions se posent ici, et non plus côté référent.
     ['faire l’appel de la réunion', 'faire-l-appel'],
     ['imprimer le compte rendu', 'creer-le-compte-rendu'],
     ['comment créer un compte rendu', 'creer-le-compte-rendu'],
@@ -1072,7 +1072,7 @@ describe('les gestes d’administration livrés depuis le 11 novembre', () => {
 
 describe('la visite qui survit au rechargement de la page', () => {
   // Le compte rendu, dont les gestes rechargent la page, est réservé à
-  // l'administration depuis le 27 novembre 2026 (migration 0116).
+  // l'administration depuis le 27 novembre 2026 (migration 0117).
   const tous = parcoursDuRole('admin');
   const duReferent = parcoursDuRole('referent');
   const compteRendu = tous.find((p) => p.id === 'creer-le-compte-rendu')!;

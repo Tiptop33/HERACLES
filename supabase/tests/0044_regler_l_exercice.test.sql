@@ -75,7 +75,7 @@ begin;
     'et se relit aussitôt');
 commit;
 
--- Depuis 0116, la réunion est réservée à l'administration : Yann, qui vient
+-- Depuis 0117, la réunion est réservée à l'administration : Yann, qui vient
 -- d'échouer à régler l'exercice en simple référent, tient la réunion
 -- ci-dessous en administrateur.
 update public.profil set role = 'admin' where id = :'yann';

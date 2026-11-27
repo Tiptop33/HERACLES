@@ -79,7 +79,7 @@ migration 0068) et le bouton « Affichette » le tire, à côté de l'affiche et
 compte rendu, sous le nom `<numéro> du <jour où on la tire>.pdf`. Toute la loge
 pouvait choisir, comme pour l'appel ; depuis le 27 novembre 2026, l'écran
 Réunion est dans la famille « Admin » et réservé à l'administration
-(migration 0116) : c'est elle qui choisit, et elle seule qui tire le compte
+(migration 0117) : c'est elle qui choisit, et elle seule qui tire le compte
 rendu, l'affiche et l'affichette de la réunion. Un dossier refermé depuis ne
 s'imprime plus. Le bouton « Affichette » de la fiche du candidat reste
 disponible pour les référents.

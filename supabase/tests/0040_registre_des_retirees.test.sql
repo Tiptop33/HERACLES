@@ -16,7 +16,7 @@
 insert into auth.users (id, email, raw_user_meta_data) values
   (:'anne', 'anne0040@example.org', '{"role":"referent","nom":"Anne","prenom":"A"}'),
   (:'kim',  'kim0040@example.org',  '{"role":"referent","nom":"Kim","prenom":"K"}');
--- Depuis 0116, la réunion est réservée à l'administration : ceux qui la
+-- Depuis 0117, la réunion est réservée à l'administration : ceux qui la
 -- tiennent ici sont administrateurs. Ce que ce fichier éprouve — la loge,
 -- le registre, les pointages — vaut pour eux à l'identique.
 update public.profil set role = 'admin' where id in (:'anne', :'kim');

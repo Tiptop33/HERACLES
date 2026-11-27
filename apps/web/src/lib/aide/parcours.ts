@@ -126,7 +126,7 @@ function versUneRubrique(
 }
 
 // « Réunion » est dans la famille Admin depuis le 27 novembre 2026 (migration
-// 0116) : tout parcours qui passe par elle est réservé à l'administration.
+// 0117) : tout parcours qui passe par elle est réservé à l'administration.
 const MENU_REUNION: Etape = {
   ancre: `menu:${REUNION}`,
   texte: 'Dans la colonne de gauche, famille « Admin », cliquez sur « Réunion ».',

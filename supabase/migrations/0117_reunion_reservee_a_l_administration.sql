@@ -1,5 +1,5 @@
 -- ---------------------------------------------------------------------------
--- 0116 — la réunion, réservée à l'administration
+-- 0117 — la réunion, réservée à l'administration
 --
 -- Ce que ça change : l'entrée « Réunion » quitte la famille « Réseau » pour
 -- la famille « Admin », que les référents ne voient pas (décision du
@@ -60,7 +60,7 @@ $$;
 
 comment on function public.loge_des_reunions() is
   'La loge dont la session tient les réunions : celle de sa fiche de référent '
-  'si elle administre, aucune sinon (0116). Toutes les fonctions de la réunion '
+  'si elle administre, aucune sinon (0117). Toutes les fonctions de la réunion '
   'passent par elle.';
 
 revoke all on function public.loge_des_reunions() from public, anon;
@@ -99,7 +99,7 @@ declare
   la_loge     uuid := public.loge_des_reunions();
   la_reunion  uuid;
 begin
-  -- ouvrir_une_reunion — version 0116
+  -- ouvrir_une_reunion — version 0117
   -- (ce repère sert au garde-fou du test de 0046 : voir ce fichier de test.)
   if not public.est_admin() then
     raise exception 'La réunion est réservée à l''administration'
@@ -140,7 +140,7 @@ $$;
 comment on function public.ouvrir_une_reunion(date, text) is
   'Ouvre la réunion du jour pour ma loge, ou rend celle qui existe déjà : '
   'deux personnes qui l''ouvrent en même temps tiennent la même feuille. '
-  'Réservée à l''administration (0116).';
+  'Réservée à l''administration (0117).';
 
 -- ---------------------------------------------------------------------------
 -- 4. Pointer un référent (0036)
@@ -193,7 +193,7 @@ $$;
 
 comment on function public.pointer_a_l_appel(uuid, uuid, text) is
   'Pose l''état d''un référent pour une réunion. Rejouable : recocher écrase, '
-  'ne double pas. Réservée à l''administration (0116).';
+  'ne double pas. Réservée à l''administration (0117).';
 
 -- ---------------------------------------------------------------------------
 -- 5. Pointer d'un coup ceux qui sont en ligne (0052)

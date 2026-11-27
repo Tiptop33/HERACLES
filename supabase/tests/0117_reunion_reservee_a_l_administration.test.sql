@@ -1,11 +1,11 @@
--- Tests de la migration 0116_reunion_reservee_a_l_administration.sql.
+-- Tests de la migration 0117_reunion_reservee_a_l_administration.sql.
 --
 -- Qui est qui :
---   · Adèle    administratrice, fiche de référent à Tarbes-0116 — tient la
+--   · Adèle    administratrice, fiche de référent à Tarbes-0117 — tient la
 --              réunion
---   · Bastien  référent à Tarbes-0116, Secrétaire — n'atteint plus rien de la
+--   · Bastien  référent à Tarbes-0117, Secrétaire — n'atteint plus rien de la
 --              réunion, même avec le titre qui efface
---   · Chloé    administratrice, fiche à Auch-0116 — administre, mais pas
+--   · Chloé    administratrice, fiche à Auch-0117 — administre, mais pas
 --              cette loge-là
 --
 -- Ce qu'on éprouve :
@@ -20,37 +20,37 @@
 \set ON_ERROR_STOP on
 \o /dev/null
 
-\set adele   'eeeeeeee-1160-0000-0000-000000000001'
-\set bastien 'eeeeeeee-1160-0000-0000-000000000002'
-\set chloe   'eeeeeeee-1160-0000-0000-000000000003'
+\set adele   'eeeeeeee-1170-0000-0000-000000000001'
+\set bastien 'eeeeeeee-1170-0000-0000-000000000002'
+\set chloe   'eeeeeeee-1170-0000-0000-000000000003'
 
 insert into auth.users (id, email, raw_user_meta_data) values
-  (:'adele',   'adele0116@example.org',   '{"role":"referent"}'),
-  (:'bastien', 'bastien0116@example.org', '{"role":"referent"}'),
-  (:'chloe',   'chloe0116@example.org',   '{"role":"referent"}');
+  (:'adele',   'adele0117@example.org',   '{"role":"referent"}'),
+  (:'bastien', 'bastien0117@example.org', '{"role":"referent"}'),
+  (:'chloe',   'chloe0117@example.org',   '{"role":"referent"}');
 update public.profil set role = 'admin' where id in (:'adele', :'chloe');
 
 insert into public.loge (bubble_id, nom) values
-  ('loge-0116-tarbes', 'Tarbes — 0116'),
-  ('loge-0116-auch',   'Auch — 0116')
+  ('loge-0117-tarbes', 'Tarbes — 0117'),
+  ('loge-0117-auch',   'Auch — 0117')
 on conflict do nothing;
 
-select id as l_tarbes from public.loge where bubble_id = 'loge-0116-tarbes' \gset
-select id as l_auch   from public.loge where bubble_id = 'loge-0116-auch' \gset
+select id as l_tarbes from public.loge where bubble_id = 'loge-0117-tarbes' \gset
+select id as l_auch   from public.loge where bubble_id = 'loge-0117-auch' \gset
 
 insert into public.referent (bubble_id, profil_id, nom, prenom, email, college, loge_id) values
-  ('ref-0116-adele',   :'adele',   'ADAM',   'Adèle',   'adele0116@example.org',   null,         :'l_tarbes'::uuid),
-  ('ref-0116-bastien', :'bastien', 'BRUN',   'Bastien', 'bastien0116@example.org', 'Secrétaire', :'l_tarbes'::uuid),
-  ('ref-0116-chloe',   :'chloe',   'COSTE',  'Chloé',   'chloe0116@example.org',   null,         :'l_auch'::uuid)
+  ('ref-0117-adele',   :'adele',   'ADAM',   'Adèle',   'adele0117@example.org',   null,         :'l_tarbes'::uuid),
+  ('ref-0117-bastien', :'bastien', 'BRUN',   'Bastien', 'bastien0117@example.org', 'Secrétaire', :'l_tarbes'::uuid),
+  ('ref-0117-chloe',   :'chloe',   'COSTE',  'Chloé',   'chloe0117@example.org',   null,         :'l_auch'::uuid)
 on conflict do nothing;
 
-select id as r_adele   from public.referent where bubble_id = 'ref-0116-adele' \gset
-select id as r_bastien from public.referent where bubble_id = 'ref-0116-bastien' \gset
+select id as r_adele   from public.referent where bubble_id = 'ref-0117-adele' \gset
+select id as r_bastien from public.referent where bubble_id = 'ref-0117-bastien' \gset
 
 insert into public.candidat (numero, nom, prenom, loge_id, referent_id, emploi_recherche) values
-  (11601, 'DOSSIER', 'Dina', :'l_tarbes'::uuid, :'r_bastien'::uuid, 'MENUISIERE');
+  (11701, 'DOSSIER', 'Dina', :'l_tarbes'::uuid, :'r_bastien'::uuid, 'MENUISIERE');
 
-select id as c_dina from public.candidat where numero = 11601 \gset
+select id as c_dina from public.candidat where numero = 11701 \gset
 
 insert into public.parametre (id, date_depart, date_fin)
 values (true, current_date - 30, current_date + 30)
@@ -62,14 +62,14 @@ on conflict (id) do update set date_depart = excluded.date_depart,
 -- ---------------------------------------------------------------------------
 begin;
   set local role authenticated;
-  set local request.jwt.claims = '{"sub":"eeeeeeee-1160-0000-0000-000000000001"}';
+  set local request.jwt.claims = '{"sub":"eeeeeeee-1170-0000-0000-000000000001"}';
   select public.verifier(public.loge_des_reunions() = :'l_tarbes'::uuid,
     'l administratrice tient les reunions de sa loge');
 commit;
 
 begin;
   set local role authenticated;
-  set local request.jwt.claims = '{"sub":"eeeeeeee-1160-0000-0000-000000000002"}';
+  set local request.jwt.claims = '{"sub":"eeeeeeee-1170-0000-0000-000000000002"}';
   select public.verifier(public.loge_des_reunions() is null,
     'un referent n en tient aucune');
   select public.verifier(public.ma_loge() = :'l_tarbes'::uuid,
@@ -81,7 +81,7 @@ commit;
 -- ---------------------------------------------------------------------------
 begin;
   set local role authenticated;
-  set local request.jwt.claims = '{"sub":"eeeeeeee-1160-0000-0000-000000000001"}';
+  set local request.jwt.claims = '{"sub":"eeeeeeee-1170-0000-0000-000000000001"}';
 
   select public.ouvrir_une_reunion(current_date, 'Temple') as seance \gset
 
@@ -111,17 +111,17 @@ begin;
     (select count(*) from public.compte_rendu_presences(:'seance'::uuid)) = 2,
     'les presences du compte rendu');
   select public.verifier(
-    (select loge_nom from public.commission_de_la_reunion(:'seance'::uuid)) = 'Tarbes — 0116',
+    (select loge_nom from public.commission_de_la_reunion(:'seance'::uuid)) = 'Tarbes — 0117',
     'la commission de la reunion');
   select public.verifier(
     (select count(*) from public.dossiers_en_cours(:'seance'::uuid)) = 1,
     'les dossiers en cours');
   select public.verifier(
-    (select numero from public.affichette_de_la_reunion(:'seance'::uuid)) = 11601,
+    (select numero from public.affichette_de_la_reunion(:'seance'::uuid)) = 11701,
     'le dossier de l affichette');
 commit;
 
-select set_config('essai.seance0116', :'seance', false);
+select set_config('essai.seance0117', :'seance', false);
 
 -- Ce que l'on compte avant les essais du référent, pour vérifier après
 -- qu'ils n'ont rien laissé.
@@ -132,12 +132,12 @@ select count(*) as appels_avant from public.appel where reunion_id = :'seance'::
 -- ---------------------------------------------------------------------------
 do $$
 declare
-  seance text := current_setting('essai.seance0116');
+  seance text := current_setting('essai.seance0117');
   geste  text;
 begin
   set local role authenticated;
   perform set_config('request.jwt.claims',
-    '{"sub":"eeeeeeee-1160-0000-0000-000000000002"}', true);
+    '{"sub":"eeeeeeee-1170-0000-0000-000000000002"}', true);
 
   foreach geste in array array[
     'select public.ouvrir_une_reunion(current_date, ''Ailleurs'')',
@@ -165,7 +165,7 @@ $$;
 -- ---------------------------------------------------------------------------
 begin;
   set local role authenticated;
-  set local request.jwt.claims = '{"sub":"eeeeeeee-1160-0000-0000-000000000002"}';
+  set local request.jwt.claims = '{"sub":"eeeeeeee-1170-0000-0000-000000000002"}';
 
   select public.verifier((select count(*) from public.registre_des_reunions(true)) = 0,
     'le registre est vide pour lui');
@@ -192,7 +192,7 @@ commit;
 -- ---------------------------------------------------------------------------
 begin;
   set local role authenticated;
-  set local request.jwt.claims = '{"sub":"eeeeeeee-1160-0000-0000-000000000002"}';
+  set local request.jwt.claims = '{"sub":"eeeeeeee-1170-0000-0000-000000000002"}';
   -- Le droit du titre reste : il sert aux documents (0069). Il ne vaut plus
   -- pour la réunion, déjà refusée dans la boucle ci-dessus.
   select public.verifier(public.puis_je_effacer_des_reunions(),
@@ -219,7 +219,7 @@ select public.verifier(
 -- ---------------------------------------------------------------------------
 begin;
   set local role authenticated;
-  set local request.jwt.claims = '{"sub":"eeeeeeee-1160-0000-0000-000000000003"}';
+  set local request.jwt.claims = '{"sub":"eeeeeeee-1170-0000-0000-000000000003"}';
 
   select public.verifier((select count(*) from public.la_reunion(:'seance'::uuid)) = 0,
     'elle ne la lit pas');
@@ -244,4 +244,4 @@ select public.verifier(
   'anon n execute pas loge_des_reunions');
 
 \o
-\echo '0116 — la reunion reservee a l administration : tout est vert.'
+\echo '0117 — la reunion reservee a l administration : tout est vert.'

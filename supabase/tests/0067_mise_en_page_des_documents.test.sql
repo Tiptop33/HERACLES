@@ -26,7 +26,7 @@ insert into auth.users (id, email, raw_user_meta_data) values
   (:'carla', 'carla0067@example.org', '{"role":"referent"}'),
   (:'denis', 'denis0067@example.org', '{"role":"referent"}');
 update public.profil set role = 'admin' where id = :'anne';
--- Depuis 0116, la réunion est réservée à l'administration : Carla, la
+-- Depuis 0117, la réunion est réservée à l'administration : Carla, la
 -- Secrétaire, lit la commission et les dossiers de la réunion en
 -- administratrice. Bruno reste référent : c'est lui qui se voit refuser la
 -- mise en page.

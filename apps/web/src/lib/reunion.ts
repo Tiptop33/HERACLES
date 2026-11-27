@@ -10,7 +10,7 @@ import { supabaseServer } from './supabase-server';
  * tenir un registre.
  *
  * Depuis le 27 novembre 2026, la réunion est réservée à l'administration
- * (migration 0116) : l'entrée est dans la famille « Admin », et la base ne
+ * (migration 0117) : l'entrée est dans la famille « Admin », et la base ne
  * rend rien, n'accepte rien, d'une autre session.
  */
 
@@ -21,7 +21,7 @@ export const REUNION_RESERVEE = 'La réunion est réservée à l’administratio
 
 /**
  * Vrai si la session administre — la seule à qui la réunion est ouverte
- * (migration 0116). Les fonctions de la base refusent d'elles-mêmes toute
+ * (migration 0117). Les fonctions de la base refusent d'elles-mêmes toute
  * autre session ; ce contrôle-ci, posé juste après celui de la session, répond
  * clairement avant de rien leur demander.
  */

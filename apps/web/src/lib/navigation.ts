@@ -62,7 +62,7 @@ export const FAMILLES: readonly Famille[] = [
       { libelle: 'Référents', vers: '/espace/referents' },
       { libelle: 'Correspondants', vers: null, lot: 'lot 5' },
       // « Réunion » était ici jusqu'au 27 novembre 2026 : elle est passée
-      // dans la famille Admin, réservée à l'administration (migration 0116).
+      // dans la famille Admin, réservée à l'administration (migration 0117).
       // Ajoutée le 10 novembre 2026, à la demande : une carte par province,
       // son image puis son nom (migration 0080). En fin de famille, pour ne
       // déplacer aucune des entrées que les référents connaissent déjà.
@@ -106,7 +106,7 @@ export const FAMILLES: readonly Famille[] = [
       { libelle: 'Connexions', vers: '/espace/admin/connexions' },
       // Venue de la famille Réseau le 27 novembre 2026, à la demande : l'appel,
       // le registre, le compte rendu, l'affiche et l'affichette ne se tiennent
-      // plus que par l'administration (migration 0116). En fin de famille,
+      // plus que par l'administration (migration 0117). En fin de famille,
       // pour ne déplacer aucune entrée d'Admin. L'adresse ne change pas : les
       // liens déjà donnés restent valables.
       { libelle: 'Réunion', vers: '/espace/reunion' },
