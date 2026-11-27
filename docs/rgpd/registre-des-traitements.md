@@ -122,12 +122,12 @@ traitements.
 
 | | |
 | --- | --- |
-| **Finalité** | Proposer aux candidats des offres d'emploi, de stage ou de stage en alternance trouvées ailleurs qu'à France Travail : un référent ou l'administration les saisit sur l'écran « Offres externes » (migration 0114, décision du 27 novembre 2026). |
+| **Finalité** | Proposer aux candidats des offres d'emploi, de stage ou de stage en alternance trouvées ailleurs qu'à France Travail : un référent ou l'administration les saisit sur l'écran « Offres internes » (migrations 0114 et 0115, décisions du 27 novembre 2026). |
 | **Base légale** | ⚖️ *Intérêt légitime de l'association, pour le contact du recruteur : à confirmer.* |
 | **Personnes concernées** | La personne à joindre pour postuler, chez l'employeur, quand le référent la renseigne ; le référent qui saisit l'offre. |
 | **Données** | **Contact** (`offre_emploi.contact`, champ libre, facultatif) : nom, adresse électronique ou téléphone de la personne à joindre. **Auteur de l'offre** (table `offre_saisie`) : le compte qui l'a saisie, et quand. Le reste de l'offre — intitulé, entreprise, lieu, contrat, durée, secteur, description, lien — ne désigne personne. Les offres de France Travail, elles, ne gardent toujours aucun contact (`docs/france-travail.md`). |
 | **Données sensibles** | Aucune n'est demandée. ⚖️ *La description est un champ libre : n'y écrire que l'annonce.* |
-| **Destinataires** | **Le contact** : tous les référents et administrateurs (écran « Offres externes ») et les candidats qui voient l'offre sur leur page — décision du 27 novembre 2026 : le candidat peut postuler directement. **L'auteur** : personne à l'écran ; la table est fermée (RLS sans policy, aucun droit de table), seules les fonctions des offres saisies la lisent pour dire qui peut modifier l'offre. |
+| **Destinataires** | **Le contact** : tous les référents et administrateurs (écran « Offres internes ») et les candidats qui voient l'offre sur leur page — décision du 27 novembre 2026 : le candidat peut postuler directement. **L'auteur** : personne à l'écran ; la table est fermée (RLS sans policy, aucun droit de table), seules les fonctions des offres saisies la lisent pour dire qui peut modifier l'offre. |
 | **Sous-traitants** | Hostinger (hébergement). |
 | **Transferts hors UE** | Aucun. |
 | **Durée de conservation** | L'offre reste en ligne trente jours, prolongeables ; au-delà, elle sort de la liste sans être effacée (la purge des soixante jours l'épargne), jusqu'à ce que son auteur ou l'administration la retire — ce qui la supprime, contact et auteur compris. ⚠️ *Une offre sortie de la liste et jamais retirée reste en base sans limite : une durée maximale est à fixer.* Le compte de l'auteur effacé (0113), l'offre reste, sans auteur. |

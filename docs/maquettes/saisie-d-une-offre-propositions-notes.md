@@ -15,9 +15,18 @@ mêmes champs. Décisions du 27 novembre 2026, posées une par une.
 | 8 | Les offres sorties de la liste | **Un bloc sous la liste**, « Offres saisies sorties de la liste », montré seulement s'il y en a : les siennes pour un référent, toutes pour l'administrateur |
 | 9 | La page du candidat | **« Les offres en cours dans vos secteurs d'activité. »**, et l'étiquette du type sur les offres saisies |
 
+**Rectifié le même jour, après la mise en ligne** — « je me suis trompé,
+offres externes c'est plutôt offres internes » :
+
+| # | Question | Réponse |
+| --- | --- | --- |
+| 10 | Où vont les offres saisies | **Dans « Offres internes »**, jusque-là grisée : un écran à elles. « Offres externes » garde son nom (décision 2) et ne montre plus que France Travail |
+| 11 | L'écran « Offres internes » | **Une liste simple** : le titre, « + Saisir une offre », les offres en ligne, puis celles sorties de la liste — ni recherche ni filtre |
+
 ## Ce qui en est construit
 
-- Base : migration `0114_offres_saisies.sql`, test `0114_offres_saisies.test.sql`.
+- Base : migrations `0114_offres_saisies.sql` et `0115_offres_internes.sql`, avec leurs tests.
+- Écran « Offres internes » : `apps/web/src/app/espace/offres-internes/page.tsx`.
 - Écran : `FenetreDeSaisieDOffre.tsx`, `SaisirUneOffre.tsx`,
   `GestesDeLOffre.tsx`, `EtiquetteDuType.tsx` ; routes `/api/offres/saisies`.
 - Mode d'emploi : `docs/offres-saisies.md`.

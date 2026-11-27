@@ -159,24 +159,17 @@ end
 $$;
 
 -- ===========================================================================
-\echo '— l''offre saisie est une offre en cours, filtres et recherche compris'
+-- Depuis 0115, elle se lit sur l'écran « Offres internes », et non plus
+-- parmi les offres de France Travail : voir 0115_offres_internes.test.sql.
+\echo '— l''offre saisie est une offre en cours'
 set local role authenticated;
 select set_config('request.jwt.claims', '{"sub":"dddddddd-0114-0000-0000-000000000002"}', true);
 
 select public.verifier(
-  (select exists (select 1 from jsonb_array_elements(public.offres_en_cours(array['33'], 'F', 200, 0, 'ardouin')->'offres') e
+  (select exists (select 1 from jsonb_array_elements(public.offres_internes_en_cours()) e
                    where e->>'id' = :'offre' and e->>'type_offre' = 'stage'
                      and e->>'entreprise_nom' = 'Cabinet Ardouin 0114')),
-  'une autre référente la trouve : département 33, section F, mot « ardouin », avec son type');
-
-select public.verifier(
-  (select not exists (select 1 from jsonb_array_elements(public.offres_en_cours(array['47'], null, 200, 0, null)->'offres') e
-                       where e->>'id' = :'offre')),
-  'hors de son département, elle n''est pas proposée');
-
-select public.verifier(
-  (select (public.filtres_des_offres()->'secteurs') @> '[["F","Construction"]]'::jsonb),
-  'sa section paraît dans le menu des secteurs');
+  'une autre référente la trouve parmi les offres internes en cours, avec son type');
 
 select public.verifier(
   (select exists (select 1 from jsonb_array_elements(public.offres_en_cours(null, null, 200, 0, 'plaquiste 0114')->'offres') e
@@ -302,9 +295,9 @@ update public.offre_emploi
 set local role authenticated;
 select set_config('request.jwt.claims', '{"sub":"dddddddd-0114-0000-0000-000000000001"}', true);
 select public.verifier(
-  (select not exists (select 1 from jsonb_array_elements(public.offres_en_cours(null, null, 200, 0, '0114')->'offres') e
+  (select not exists (select 1 from jsonb_array_elements(public.offres_internes_en_cours()) e
                        where e->>'id' = :'offre')),
-  'sortie de la liste des offres en cours');
+  'sortie de la liste des offres internes en cours');
 select public.verifier(
   (select exists (select 1 from jsonb_array_elements(public.offres_saisies_echues()) e where e->>'id' = :'offre')),
   'son auteur la retrouve parmi les offres saisies sorties de la liste');
