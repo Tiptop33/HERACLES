@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import {
   LIMITE_DES_CONNEXIONS,
   listerLesConnexions,
+  listerLesDureesCumulees,
   listerLesReferentsDuJournal,
   referentDemande,
 } from '@/lib/connexions';
@@ -23,8 +24,12 @@ export const dynamic = 'force-dynamic';
  * porte fermée ; le contrôle, lui, est en base — la fonction ne rend rien à
  * qui n'est pas administrateur.
  *
- * `?referent=<id>` restreint le tableau aux connexions d'un référent
- * (migration 0112) ; le menu au-dessus du tableau écrit cette adresse.
+ * En tête, la durée cumulée : une ligne par référent, toutes ses connexions
+ * additionnées, la plus longue en tête (migration 0118). Elle reste complète
+ * quel que soit le référent choisi : le menu ne filtre que le journal.
+ *
+ * `?referent=<id>` restreint le journal aux connexions d'un référent
+ * (migration 0112) ; le menu au-dessus du journal écrit cette adresse.
  */
 export default async function ConnexionsDesReferents({
   searchParams,
@@ -35,9 +40,10 @@ export default async function ConnexionsDesReferents({
   if (profil.role !== 'admin') redirect(accueilDuRole(profil.role));
 
   const referentId = referentDemande((await searchParams).referent);
-  const [connexions, referents] = await Promise.all([
+  const [connexions, referents, durees] = await Promise.all([
     listerLesConnexions(referentId),
     listerLesReferentsDuJournal(),
+    listerLesDureesCumulees(),
   ]);
   const enCours = connexions.filter((c) => c.en_cours).length;
 
@@ -55,6 +61,31 @@ export default async function ConnexionsDesReferents({
           </span>
         </div>
       </div>
+
+      {durees.length > 0 && (
+        <div
+          className="tableau-enveloppe"
+          style={{ marginBottom: '1.4rem' }}
+          data-aide="duree-cumulee-des-connexions"
+        >
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">Référent</th>
+                <th scope="col">Durée cumulée</th>
+              </tr>
+            </thead>
+            <tbody>
+              {durees.map((ligne) => (
+                <tr key={ligne.referent_id}>
+                  <td>{nomComplet(ligne.prenom, ligne.nom)}</td>
+                  <td>{dureeEnClair(ligne.duree_secondes) ?? '—'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       <p className="aide" style={{ margin: '0 0 0.9rem' }}>
         Une ligne par connexion d&apos;un référent, la plus récente en tête. Une connexion
