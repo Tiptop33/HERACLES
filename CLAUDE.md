@@ -206,8 +206,9 @@ sert**, pas la liste des fichiers touchés.
   identifiants `FRANCE_TRAVAIL_*`, et ce qui reste à confirmer.
 - **Offres saisies** — `docs/offres-saisies.md` : les offres d'emploi, de
   stage ou d'alternance que référents et administration saisissent sur
-  l'écran « Offres internes » ; trente jours prolongeables, l'étiquette du
-  type, le contact visible des candidats, et qui peut quoi.
+  l'écran « Offres internes » ; trente jours prolongeables, six mois au plus
+  hors de la liste, l'étiquette du type, le contact visible des candidats, et
+  qui peut quoi.
 - **Page candidat** — `docs/page-candidat.md` : la page où le candidat tient
   sa fiche, ses CV et lettres, voit ses offres et écrit à son référent ;
   l'invitation, la connexion par lien, et ce que le candidat ne voit jamais.

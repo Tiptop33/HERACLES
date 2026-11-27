@@ -5,7 +5,7 @@ Sur l'écran **« Offres internes »** (famille « Emploi », adresse
 d'emploi, de stage ou de stage en alternance trouvée ailleurs qu'à France
 Travail : une annonce, une entreprise du réseau, un appel. Elle s'affiche sur
 cet écran, à l'accueil, et sur la page des candidats de son secteur. L'écran
-**« Offres externes »**, lui, ne montre que les offres de France Travail.
+**« France Travail »**, lui, ne montre que les offres de France Travail.
 
 Décisions du 27 novembre 2026, posées une par une :
 `docs/maquettes/saisie-d-une-offre-propositions-notes.md`. Base : migrations
@@ -50,11 +50,16 @@ vidé s'efface.
 - **Prolonger** remet ces trente jours à compter d'aujourd'hui. Modifier ne
   prolonge pas.
 - Au-delà, elle **sort de la liste** sans être effacée : la purge des soixante
-  jours (`purger_les_offres_anciennes`) l'épargne. Elle attend dans « Offres
-  saisies sorties de la liste ».
-- **Retirer** la supprime pour de bon, avec la trace de son auteur.
-- ⚠️ Une offre sortie de la liste et jamais retirée reste en base sans
-  limite : une durée maximale reste à fixer.
+  jours des offres de France Travail ne la concerne pas. Elle attend dans
+  « Offres saisies sorties de la liste », prolongeable.
+- **Six mois au plus hors de la liste** (migration 0116, décision du 27
+  novembre 2026) : une offre ni prolongée ni retirée est supprimée quand sa
+  dernière mise en ligne — publication ou prolongation — a plus de trente
+  jours et six mois. C'est la purge (`purger_les_offres_anciennes`) qui s'en
+  charge, à la fin de chaque réception des offres de France Travail, toutes
+  les trois heures. La trace de son auteur part avec elle.
+- **Retirer** la supprime pour de bon, à tout moment, avec la trace de son
+  auteur.
 
 ## Les droits
 
@@ -102,15 +107,17 @@ parvient aussi au candidat qui cherche dans l'une de ses divisions.
 | Écran | Adresse | Ce qu'il montre | Lecture en base |
 | --- | --- | --- | --- |
 | **Offres internes** | `/espace/offres-internes` | les offres saisies — saisie, gestes, offres sorties de la liste | `offres_internes_en_cours()`, `offres_saisies_echues()` |
-| **Offres externes** | `/espace/france-travail` | les offres de France Travail seulement — recherche, départements, secteur | `offres_en_cours(…)`, `filtres_des_offres()` |
+| **France Travail** | `/espace/france-travail` | les offres de France Travail seulement — recherche, départements, secteur | `offres_en_cours(…)`, `filtres_des_offres()` |
 
-Le 27 novembre au matin, la saisie a d'abord été mise sur « Offres
-externes » ; rectifié le jour même (« offres externes, c'est plutôt offres
-internes ») : migration 0115. « Offres externes » s'appelait « France
-Travail » du 23 au 27 novembre 2026, son logo pour titre ; il a repris son nom
-et un titre écrit. Son adresse ne change pas : les liens déjà donnés restent
-valables. Le logo (`public/logo-france-travail.svg`) a été retiré du dépôt ;
-il reste dans l'historique.
+Le 27 novembre au matin, la saisie a d'abord été mise sur l'écran des offres
+de France Travail ; rectifié le jour même (« offres externes, c'est plutôt
+offres internes ») : migration 0115.
+
+Ce même 27 novembre, l'écran « France Travail » avait été renommé « Offres
+externes » et privé de son logo, sans que personne l'ait demandé. Le nom et le
+logo en titre (`public/logo-france-travail.svg`) sont rétablis le jour même,
+tels qu'ils étaient depuis le 23 novembre. L'adresse n'a jamais changé : les
+liens déjà donnés restent valables.
 
 L'accueil (les cinq dernières offres) et la page du candidat montrent
 toujours les deux sortes d'offres.
@@ -119,6 +126,8 @@ toujours les deux sortes d'offres.
 
 - Base : `supabase/tests/0114_offres_saisies.test.sql` — droits de chacun,
   contrôle des champs, page du candidat, purge, échues ;
-  `0115_offres_internes.test.sql` — chaque écran ne montre que les siennes.
+  `0115_offres_internes.test.sql` — chaque écran ne montre que les siennes ;
+  `0116_duree_des_offres_saisies.test.sql` — six mois hors de la liste, puis
+  la purge.
 - Application : `apps/web/tests/offres-saisies.test.ts`, `offres.test.ts`,
   `navigation.test.ts`, `aide.test.ts` (parcours « Saisir une offre »).

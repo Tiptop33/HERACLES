@@ -882,7 +882,7 @@ export const PARCOURS: readonly Parcours[] = [
         ancre: 'offres-en-cours',
         ecran: ACCUEIL,
         texte:
-          'L’accueil liste les offres d’emploi en cours : intitulé, entreprise, lieu, type de contrat. Dans la famille « Emploi », l’écran « Offres externes » donne toutes celles de France Travail, à filtrer par département et par secteur d’activité, ou en y cherchant un mot ; « Offres internes », celles que les référents saisissent.',
+          'L’accueil liste les offres d’emploi en cours : intitulé, entreprise, lieu, type de contrat. Dans la famille « Emploi », l’écran « France Travail » donne toutes les offres de France Travail, à filtrer par département et par secteur d’activité, ou en y cherchant un mot ; « Offres internes », celles que les référents saisissent.',
       },
     ],
   },
@@ -911,7 +911,7 @@ export const PARCOURS: readonly Parcours[] = [
   },
   {
     id: 'france-travail',
-    titre: 'Chercher une offre sur l’écran « Offres externes »',
+    titre: 'Chercher une offre sur l’écran « France Travail »',
     motsCles: [
       'france travail',
       'pôle emploi',
@@ -927,8 +927,8 @@ export const PARCOURS: readonly Parcours[] = [
     etapes: [
       {
         ancre: `menu:${FRANCE_TRAVAIL}`,
-        texte: 'Dans la colonne de gauche, famille « Emploi », cliquez sur « Offres externes ».',
-        court: 'Sous « Plus », famille « Emploi », touchez « Offres externes ».',
+        texte: 'Dans la colonne de gauche, famille « Emploi », cliquez sur « France Travail ».',
+        court: 'Sous « Plus », famille « Emploi », touchez « France Travail ».',
       },
       {
         ancre: 'filtres-des-offres',
@@ -948,7 +948,7 @@ export const PARCOURS: readonly Parcours[] = [
       {
         ancre: 'eteint:Offres web',
         texte:
-          'L’écran des offres web n’est pas encore en service : son entrée est grisée dans la famille « Emploi ». En attendant, l’accueil liste les offres en cours ; « Offres externes » donne celles de France Travail, « Offres internes » celles que les référents saisissent.',
+          'L’écran des offres web n’est pas encore en service : son entrée est grisée dans la famille « Emploi ». En attendant, l’accueil liste les offres en cours ; « France Travail » donne toutes les offres de France Travail, « Offres internes » celles que les référents saisissent.',
       },
     ],
   },
