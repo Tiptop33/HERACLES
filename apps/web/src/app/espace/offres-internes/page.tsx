@@ -20,7 +20,7 @@ const ICI = '/espace/offres-internes';
  * L'écran « Offres internes » : les offres d'emploi, de stage ou de stage en
  * alternance que référents et administration saisissent à la main (0114,
  * 0115 ; décisions du 27 novembre 2026). Grisé jusque-là dans la famille
- * « Emploi » ; les offres de France Travail restent sur « Offres externes ».
+ * « Emploi » ; les offres de France Travail restent sur « France Travail ».
  *
  * Une liste simple, sans recherche ni filtre — elles sont peu nombreuses :
  *

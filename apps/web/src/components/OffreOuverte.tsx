@@ -7,7 +7,7 @@ import GestesDeLOffre from './GestesDeLOffre';
 
 /**
  * Le détail d'une offre, dans sa fenêtre flottante. Le même sur l'écran
- * « Offres externes » et à l'accueil — un seul composant, pour que les deux ne
+ * « France Travail » et à l'accueil — un seul composant, pour que les deux ne
  * divergent pas.
  *
  * `offre` est ce que la base a rendu pour l'identifiant demandé ; `null` :

@@ -751,7 +751,26 @@ h3 {
   margin: 0;
 }
 
-/* La recherche et les deux filtres de l'écran « Offres externes », sur toute
+/* L'en-tête de l'écran « France Travail » : le logo seul, centré dans la
+   largeur — il tient lieu de titre. Le logo est posé sur une plaque blanche : son bleu marine
+   disparaîtrait sur le fond du thème sombre, et un logo tiers ne se recolore
+   pas. */
+.entete-france-travail {
+  align-items: center;
+  /* Centré en haut de l'écran, à la demande (23 novembre 2026). */
+  justify-content: center;
+}
+
+.logo-france-travail {
+  display: block;
+  height: 2.75rem;
+  width: auto;
+  padding: 0.3rem 0.5rem;
+  background: #fff;
+  border-radius: 0.4rem;
+}
+
+/* La recherche et les deux filtres de l'écran « France Travail », sur toute
    la largeur de la liste qu'ils commandent : le champ de recherche part du
    bord gauche de la liste et prend la place qui reste, les deux menus
    ferment la ligne à droite (23 novembre 2026, à la demande). */

@@ -246,10 +246,9 @@ service indisponible (journal : `[la bonne alternance] <message> <statut>`).
   hier n'est pas reçue.
 - **Les conditions d'utilisation de l'API** — mention de la source, logo,
   durée de conservation — sont à relire sur francetravail.io : elles
-  s'appliquent à l'écran « Offres externes » (« France Travail » du 23 au 27
-  novembre 2026). Depuis le 27 novembre, le logo n'y est plus en titre ; la
-  source reste nommée dans le détail de chaque offre (« Voir l'offre sur
-  France Travail »). ⚠️ *Vérifier que les conditions n'exigent pas le logo.*
+  s'appliquent à l'écran « France Travail », dont le logo tient lieu de titre ;
+  la source est aussi nommée dans le détail de chaque offre (« Voir l'offre
+  sur France Travail »).
 - **La purge ignore encore les offres proposées.** Elle supprime toute offre
   de plus de soixante jours ; quand un référent pourra proposer une offre à un
   candidat (lot 4), il faudra qu'elle épargne celles-là.
