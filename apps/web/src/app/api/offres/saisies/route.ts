@@ -5,7 +5,7 @@ import { supabaseServer } from '@/lib/supabase-server';
 
 /**
  * Saisir une offre à la main, depuis la fenêtre « Nouvelle offre » de l'écran
- * « Offres externes » (0114). La session d'abord ; le droit est dans la base :
+ * « Offres internes » (0114, 0115). La session d'abord ; le droit est dans la base :
  * les référents et l'administration (`saisir_une_offre`), qui contrôle de
  * nouveau chaque champ. Rend l'identifiant de l'offre créée.
  */
