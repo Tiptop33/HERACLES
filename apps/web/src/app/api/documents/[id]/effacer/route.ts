@@ -10,13 +10,13 @@ import { supabaseServer } from '@/lib/supabase-server';
  * corbeille rouge de Documents et de Paramètres › Archives, après sa fenêtre
  * de confirmation. L'accueil n'en porte plus depuis le 27 novembre 2026.
  *
- * **Administrateur, Vénérable Maître et Secrétaire**, chacun dans sa loge,
- * l'administrateur partout. L'ordre du projet :
+ * **L'administration seule**, dans toutes les loges, depuis le 27 novembre
+ * 2026 (migration 0119) : le Vénérable Maître et le Secrétaire le pouvaient
+ * dans leur loge jusque-là. L'ordre du projet :
  *
  *   1. la session ;
  *   2. le droit et l'effacement, d'un seul geste : `effacer_un_document()`
- *      (migration 0069) refuse à qui n'a pas le titre, et ne trouve rien hors
- *      de sa loge ;
+ *      (migrations 0069 et 0119) refuse à qui n'administre pas ;
  *   3. alors seulement `supabaseAdmin()`, pour retirer du seau le fichier
  *      dont la base vient de rendre le chemin.
  *

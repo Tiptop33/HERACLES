@@ -370,6 +370,12 @@ Pour l'aide :
 l'administration. Un référent qui demande « où retrouver un ancien compte
 rendu » ne se voit plus proposer Documents.
 
+Le même jour, **effacer un PDF** est réservé à l'administration, dans la base
+(migration 0119). L'étape « Effacer un compte rendu… » ne dit donc plus, quand
+la corbeille manque, que le geste appartient aussi au Vénérable Maître et au
+Secrétaire : pour l'administration, une corbeille absente veut dire qu'aucun
+PDF n'est rangé.
+
 ## Récapitulatif — état au 11 novembre 2026
 
 Ce qui a été livré sur l'aide, en quinze pull requests de code (115, 116, 118 à

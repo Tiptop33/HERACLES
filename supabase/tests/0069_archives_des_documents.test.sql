@@ -1,9 +1,14 @@
 -- Tests de la migration 0069_archives_des_documents.sql.
 --
---   · Anne   Secrétaire à Lyon-0069   — archive, efface
+--   · Anne   Secrétaire à Lyon-0069   — archive ; efface jusqu'à 0119
 --   · Paul   sans titre à Lyon-0069   — archive, n'efface pas
---   · Victor Vénérable  à Caen-0069   — efface, mais pas chez Anne
+--   · Victor Vénérable  à Caen-0069   — archive ; efface jusqu'à 0119
 --   · Iris   administratrice, sans loge — efface partout
+--
+-- Depuis 0119, effacer un PDF est réservé à l'administration : les tests qui
+-- montraient la Secrétaire et le Vénérable effacer les montrent refusés, et
+-- c'est Iris qui efface. Le reste — l'archivage, la lecture par loge, ce que
+-- devient un PDF de Bubble effacé — vaut à l'identique.
 
 \set ON_ERROR_STOP on
 \o /dev/null
@@ -203,9 +208,9 @@ begin;
   set local role authenticated;
   set local request.jwt.claims = '{"sub":"eeeeeeee-6900-0000-0000-000000000001"}';
   select public.verifier(
-    (select bool_and(effacable)
-       from public.documents_de_l_accueil(date '2026-09-01', current_date + 365)),
-    'la Secretaire a la corbeille sur chaque ligne de sa loge');
+    not exists (select 1 from public.documents_de_l_accueil(date '2026-09-01', current_date + 365)
+                 where effacable),
+    'depuis 0119, la Secretaire n a plus la corbeille');
 commit;
 
 begin;
@@ -217,7 +222,7 @@ begin;
 commit;
 
 -- ---------------------------------------------------------------------------
-\echo '— effacer : le titre, puis la loge'
+\echo '— effacer : l administration seule (0119)'
 -- ---------------------------------------------------------------------------
 select id as d_cr from public.document
  where loge_id = :'l_lyon'::uuid and nom = 'Compte-Rendu du 28-10-2026' \gset
@@ -234,24 +239,34 @@ begin
   exception when insufficient_privilege then
     raise notice '  ok — un referent sans titre n efface pas';
   end;
+
+  -- Depuis 0119, la Secrétaire de la loge du PDF et le Vénérable d'une autre
+  -- loge sont refusés de la même façon : le titre ne donne plus le droit.
+  perform set_config('request.jwt.claims', '{"sub":"eeeeeeee-6900-0000-0000-000000000001"}', true);
+  begin
+    perform public.effacer_un_document(cible);
+    raise exception 'ÉCHEC — la Secretaire a efface un PDF de sa loge';
+  exception when insufficient_privilege then
+    raise notice '  ok — la Secretaire n efface plus';
+  end;
+
+  perform set_config('request.jwt.claims', '{"sub":"eeeeeeee-6900-0000-0000-000000000003"}', true);
+  begin
+    perform public.effacer_un_document(cible);
+    raise exception 'ÉCHEC — le Venerable a efface un PDF';
+  exception when insufficient_privilege then
+    raise notice '  ok — le Venerable n efface plus';
+  end;
 end
 $$;
 
 begin;
   set local role authenticated;
-  set local request.jwt.claims = '{"sub":"eeeeeeee-6900-0000-0000-000000000003"}';
-  select public.verifier(
-    (select issue from public.effacer_un_document(:'d_cr'::uuid)) = 'introuvable',
-    'le Venerable de Caen n efface pas un PDF de Lyon');
-commit;
-
-begin;
-  set local role authenticated;
-  set local request.jwt.claims = '{"sub":"eeeeeeee-6900-0000-0000-000000000001"}';
+  set local request.jwt.claims = '{"sub":"eeeeeeee-6900-0000-0000-000000000004"}';
   select public.verifier(
     (select chemin from public.effacer_un_document(:'d_cr'::uuid))
       = 'archives/' || :'l_lyon' || :'f2',
-    'la Secretaire efface, et recoit le fichier a retirer du seau');
+    'l administratrice efface, et recoit le fichier a retirer du seau');
   select public.verifier(
     (select issue from public.effacer_un_document(:'d_cr'::uuid)) = 'introuvable',
     'un PDF deja efface est introuvable');

@@ -1298,8 +1298,10 @@ export const PARCOURS: readonly Parcours[] = [
         ecran: DOCUMENTS,
         texte:
           'La corbeille, sur la ligne du PDF, ouvre une fenêtre de confirmation. Le PDF disparaît alors pour toute la loge, et cela ne se défait pas. Un document se reproduit toutefois depuis sa réunion ou sa fiche. Pour corriger un compte rendu ou une affiche, inutile d’effacer : redemandé depuis sa feuille d’appel, il remplace l’ancien.',
-        siAbsent:
-          'Aucune corbeille ici : soit aucun PDF n’est rangé, soit ce geste ne vous est pas ouvert. Il est réservé à l’administration, au Vénérable Maître et au Secrétaire.',
+        // Réservé à l'administration depuis le 27 novembre 2026 (migration
+        // 0119), comme le parcours : pour elle, une corbeille absente ne veut
+        // dire qu'une chose.
+        siAbsent: 'Aucune corbeille ici : aucun PDF n’est rangé pour l’exercice en cours.',
       },
     ],
   },

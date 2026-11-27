@@ -147,8 +147,8 @@ export default function ColonnesDesArchives({
                       {d.nom ?? 'Document sans nom'}
                     </a>
                     {/* Rouge, sur la ligne même du PDF, et seulement là où la
-                        base accepterait d'effacer : administrateur, Vénérable
-                        Maître, Secrétaire. La corbeille n'efface pas : elle
+                        base accepterait d'effacer : l'administration seule
+                        (migration 0119). La corbeille n'efface pas : elle
                         ouvre la confirmation. Jamais sur l'accueil. */}
                     {corbeille && d.effacable && (
                       <Link
