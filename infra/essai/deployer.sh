@@ -136,6 +136,25 @@ if [[ $ZERO -eq 1 ]]; then
   vert "pile arrêtée, base et fichiers effacés, .env retiré"
 fi
 
+# Une pile déjà installée garde son `.env`, donc ses adresses : le script ne
+# le réécrit jamais. Le relancer sous un autre nom construirait l'application
+# pour ce nom-là, tandis que les courriels d'invitation mèneraient encore à
+# l'ancien. Et le relancer avec les noms d'avant un changement de domaine
+# défairait ce changement. Dans les deux cas, on s'arrête.
+if [[ -f "$DOSSIER/.env" ]]; then
+  installe_app="$(grep -m1 '^SITE_URL=' "$DOSSIER/.env" | cut -d= -f2- || true)"
+  installe_api="$(grep -m1 '^SUPABASE_PUBLIC_URL=' "$DOSSIER/.env" | cut -d= -f2- || true)"
+  installe_app="${installe_app#*://}"; installe_app="${installe_app%%/*}"
+  installe_api="${installe_api#*://}"; installe_api="${installe_api%%/*}"
+  if [[ -n "$installe_app" && ( "$installe_app" != "$APP" || "$installe_api" != "$API" ) ]]; then
+    rouge "Cette instance est installée sous $installe_app et $installe_api."
+    echo  "Pour la relancer : sudo $0 $installe_app $installe_api"
+    echo  "Pour changer de domaine : sudo $DEPOT/infra/essai/changer-de-domaine.sh $APP $API"
+    echo  "(docs/changer-de-domaine.md)"
+    exit 1
+  fi
+fi
+
 # Les ports de l'essai doivent être libres — ou tenus par l'essai lui-même.
 # La nuance est tout le sujet : le script est rejouable, donc il retrouve
 # normalement sa propre pile en marche. Refuser un port qu'on tient soi-même,
@@ -366,10 +385,13 @@ TRAEFIK_ENABLE=false
 # affiché : jamais les valeurs. La clé d'Anthropic, qui lit les CV
 # (docs/lecture-du-cv.md), est gardée de la même façon. Les identifiants France
 # Travail, le secret de la réception des offres et la clé de La bonne
-# alternance (docs/france-travail.md) aussi.
+# alternance (docs/france-travail.md) aussi. Et les anciens noms du site,
+# qu'un changement de domaine renvoie vers le nouveau
+# (infra/essai/changer-de-domaine.sh) : les perdre, ce serait couper les
+# liens déjà envoyés.
 GARDE_COURRIEL=""
 if [[ -f "$DEPOT/.env.essai" ]]; then
-  GARDE_COURRIEL="$(grep -E '^(BREVO_API_KEY|COURRIEL_EXPEDITEUR|COURRIEL_NOM_EXPEDITEUR|RELANCE_SECRET|ANTHROPIC_API_KEY|FRANCE_TRAVAIL_CLIENT_ID|FRANCE_TRAVAIL_CLIENT_SECRET|FRANCE_TRAVAIL_DEPARTEMENTS|RECEPTION_OFFRES_SECRET|LA_BONNE_ALTERNANCE_CLE)=.' \
+  GARDE_COURRIEL="$(grep -E '^(BREVO_API_KEY|COURRIEL_EXPEDITEUR|COURRIEL_NOM_EXPEDITEUR|RELANCE_SECRET|ANTHROPIC_API_KEY|FRANCE_TRAVAIL_CLIENT_ID|FRANCE_TRAVAIL_CLIENT_SECRET|FRANCE_TRAVAIL_DEPARTEMENTS|RECEPTION_OFFRES_SECRET|LA_BONNE_ALTERNANCE_CLE|DOMAINES_REDIRIGES|TRAEFIK_HOTES_REDIRIGES|TRAEFIK_MOTIF_REDIRECTION)=.' \
     "$DEPOT/.env.essai" || true)"
 fi
 

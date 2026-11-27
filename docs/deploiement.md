@@ -8,10 +8,13 @@
 > **Avant de commencer, trois choses doivent être décidées ou obtenues.** Sans
 > elles, la mise en ligne s'arrête à mi-chemin :
 >
-> 1. **Le nom de domaine.** Point ouvert n° 3 du cadrage, toujours ouvert. Il
->    faut le connaître *avant* de construire l'image : `NEXT_PUBLIC_APP_URL` est
->    figée à la construction, pas au démarrage, et sert à fabriquer les liens
->    des emails.
+> 1. **Le nom de domaine.** Point ouvert n° 3 du cadrage, tranché le
+>    27 novembre 2026 : `oaf-heracles.fr`, et `api.oaf-heracles.fr` pour l'API.
+>    L'instance déjà en service y passe le jour de la bascule avec
+>    `infra/essai/changer-de-domaine.sh` (`docs/changer-de-domaine.md`) ;
+>    relancer `deployer.sh` sous un autre nom ne suffit pas, et il le refuse.
+>    `NEXT_PUBLIC_APP_URL` est figée à la construction, pas au démarrage, et
+>    sert à fabriquer les liens des emails.
 > 2. **Un SMTP transactionnel.** Depuis que l'on n'entre qu'invité, aucun email
 >    veut dire aucune entrée possible. Ce n'est plus un confort.
 > 3. **Qui sera le premier administrateur.** Personne ne peut l'inviter : il se
@@ -402,6 +405,7 @@ elle, le candidat remplit sa fiche à la main, comme avant.
 
 **`NEXT_PUBLIC_*` est figée à la construction.** Changer le domaine plus tard
 oblige à reconstruire l'image — pas seulement à redémarrer le conteneur.
+`infra/essai/changer-de-domaine.sh` s'en charge (`docs/changer-de-domaine.md`).
 
 ## 4. Nginx et HTTPS
 

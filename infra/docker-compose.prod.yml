@@ -69,11 +69,23 @@ services:
     # sinon : `traefik.enable=false` suffit à ce qu'il ignore tout le reste.
     labels:
       - "traefik.enable=${TRAEFIK_ENABLE:-false}"
-      - "traefik.http.routers.${TRAEFIK_ROUTEUR:-heracles}-web.rule=Host(`${APP_DOMAIN:-exemple.invalid}`)"
+      # Les anciens noms du site — `TRAEFIK_HOTES_REDIRIGES`, écrit par
+      # `infra/essai/changer-de-domaine.sh` — s'ajoutent à la règle, et la
+      # redirection plus bas les renvoie vers le nom du jour, chemin compris :
+      # un lien déjà envoyé sous l'ancien nom aboutit encore. Vides, la règle
+      # et la redirection sont exactement celles d'avant.
+      - "traefik.http.routers.${TRAEFIK_ROUTEUR:-heracles}-web.rule=Host(`${APP_DOMAIN:-exemple.invalid}`)${TRAEFIK_HOTES_REDIRIGES:-}"
       - "traefik.http.routers.${TRAEFIK_ROUTEUR:-heracles}-web.entrypoints=websecure"
       - "traefik.http.routers.${TRAEFIK_ROUTEUR:-heracles}-web.tls.certresolver=${TRAEFIK_CERTRESOLVER:-letsencrypt}"
-      - "traefik.http.routers.${TRAEFIK_ROUTEUR:-heracles}-web.middlewares=${TRAEFIK_ROUTEUR:-heracles}-entetes"
+      - "traefik.http.routers.${TRAEFIK_ROUTEUR:-heracles}-web.middlewares=${TRAEFIK_ROUTEUR:-heracles}-entetes,${TRAEFIK_ROUTEUR:-heracles}-redirection"
       - "traefik.http.services.${TRAEFIK_ROUTEUR:-heracles}-web.loadbalancer.server.port=${WEB_PORT}"
+      # Le motif par défaut ne reconnaît aucune adresse — toutes commencent par
+      # « http » : la redirection reste inerte tant qu'aucun ancien nom n'est
+      # déclaré. `$${1}` est le chemin capturé ; le `$` doublé l'abrite de
+      # Compose, qui sinon y verrait une variable.
+      - "traefik.http.middlewares.${TRAEFIK_ROUTEUR:-heracles}-redirection.redirectregex.regex=${TRAEFIK_MOTIF_REDIRECTION:-^aucune-redirection}"
+      - "traefik.http.middlewares.${TRAEFIK_ROUTEUR:-heracles}-redirection.redirectregex.replacement=https://${APP_DOMAIN:-exemple.invalid}$${1}"
+      - "traefik.http.middlewares.${TRAEFIK_ROUTEUR:-heracles}-redirection.redirectregex.permanent=true"
       # HERACLES porte des CV et des parcours : rien ne doit en sortir par
       # inadvertance, ni finir dans le référent d'un autre site.
       - "traefik.http.middlewares.${TRAEFIK_ROUTEUR:-heracles}-entetes.headers.stsSeconds=31536000"

@@ -35,6 +35,27 @@ fi
 # shellcheck disable=SC1091
 set -a; source "$DOSSIER/.env"; set +a
 
+# Le nom du site se lit à deux endroits : le `.env` de la pile, pour
+# l'authentification, et `.env.essai`, pour l'application, qui le fige à la
+# construction. S'ils divergent, les courriels d'invitation mènent à un site
+# et l'application en sert un autre — et personne n'entre plus. C'est ce
+# qu'aurait fait un `.env.essai` resté à l'ancien nom après un changement de
+# domaine : on s'arrête plutôt que de construire.
+if [[ -f "$DEPOT/.env.essai" ]]; then
+  hote() { local u="${1#*://}"; u="${u%%/*}"; printf '%s' "${u,,}"; }
+  lu() { grep -m1 "^$1=" "$DEPOT/.env.essai" | cut -d= -f2- || true; }
+  for paire in "SITE_URL NEXT_PUBLIC_APP_URL" "SUPABASE_PUBLIC_URL NEXT_PUBLIC_SUPABASE_URL"; do
+    pile="${paire% *}"; appli="${paire#* }"
+    if [[ "$(hote "${!pile:-}")" != "$(hote "$(lu "$appli")")" ]]; then
+      rouge "Le nom du site diverge : $pile=${!pile:-} dans $DOSSIER/.env,"
+      rouge "mais $appli=$(lu "$appli") dans $DEPOT/.env.essai."
+      echo  "Rien n'a été touché. Un changement de domaine se fait avec :"
+      echo  "  sudo $DEPOT/infra/essai/changer-de-domaine.sh <domaine> <domaine-api>"
+      exit 1
+    fi
+  done
+fi
+
 etape "Pile Supabase"
 # La surcharge est recalculée à partir de la composition réellement clonée : la
 # liste des services de Supabase change d'une version à l'autre, et nommer un

@@ -34,6 +34,12 @@ qu'elle est jusqu'à son arrêt. L'abandon de la reprise, décidé le 24 novembr
 annulé le 26 : une reprise complète (`reprendre-bubble.sh --fichiers`) est rejouée, et
 remplace sur les fiches communes ce que Bubble renseigne.
 
+Décision du 27 novembre 2026 : **à la bascule, HERACLES prend `oaf-heracles.fr`**, son API
+`api.oaf-heracles.fr`, et `essai.oaf-heracles.cloud` redirige vers le nouveau nom. C'est le
+DNS de `oaf-heracles.fr` qui change, chez Hostinger, pas Bubble. Le changement de DNS *est*
+la bascule : il se fait après la dernière reprise, selon `docs/changer-de-domaine.md`, et
+jamais en passant. Ce tableau se met à jour le jour où c'est fait.
+
 ## Langue
 
 **Toutes les réponses sont rédigées en français.** Cela vaut pour les messages de discussion,
@@ -195,6 +201,9 @@ sert**, pas la liste des fichiers touchés.
 - **Registre des traitements (RGPD)** — `docs/rgpd/registre-des-traitements.md`.
   Toute PR qui ajoute une donnée personnelle, un écran qui en montre ou un
   prestataire qui en voit passer le met à jour.
+- **Changer de domaine** — `docs/changer-de-domaine.md` : le passage de HERACLES sur
+  `oaf-heracles.fr` le jour de la bascule, la zone DNS chez Hostinger,
+  `changer-de-domaine.sh`, la redirection des anciens liens et le retour en arrière.
 - **Sauvegarde** — `docs/sauvegarde.md`. Le serveur porte des données réelles :
   base, fichiers, et la copie qui doit en sortir. À lire avant toute opération
   qui touche à la base.
