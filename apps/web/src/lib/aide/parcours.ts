@@ -127,19 +127,19 @@ function versUneRubrique(
 
 const MENU_REUNION: Etape = {
   ancre: `menu:${REUNION}`,
-  texte: 'Dans la colonne de gauche, famille « Réseau », cliquez sur « Réunion ».',
-  court: 'Sous « Plus », famille « Réseau », touchez « Réunion ».',
+  texte: 'Dans la colonne de gauche, famille « Membres Héraclés », cliquez sur « Réunion ».',
+  court: 'Sous « Plus », famille « Membres Héraclés », touchez « Réunion ».',
 };
 
 const MENU_DOCUMENTS: Etape = {
   ancre: `menu:${DOCUMENTS}`,
-  texte: 'Dans la colonne de gauche, famille « Réseau », cliquez sur « Documents ».',
+  texte: 'Dans la colonne de gauche, famille « Membres Héraclés », cliquez sur « Documents ».',
   court: 'Dans la barre du bas, touchez « Documents ».',
 };
 
 const MENU_REFERENTS: Etape = {
   ancre: `menu:${REFERENTS}`,
-  texte: 'Dans la colonne de gauche, famille « Réseau », cliquez sur « Référents ».',
+  texte: 'Dans la colonne de gauche, famille « Membres Héraclés », cliquez sur « Référents ».',
   court: 'Dans la barre du bas, touchez « Référents ».',
 };
 
@@ -240,7 +240,7 @@ const BOUTON_AFFICHETTE: Etape = {
 function rangeDansDocuments(ou: string, suite: string): Etape {
   return {
     ...MENU_DOCUMENTS,
-    texte: `Chaque clic range un exemplaire dans « Documents » (famille « Réseau »), ${ou} ; l’accueil le montre aussi. ${suite}`,
+    texte: `Chaque clic range un exemplaire dans « Documents » (famille « Membres Héraclés »), ${ou} ; l’accueil le montre aussi. ${suite}`,
     court: 'Un exemplaire est rangé sous l’onglet « Documents », en bas de l’écran.',
   };
 }
@@ -570,7 +570,7 @@ export const PARCOURS: readonly Parcours[] = [
     etapes: [
       {
         ancre: 'menu:/espace/referents',
-        texte: 'Dans la colonne de gauche, famille « Réseau », cliquez sur « Référents ».',
+        texte: 'Dans la colonne de gauche, famille « Membres Héraclés », cliquez sur « Référents ».',
         court: 'Dans la barre du bas, touchez « Référents ».',
       },
       {
@@ -588,8 +588,8 @@ export const PARCOURS: readonly Parcours[] = [
     etapes: [
       {
         ancre: 'menu:/espace/provinces',
-        texte: 'Dans la colonne de gauche, famille « Réseau », cliquez sur « Province ».',
-        court: 'Sous « Plus », famille « Réseau », touchez « Province ».',
+        texte: 'Dans la colonne de gauche, famille « Membres Héraclés », cliquez sur « Province ».',
+        court: 'Sous « Plus », famille « Membres Héraclés », touchez « Province ».',
       },
     ],
   },
@@ -603,8 +603,8 @@ export const PARCOURS: readonly Parcours[] = [
       {
         ancre: 'menu:/espace/provinces',
         texte:
-          'Dans la colonne de gauche, famille « Réseau », « Province ». L’administration y ajoute une province par le formulaire du haut, écusson facultatif. Sur chaque carte, la flèche ▾ ouvre de quoi la renommer, déposer son écusson ou la retirer.',
-        court: 'Sous « Plus », famille « Réseau », touchez « Province » : ajout en haut, ▾ sur chaque carte.',
+          'Dans la colonne de gauche, famille « Membres Héraclés », « Province ». L’administration y ajoute une province par le formulaire du haut, écusson facultatif. Sur chaque carte, la flèche ▾ ouvre de quoi la renommer, déposer son écusson ou la retirer.',
+        court: 'Sous « Plus », famille « Membres Héraclés », touchez « Province » : ajout en haut, ▾ sur chaque carte.',
       },
     ],
   },
@@ -831,7 +831,7 @@ export const PARCOURS: readonly Parcours[] = [
     etapes: [
       {
         ancre: 'menu:/espace/referents',
-        texte: 'Dans la colonne de gauche, famille « Réseau », cliquez sur « Référents ».',
+        texte: 'Dans la colonne de gauche, famille « Membres Héraclés », cliquez sur « Référents ».',
         court: 'Dans la barre du bas, touchez « Référents ».',
       },
       {
@@ -1070,7 +1070,7 @@ export const PARCOURS: readonly Parcours[] = [
       {
         ancre: 'eteint:Correspondants',
         texte:
-          'L’écran « Correspondants » n’est pas encore en service : son entrée est grisée dans la famille « Réseau ».',
+          'L’écran « Correspondants » n’est pas encore en service : son entrée est grisée dans la famille « Membres Héraclés ».',
       },
     ],
   },
@@ -1153,7 +1153,7 @@ export const PARCOURS: readonly Parcours[] = [
     etapes: [
       {
         ancre: 'menu:/espace/referents',
-        texte: 'Dans la colonne de gauche, famille « Réseau », cliquez sur « Référents ».',
+        texte: 'Dans la colonne de gauche, famille « Membres Héraclés », cliquez sur « Référents ».',
         court: 'Dans la barre du bas, touchez « Référents ».',
       },
       {
@@ -1319,7 +1319,7 @@ export const PARCOURS: readonly Parcours[] = [
     etapes: [
       {
         ancre: 'menu:/espace/referents',
-        texte: 'Dans la colonne de gauche, famille « Réseau », cliquez sur « Référents ».',
+        texte: 'Dans la colonne de gauche, famille « Membres Héraclés », cliquez sur « Référents ».',
         court: 'Dans la barre du bas, touchez « Référents ».',
       },
       {

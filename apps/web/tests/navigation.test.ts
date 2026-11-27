@@ -13,7 +13,7 @@ describe('les cinq familles', () => {
     expect(FAMILLES.map((f) => f.nom)).toEqual([
       'Suivi',
       'Emploi',
-      'Réseau',
+      'Membres Héraclés',
       'Pilotage',
       'Admin',
     ]);
@@ -40,7 +40,7 @@ describe('famillesDuRole', () => {
   it('cache Admin à un référent — une porte visible est une invitation à pousser', () => {
     const noms = famillesDuRole('referent').map((f) => f.nom);
     expect(noms).not.toContain('Admin');
-    expect(noms).toEqual(['Suivi', 'Emploi', 'Réseau', 'Pilotage']);
+    expect(noms).toEqual(['Suivi', 'Emploi', 'Membres Héraclés', 'Pilotage']);
   });
 
   it('la montre à un administrateur', () => {
@@ -109,8 +109,8 @@ describe('Nouveau candidat', () => {
 });
 
 describe('Province', () => {
-  it('suit les entrées de Réseau qui existaient, sans les déplacer', () => {
-    const reseau = FAMILLES.find((f) => f.nom === 'Réseau')!;
+  it('suit les entrées de Membres Héraclés qui existaient, sans les déplacer', () => {
+    const reseau = FAMILLES.find((f) => f.nom === 'Membres Héraclés')!;
     expect(reseau.entrees.map((e) => e.libelle).slice(0, 4)).toEqual([
       'Référents',
       'Correspondants',
@@ -132,7 +132,7 @@ describe('Province', () => {
   });
 
   it('mène aux cartes des provinces', () => {
-    const reseau = FAMILLES.find((f) => f.nom === 'Réseau')!;
+    const reseau = FAMILLES.find((f) => f.nom === 'Membres Héraclés')!;
     expect(reseau.entrees.find((e) => e.libelle === 'Province')?.vers).toBe('/espace/provinces');
   });
 
@@ -162,8 +162,8 @@ describe('PARAMETRES', () => {
 });
 
 describe('Documents', () => {
-  it('ferme la famille Réseau, après Province', () => {
-    const reseau = FAMILLES.find((f) => f.nom === 'Réseau')!;
+  it('ferme la famille Membres Héraclés, après Province', () => {
+    const reseau = FAMILLES.find((f) => f.nom === 'Membres Héraclés')!;
     expect(reseau.entrees.map((e) => e.libelle)).toEqual([
       'Référents',
       'Correspondants',
@@ -174,7 +174,7 @@ describe('Documents', () => {
   });
 
   it('mène aux documents de la loge', () => {
-    const reseau = FAMILLES.find((f) => f.nom === 'Réseau')!;
+    const reseau = FAMILLES.find((f) => f.nom === 'Membres Héraclés')!;
     expect(reseau.entrees.find((e) => e.libelle === 'Documents')?.vers).toBe('/espace/documents');
   });
 
