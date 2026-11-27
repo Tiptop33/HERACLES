@@ -7,6 +7,7 @@ import {
   parution,
   sousTitre,
   lienSur,
+  libelleDuLien,
   lireDetail,
   lireIdentifiantDOffre,
   pointsDuDetail,
@@ -257,6 +258,37 @@ describe('le détail d’une offre', () => {
       { libelle: 'À noter', valeur: 'Accessible aux travailleurs handicapés' },
     ]);
     expect(pointsDuDetail(offre({}))).toEqual([]);
+  });
+
+  it('dit d’une offre saisie son type, sa durée et son contact', () => {
+    expect(
+      pointsDuDetail(
+        offre({
+          origine: 'saisie',
+          type_offre: 'emploi',
+          type_contrat_libelle: 'CDD',
+          duree_contrat: '8 mois',
+          lieu_libelle: 'Dax',
+          secteur_libelle: 'Construction',
+          contact: 'Mme Exemple — 05 00 00 00 00',
+        }),
+      ),
+    ).toEqual([
+      { libelle: 'Lieu', valeur: 'Dax' },
+      { libelle: 'Contrat', valeur: 'Emploi — CDD' },
+      { libelle: 'Durée', valeur: '8 mois' },
+      { libelle: 'Secteur', valeur: 'Construction' },
+      { libelle: 'Contact', valeur: 'Mme Exemple — 05 00 00 00 00' },
+    ]);
+    expect(pointsDuDetail(offre({ type_offre: 'alternance' }))).toEqual([
+      { libelle: 'Contrat', valeur: 'Stage en alternance' },
+    ]);
+  });
+
+  it('mène à l’annonce d’une offre saisie, à France Travail pour les autres', () => {
+    expect(libelleDuLien(offre({ origine: 'saisie' }))).toBe('Voir l’annonce');
+    expect(libelleDuLien(offre({ origine: 'france_travail' }))).toBe('Voir l’offre sur France Travail');
+    expect(libelleDuLien(offre({}))).toBe('Voir l’offre sur France Travail');
   });
 
   it('dit le nombre de postes quand il y en a plusieurs', () => {

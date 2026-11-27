@@ -167,7 +167,8 @@ la clé de service — comme les liens du parrain et du candidat.
 
 **Les écrans en service :**
 
-- **l'écran « France Travail »** — `/espace/france-travail` (migration 0097,
+- **l'écran « Offres externes »** (« France Travail » du 23 au 27 novembre
+  2026) — `/espace/france-travail` (migration 0097,
   23 novembre 2026) : les offres en cours se filtrent par un ou plusieurs
   départements et par un secteur, qui est la **section** de la NAF
   (`offre_emploi.code_naf` → division → section). Les deux menus ne proposent

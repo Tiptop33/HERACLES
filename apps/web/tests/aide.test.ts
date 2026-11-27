@@ -210,7 +210,7 @@ describe('la recherche de l’aide', () => {
     ['chercher une offre par département', 'france-travail'],
     ['les offres de france travail', 'france-travail'],
     ['voir les offres', 'offres-en-cours'],
-    ['comment ajouter une offre', 'ecrans-des-offres'],
+    ['comment ajouter une offre', 'saisir-une-offre'],
     ['où sont les offres internes', 'ecrans-des-offres'],
     ['liste des entreprises', 'entreprises'],
     ['proposer une offre à un candidat', 'proposer-une-offre'],

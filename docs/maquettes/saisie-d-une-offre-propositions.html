@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HERACLES — Saisir une offre : cinq propositions</title>
+<!--
+  Planche de choix pour la saisie à la main d'une offre d'emploi, de stage ou
+  de stage en alternance (27 novembre 2026).
+
+  Un seul fichier, sans dépendance extérieure. Les cinq propositions partagent
+  les mêmes champs : elles ne diffèrent que par la présentation. Chacune se
+  remplit et se « publie » pour de faux — rien ne part nulle part.
+
+  Les offres, entreprises et personnes sont inventées (règle 4 du projet) ;
+  les adresses en example.com sont réservées à cet usage. Le logo de France
+  Travail n'est pas reproduit : une plaque en tient la place.
+-->
+<style>
+:root{color-scheme:light dark;
+--fond:light-dark(#f2f4f7,#0d141c);--surface:light-dark(#fff,#141e29);--creux:light-dark(#eaeef3,#1a2733);
+--bord:light-dark(#dbe1e9,#283747);--bord-net:light-dark(#b6c1cf,#3c4f63);
+--encre:light-dark(#16202e,#e7eef6);--doux:light-dark(#5a6b7f,#9dadbe);--tres-doux:light-dark(#8494a5,#74879b);
+--marque:light-dark(#3f9fc2,#56b3d4);--sur-marque:light-dark(#fff,#06222e);--marque-clair:light-dark(#e4f1f7,#102b36);
+--referent:light-dark(#0f6b52,#5ec8a4);--referent-clair:light-dark(#e4f2ed,#0f2a22);
+--alerte:light-dark(#b42318,#f2867c);--alerte-clair:light-dark(#fdf3f2,#2a1614);--alerte-bord:light-dark(#f3c6c2,#5c2b26);
+--emploi:light-dark(#2563c9,#79a9f2);--alternance:light-dark(#f0565c,#ff868b);--stage:light-dark(#1a9e4b,#63d17c);
+--ombre:0 12px 32px rgb(0 0 0 / .18),0 2px 6px rgb(0 0 0 / .08)}
+:root[data-theme=light]{color-scheme:light}
+:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+[hidden]{display:none!important}
+body{margin:0;background:var(--fond);color:var(--encre);font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+h1,h2,h3{margin:0;line-height:1.25}
+p{margin:0}
+button,input,select,textarea{font:inherit;color:inherit}
+a{color:var(--marque)}
+
+/* ————— Le bandeau de la planche ————— */
+.maq{position:sticky;top:0;z-index:100;display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;padding:8px max(16px,3vw);background:var(--encre);color:var(--fond);font-size:.85rem}
+.maq b{font-weight:650}
+.maq nav{display:flex;flex-wrap:wrap;gap:4px}
+.maq nav a{color:inherit;text-decoration:none;padding:6px 12px;border-radius:999px;border:1px solid color-mix(in srgb,var(--fond) 30%,transparent);white-space:nowrap}
+.maq nav a[aria-current=page]{background:var(--fond);color:var(--encre)}
+.maq .theme{margin-left:auto;background:transparent;border:1px solid color-mix(in srgb,var(--fond) 30%,transparent);border-radius:999px;padding:5px 11px;cursor:pointer;color:inherit}
+
+.planche{scroll-margin-top:60px;max-width:1280px;margin:0 auto;padding:clamp(16px,3vw,32px) max(16px,3vw) 64px;display:grid;gap:18px}
+.planche > header{display:grid;gap:6px;max-width:62rem}
+.planche > header h1{font-size:clamp(1.4rem,1.1rem + 1vw,1.9rem);font-weight:750;letter-spacing:-.01em}
+.planche > header p{color:var(--doux)}
+.pourcontre{display:grid;grid-template-columns:repeat(auto-fit,minmax(18rem,1fr));gap:12px;max-width:62rem}
+.pourcontre div{background:var(--surface);border:1px solid var(--bord);border-radius:12px;padding:.8rem 1rem;font-size:.9rem}
+.pourcontre h3{font-size:.72rem;letter-spacing:.11em;text-transform:uppercase;margin-bottom:.35rem}
+.pourcontre .pour h3{color:var(--referent)}
+.pourcontre .contre h3{color:var(--alerte)}
+.pourcontre ul{margin:0;padding-left:1.1rem;display:grid;gap:.2rem}
+.consigne{font-size:.85rem;color:var(--doux)}
+.consigne b{color:var(--encre)}
+
+/* ————— Le principe ————— */
+.texte{max-width:62rem;display:grid;gap:14px}
+.texte section{background:var(--surface);border:1px solid var(--bord);border-radius:12px;padding:1rem 1.2rem;display:grid;gap:.6rem}
+.texte h2{font-size:.72rem;letter-spacing:.11em;text-transform:uppercase;color:var(--tres-doux)}
+.texte ol,.texte ul{margin:0;padding-left:1.2rem;display:grid;gap:.35rem}
+.texte table{border-collapse:collapse;width:100%;font-size:.9rem}
+.texte th,.texte td{text-align:left;vertical-align:top;padding:.45rem .6rem;border-bottom:1px solid var(--bord)}
+.texte th{font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--tres-doux);font-weight:700}
+.texte tr:last-child td{border-bottom:0}
+.requis{display:inline-block;font-size:.72rem;font-weight:700;padding:.05rem .45rem;border-radius:999px;background:var(--marque-clair);color:var(--marque);white-space:nowrap}
+.facultatif{display:inline-block;font-size:.72rem;font-weight:600;padding:.05rem .45rem;border-radius:999px;background:var(--creux);color:var(--doux);white-space:nowrap}
+.reco{border-left:4px solid var(--referent)!important}
+.cartes-choix{display:grid;grid-template-columns:repeat(auto-fit,minmax(11rem,1fr));gap:10px}
+.cartes-choix a{display:grid;gap:.2rem;padding:.7rem .85rem;border:1px solid var(--bord);border-radius:10px;text-decoration:none;color:inherit;background:var(--fond)}
+.cartes-choix a:hover{border-color:var(--marque)}
+.cartes-choix b{font-size:.95rem}
+.cartes-choix span{font-size:.82rem;color:var(--doux)}
+
+/* ————— L'écran de l'application, en miniature ————— */
+.ecran{position:relative;display:flex;height:820px;border:1px solid var(--bord-net);border-radius:14px;overflow:hidden;background:var(--fond);box-shadow:0 1px 0 var(--bord)}
+.m-colonne{width:12.5rem;flex:none;background:var(--surface);border-right:1px solid var(--bord);padding:1rem 0;display:flex;flex-direction:column;gap:.1rem;overflow:hidden}
+.m-marque{display:flex;flex-direction:column;align-items:center;gap:.25rem;padding:0 .9rem .8rem;margin-bottom:.3rem;border-bottom:1px solid var(--bord);text-align:center}
+.m-ecusson{display:grid;place-items:center;width:38px;height:38px;border-radius:10px;background:var(--marque-clair);color:var(--marque);font-weight:800}
+.m-marque b{font-weight:800;font-size:.8rem;letter-spacing:.08em}
+.m-marque small{font-size:.7rem;color:var(--doux)}
+.m-famille{margin:.7rem 0 .15rem;padding:0 1.1rem;font-size:.6rem;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--tres-doux)}
+.m-colonne a{display:block;padding:.32rem 1.1rem;font-size:.8rem;color:var(--encre);text-decoration:none;border-left:3px solid transparent}
+.m-colonne a.eteinte{color:var(--tres-doux)}
+.m-colonne a.courante{border-left-color:var(--marque);background:var(--marque-clair);font-weight:700}
+.m-zone{flex:1;display:flex;flex-direction:column;overflow:auto}
+.m-barre{display:flex;align-items:center;gap:1rem;padding:.6rem 1.2rem;border-bottom:1px solid var(--bord);background:var(--surface);font-size:.88rem}
+.m-barre .droite{margin-left:auto;display:flex;align-items:center;gap:.9rem;color:var(--doux)}
+.pastille{width:1.9rem;height:1.9rem;border-radius:50%;background:var(--referent-clair);color:var(--referent);display:grid;place-items:center;font-size:.75rem;font-weight:700}
+.m-corps{padding:1rem 1.2rem 3rem;display:flex;flex-direction:column;gap:.9rem}
+.m-logo-ft{align-self:center;display:grid;place-items:center;width:15rem;height:3.4rem;border-radius:8px;background:#fff;color:#1b2a6b;font-weight:800;letter-spacing:.01em;border:1px dashed #b6c1cf;font-size:1.05rem}
+.m-logo-ft small{display:block;font-size:.62rem;font-weight:600;color:#8494a5;letter-spacing:.06em;text-transform:uppercase}
+.m-filtres{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center}
+.recherche{font-size:.88rem;padding:.4rem .7rem;border:1px solid var(--bord-net);border-radius:4px;background:var(--surface);min-width:16rem;flex:1 1 16rem;max-width:26rem;color:var(--tres-doux)}
+.filtre{font-size:.83rem;padding:.33rem .7rem;border:1px solid var(--bord-net);background:var(--surface);color:var(--doux);border-radius:2rem;cursor:pointer;white-space:nowrap}
+.filtre[aria-pressed=true]{background:var(--encre);color:var(--surface);border-color:var(--encre)}
+.bloc{border:1px solid var(--bord);border-radius:12px;padding:1rem 1.1rem;background:var(--surface)}
+.bloc-tete{display:flex;align-items:center;gap:.8rem;margin-bottom:.5rem}
+.bloc h2,.bloc-tete h2{font-size:.72rem;letter-spacing:.11em;text-transform:uppercase;color:var(--tres-doux);font-weight:700;margin:0}
+.bloc-tete .bouton{margin-left:auto}
+
+/* La liste des offres, comme `ListeDesOffres`. */
+.liste{list-style:none;margin:0;padding:0}
+.liste li{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.5rem .4rem;margin:0 -.4rem;border-bottom:1px dashed var(--bord);font-size:.83rem;border-radius:.4rem}
+.liste li:last-child{border-bottom:0}
+.liste li > span:first-child{display:flex;flex-direction:column;gap:.05rem}
+.liste .sous{color:var(--doux)}
+.liste .date{color:var(--doux);white-space:nowrap;flex:none;display:flex;align-items:center;gap:.5rem}
+.liste li.nouvelle{background:var(--marque-clair);box-shadow:inset 3px 0 0 var(--marque)}
+
+/* ————— Les pièces de formulaire, comme l'application ————— */
+.champ{display:flex;flex-direction:column;gap:.2rem;margin:0}
+.champ > span:first-child{font-size:.78rem;color:var(--tres-doux);font-weight:600;display:flex;gap:.4rem;align-items:baseline}
+.champ > span:first-child i{font-style:normal;font-weight:500;color:var(--tres-doux);opacity:.85}
+.champ input,.champ select,.champ textarea{font-size:.92rem;width:100%;padding:.55rem .7rem;border:1px solid var(--bord);border-radius:9px;background:var(--creux)}
+.champ input:focus-visible,.champ select:focus-visible,.champ textarea:focus-visible,.type:focus-visible,.puces button:focus-visible,.bouton:focus-visible{outline:2px solid var(--marque);outline-offset:1px}
+.champ textarea{resize:vertical;min-height:5.5rem;line-height:1.45}
+.champ[aria-invalid=true] input{border-color:var(--alerte);background:var(--alerte-clair)}
+.aide{font-size:.74rem;color:var(--tres-doux);margin:.15rem 0 0}
+.deux{display:grid;grid-template-columns:7.5rem 1fr;gap:.6rem}
+.bouton{flex:none;display:inline-flex;align-items:center;gap:.35rem;font-size:.88rem;font-weight:600;padding:.5rem 1rem;border:1px solid var(--bord-net);border-radius:9px;background:var(--surface);color:var(--encre);cursor:pointer;white-space:nowrap;text-decoration:none}
+.bouton--fort{background:var(--marque);border-color:var(--marque);color:var(--sur-marque)}
+.bouton--petit{font-size:.8rem;padding:.3rem .7rem}
+.lien-nu{background:none;border:0;padding:0;color:var(--doux);cursor:pointer;text-decoration:underline;font-size:.82rem}
+.lien-nu.danger{color:var(--alerte)}
+
+/* Le type d'offre : trois boutons, la couleur des familles de recherche. */
+.types{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.type{--c:var(--emploi);display:flex;align-items:center;gap:7px;padding:.5rem .6rem;border:1px solid var(--bord-net);border-radius:9px;background:var(--surface);cursor:pointer;font-size:.85rem;font-weight:600;color:var(--doux);text-align:left;line-height:1.2}
+.type::before{content:"";width:10px;height:10px;border-radius:50%;background:var(--c);flex:none}
+.type[data-type=stage]{--c:var(--stage)}
+.type[data-type=alternance]{--c:var(--alternance)}
+.type[aria-pressed=true]{border-color:var(--c);color:var(--encre);background:color-mix(in srgb,var(--c) 11%,var(--surface));box-shadow:inset 0 0 0 1px var(--c)}
+.puces{display:flex;flex-wrap:wrap;gap:6px}
+.puces button{font-size:.83rem;padding:.3rem .8rem;border:1px solid var(--bord-net);background:var(--surface);color:var(--doux);border-radius:2rem;cursor:pointer}
+.puces button[aria-pressed=true]{background:var(--encre);color:var(--surface);border-color:var(--encre)}
+
+/* Ce qui dépend du type : le contrat pour un emploi, la durée sinon. */
+.saisie .si-contrat,.saisie .si-duree{display:none}
+.saisie[data-type=emploi] .si-contrat{display:flex}
+.saisie:is([data-type=stage],[data-type=alternance]) .si-duree,
+.saisie[data-type=emploi]:is([data-contrat=CDD],[data-contrat="Intérim"]) .si-duree{display:flex}
+
+.message{font-size:.85rem;border-radius:6px;padding:.5rem .7rem}
+.message.erreur{color:var(--alerte);background:var(--alerte-clair);border:1px solid var(--alerte-bord)}
+.message.ok{color:var(--referent);background:var(--referent-clair);border:1px solid color-mix(in srgb,var(--referent) 35%,transparent)}
+.etat{font-size:.8rem;color:var(--tres-doux)}
+
+/* ————— Les fenêtres flottantes ————— */
+.f{position:absolute;z-index:10;top:68px;right:16px;width:min(440px,calc(100% - 32px));max-height:calc(100% - 84px);overflow:auto;background:var(--surface);border:1px solid var(--bord-net);border-radius:12px;box-shadow:var(--ombre);display:flex;flex-direction:column}
+.f-barre{position:sticky;top:0;z-index:1;display:flex;align-items:center;gap:.6rem;padding:.65rem 1rem;border-bottom:1px solid var(--bord);background:var(--creux);border-radius:12px 12px 0 0;cursor:move;touch-action:none;user-select:none}
+.f-barre h3{flex:1;font-size:.95rem}
+.f-fermer{background:none;border:0;color:var(--doux);font-size:1.1rem;line-height:1;padding:.15rem .45rem;border-radius:.4rem;cursor:pointer}
+.f-fermer:hover{background:var(--bord)}
+.f-corps{padding:1rem;display:grid;gap:.8rem}
+.f-pied{position:sticky;bottom:0;display:flex;align-items:center;gap:.8rem;padding:.7rem 1rem;border-top:1px solid var(--bord);background:var(--surface);border-radius:0 0 12px 12px}
+.f-pied .bouton{margin-left:auto}
+
+/* B — la page, avec sa barre d'enregistrement */
+.fil{font-size:.85rem}
+.fil a{text-decoration:none}
+.page-tete{display:flex;align-items:flex-end;gap:1rem;flex-wrap:wrap}
+.page-tete h1{font-size:1.45rem;font-weight:800}
+.deux-blocs{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:.9rem;align-items:start}
+.deux-blocs .bloc{display:grid;gap:.8rem}
+.deux-blocs textarea{min-height:13rem}
+.barre-enregistrement{position:sticky;bottom:0;margin-top:auto;display:flex;align-items:center;gap:.8rem;padding:.7rem 1.2rem;border-top:1px solid var(--bord);background:var(--creux);font-size:.88rem}
+.barre-enregistrement .droite{margin-left:auto;display:flex;gap:.6rem;align-items:center}
+
+/* C — la saisie et son aperçu */
+.f.large{width:min(860px,calc(100% - 32px))}
+.cote{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:0}
+.cote > .f-corps:first-child{border-right:1px solid var(--bord)}
+.apercu{background:var(--fond);align-content:start}
+.apercu h4{font-size:.68rem;letter-spacing:.11em;text-transform:uppercase;color:var(--tres-doux);margin:0 0 .35rem}
+.apercu .carte-apercu{background:var(--surface);border:1px solid var(--bord);border-radius:10px;padding:.7rem .85rem}
+.apercu .detail{display:grid;gap:.6rem;font-size:.86rem}
+.apercu .detail h5{font-size:.95rem;margin:0}
+.champs{display:grid;grid-template-columns:auto 1fr;gap:.3rem .9rem;margin:0;font-size:.84rem}
+.champs dt{color:var(--tres-doux);font-weight:600}
+.champs dd{margin:0}
+.vide-apercu{color:var(--tres-doux);font-style:italic}
+.texte-offre{white-space:pre-line;overflow-wrap:anywhere}
+
+/* D — en trois temps */
+.etapes{display:flex;gap:.4rem;align-items:center;font-size:.78rem;color:var(--tres-doux)}
+.etapes span{display:inline-grid;place-items:center;width:1.5rem;height:1.5rem;border-radius:50%;border:1px solid var(--bord-net);font-weight:700}
+.etapes span[aria-current=step]{background:var(--marque);border-color:var(--marque);color:var(--sur-marque)}
+.etapes span.faite{background:var(--marque-clair);border-color:var(--marque-clair);color:var(--marque)}
+.etapes i{flex:0 0 1.2rem;height:1px;background:var(--bord-net)}
+.grandes{display:grid;gap:.6rem}
+.grande{--c:var(--emploi);display:grid;gap:.15rem;text-align:left;padding:.8rem 1rem .8rem 1.1rem;border:1px solid var(--bord-net);border-left:5px solid var(--c);border-radius:10px;background:var(--surface);cursor:pointer}
+.grande[data-type=stage]{--c:var(--stage)}
+.grande[data-type=alternance]{--c:var(--alternance)}
+.grande b{font-size:.98rem}
+.grande span{font-size:.82rem;color:var(--doux)}
+.grande[aria-pressed=true]{background:color-mix(in srgb,var(--c) 10%,var(--surface));box-shadow:inset 0 0 0 1px var(--c)}
+.etape{display:grid;gap:.8rem}
+.question{font-size:1.05rem;font-weight:700}
+.rappel{font-size:.82rem;color:var(--doux);display:flex;gap:.4rem;align-items:center;flex-wrap:wrap}
+
+/* E — la ligne rapide */
+.planche-e .ecran{height:980px}
+.ligne-rapide{display:grid;grid-template-columns:auto minmax(9rem,1.4fr) minmax(8rem,1.1fr) 6.4rem minmax(6rem,.9fr) auto;gap:.45rem;align-items:center;padding:.6rem;margin:0 -.4rem .4rem;border:1px dashed var(--bord-net);border-radius:10px;background:var(--fond)}
+.ligne-rapide input{font-size:.85rem;padding:.42rem .6rem;border:1px solid var(--bord);border-radius:8px;background:var(--surface);width:100%}
+.ligne-rapide input[aria-invalid=true]{border-color:var(--alerte);background:var(--alerte-clair)}
+.ligne-rapide .types{display:flex;gap:4px}
+.ligne-rapide .type{padding:.38rem .5rem;font-size:.78rem}
+.ligne-rapide .type::before{width:8px;height:8px}
+.ligne-rapide-aide{grid-column:1/-1;font-size:.74rem;color:var(--tres-doux);margin:0}
+
+/* Dans la liste : les trois marques */
+.trois{display:grid;grid-template-columns:repeat(auto-fit,minmax(20rem,1fr));gap:14px}
+.trois > div{display:grid;gap:.5rem;align-content:start}
+.trois h3{font-size:1rem}
+.trois p{font-size:.86rem;color:var(--doux)}
+.etiquette{--c:var(--emploi);display:inline-flex;align-items:center;gap:.3rem;font-size:.7rem;font-weight:700;padding:.05rem .5rem;border-radius:999px;color:var(--c);background:color-mix(in srgb,var(--c) 12%,var(--surface));white-space:nowrap}
+.etiquette::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--c)}
+.etiquette[data-type=stage]{--c:var(--stage)}
+.etiquette[data-type=alternance]{--c:var(--alternance)}
+.mention{color:var(--marque);font-weight:600}
+
+@media (max-width:1000px){
+  .m-colonne{display:none}
+  .cote{grid-template-columns:1fr}
+  .cote > .f-corps:first-child{border-right:0;border-bottom:1px solid var(--bord)}
+  .deux-blocs{grid-template-columns:1fr}
+  .ligne-rapide{grid-template-columns:1fr 1fr}
+  .ligne-rapide .types,.ligne-rapide-aide{grid-column:1/-1}
+}
+</style>
+</head>
+<body>
+
+<header class="maq">
+  <b>HERACLES — saisir une offre</b>
+  <nav aria-label="Planches">
+    <a href="#principe">Le principe</a>
+    <a href="#a">A · La fenêtre</a>
+    <a href="#b">B · La page</a>
+    <a href="#c">C · Saisie et aperçu</a>
+    <a href="#d">D · En trois temps</a>
+    <a href="#e">E · La ligne rapide</a>
+    <a href="#liste">Dans la liste</a>
+  </nav>
+  <button type="button" class="theme" id="theme">Thème : auto</button>
+</header>
+
+<!-- ═════════════════════════════ LE PRINCIPE ═════════════════════════════ -->
+<main class="planche" id="principe">
+  <header>
+    <h1>Saisir une offre à la main : cinq propositions</h1>
+    <p>Une offre d’emploi, de stage ou de stage en alternance trouvée ailleurs qu’à France Travail — une annonce, une entreprise du réseau, un appel — que vous saisissez vous‑même, et qui rejoint la liste des offres en cours. Les cinq propositions ont <b>les mêmes champs</b> : elles ne diffèrent que par la présentation. Chacune se remplit et se publie pour de faux.</p>
+  </header>
+
+  <div class="texte">
+    <section>
+      <h2>Les champs, communs aux cinq</h2>
+      <table>
+        <thead><tr><th>Champ</th><th></th><th>Pourquoi</th></tr></thead>
+        <tbody>
+          <tr><td><b>Type d’offre</b></td><td><span class="requis">requis</span></td><td>Emploi, Stage, Stage en alternance. La pastille reprend la couleur des familles de recherche de la liste des candidats.</td></tr>
+          <tr><td><b>Intitulé du poste</b></td><td><span class="requis">requis</span></td><td>Le titre de la ligne dans la liste.</td></tr>
+          <tr><td><b>Entreprise</b></td><td><span class="requis">requis</span></td><td>Sous le titre, dans la liste.</td></tr>
+          <tr><td><b>Lieu</b> — code postal et ville</td><td><span class="requis">requis</span></td><td>Le département se déduit du code postal : l’offre répond au filtre par département, et parvient aux candidats qui ont coché ce département.</td></tr>
+          <tr><td>Contrat</td><td><span class="facultatif">facultatif</span></td><td>Pour un emploi seulement : CDI, CDD, Intérim.</td></tr>
+          <tr><td>Durée</td><td><span class="facultatif">facultatif</span></td><td>Pour un stage, une alternance, un CDD, une mission d’intérim. « 6 mois », « 2 ans ».</td></tr>
+          <tr><td>Secteur d’activité</td><td><span class="facultatif">facultatif</span></td><td>Sans lui, l’offre reste sur l’écran des référents mais <b>ne paraît pas sur la page des candidats</b> : celle‑ci trie les offres par secteur. Dans l’application, ce sera le choix de secteur déjà en place sur la fiche candidat.</td></tr>
+          <tr><td>Description</td><td><span class="facultatif">facultatif</span></td><td>Le texte de l’annonce, collé ou résumé.</td></tr>
+          <tr><td>Lien de l’annonce</td><td><span class="facultatif">facultatif</span></td><td>S’ouvre depuis la fenêtre de l’offre.</td></tr>
+          <tr><td>Contact</td><td><span class="facultatif">facultatif</span></td><td>La personne à joindre pour postuler. C’est une donnée personnelle d’un tiers : le registre des traitements sera complété.</td></tr>
+        </tbody>
+      </table>
+      <p class="consigne">Laissés de côté pour rester à l’essentiel : salaire ou gratification, date de début, nombre de postes, niveau d’expérience. Chacun s’ajoute en une ligne si vous le voulez.</p>
+    </section>
+
+    <section>
+      <h2>Ce que je suppose — à corriger si besoin</h2>
+      <ol>
+        <li><b>Vous seul saisissez</b> : le bouton n’apparaît qu’au rôle administrateur. Un référent voit l’offre, sans pouvoir la modifier.</li>
+        <li><b>Elle se range avec les autres</b>, sur l’écran de l’entrée « France Travail » (l’ancien « Offres externes »), à sa date de publication, et répond aux mêmes recherches et filtres.</li>
+        <li><b>Le candidat la voit sur sa page</b> si elle tombe dans ses secteurs et ses départements — les règles déjà appliquées aux offres de France Travail.</li>
+        <li><b>Elle reste en ligne jusqu’à ce que vous la retiriez</b> (« Retirer l’offre », dans sa fenêtre). La purge des soixante jours, faite pour France Travail, l’épargne.</li>
+        <li><b>Elle se modifie</b> en tout temps, dans sa fenêtre, par vous.</li>
+      </ol>
+    </section>
+
+    <section class="reco">
+      <h2>Ma recommandation</h2>
+      <p><b>A, « La fenêtre ».</b> C’est le geste de « Nouveau candidat » et la fenêtre du détail d’une offre : flottante, non modale, la liste reste lisible dessous. Un seul bouton, « Publier l’offre », pas d’« Annuler ». Tout se fait sans quitter la liste. Si vous saisissez plusieurs offres d’affilée, <b>E</b> va plus vite.</p>
+      <div class="cartes-choix">
+        <a href="#a"><b>A · La fenêtre</b><span>Une fenêtre flottante, une colonne.</span></a>
+        <a href="#b"><b>B · La page</b><span>Un écran à part, enregistré au fil de la frappe.</span></a>
+        <a href="#c"><b>C · Saisie et aperçu</b><span>On voit l’offre telle qu’elle paraîtra.</span></a>
+        <a href="#d"><b>D · En trois temps</b><span>Une question à la fois.</span></a>
+        <a href="#e"><b>E · La ligne rapide</b><span>L’essentiel en une ligne, le reste après.</span></a>
+      </div>
+    </section>
+
+    <section>
+      <h2>Ce qu’il reste à décider</h2>
+      <ol>
+        <li><b>La proposition</b> — A à E, ou un mélange (« B, avec l’aperçu de C »).</li>
+        <li><b>La place.</b> L’entrée s’appelle « France Travail » depuis le 23 novembre, et le logo de France Travail tient lieu de titre à l’écran. Les offres saisies s’y rangeraient sous ce logo. On garde ainsi, ou l’entrée reprend son nom « Offres externes » ?</li>
+        <li><b>La marque dans la liste</b> — voir l’onglet « Dans la liste ».</li>
+      </ol>
+    </section>
+  </div>
+</main>
+
+<!-- ═════════════════════════════ A — LA FENÊTRE ═════════════════════════════ -->
+<main class="planche" id="a" hidden>
+  <header>
+    <h1>A · La fenêtre</h1>
+    <p>« + Saisir une offre », en tête de la liste, ouvre une fenêtre flottante — la même famille que « Nouveau candidat ». Une seule colonne, du plus important au facultatif. Le contrat n’apparaît que pour un emploi, la durée que lorsqu’elle a un sens.</p>
+  </header>
+  <div class="pourcontre">
+    <div class="pour"><h3>Pour</h3><ul><li>Le geste de « Nouveau candidat » : rien de neuf à apprendre.</li><li>La liste reste visible et cliquable dessous ; la fenêtre se déplace.</li><li>Tout se fait sans quitter la liste.</li></ul></div>
+    <div class="contre"><h3>Contre</h3><ul><li>La description s’écrit dans une case étroite.</li><li>On ne voit le résultat qu’une fois l’offre publiée.</li></ul></div>
+  </div>
+  <p class="consigne"><b>À essayer :</b> changez de type, choisissez CDD, effacez l’intitulé puis « Publier l’offre ». La fenêtre se déplace par sa barre de titre.</p>
+
+  <div class="ecran">
+    <div class="m-zone"><div class="m-corps">
+      <div class="m-logo-ft"><span>France Travail<small>logo</small></span></div>
+      <div class="m-filtres"><span class="recherche">Rechercher un métier, une entreprise, une ville…</span><button class="filtre" type="button">Départements ▾</button><button class="filtre" type="button">Secteur ▾</button></div>
+      <section class="bloc">
+        <div class="bloc-tete"><h2>Offres d’emploi en cours</h2><button type="button" class="bouton bouton--petit" data-ouvrir>+ Saisir une offre</button></div>
+        <ul class="liste" data-liste></ul>
+      </section>
+    </div></div>
+
+    <div class="f" data-fenetre>
+      <div class="f-barre"><h3>Nouvelle offre</h3><button type="button" class="f-fermer" aria-label="Fermer" data-fermer>✕</button></div>
+      <form class="saisie f-corps" data-type="stage" novalidate>
+        <div class="champ" role="group" aria-label="Type d’offre"><span>Type d’offre</span>
+          <div class="types">
+            <button type="button" class="type" data-type="emploi" aria-pressed="false">Emploi</button>
+            <button type="button" class="type" data-type="stage" aria-pressed="true">Stage</button>
+            <button type="button" class="type" data-type="alternance" aria-pressed="false">Stage en alternance</button>
+          </div>
+        </div>
+        <label class="champ"><span>Intitulé du poste</span><input name="intitule" value="Assistant de gestion" placeholder="Ex. : Assistant de gestion"></label>
+        <label class="champ"><span>Entreprise</span><input name="entreprise" value="Cabinet Ardouin &amp; associés"></label>
+        <div class="deux">
+          <label class="champ"><span>Code postal</span><input name="cp" value="33000" inputmode="numeric" maxlength="5"></label>
+          <label class="champ"><span>Ville</span><input name="ville" value="Bordeaux"></label>
+        </div>
+        <p class="aide" data-dep></p>
+        <div class="champ si-contrat" role="group" aria-label="Contrat"><span>Contrat <i>facultatif</i></span>
+          <div class="puces"><button type="button" aria-pressed="false">CDI</button><button type="button" aria-pressed="false">CDD</button><button type="button" aria-pressed="false">Intérim</button></div>
+        </div>
+        <label class="champ si-duree"><span>Durée <i>facultatif</i></span><input name="duree" value="6 mois" placeholder="Ex. : 6 mois"></label>
+        <label class="champ"><span>Secteur d’activité <i>facultatif</i></span><select name="secteur" data-secteurs data-choisi="M"></select></label>
+        <label class="champ"><span>Description <i>facultatif</i></span><textarea name="description" rows="4">Saisie comptable, suivi des factures, préparation des déclarations de TVA. Stage de fin d’études, BTS ou licence en gestion.</textarea></label>
+        <label class="champ"><span>Lien de l’annonce <i>facultatif</i></span><input name="lien" type="url" placeholder="https://…"></label>
+        <label class="champ"><span>Contact <i>facultatif</i></span><input name="contact" value="Mme Ardouin — recrutement@example.com" placeholder="Nom, e-mail ou téléphone"></label>
+        <p class="message" data-message hidden></p>
+      </form>
+      <div class="f-pied"><span class="etat">Seuls le type, l’intitulé, l’entreprise et le lieu sont requis.</span><button type="button" class="bouton bouton--fort" data-publier>Publier l’offre</button></div>
+    </div>
+  </div>
+</main>
+
+<!-- ═════════════════════════════ B — LA PAGE ═════════════════════════════ -->
+<main class="planche" id="b" hidden>
+  <header>
+    <h1>B · La page</h1>
+    <p>« + Saisir une offre » mène à un écran à part : à gauche le poste, à droite l’annonce, avec de la place pour un long texte. Tout s’enregistre au fil de la frappe, comme sur la fiche d’un candidat : tant qu’elle n’est pas publiée, l’offre est un brouillon que vous seul voyez.</p>
+  </header>
+  <div class="pourcontre">
+    <div class="pour"><h3>Pour</h3><ul><li>De la place pour coller une annonce entière.</li><li>Rien ne se perd : on peut s’interrompre et revenir.</li><li>La barre du bas est celle de la fiche candidat.</li></ul></div>
+    <div class="contre"><h3>Contre</h3><ul><li>On quitte la liste le temps de la saisie.</li><li>Un écran et un état « brouillon » de plus à construire : environ une demi‑journée de plus.</li></ul></div>
+  </div>
+  <p class="consigne"><b>À essayer :</b> tapez dans un champ et regardez la barre du bas ; puis « Publier l’offre ».</p>
+
+  <div class="ecran">
+    <div class="m-zone">
+      <div class="m-corps">
+        <p class="fil"><a href="#b">← France Travail</a></p>
+        <div class="page-tete"><h1>Nouvelle offre</h1></div>
+        <form class="saisie deux-blocs" data-type="emploi" data-contrat="CDD" data-brouillon novalidate>
+          <section class="bloc">
+            <h2>Le poste</h2>
+            <div class="champ" role="group" aria-label="Type d’offre"><span>Type d’offre</span>
+              <div class="types">
+                <button type="button" class="type" data-type="emploi" aria-pressed="true">Emploi</button>
+                <button type="button" class="type" data-type="stage" aria-pressed="false">Stage</button>
+                <button type="button" class="type" data-type="alternance" aria-pressed="false">Stage en alternance</button>
+              </div>
+            </div>
+            <label class="champ"><span>Intitulé du poste</span><input name="intitule" value="Agent d’entretien des espaces verts"></label>
+            <label class="champ"><span>Entreprise</span><input name="entreprise" value="Jardins de l’Estey"></label>
+            <div class="deux">
+              <label class="champ"><span>Code postal</span><input name="cp" value="40100" inputmode="numeric" maxlength="5"></label>
+              <label class="champ"><span>Ville</span><input name="ville" value="Dax"></label>
+            </div>
+            <p class="aide" data-dep></p>
+            <div class="champ si-contrat" role="group" aria-label="Contrat"><span>Contrat <i>facultatif</i></span>
+              <div class="puces"><button type="button" aria-pressed="false">CDI</button><button type="button" aria-pressed="true">CDD</button><button type="button" aria-pressed="false">Intérim</button></div>
+            </div>
+            <label class="champ si-duree"><span>Durée <i>facultatif</i></span><input name="duree" value="8 mois, renouvelable"></label>
+            <label class="champ"><span>Secteur d’activité <i>facultatif</i></span><select name="secteur" data-secteurs data-choisi="N"></select></label>
+          </section>
+          <section class="bloc">
+            <h2>L’annonce</h2>
+            <label class="champ"><span>Description <i>facultatif</i></span><textarea name="description">Entretien des parcs et des abords d’une résidence : tonte, taille, désherbage manuel, petits travaux de maçonnerie paysagère.
+
+Permis B souhaité. Débutant accepté, une formation est assurée sur place.
+
+Horaires : 7 h 30 – 15 h 30, du lundi au vendredi.</textarea></label>
+            <label class="champ"><span>Lien de l’annonce <i>facultatif</i></span><input name="lien" type="url" value="https://www.example.com/annonces/espaces-verts-dax"></label>
+            <label class="champ"><span>Contact <i>facultatif</i></span><input name="contact" placeholder="Nom, e-mail ou téléphone"></label>
+            <p class="message" data-message hidden></p>
+          </section>
+        </form>
+      </div>
+      <div class="barre-enregistrement">
+        <span class="etat" data-etat>Brouillon enregistré à 14 h 32 — visible de vous seul</span>
+        <span class="droite"><button type="button" class="lien-nu danger">Supprimer le brouillon</button><button type="button" class="bouton bouton--fort" data-publier>Publier l’offre</button></span>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- ═════════════════════════════ C — SAISIE ET APERÇU ═════════════════════════════ -->
+<main class="planche" id="c" hidden>
+  <header>
+    <h1>C · La saisie et son aperçu</h1>
+    <p>La fenêtre a la largeur de celle du détail d’une offre. À gauche, la saisie ; à droite, en direct, la ligne de la liste et la fenêtre telles que les référents — et les candidats — les verront.</p>
+  </header>
+  <div class="pourcontre">
+    <div class="pour"><h3>Pour</h3><ul><li>Aucune surprise : on voit le résultat en tapant.</li><li>On repère d’un coup d’œil un intitulé trop long ou un lieu oublié.</li></ul></div>
+    <div class="contre"><h3>Contre</h3><ul><li>Large : sur un iPad en portrait, elle couvre la liste.</li><li>Deux colonnes à lire au lieu d’une.</li></ul></div>
+  </div>
+  <p class="consigne"><b>À essayer :</b> modifiez l’intitulé, le type, la ville — l’aperçu suit.</p>
+
+  <div class="ecran">
+    <div class="m-zone"><div class="m-corps">
+      <div class="m-logo-ft"><span>France Travail<small>logo</small></span></div>
+      <div class="m-filtres"><span class="recherche">Rechercher un métier, une entreprise, une ville…</span><button class="filtre" type="button">Départements ▾</button><button class="filtre" type="button">Secteur ▾</button></div>
+      <section class="bloc">
+        <div class="bloc-tete"><h2>Offres d’emploi en cours</h2><button type="button" class="bouton bouton--petit" data-ouvrir>+ Saisir une offre</button></div>
+        <ul class="liste" data-liste></ul>
+      </section>
+    </div></div>
+
+    <div class="f large" data-fenetre style="top:56px">
+      <div class="f-barre"><h3>Nouvelle offre</h3><button type="button" class="f-fermer" aria-label="Fermer" data-fermer>✕</button></div>
+      <div class="cote">
+        <form class="saisie f-corps" data-type="alternance" data-apercu novalidate>
+          <div class="champ" role="group" aria-label="Type d’offre"><span>Type d’offre</span>
+            <div class="types">
+              <button type="button" class="type" data-type="emploi" aria-pressed="false">Emploi</button>
+              <button type="button" class="type" data-type="stage" aria-pressed="false">Stage</button>
+              <button type="button" class="type" data-type="alternance" aria-pressed="true">Stage en alternance</button>
+            </div>
+          </div>
+          <label class="champ"><span>Intitulé du poste</span><input name="intitule" value="Apprenti mécanicien poids lourds"></label>
+          <label class="champ"><span>Entreprise</span><input name="entreprise" value="Garage Mendiondo"></label>
+          <div class="deux">
+            <label class="champ"><span>Code postal</span><input name="cp" value="64100" inputmode="numeric" maxlength="5"></label>
+            <label class="champ"><span>Ville</span><input name="ville" value="Bayonne"></label>
+          </div>
+          <div class="champ si-contrat" role="group" aria-label="Contrat"><span>Contrat <i>facultatif</i></span>
+            <div class="puces"><button type="button" aria-pressed="false">CDI</button><button type="button" aria-pressed="false">CDD</button><button type="button" aria-pressed="false">Intérim</button></div>
+          </div>
+          <label class="champ si-duree"><span>Durée <i>facultatif</i></span><input name="duree" value="2 ans"></label>
+          <label class="champ"><span>Secteur d’activité <i>facultatif</i></span><select name="secteur" data-secteurs data-choisi="G"></select></label>
+          <label class="champ"><span>Description <i>facultatif</i></span><textarea name="description" rows="3">CAP maintenance des véhicules, option véhicules de transport routier. Rythme : deux semaines au garage, une semaine au CFA.</textarea></label>
+          <label class="champ"><span>Lien de l’annonce <i>facultatif</i></span><input name="lien" type="url" placeholder="https://…"></label>
+          <label class="champ"><span>Contact <i>facultatif</i></span><input name="contact" value="Atelier — 05 00 00 00 00"></label>
+          <p class="message" data-message hidden></p>
+        </form>
+        <div class="f-corps apercu" aria-live="polite">
+          <div>
+            <h4>Dans la liste</h4>
+            <div class="carte-apercu"><ul class="liste"><li data-apercu-ligne></li></ul></div>
+          </div>
+          <div>
+            <h4>Dans sa fenêtre</h4>
+            <div class="carte-apercu detail" data-apercu-detail></div>
+          </div>
+        </div>
+      </div>
+      <div class="f-pied"><span class="etat">Ce que vous voyez à droite est ce qui sera publié.</span><button type="button" class="bouton bouton--fort" data-publier>Publier l’offre</button></div>
+    </div>
+  </div>
+</main>
+
+<!-- ═════════════════════════════ D — EN TROIS TEMPS ═════════════════════════════ -->
+<main class="planche" id="d" hidden>
+  <header>
+    <h1>D · En trois temps</h1>
+    <p>Une question à la fois, dans la même fenêtre flottante : d’abord le type d’offre, puis le poste, enfin les détails. Le type choisi règle la suite — le contrat pour un emploi, la durée pour un stage.</p>
+  </header>
+  <div class="pourcontre">
+    <div class="pour"><h3>Pour</h3><ul><li>Impossible de se perdre : un écran, une question.</li><li>Les trois types expliqués en une ligne, au moment du choix.</li></ul></div>
+    <div class="contre"><h3>Contre</h3><ul><li>Trois écrans pour une saisie de deux minutes.</li><li>Plus lent pour enchaîner plusieurs offres.</li></ul></div>
+  </div>
+  <p class="consigne"><b>À essayer :</b> touchez un type — on passe à la suite d’emblée.</p>
+
+  <div class="ecran">
+    <div class="m-zone"><div class="m-corps">
+      <div class="m-logo-ft"><span>France Travail<small>logo</small></span></div>
+      <div class="m-filtres"><span class="recherche">Rechercher un métier, une entreprise, une ville…</span><button class="filtre" type="button">Départements ▾</button><button class="filtre" type="button">Secteur ▾</button></div>
+      <section class="bloc">
+        <div class="bloc-tete"><h2>Offres d’emploi en cours</h2><button type="button" class="bouton bouton--petit" data-ouvrir>+ Saisir une offre</button></div>
+        <ul class="liste" data-liste></ul>
+      </section>
+    </div></div>
+
+    <div class="f" data-fenetre style="width:min(480px,calc(100% - 32px))">
+      <div class="f-barre"><h3>Nouvelle offre</h3>
+        <span class="etapes" aria-label="Étapes"><span aria-current="step">1</span><i></i><span>2</span><i></i><span>3</span></span>
+        <button type="button" class="f-fermer" aria-label="Fermer" data-fermer>✕</button></div>
+      <form class="saisie f-corps" data-etapes novalidate>
+        <div class="etape" data-etape="1">
+          <p class="question">Quel type d’offre ?</p>
+          <div class="grandes">
+            <button type="button" class="grande type-grand" data-type="emploi" aria-pressed="false"><b>Emploi</b><span>Un poste salarié : CDI, CDD ou mission d’intérim.</span></button>
+            <button type="button" class="grande type-grand" data-type="stage" aria-pressed="false"><b>Stage</b><span>Une période en entreprise, pendant ou à la fin d’une formation.</span></button>
+            <button type="button" class="grande type-grand" data-type="alternance" aria-pressed="false"><b>Stage en alternance</b><span>Apprentissage ou contrat de professionnalisation : l’entreprise et l’école.</span></button>
+          </div>
+        </div>
+        <div class="etape" data-etape="2" hidden>
+          <p class="rappel" data-rappel></p>
+          <p class="question">Le poste</p>
+          <label class="champ"><span>Intitulé du poste</span><input name="intitule" placeholder="Ex. : Préparateur de commandes"></label>
+          <label class="champ"><span>Entreprise</span><input name="entreprise"></label>
+          <div class="deux">
+            <label class="champ"><span>Code postal</span><input name="cp" inputmode="numeric" maxlength="5"></label>
+            <label class="champ"><span>Ville</span><input name="ville"></label>
+          </div>
+          <p class="aide" data-dep></p>
+          <div class="champ si-contrat" role="group" aria-label="Contrat"><span>Contrat <i>facultatif</i></span>
+            <div class="puces"><button type="button" aria-pressed="false">CDI</button><button type="button" aria-pressed="false">CDD</button><button type="button" aria-pressed="false">Intérim</button></div>
+          </div>
+          <label class="champ si-duree"><span>Durée <i>facultatif</i></span><input name="duree" placeholder="Ex. : 6 mois"></label>
+        </div>
+        <div class="etape" data-etape="3" hidden>
+          <p class="rappel" data-rappel></p>
+          <p class="question">Les détails <span class="etat" style="font-weight:500">— tous facultatifs</span></p>
+          <label class="champ"><span>Secteur d’activité</span><select name="secteur" data-secteurs></select></label>
+          <label class="champ"><span>Description</span><textarea name="description" rows="4"></textarea></label>
+          <label class="champ"><span>Lien de l’annonce</span><input name="lien" type="url" placeholder="https://…"></label>
+          <label class="champ"><span>Contact</span><input name="contact" placeholder="Nom, e-mail ou téléphone"></label>
+        </div>
+        <p class="message" data-message hidden></p>
+      </form>
+      <div class="f-pied" data-pied-etapes hidden>
+        <button type="button" class="lien-nu" data-retour>← Retour</button>
+        <button type="button" class="bouton bouton--fort" data-suivant>Suivant →</button>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- ═════════════════════════════ E — LA LIGNE RAPIDE ═════════════════════════════ -->
+<main class="planche planche-e" id="e" hidden>
+  <header>
+    <h1>E · La ligne rapide</h1>
+    <p>Pas de bouton, pas de fenêtre pour commencer : une ligne de saisie en tête de la liste — vous seul la voyez. Le type, l’intitulé, l’entreprise, le lieu, « Publier ». L’offre prend place aussitôt ; sa fenêtre s’ouvre pour la compléter, enregistrée au fil de la frappe.</p>
+  </header>
+  <div class="pourcontre">
+    <div class="pour"><h3>Pour</h3><ul><li>Le plus court : quatre cases et un bouton.</li><li>Idéal pour enchaîner plusieurs offres.</li><li>Les détails se complètent sans « Enregistrer ».</li></ul></div>
+    <div class="contre"><h3>Contre</h3><ul><li>Une ligne de saisie en permanence en tête de liste.</li><li>L’offre est publiée avant d’être complète : un candidat peut la voir sans description pendant quelques minutes.</li></ul></div>
+  </div>
+  <p class="consigne"><b>À essayer :</b> remplissez la ligne en pointillés, puis « Publier » (ou Entrée).</p>
+
+  <div class="ecran">
+    <div class="m-zone"><div class="m-corps">
+      <div class="m-logo-ft"><span>France Travail<small>logo</small></span></div>
+      <div class="m-filtres"><span class="recherche">Rechercher un métier, une entreprise, une ville…</span><button class="filtre" type="button">Départements ▾</button><button class="filtre" type="button">Secteur ▾</button></div>
+      <section class="bloc">
+        <div class="bloc-tete"><h2>Offres d’emploi en cours</h2></div>
+        <form class="ligne-rapide saisie" data-rapide data-type="emploi" novalidate>
+          <div class="types" role="group" aria-label="Type d’offre">
+            <button type="button" class="type" data-type="emploi" aria-pressed="true">Emploi</button>
+            <button type="button" class="type" data-type="stage" aria-pressed="false">Stage</button>
+            <button type="button" class="type" data-type="alternance" aria-pressed="false">Alternance</button>
+          </div>
+          <input name="intitule" placeholder="Intitulé du poste" aria-label="Intitulé du poste">
+          <input name="entreprise" placeholder="Entreprise" aria-label="Entreprise">
+          <input name="cp" placeholder="Code postal" inputmode="numeric" maxlength="5" aria-label="Code postal">
+          <input name="ville" placeholder="Ville" aria-label="Ville">
+          <button type="submit" class="bouton bouton--fort bouton--petit">Publier</button>
+          <p class="ligne-rapide-aide" data-message-rapide>Saisir une offre — le reste (contrat, durée, secteur, description, contact) se complète dans sa fenêtre.</p>
+        </form>
+        <ul class="liste" data-liste></ul>
+      </section>
+    </div></div>
+
+    <div class="f" data-fenetre data-completer hidden style="top:330px;max-height:calc(100% - 346px)">
+      <div class="f-barre"><h3 data-titre-completer>Offre</h3><button type="button" class="f-fermer" aria-label="Fermer" data-fermer>✕</button></div>
+      <form class="saisie f-corps" data-type="emploi" data-brouillon novalidate>
+        <p class="maigre" data-chapeau style="font-size:.86rem;color:var(--doux)"></p>
+        <div class="champ si-contrat" role="group" aria-label="Contrat"><span>Contrat</span>
+          <div class="puces"><button type="button" aria-pressed="false">CDI</button><button type="button" aria-pressed="false">CDD</button><button type="button" aria-pressed="false">Intérim</button></div>
+        </div>
+        <label class="champ si-duree"><span>Durée</span><input name="duree" placeholder="Ex. : 6 mois"></label>
+        <label class="champ"><span>Secteur d’activité</span><select name="secteur" data-secteurs></select></label>
+        <label class="champ"><span>Description</span><textarea name="description" rows="4"></textarea></label>
+        <label class="champ"><span>Lien de l’annonce</span><input name="lien" type="url" placeholder="https://…"></label>
+        <label class="champ"><span>Contact</span><input name="contact" placeholder="Nom, e-mail ou téléphone"></label>
+      </form>
+      <div class="f-pied"><span class="etat" data-etat>Publiée — tout ce que vous ajoutez s’enregistre aussitôt.</span><button type="button" class="lien-nu danger" style="margin-left:auto">Retirer l’offre</button></div>
+    </div>
+  </div>
+</main>
+
+<!-- ═════════════════════════════ DANS LA LISTE ═════════════════════════════ -->
+<main class="planche" id="liste" hidden>
+  <header>
+    <h1>Et dans la liste ?</h1>
+    <p>Quelle que soit la proposition, l’offre saisie rejoint la liste des offres en cours, à sa date. Faut‑il qu’elle s’y distingue des offres de France Travail ? Trois manières, de la plus visible à l’invisible. Les deux autres lignes sont des offres de France Travail.</p>
+  </header>
+  <div class="trois">
+    <div>
+      <h3>1 · L’étiquette du type</h3>
+      <p>Une pastille colorée, avant la date : Emploi, Stage, Alternance — elle remplace le contrat en fin de ligne. Se voit de loin ; dit le type, pas l’origine.</p>
+      <section class="bloc"><h2>Offres d’emploi en cours</h2><ul class="liste">
+        <li><span><span>Assistant de gestion</span><span class="sous">Cabinet Ardouin &amp; associés · Bordeaux</span></span><span class="date"><span class="etiquette" data-type="stage">Stage</span>27 nov.</span></li>
+        <li><span><span>Préparateur de commandes (H/F)</span><span class="sous">Logistique Sud-Atlantique · Cestas · CDI</span></span><span class="date">27 nov.</span></li>
+        <li><span><span>Aide-soignant de nuit</span><span class="sous">EHPAD Les Glycines · Agen · CDD</span></span><span class="date">26 nov.</span></li>
+      </ul></section>
+    </div>
+    <div>
+      <h3>2 · La mention discrète</h3>
+      <p>« Saisie HERACLES » au bout de la seconde ligne, dans la couleur de l’application. Dit l’origine, sans attirer l’œil.</p>
+      <section class="bloc"><h2>Offres d’emploi en cours</h2><ul class="liste">
+        <li><span><span>Assistant de gestion</span><span class="sous">Cabinet Ardouin &amp; associés · Bordeaux · Stage · <span class="mention">Saisie HERACLES</span></span></span><span class="date">27 nov.</span></li>
+        <li><span><span>Préparateur de commandes (H/F)</span><span class="sous">Logistique Sud-Atlantique · Cestas · CDI</span></span><span class="date">27 nov.</span></li>
+        <li><span><span>Aide-soignant de nuit</span><span class="sous">EHPAD Les Glycines · Agen · CDD</span></span><span class="date">26 nov.</span></li>
+      </ul></section>
+    </div>
+    <div>
+      <h3>3 · Rien</h3>
+      <p>Elle se range parmi les autres, à l’identique. Seule sa fenêtre dit qu’elle a été saisie, et par qui.</p>
+      <section class="bloc"><h2>Offres d’emploi en cours</h2><ul class="liste">
+        <li><span><span>Assistant de gestion</span><span class="sous">Cabinet Ardouin &amp; associés · Bordeaux · Stage</span></span><span class="date">27 nov.</span></li>
+        <li><span><span>Préparateur de commandes (H/F)</span><span class="sous">Logistique Sud-Atlantique · Cestas · CDI</span></span><span class="date">27 nov.</span></li>
+        <li><span><span>Aide-soignant de nuit</span><span class="sous">EHPAD Les Glycines · Agen · CDD</span></span><span class="date">26 nov.</span></li>
+      </ul></section>
+    </div>
+  </div>
+</main>
+
+<script>
+'use strict';
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+
+// ——— Les données inventées ———
+const OFFRES = [
+  ['Préparateur de commandes (H/F)', 'Logistique Sud-Atlantique · Cestas · CDI', '27 nov.'],
+  ['Aide-soignant de nuit', 'EHPAD Les Glycines · Agen · CDD', '27 nov.'],
+  ['Apprenti boulanger', 'Fournil Darrigade · Mont-de-Marsan · Apprentissage', '26 nov.'],
+  ['Comptable unique', 'Garage Mendiondo · Bayonne · CDI', '26 nov.'],
+  ['Technicien de maintenance', 'Papeteries de l’Estey · Bègles · Intérim', '25 nov.'],
+  ['Agent d’accueil', 'Hôtel du Vieux Lavoir · Arcachon · CDD', '25 nov.'],
+  ['Serveur en salle', 'Brasserie Le Cormoran · Lacanau · Saisonnier', '24 nov.'],
+  ['Conducteur de ligne', 'Conserverie Lartigue · Hagetmau · CDI', '24 nov.'],
+  ['Vendeur en boulangerie', 'Maison Peyrelongue · Pau · CDD', '23 nov.'],
+];
+const SECTIONS = [
+  ['A', 'Agriculture, sylviculture et pêche'], ['B', 'Industries extractives'], ['C', 'Industrie manufacturière'],
+  ['D', 'Électricité, gaz, vapeur et air conditionné'], ['E', 'Eau, assainissement, déchets et dépollution'],
+  ['F', 'Construction'], ['G', 'Commerce ; réparation d’automobiles et de motocycles'], ['H', 'Transports et entreposage'],
+  ['I', 'Hébergement et restauration'], ['J', 'Information et communication'], ['K', 'Activités financières et d’assurance'],
+  ['L', 'Activités immobilières'], ['M', 'Activités spécialisées, scientifiques et techniques'],
+  ['N', 'Activités de services administratifs et de soutien'], ['O', 'Administration publique'], ['P', 'Enseignement'],
+  ['Q', 'Santé humaine et action sociale'], ['R', 'Arts, spectacles et activités récréatives'], ['S', 'Autres activités de services'],
+  ['T', 'Activités des ménages en tant qu’employeurs'], ['U', 'Activités extra-territoriales'],
+];
+const DEPARTEMENTS = { '24': 'Dordogne', '33': 'Gironde', '40': 'Landes', '47': 'Lot-et-Garonne', '64': 'Pyrénées-Atlantiques' };
+const TYPES = { emploi: 'Emploi', stage: 'Stage', alternance: 'Stage en alternance' };
+
+const echapper = (t) => String(t).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+
+// ——— Le thème ———
+(() => {
+  const b = $('#theme'), ordre = ['auto', 'light', 'dark'], noms = { auto: 'auto', light: 'clair', dark: 'sombre' };
+  let i = 0;
+  b.addEventListener('click', () => {
+    i = (i + 1) % 3;
+    if (ordre[i] === 'auto') delete document.documentElement.dataset.theme;
+    else document.documentElement.dataset.theme = ordre[i];
+    b.textContent = `Thème : ${noms[ordre[i]]}`;
+  });
+})();
+
+// ——— Les onglets de la planche ———
+function montrer() {
+  const id = (location.hash || '#principe').slice(1);
+  const cible = document.getElementById(id) && $$('.planche').some((p) => p.id === id) ? id : 'principe';
+  $$('.planche').forEach((p) => (p.hidden = p.id !== cible));
+  $$('.maq nav a').forEach((a) => a.setAttribute('aria-current', a.hash === `#${cible}` ? 'page' : 'false'));
+  window.scrollTo(0, 0);
+}
+window.addEventListener('hashchange', montrer);
+window.addEventListener('load', () => window.scrollTo(0, 0));
+montrer();
+
+// ——— La coquille de l'application, dans chaque écran ———
+const COLONNE = `
+  <nav class="m-colonne" aria-label="Colonne de l’application (maquette)">
+    <div class="m-marque"><span class="m-ecusson">H</span><b>HERACLES</b><small>Administration</small></div>
+    <p class="m-famille">Suivi</p><a>Candidats</a><a class="eteinte">Relation</a><a class="eteinte">Messagerie</a>
+    <p class="m-famille">Emploi</p><a class="eteinte">Offres internes</a><a class="courante">France Travail</a><a class="eteinte">Offres web</a><a class="eteinte">Entreprises</a>
+    <p class="m-famille">Réseau</p><a>Référents</a><a class="eteinte">Correspondants</a><a>Réunion</a><a>Province</a><a>Documents</a>
+    <p class="m-famille">Admin</p><a>Invitations</a><a>Nouveau candidat</a><a>Comptes</a><a>Connexions</a>
+  </nav>`;
+const BARRE = `<header class="m-barre"><b>HERACLES</b><span class="droite"><span>Aide</span><span class="pastille">AD</span></span></header>`;
+$$('.ecran').forEach((e) => {
+  e.insertAdjacentHTML('afterbegin', COLONNE);
+  $('.m-zone', e).insertAdjacentHTML('afterbegin', BARRE);
+});
+const ligneHtml = ([t, s, d], nouvelle) =>
+  `<li${nouvelle ? ' class="nouvelle"' : ''}><span><span>${echapper(t)}</span><span class="sous">${echapper(s)}</span></span><span class="date">${echapper(d)}</span></li>`;
+$$('[data-liste]').forEach((ul) => (ul.innerHTML = OFFRES.map((o) => ligneHtml(o)).join('')));
+$$('[data-secteurs]').forEach((s) => {
+  s.innerHTML = '<option value="">— Aucun —</option>' + SECTIONS.map(([c, l]) => `<option value="${c}">${c} — ${echapper(l)}</option>`).join('');
+  s.value = s.dataset.choisi ?? '';
+});
+
+// ——— Lire une saisie ———
+const valeur = (f, n) => (f.querySelector(`[name="${n}"]`)?.value ?? '').trim();
+function departement(cp) {
+  if (!/^\d{5}$/.test(cp)) return null;
+  const code = cp.startsWith('97') ? cp.slice(0, 3) : cp.startsWith('20') ? (Number(cp) < 20200 ? '2A' : '2B') : cp.slice(0, 2);
+  return { code, nom: DEPARTEMENTS[code] ?? null };
+}
+function libelleContrat(f) {
+  const t = f.dataset.type;
+  if (t === 'emploi') return f.dataset.contrat || 'Emploi';
+  return TYPES[t] ?? '';
+}
+function lire(f) {
+  return {
+    type: f.dataset.type ?? '',
+    intitule: valeur(f, 'intitule'), entreprise: valeur(f, 'entreprise'),
+    cp: valeur(f, 'cp'), ville: valeur(f, 'ville'), duree: valeur(f, 'duree'),
+    secteur: f.querySelector('[name=secteur]')?.selectedOptions[0]?.value ? f.querySelector('[name=secteur]').selectedOptions[0].textContent : '',
+    description: valeur(f, 'description'), lien: valeur(f, 'lien'), contact: valeur(f, 'contact'),
+    contrat: libelleContrat(f),
+  };
+}
+/** Ce qui manque parmi les quatre champs requis, en toutes lettres. */
+function manques(o, f) {
+  const m = [];
+  if (!o.type) m.push('le type d’offre');
+  if (!o.intitule) m.push('l’intitulé du poste');
+  if (!o.entreprise) m.push('l’entreprise');
+  if (!/^\d{5}$/.test(o.cp)) m.push('un code postal à cinq chiffres');
+  if (!o.ville) m.push('la ville');
+  if (f) {
+    const marquer = (n, ko) => { const c = f.querySelector(`[name="${n}"]`); if (c) (c.closest('.champ') ?? c).setAttribute('aria-invalid', ko ? 'true' : 'false'); };
+    marquer('intitule', !o.intitule); marquer('entreprise', !o.entreprise); marquer('cp', !/^\d{5}$/.test(o.cp)); marquer('ville', !o.ville);
+  }
+  return m;
+}
+const sousTitre = (o) => [o.entreprise, o.ville, o.contrat].filter(Boolean).join(' · ');
+const aujourdhui = '27 nov.';
+
+// ——— Les gestes communs : type, contrat, département ———
+document.addEventListener('click', (e) => {
+  const type = e.target.closest('.type, .type-grand');
+  if (type) {
+    const f = type.closest('.saisie');
+    $$('.type, .type-grand', f).forEach((b) => b.setAttribute('aria-pressed', String(b === type)));
+    f.dataset.type = type.dataset.type;
+    f.dispatchEvent(new Event('input', { bubbles: true }));
+    return;
+  }
+  const puce = e.target.closest('.puces button');
+  if (puce) {
+    const f = puce.closest('.saisie');
+    const deja = puce.getAttribute('aria-pressed') === 'true';
+    $$('button', puce.parentElement).forEach((b) => b.setAttribute('aria-pressed', 'false'));
+    puce.setAttribute('aria-pressed', String(!deja));
+    if (deja) delete f.dataset.contrat; else f.dataset.contrat = puce.textContent;
+    f.dispatchEvent(new Event('input', { bubbles: true }));
+  }
+});
+function majDepartement(f) {
+  const p = f.querySelector('[data-dep]');
+  if (!p) return;
+  const cp = valeur(f, 'cp');
+  const d = departement(cp);
+  p.textContent = d ? `Département ${d.code}${d.nom ? ` — ${d.nom}` : ''} : l’offre suivra le filtre de ce département.`
+    : cp ? 'Le code postal compte cinq chiffres.' : 'Le département se déduit du code postal.';
+}
+$$('.saisie').forEach((f) => { majDepartement(f); f.addEventListener('input', () => majDepartement(f)); });
+
+// ——— Publier (A, B, C) ———
+$$('[data-publier]').forEach((b) => b.addEventListener('click', () => {
+  const ecran = b.closest('.ecran');
+  const f = $('.saisie', ecran);
+  const o = lire(f);
+  const msg = $('[data-message]', f);
+  const m = manques(o, f);
+  msg.hidden = false;
+  if (m.length) {
+    msg.className = 'message erreur';
+    msg.textContent = `Il manque ${m.join(', ')}.`;
+    return;
+  }
+  msg.className = 'message ok';
+  const liste = $('[data-liste]', ecran);
+  if (liste) {
+    liste.insertAdjacentHTML('afterbegin', ligneHtml([o.intitule, sousTitre(o), aujourdhui], true));
+    msg.textContent = 'Offre publiée : elle s’affiche en tête de la liste, et sur la page des candidats concernés.';
+  } else {
+    msg.textContent = 'Offre publiée. Retour à la liste, où elle s’affiche en tête.';
+    const etat = $('[data-etat]', ecran); if (etat) etat.textContent = 'Publiée à l’instant';
+  }
+}));
+
+// ——— B et E : l'enregistrement au fil de la frappe ———
+$$('[data-brouillon]').forEach((f) => {
+  const etat = $('[data-etat]', f.closest('.ecran'));
+  let minuterie;
+  f.addEventListener('input', () => {
+    clearTimeout(minuterie);
+    etat.textContent = 'Enregistrement…';
+    minuterie = setTimeout(() => {
+      const h = new Date();
+      const quand = `${h.getHours()} h ${String(h.getMinutes()).padStart(2, '0')}`;
+      etat.textContent = f.closest('[data-completer]') ? `Enregistré à ${quand}.` : `Brouillon enregistré à ${quand} — visible de vous seul`;
+    }, 700);
+  });
+});
+
+// ——— C : l'aperçu en direct ———
+$$('[data-apercu]').forEach((f) => {
+  const ecran = f.closest('.ecran');
+  const ligne = $('[data-apercu-ligne]', ecran);
+  const detail = $('[data-apercu-detail]', ecran);
+  const dessiner = () => {
+    const o = lire(f);
+    ligne.innerHTML = `<span><span>${echapper(o.intitule || 'Intitulé du poste')}</span><span class="sous">${echapper(sousTitre(o) || 'Entreprise · Ville · Contrat')}</span></span><span class="date">${aujourdhui}</span>`;
+    const points = [['Lieu', [o.cp, o.ville].filter(Boolean).join(' ')], ['Contrat', o.contrat], ['Durée', o.duree], ['Secteur', o.secteur], ['Contact', o.contact]]
+      .filter(([, v]) => v);
+    detail.innerHTML =
+      `<h5>${echapper(o.intitule || 'Intitulé du poste')}</h5>` +
+      `<p style="color:var(--doux);font-size:.84rem">${echapper([o.entreprise, 'publiée le 27 novembre 2026'].filter(Boolean).join(' · '))}</p>` +
+      (points.length ? `<dl class="champs">${points.map(([l, v]) => `<dt>${l}</dt><dd>${echapper(v)}</dd>`).join('')}</dl>` : '') +
+      (o.description ? `<p class="texte-offre">${echapper(o.description)}</p>` : '<p class="vide-apercu">Pas de description.</p>') +
+      (o.lien ? `<p><a href="#c">Voir l’annonce ↗</a></p>` : '');
+  };
+  f.addEventListener('input', dessiner);
+  dessiner();
+});
+
+// ——— D : en trois temps ———
+$$('[data-etapes]').forEach((f) => {
+  const fenetre = f.closest('.f');
+  const pied = $('[data-pied-etapes]', fenetre);
+  const pastilles = $$('.etapes span', fenetre);
+  const msg = $('[data-message]', f);
+  let n = 1;
+  const aller = (k) => {
+    n = k;
+    $$('.etape', f).forEach((e) => (e.hidden = Number(e.dataset.etape) !== n));
+    pastilles.forEach((p, i) => { p.setAttribute('aria-current', i + 1 === n ? 'step' : 'false'); p.classList.toggle('faite', i + 1 < n); });
+    pied.hidden = n === 1;
+    $('[data-suivant]', pied).textContent = n === 3 ? 'Publier l’offre' : 'Suivant →';
+    const o = lire(f);
+    $$('[data-rappel]', f).forEach((r) => (r.innerHTML =
+      `<span class="etiquette" data-type="${o.type}">${echapper(TYPES[o.type] ?? '')}</span>` +
+      (n === 3 ? ` ${echapper(o.intitule)} · ${echapper(o.entreprise)} · ${echapper(o.ville)}` : '')));
+    msg.hidden = true;
+    if (n > 1) $(n === 2 ? '[name=intitule]' : '[name=secteur]', f)?.focus({ preventScroll: true });
+  };
+  $$('.type-grand', f).forEach((b) => b.addEventListener('click', () => setTimeout(() => aller(2), 180)));
+  $('[data-retour]', pied).addEventListener('click', () => aller(Math.max(1, n - 1)));
+  $('[data-suivant]', pied).addEventListener('click', () => {
+    const o = lire(f);
+    if (n === 2) {
+      const m = manques(o, f);
+      if (m.length) { msg.hidden = false; msg.className = 'message erreur'; msg.textContent = `Il manque ${m.join(', ')}.`; return; }
+      aller(3);
+    } else if (n === 3) {
+      $('[data-liste]', f.closest('.ecran')).insertAdjacentHTML('afterbegin', ligneHtml([o.intitule, sousTitre(o), aujourdhui], true));
+      msg.hidden = false; msg.className = 'message ok';
+      msg.textContent = 'Offre publiée : elle s’affiche en tête de la liste.';
+    }
+  });
+});
+
+// ——— E : la ligne rapide ———
+$$('[data-rapide]').forEach((f) => {
+  const ecran = f.closest('.ecran');
+  const aide = $('[data-message-rapide]', f);
+  const texteAide = aide.textContent;
+  const fenetre = $('[data-completer]', ecran);
+  f.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const o = lire(f);
+    const m = manques(o);
+    $$('input', f).forEach((i) => i.setAttribute('aria-invalid', String(
+      (i.name === 'cp' && !/^\d{5}$/.test(i.value.trim())) || (i.name !== 'cp' && !i.value.trim()))));
+    if (m.length) { aide.style.color = 'var(--alerte)'; aide.textContent = `Il manque ${m.join(', ')}.`; return; }
+    aide.style.color = ''; aide.textContent = texteAide;
+    $('[data-liste]', ecran).insertAdjacentHTML('afterbegin', ligneHtml([o.intitule, sousTitre(o), aujourdhui], true));
+    // La fenêtre de l'offre s'ouvre pour la compléter.
+    const c = $('.saisie', fenetre);
+    c.dataset.type = o.type; delete c.dataset.contrat;
+    $$('.puces button', c).forEach((b) => b.setAttribute('aria-pressed', 'false'));
+    $$('input, textarea', c).forEach((i) => (i.value = ''));
+    $('[name=secteur]', c).value = '';
+    $('[data-titre-completer]', fenetre).textContent = o.intitule;
+    $('[data-chapeau]', fenetre).textContent = `${TYPES[o.type]} · ${o.entreprise} · ${o.cp} ${o.ville} · publiée le 27 novembre 2026`;
+    $('[data-etat]', fenetre).textContent = 'Publiée — tout ce que vous ajoutez s’enregistre aussitôt.';
+    fenetre.hidden = false;
+    f.reset();
+    $$('input', f).forEach((i) => i.removeAttribute('aria-invalid'));
+    $('[name=intitule]', f).focus();
+  });
+});
+
+// ——— Ouvrir, fermer, déplacer les fenêtres ———
+$$('[data-fermer]').forEach((b) => b.addEventListener('click', () => (b.closest('.f').hidden = true)));
+$$('[data-ouvrir]').forEach((b) => b.addEventListener('click', () => {
+  const f = $('[data-fenetre]', b.closest('.ecran'));
+  f.hidden = false; f.style.left = ''; f.style.right = '16px';
+}));
+$$('.f-barre').forEach((barre) => {
+  barre.addEventListener('pointerdown', (e) => {
+    if (e.button !== 0 || e.target.closest('button')) return;
+    const f = barre.closest('.f'), ecran = f.closest('.ecran');
+    const bf = f.getBoundingClientRect(), be = ecran.getBoundingClientRect();
+    const dx = e.clientX - bf.left, dy = e.clientY - bf.top;
+    barre.setPointerCapture(e.pointerId);
+    const bouger = (m) => {
+      const x = Math.min(Math.max(8, m.clientX - be.left - dx), be.width - bf.width - 8);
+      const y = Math.min(Math.max(8, m.clientY - be.top - dy), be.height - 60);
+      f.style.right = 'auto'; f.style.left = `${x}px`; f.style.top = `${y}px`;
+    };
+    const lacher = () => { barre.removeEventListener('pointermove', bouger); barre.removeEventListener('pointerup', lacher); };
+    barre.addEventListener('pointermove', bouger);
+    barre.addEventListener('pointerup', lacher);
+  });
+});
+</script>
+</body>
+</html>

@@ -1,26 +1,34 @@
 import { Fragment } from 'react';
 import { dateEnLettres } from '@/lib/format';
-import { lienSur, pointsDuDetail, type DetailDOffre } from '@/lib/offres';
+import { libelleDuLien, lienSur, pointsDuDetail, type DetailDOffre } from '@/lib/offres';
+import type { OffreAModifier } from '@/lib/offres-saisies';
 import FenetreDeLOffre from './FenetreDeLOffre';
+import GestesDeLOffre from './GestesDeLOffre';
 
 /**
  * Le détail d'une offre, dans sa fenêtre flottante. Le même sur l'écran
- * « France Travail » et à l'accueil — un seul composant, pour que les deux ne
+ * « Offres externes » et à l'accueil — un seul composant, pour que les deux ne
  * divergent pas.
  *
  * `offre` est ce que la base a rendu pour l'identifiant demandé ; `null` :
  * l'offre n'existe pas, ou plus, et la fenêtre le dit.
+ *
+ * `gestes` : l'offre saisie à la main que la personne connectée peut modifier
+ * (0114) — la base ne la rend qu'à son auteur et à l'administration. Absent,
+ * la fenêtre se lit et c'est tout.
  */
 export default function OffreOuverte({
   demandee,
   offre,
   fermer,
+  gestes = null,
 }: {
   /** L'identifiant lu dans l'adresse. */
   demandee: string;
   offre: DetailDOffre | null;
   /** L'adresse de l'écran sans l'offre : où mène la croix. */
   fermer: string;
+  gestes?: OffreAModifier | null;
 }) {
   return (
     <FenetreDeLOffre
@@ -30,13 +38,15 @@ export default function OffreOuverte({
       fermer={fermer}
     >
       {offre ? <DetailDeLOffre offre={offre} /> : <p>Cette offre n’existe plus.</p>}
+      {offre && gestes && gestes.id === offre.id && <GestesDeLOffre offre={gestes} apresRetrait={fermer} />}
     </FenetreDeLOffre>
   );
 }
 
 /**
  * Le contenu de la fenêtre : l'entreprise, les points de l'offre, sa
- * description, et le lien vers sa page chez France Travail.
+ * description, et le lien vers sa page chez France Travail — ou vers
+ * l'annonce, pour une offre saisie.
  *
  * Tout ce texte vient de l'extérieur. Il est affiché comme du texte — jamais
  * comme du HTML — et les adresses ne deviennent des liens qu'en `http(s)`.
@@ -88,7 +98,7 @@ function DetailDeLOffre({ offre }: { offre: DetailDOffre }) {
       {origine && (
         <p>
           <a className="filtre" href={origine} target="_blank" rel="noopener noreferrer">
-            Voir l’offre sur France Travail ↗
+            {libelleDuLien(offre)} ↗
           </a>
         </p>
       )}
