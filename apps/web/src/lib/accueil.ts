@@ -8,6 +8,7 @@ import {
   type Sorte,
 } from './documents/archives';
 import { lireLExercice } from './exercice';
+import type { TypeDOffre } from './offres-saisies';
 import { supabaseServer } from './supabase-server';
 
 /**
@@ -164,6 +165,8 @@ export type Offre = {
   type_contrat_libelle: string | null;
   /** La date de parution de l'annonce chez France Travail. Absente : on ne dit rien. */
   date_creation?: string | null;
+  /** Le type d'une offre saisie à la main (0114) : l'étiquette de la ligne. */
+  type_offre?: TypeDOffre | null;
 };
 
 /**
@@ -177,7 +180,7 @@ export async function listerOffresEnCours(limite = 5): Promise<Offre[]> {
 
   const { data } = await supabase
     .from('offre_emploi')
-    .select('id, intitule, entreprise_nom, lieu_libelle, type_contrat_libelle, date_creation')
+    .select('id, intitule, entreprise_nom, lieu_libelle, type_contrat_libelle, date_creation, type_offre')
     .gt('date_actualisation', bord)
     .order('date_actualisation', { ascending: false })
     .limit(limite);

@@ -233,7 +233,7 @@ const CANDIDAT: readonly Parcours[] = [
     'Voir les offres pour moi',
     ['offre', 'offres', 'offres pour moi', 'emploi', 'annonce', 'annonces', 'nouvelle offre', 'nouvelles offres', 'france travail', 'chercher une offre', 'lire une offre', 'postuler'],
     'candidat-offres',
-    '« Offres pour moi » : les offres France Travail en cours dans vos secteurs d’activité, mises à jour toutes les trois heures. « Nouvelle » marque celles parues depuis votre dernière visite. Touchez une offre pour la lire en entier, ou cherchez un mot dans le champ de recherche.',
+    '« Offres pour moi » : les offres en cours dans vos secteurs d’activité — celles de France Travail, mises à jour toutes les trois heures, et celles que les référents saisissent, marquées Emploi, Stage ou Alternance. « Nouvelle » marque celles parues depuis votre dernière visite. Touchez une offre pour la lire en entier, ou cherchez un mot dans le champ de recherche.',
   ),
   surLaPage(
     'candidat-departements',

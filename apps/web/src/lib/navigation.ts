@@ -44,11 +44,13 @@ export const FAMILLES: readonly Famille[] = [
   {
     nom: 'Emploi',
     entrees: [
-      { libelle: 'Offres internes', vers: null, lot: 'lot 4' },
-      // « Offres externes » jusqu'au 23 novembre 2026 ; renommée à la demande :
-      // ces offres viennent toutes de France Travail. À la même place, pour ne
-      // déplacer aucune entrée. L'écran ne porte encore que son en-tête.
-      { libelle: 'France Travail', vers: '/espace/france-travail' },
+      // En service le 27 novembre 2026 : les offres que référents et
+      // administration saisissent à la main (migrations 0114, 0115).
+      { libelle: 'Offres internes', vers: '/espace/offres-internes' },
+      // Les offres de France Travail. « France Travail » du 23 au 27 novembre
+      // 2026 ; « Offres externes » de nouveau, à la demande. À la même place,
+      // et à la même adresse : les liens déjà donnés restent valables.
+      { libelle: 'Offres externes', vers: '/espace/france-travail' },
       { libelle: 'Offres web', vers: null, lot: 'lot 4' },
       { libelle: 'Entreprises', vers: null, lot: 'lot 4' },
     ],

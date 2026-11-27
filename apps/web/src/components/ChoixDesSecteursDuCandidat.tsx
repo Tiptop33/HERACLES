@@ -25,15 +25,19 @@ import {
  *   · « espace » — sur la page du candidat (0105). Chaque geste s'enregistre
  *     aussitôt, comme pour le référent ; ce qu'il ajoute attend la
  *     confirmation de son référent, et il n'a pas de bouton « Confirmer ».
+ *   · « offre » — dans la fiche d'une offre saisie à la main (0114). Un seul
+ *     secteur : en choisir un autre le remplace. Ni rang, ni confirmation ;
+ *     le choix part avec la fiche (`quandChange`).
  *
  * Un secteur est une section (« F — Construction ») ou une division
  * (« 43 — Travaux de construction spécialisés »). On le trouve par un mot ou
  * un code, ou en parcourant la liste.
  */
 
-type Mode = 'candidat' | 'referent' | 'lecture' | 'espace';
+type Mode = 'candidat' | 'referent' | 'lecture' | 'espace' | 'offre';
 
 /** Ce que le composant sait d'un secteur choisi. */
+export type SecteurChoisi = Choisi;
 type Choisi = Pick<SecteurDuCandidat, 'code' | 'intitule' | 'niveau' | 'section' | 'section_intitule'> &
   Partial<Pick<SecteurDuCandidat, 'propose_par' | 'confirme_le' | 'confirme_par'>>;
 
@@ -48,9 +52,10 @@ export default function ChoixDesSecteursDuCandidat({
   confirmer,
   nomDuChamp,
   idDuTitre,
+  quandChange,
 }: {
   mode: Mode;
-  initiale: SecteurDuCandidat[];
+  initiale: Choisi[];
   /** GET ?q= → { resultats } ; GET → { lignes } (sections et divisions). */
   adresses: { recherche: string; liste: string };
   /** Sur la fiche : enregistrer la liste voulue, dans l'ordre ; rend la liste retenue, ou un message. */
@@ -60,6 +65,8 @@ export default function ChoixDesSecteursDuCandidat({
   /** Dans le formulaire : le champ caché qui porte les codes choisis, en JSON. */
   nomDuChamp?: string;
   idDuTitre?: string;
+  /** Dans la fiche d'une offre : le choix, à chaque changement. */
+  quandChange?: (choisis: Choisi[]) => void;
 }) {
   const [choisis, setChoisis] = useState<Choisi[]>(initiale);
   const [occupe, setOccupe] = useState(false);
@@ -81,7 +88,10 @@ export default function ChoixDesSecteursDuCandidat({
   const minuteur = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const enLecture = mode === 'lecture';
-  const plein = choisis.length >= SECTEURS_PAR_CANDIDAT;
+  const pourUneOffre = mode === 'offre';
+  // Une offre n'a qu'un secteur : en choisir un autre le remplace, la liste
+  // n'est donc jamais pleine.
+  const plein = !pourUneOffre && choisis.length >= SECTEURS_PAR_CANDIDAT;
   const deja = (code: string) => choisis.some((c) => c.code === code);
 
   const dire = (texte: string) => {
@@ -98,6 +108,7 @@ export default function ChoixDesSecteursDuCandidat({
     const avant = choisis;
     setChoisis(suite);
     setErreur(null);
+    quandChange?.(suite);
     if (!enregistrer) return;
     setOccupe(true);
     const reponse = await enregistrer(suite.map((c) => c.code));
@@ -127,7 +138,7 @@ export default function ChoixDesSecteursDuCandidat({
 
   const ajouter = (s: Choisi) => {
     if (deja(s.code) || plein) return;
-    void poser([...choisis, s]);
+    void poser(pourUneOffre ? [s] : [...choisis, s]);
     setRecherche('');
     setTrouves(null);
     setOuvert(false);
@@ -234,13 +245,15 @@ export default function ChoixDesSecteursDuCandidat({
 
   // --- Ce qui s'affiche ----------------------------------------------------------
   return (
-    <div className="secteurs" ref={racine} role="group" aria-labelledby={idDuTitre}>
+    <div className={`secteurs${pourUneOffre ? ' secteurs--offre' : ''}`} ref={racine} role="group" aria-labelledby={idDuTitre}>
       {nomDuChamp && <input type="hidden" name={nomDuChamp} value={JSON.stringify(choisis.map((c) => c.code))} />}
 
       {!enLecture && (
         <p className="secteurs-aide">
           {mode === 'candidat'
             ? 'Dans quels secteurs cherchez-vous ? Jusqu’à trois, le premier étant votre secteur principal.'
+            : pourUneOffre
+              ? 'Un grand secteur ou une division. L’offre paraît sur la page des candidats de ce secteur.'
             : mode === 'espace'
               ? 'Jusqu’à trois, le premier étant votre secteur principal. Un secteur ajouté sert tout de suite à vos offres ; votre référent le confirme ensuite.'
               : 'Jusqu’à trois, le premier est le secteur principal. Ce que vous ajoutez ou modifiez est confirmé d’office.'}
@@ -254,7 +267,7 @@ export default function ChoixDesSecteursDuCandidat({
           {choisis.map((c, i) => {
             const sous = c.niveau === 'section' ? 'grand secteur, toutes ses divisions' : `${c.section} — ${c.section_intitule}`;
             const statut =
-              mode === 'candidat' ? null : c.confirme_le ? (
+              mode === 'candidat' || pourUneOffre ? null : c.confirme_le ? (
                 <span className="confirme">
                   {mode === 'espace'
                     ? '✓ confirmé par votre référent'
@@ -276,14 +289,16 @@ export default function ChoixDesSecteursDuCandidat({
               );
             return (
               <li className="secteur-choisi" key={c.code}>
-                <span className="secteur-rang" aria-label={`Rang ${i + 1}`}>
-                  {i + 1}
-                </span>
+                {!pourUneOffre && (
+                  <span className="secteur-rang" aria-label={`Rang ${i + 1}`}>
+                    {i + 1}
+                  </span>
+                )}
                 <span className="secteur-texte">
                   <strong>
                     <span className="secteur-code">{c.code}</span>
                     {c.intitule}
-                    {i === 0 && <span className="secteur-principal">principal</span>}
+                    {i === 0 && !pourUneOffre && <span className="secteur-principal">principal</span>}
                   </strong>
                   <small>{sous}</small>
                 </span>
@@ -291,12 +306,16 @@ export default function ChoixDesSecteursDuCandidat({
                   <span />
                 ) : (
                   <span className="secteur-gestes">
+                    {!pourUneOffre && (
+                    <>
                     <button type="button" className="secteur-geste" onClick={() => deplacer(i, -1)} disabled={i === 0 || occupe} title="Monter" aria-label={`Monter ${c.intitule}`}>
                       ↑
                     </button>
                     <button type="button" className="secteur-geste" onClick={() => deplacer(i, 1)} disabled={i === choisis.length - 1 || occupe} title="Descendre" aria-label={`Descendre ${c.intitule}`}>
                       ↓
                     </button>
+                    </>
+                    )}
                     <button type="button" className="secteur-geste" onClick={() => void poser(choisis.filter((x) => x.code !== c.code))} disabled={occupe} title="Retirer" aria-label={`Retirer ${c.intitule}`}>
                       ✕
                     </button>

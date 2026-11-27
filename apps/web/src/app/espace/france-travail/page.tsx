@@ -15,15 +15,17 @@ import { exigerProfil } from '@/lib/profil';
 import { accueilDuRole } from '@/lib/roles';
 import FiltresDesOffres from './FiltresDesOffres';
 
-export const metadata = { title: 'France Travail — HERACLES' };
+export const metadata = { title: 'Offres externes — HERACLES' };
 
 /**
- * L'écran « France Travail » — l'ancien « Offres externes » de Bubble, renommé
- * le 23 novembre 2026, à la demande : les offres externes viennent toutes de
- * France Travail, autant le dire.
+ * L'écran « Offres externes » — celui de Bubble : les offres de France
+ * Travail. Renommé « France Travail » le 23 novembre 2026, son logo pour
+ * titre ; il reprend son nom et un titre écrit le 27 novembre, à la demande.
+ * Les offres que les référents saisissent ont leur écran, « Offres internes »
+ * (0115) : celui-ci n'en montre aucune. L'adresse reste
+ * `/espace/france-travail` : les liens déjà donnés restent valables.
  *
- * En haut, le logo de France Travail, centré, qui tient lieu de titre. En
- * dessous, une recherche par mots et deux filtres — un ou plusieurs
+ * En haut, le titre. En dessous, une recherche par mots et deux filtres — un ou plusieurs
  * départements, un secteur d'activité — puis la liste des offres en cours qui
  * y répondent : actualisées depuis
  * moins de trente jours, les plus récentes d'abord, cinquante par page. Sous
@@ -73,16 +75,10 @@ export default async function FranceTravail({
 
   return (
     <main className="corps">
-      <div className="entete-liste entete-france-travail">
-        {/* Le logo tient lieu de titre (23 novembre 2026, à la demande) : il
-            porte déjà le nom en toutes lettres. Il reste dans un `<h1>`, avec
-            son `alt`, pour qu'un lecteur d'écran annonce l'écran.
-            `<img>` et non `next/image` : un SVG de cinq kilo-octets, il n'y a
-            rien à optimiser. */}
-        <h1>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img className="logo-france-travail" src="/logo-france-travail.svg" alt="France Travail" />
-        </h1>
+      {/* Le titre reprend son nom (27 novembre 2026, à la demande), à la
+          place du logo de France Travail, titre depuis le 23 novembre. */}
+      <div className="entete-liste">
+        <h1>Offres externes</h1>
       </div>
 
       {/* Sans les menus — la base ne les a pas rendus — la recherche reste :

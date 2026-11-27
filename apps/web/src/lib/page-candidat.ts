@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { MOBILITES, OUI_NON, TYPES_DE_RECHERCHE, estUnStage } from './parrainage';
+import { TYPES_D_OFFRE } from './offres-saisies';
 import type { SecteurDuCandidat } from './secteurs';
 
 /**
@@ -403,6 +404,9 @@ const OffresPourMoi = z.object({
       entreprise_nom: z.string().nullable(),
       lieu_libelle: z.string().nullable(),
       type_contrat_libelle: z.string().nullable(),
+      // Le type d'une offre saisie à la main (0114) : son étiquette. Facultatif
+      // le temps qu'une mise en ligne passe la migration.
+      type_offre: z.enum(TYPES_D_OFFRE).nullable().optional(),
       date_creation: z.string().nullable(),
       nouvelle: z.boolean(),
     }),

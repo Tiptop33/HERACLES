@@ -75,6 +75,7 @@ const COMPTES = '/espace/admin/comptes';
 const CONNEXIONS = '/espace/admin/connexions';
 const REFERENTS = '/espace/referents';
 const FRANCE_TRAVAIL = '/espace/france-travail';
+const OFFRES_INTERNES = '/espace/offres-internes';
 
 /** La première étape de presque tous les parcours du suivi. */
 const MENU_CANDIDATS: Etape = {
@@ -871,13 +872,36 @@ export const PARCOURS: readonly Parcours[] = [
         ancre: 'offres-en-cours',
         ecran: ACCUEIL,
         texte:
-          'L’accueil liste les offres d’emploi en cours : intitulé, entreprise, lieu, type de contrat. L’écran « France Travail », dans la famille « Emploi », en donne la liste entière, à filtrer par département et par secteur d’activité, ou en y cherchant un mot.',
+          'L’accueil liste les offres d’emploi en cours : intitulé, entreprise, lieu, type de contrat. Dans la famille « Emploi », l’écran « Offres externes » donne toutes celles de France Travail, à filtrer par département et par secteur d’activité, ou en y cherchant un mot ; « Offres internes », celles que les référents saisissent.',
+      },
+    ],
+  },
+  // Livré le 27 novembre 2026 (migrations 0114, 0115) : la saisie d'une
+  // offre, sur l'écran « Offres internes ».
+  {
+    id: 'saisir-une-offre',
+    titre: 'Saisir une offre d’emploi, de stage ou d’alternance',
+    motsCles: ['saisir une offre', 'ajouter une offre', 'créer une offre', 'publier une offre', 'nouvelle offre', 'offres internes', 'offre de stage', 'offre d’alternance', 'prolonger une offre', 'retirer une offre', 'modifier une offre'],
+    destination: OFFRES_INTERNES,
+    etapes: [
+      {
+        ancre: `menu:${OFFRES_INTERNES}`,
+        texte: 'Dans la colonne de gauche, famille « Emploi », cliquez sur « Offres internes ».',
+        court: 'Sous « Plus », famille « Emploi », touchez « Offres internes ».',
+      },
+      {
+        ancre: 'saisir-une-offre',
+        ecran: OFFRES_INTERNES,
+        texte:
+          'Cliquez sur « + Saisir une offre » : choisissez le type, remplissez l’intitulé, l’entreprise, le lieu et le secteur, puis « Publier l’offre ». Elle reste en ligne trente jours ; son détail permet de la modifier, de la prolonger ou de la retirer.',
+        court:
+          'Touchez « + Saisir une offre » : le type, l’intitulé, l’entreprise, le lieu, le secteur, puis « Publier l’offre ».',
       },
     ],
   },
   {
     id: 'france-travail',
-    titre: 'Chercher une offre sur l’écran « France Travail »',
+    titre: 'Chercher une offre sur l’écran « Offres externes »',
     motsCles: [
       'france travail',
       'pôle emploi',
@@ -893,8 +917,8 @@ export const PARCOURS: readonly Parcours[] = [
     etapes: [
       {
         ancre: `menu:${FRANCE_TRAVAIL}`,
-        texte: 'Dans la colonne de gauche, famille « Emploi », cliquez sur « France Travail ».',
-        court: 'Sous « Plus », famille « Emploi », touchez « France Travail ».',
+        texte: 'Dans la colonne de gauche, famille « Emploi », cliquez sur « Offres externes ».',
+        court: 'Sous « Plus », famille « Emploi », touchez « Offres externes ».',
       },
       {
         ancre: 'filtres-des-offres',
@@ -907,14 +931,14 @@ export const PARCOURS: readonly Parcours[] = [
   },
   {
     id: 'ecrans-des-offres',
-    titre: 'Chercher, ajouter ou gérer des offres',
-    motsCles: ['offres internes', 'offres web', 'ajouter une offre', 'créer une offre', 'gérer les offres', 'saisir une offre', 'publier une offre'],
+    titre: 'Les offres web',
+    motsCles: ['offres web', 'offres du web', 'gérer les offres'],
     destination: null,
     etapes: [
       {
-        ancre: 'eteint:Offres internes',
+        ancre: 'eteint:Offres web',
         texte:
-          'Les écrans des offres internes et des offres web ne sont pas encore en service : leurs entrées sont grisées dans la famille « Emploi ». En attendant, l’accueil liste les offres en cours, et l’écran « France Travail » — les anciennes « offres externes » — en donne la liste plus longue.',
+          'L’écran des offres web n’est pas encore en service : son entrée est grisée dans la famille « Emploi ». En attendant, l’accueil liste les offres en cours ; « Offres externes » donne celles de France Travail, « Offres internes » celles que les référents saisissent.',
       },
     ],
   },

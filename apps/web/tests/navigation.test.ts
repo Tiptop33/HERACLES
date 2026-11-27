@@ -119,11 +119,12 @@ describe('Province', () => {
     ]);
   });
 
-  it('appelle « France Travail » l’ancienne entrée « Offres externes », à la même place', () => {
+  it('rend son nom à « Offres externes », à la même place et à la même adresse', () => {
     const emploi = FAMILLES.find((f) => f.nom === 'Emploi')!;
+    expect(emploi.entrees[0]).toEqual({ libelle: 'Offres internes', vers: '/espace/offres-internes' });
     expect(emploi.entrees.map((e) => e.libelle)).toEqual([
       'Offres internes',
-      'France Travail',
+      'Offres externes',
       'Offres web',
       'Entreprises',
     ]);
