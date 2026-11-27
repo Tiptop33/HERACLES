@@ -193,7 +193,7 @@ describe('la recherche de l’aide', () => {
     ['qui est connecté', 'qui-est-connecte'],
     ['où sont les offres d’emploi', 'offres-en-cours'],
     ['voir les offres', 'offres-en-cours'],
-    ['comment ajouter une offre', 'ecrans-des-offres'],
+    ['comment ajouter une offre', 'saisir-une-offre'],
     ['où sont les offres internes', 'ecrans-des-offres'],
     ['liste des entreprises', 'entreprises'],
     ['proposer une offre à un candidat', 'proposer-une-offre'],

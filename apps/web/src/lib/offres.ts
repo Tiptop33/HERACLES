@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import type { Offre } from './accueil';
 import { dateEnLettres } from './format';
+import { NOM_DU_TYPE, TYPES_D_OFFRE } from './offres-saisies';
 
 /**
  * Les filtres de l'écran « France Travail » : un ou plusieurs départements, un
@@ -232,6 +233,12 @@ const Detail = z.object({
   url_origine: texte,
   date_creation: texte,
   date_actualisation: texte,
+  // Les offres saisies à la main (0114) : leur origine, leur type, la durée
+  // et la personne à joindre. Vides pour une offre de France Travail.
+  origine: texte,
+  type_offre: z.enum(TYPES_D_OFFRE).nullable(),
+  duree_contrat: texte,
+  contact: texte,
 });
 
 export type DetailDOffre = z.infer<typeof Detail>;
@@ -262,12 +269,22 @@ export function lienSur(adresse: string | null | undefined): string | null {
 }
 
 /**
+ * Ce que dit le lien vers la page d'origine d'une offre : chez France Travail,
+ * ou l'annonce qu'on a saisie.
+ */
+export function libelleDuLien(o: Pick<DetailDOffre, 'origine'>): string {
+  return o.origine === 'saisie' ? 'Voir l’annonce' : 'Voir l’offre sur France Travail';
+}
+
+/**
  * Les points du détail — « Contrat », « Salaire »… — dans l'ordre d'affichage,
  * réduits à ceux que l'offre renseigne. Une ligne vide ne dit rien : on ne
  * l'affiche pas.
  */
 export function pointsDuDetail(o: DetailDOffre): { libelle: string; valeur: string }[] {
-  const contrat = [o.type_contrat_libelle, o.nature_contrat]
+  // Une offre saisie dit son type, puis son contrat s'il y en a un :
+  // « Stage », « Emploi — CDD ».
+  const contrat = (o.type_offre ? [NOM_DU_TYPE[o.type_offre], o.type_contrat_libelle] : [o.type_contrat_libelle, o.nature_contrat])
     .filter((v, i, tous) => v && tous.indexOf(v) === i)
     .join(' — ');
   const duree = [o.duree_travail_type, o.duree_travail_libelle]
@@ -283,6 +300,7 @@ export function pointsDuDetail(o: DetailDOffre): { libelle: string; valeur: stri
   const points: [string, string | null | undefined][] = [
     ['Lieu', o.lieu_libelle],
     ['Contrat', contrat],
+    ['Durée', o.duree_contrat],
     ['Temps de travail', duree],
     ['Salaire', o.salaire_libelle],
     ['Expérience', o.experience_libelle],
@@ -290,6 +308,7 @@ export function pointsDuDetail(o: DetailDOffre): { libelle: string; valeur: stri
     ['Métier', metier],
     ['Secteur', o.secteur_libelle],
     ['Postes', o.nombre_postes && o.nombre_postes > 1 ? String(o.nombre_postes) : null],
+    ['Contact', o.contact],
     ['À noter', mentions.join(' · ')],
   ];
   return points
@@ -311,6 +330,9 @@ const Page = z.object({
       // La date de parution (0102). Facultative : pendant une mise en ligne, la
       // base peut encore répondre sans elle le temps que la migration passe.
       date_creation: z.string().nullable().optional(),
+      // Le type d'une offre saisie (0114) — l'étiquette de la ligne. Facultatif
+      // pour la même raison.
+      type_offre: z.enum(TYPES_D_OFFRE).nullable().optional(),
     }),
   ),
 });

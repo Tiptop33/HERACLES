@@ -66,6 +66,9 @@ création ; à défaut le jour où HERACLES l'a reçue.
   impossible`.
 - La suppression est définitive. Les sauvegardes nocturnes (`docs/sauvegarde.md`)
   gardent la table telle qu'elle était.
+- **Les offres saisies à la main sont épargnées** (migration 0114) : sorties
+  de la liste au bout de trente jours, elles attendent qu'on les prolonge ou
+  qu'on les retire (`docs/offres-saisies.md`).
 - **Le jour où une offre pourra être proposée à un candidat (lot 4), cette
   purge devra épargner les offres proposées.** Aujourd'hui, aucune table ne
   désigne une offre.
@@ -243,7 +246,10 @@ service indisponible (journal : `[la bonne alternance] <message> <statut>`).
   hier n'est pas reçue.
 - **Les conditions d'utilisation de l'API** — mention de la source, logo,
   durée de conservation — sont à relire sur francetravail.io : elles
-  s'appliquent à l'écran « France Travail ».
+  s'appliquent à l'écran « Offres externes » (« France Travail » du 23 au 27
+  novembre 2026). Depuis le 27 novembre, le logo n'y est plus en titre ; la
+  source reste nommée dans le détail de chaque offre (« Voir l'offre sur
+  France Travail »). ⚠️ *Vérifier que les conditions n'exigent pas le logo.*
 - **La purge ignore encore les offres proposées.** Elle supprime toute offre
   de plus de soixante jours ; quand un référent pourra proposer une offre à un
   candidat (lot 4), il faudra qu'elle épargne celles-là.

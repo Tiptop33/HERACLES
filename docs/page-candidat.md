@@ -115,6 +115,12 @@ l'un de ses secteurs, confirmés ou non. Les départements cochés sont retenus
 tous. « Nouvelle » : parue depuis sa visite précédente — une visite commence après trente
 minutes sans rien, pour qu'un clic sur un filtre n'éteigne pas les badges.
 
+Depuis la migration 0114 (27 novembre 2026), les offres **saisies à la main** par les
+référents y paraissent aussi, avec l'étiquette de leur type (Emploi, Stage, Alternance), leur
+durée et le contact à joindre ; une offre rangée dans un grand secteur (« F ») parvient au
+candidat qui cherche dans l'une de ses divisions (« 43 »). La phrase du bloc dit désormais
+« Les offres en cours dans vos secteurs d'activité. » Voir `docs/offres-saisies.md`.
+
 ## Ce que la relecture de sécurité a fait changer
 
 Une relecture indépendante, le 25 novembre, a trouvé et fait corriger :

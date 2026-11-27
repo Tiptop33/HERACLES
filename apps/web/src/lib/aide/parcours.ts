@@ -602,20 +602,43 @@ export const PARCOURS: readonly Parcours[] = [
         ancre: 'offres-en-cours',
         ecran: ACCUEIL,
         texte:
-          'L’accueil liste les offres d’emploi en cours : intitulé, entreprise, lieu, type de contrat. L’écran « France Travail », dans la famille « Emploi », en donne la liste entière, à filtrer par département et par secteur d’activité, ou en y cherchant un mot.',
+          'L’accueil liste les offres d’emploi en cours : intitulé, entreprise, lieu, type de contrat. L’écran « Offres externes », dans la famille « Emploi », en donne la liste entière, à filtrer par département et par secteur d’activité, ou en y cherchant un mot.',
+      },
+    ],
+  },
+  // Livré le 27 novembre 2026 (migration 0114) : la saisie d'une offre, sur
+  // l'écran « Offres externes ».
+  {
+    id: 'saisir-une-offre',
+    titre: 'Saisir une offre d’emploi, de stage ou d’alternance',
+    motsCles: ['saisir une offre', 'ajouter une offre', 'créer une offre', 'publier une offre', 'nouvelle offre', 'offres externes', 'offre de stage', 'offre d’alternance', 'prolonger une offre', 'retirer une offre', 'modifier une offre'],
+    destination: '/espace/france-travail',
+    etapes: [
+      {
+        ancre: 'menu:/espace/france-travail',
+        texte: 'Dans la colonne de gauche, famille « Emploi », cliquez sur « Offres externes ».',
+        court: 'Sous « Plus », famille « Emploi », touchez « Offres externes ».',
+      },
+      {
+        ancre: 'saisir-une-offre',
+        ecran: '/espace/france-travail',
+        texte:
+          'Cliquez sur « + Saisir une offre » : choisissez le type, remplissez l’intitulé, l’entreprise, le lieu et le secteur, puis « Publier l’offre ». Elle reste en ligne trente jours ; son détail permet de la modifier, de la prolonger ou de la retirer.',
+        court:
+          'Touchez « + Saisir une offre » : le type, l’intitulé, l’entreprise, le lieu, le secteur, puis « Publier l’offre ».',
       },
     ],
   },
   {
     id: 'ecrans-des-offres',
-    titre: 'Chercher, ajouter ou gérer des offres',
-    motsCles: ['offres internes', 'offres externes', 'offres web', 'ajouter une offre', 'créer une offre', 'chercher une offre', 'gérer les offres', 'saisir une offre', 'publier une offre'],
+    titre: 'Les offres internes et les offres web',
+    motsCles: ['offres internes', 'offres web', 'chercher une offre', 'gérer les offres'],
     destination: null,
     etapes: [
       {
         ancre: 'eteint:Offres internes',
         texte:
-          'Les écrans des offres internes et des offres web ne sont pas encore en service : leurs entrées sont grisées dans la famille « Emploi ». En attendant, l’accueil liste les offres en cours, et l’écran « France Travail » — les anciennes « offres externes » — en donne la liste plus longue.',
+          'Les écrans des offres internes et des offres web ne sont pas encore en service : leurs entrées sont grisées dans la famille « Emploi ». En attendant, l’accueil liste les offres en cours, et l’écran « Offres externes » en donne la liste plus longue — c’est là aussi qu’on saisit une offre.',
       },
     ],
   },

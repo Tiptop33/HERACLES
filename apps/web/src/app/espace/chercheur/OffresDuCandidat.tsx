@@ -1,13 +1,15 @@
 import Link from 'next/link';
-import { lienSur, nomDuDepartement, pointsDuDetail, type DetailDOffre } from '@/lib/offres';
+import EtiquetteDuType from '@/components/EtiquetteDuType';
+import { libelleDuLien, lienSur, nomDuDepartement, pointsDuDetail, type DetailDOffre } from '@/lib/offres';
 import { departementsAProposer, parueIlYA, type OffresPourMoi } from '@/lib/page-candidat';
 import type { SecteurDuCandidat } from '@/lib/secteurs';
 import DepartementsDesOffres from './DepartementsDesOffres';
 
 /**
- * « Offres pour moi » (0105), rendu par le serveur. Les offres en cours de
- * France Travail dans les secteurs du candidat ; le détail s'ouvre sur place,
- * sous l'offre, par l'adresse (`?offre=`), sans fenêtre par-dessus.
+ * « Offres pour moi » (0105), rendu par le serveur. Les offres en cours dans
+ * les secteurs du candidat — de France Travail, et celles que les référents
+ * saisissent (0114), qui portent l'étiquette de leur type ; le détail s'ouvre
+ * sur place, sous l'offre, par l'adresse (`?offre=`), sans fenêtre par-dessus.
  */
 export default function OffresDuCandidat({
   offres,
@@ -50,7 +52,7 @@ export default function OffresDuCandidat({
         )}
       </header>
       <p className="pc-aide">
-        Les offres France Travail en cours dans vos secteurs d’activité. Elles arrivent toutes les trois heures.
+        Les offres en cours dans vos secteurs d’activité.
       </p>
 
       <div className="pc-filtres">
@@ -122,6 +124,7 @@ export default function OffresDuCandidat({
                   <span className="pc-offre-titre">{o.intitule ?? 'Offre sans intitulé'}</span>
                   <span className="pc-offre-droite">
                     {o.nouvelle && <span className="pc-etiquette pc-etiquette--marque">Nouvelle</span>}
+                    {o.type_offre && <EtiquetteDuType type={o.type_offre} />}
                     {parue && <span>{parue}</span>}
                   </span>
                   <span className="pc-offre-sous">
@@ -166,7 +169,7 @@ function DetailDeLOffre({ detail }: { detail: DetailDOffre | null }) {
       {lien && (
         <p>
           <a className="bouton" href={lien} target="_blank" rel="noopener noreferrer">
-            Voir l’offre sur France Travail
+            {libelleDuLien(detail)}
           </a>
         </p>
       )}
