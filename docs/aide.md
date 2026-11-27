@@ -297,7 +297,7 @@ dans l'espace de travail : 52 pour un référent, 73 pour l'administration. Et
   « Faire l'appel » va désormais jusqu'à « Fermer la feuille ».
 - **Documents** : « Retrouver un compte rendu… » et « Effacer un compte
   rendu… » mènent à l'écran Documents (onglet du téléphone, famille
-  « Réseau »), et non plus à l'accueil.
+  « Membres Héraclés »), et non plus à l'accueil.
 - **France Travail** : un parcours pour chercher et filtrer les offres.
 - **Administration** : Comptes (rôle et loge, effacer un compte), Connexions,
   invitations (inviter depuis l'enveloppe de l'annuaire, corriger, renvoyer le

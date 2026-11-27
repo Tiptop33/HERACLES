@@ -57,7 +57,9 @@ export const FAMILLES: readonly Famille[] = [
     ],
   },
   {
-    nom: 'Réseau',
+    // « Réseau » jusqu'au 27 novembre 2026, renommée à la demande. Même
+    // place dans la colonne, mêmes adresses.
+    nom: 'Membres Héraclés',
     entrees: [
       { libelle: 'Référents', vers: '/espace/referents' },
       { libelle: 'Correspondants', vers: null, lot: 'lot 5' },
