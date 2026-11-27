@@ -29,8 +29,8 @@ describe('les cinq familles', () => {
     // candidat » ajouté à Admin le 8 novembre 2026, plus « Province » ajoutée
     // à Réseau le 10 novembre 2026, plus « Documents » ajouté à Réseau le
     // 11 novembre 2026, plus « Comptes » et « Connexions » ajoutés à Admin le
-    // 26 novembre 2026. « Réunion », passée de Réseau à Admin le 27 novembre
-    // 2026, ne change pas le compte.
+    // 26 novembre 2026. « Réunion » et « Documents », passées de Réseau à
+    // Admin le 27 novembre 2026, ne changent pas le compte.
     expect(total).toBe(20);
   });
 
@@ -165,26 +165,29 @@ describe('PARAMETRES', () => {
 });
 
 describe('Documents', () => {
-  it('ferme la famille Membres Héraclés, après Province', () => {
-    const reseau = FAMILLES.find((f) => f.nom === 'Membres Héraclés')!;
-    expect(reseau.entrees.map((e) => e.libelle)).toEqual([
-      'Référents',
-      'Correspondants',
-      'Province',
-      'Documents',
-    ]);
+  it('suit « Nouveau candidat » dans la famille Admin', () => {
+    const admin = FAMILLES.find((f) => f.nom === 'Admin')!;
+    const libelles = admin.entrees.map((e) => e.libelle);
+    expect(libelles.indexOf('Documents')).toBe(libelles.indexOf('Nouveau candidat') + 1);
   });
 
-  it('mène aux documents de la loge', () => {
+  it('a quitté Membres Héraclés, qui garde ses autres entrées dans leur ordre', () => {
     const reseau = FAMILLES.find((f) => f.nom === 'Membres Héraclés')!;
-    expect(reseau.entrees.find((e) => e.libelle === 'Documents')?.vers).toBe('/espace/documents');
+    expect(reseau.entrees.map((e) => e.libelle)).toEqual(['Référents', 'Correspondants', 'Province']);
+    const ailleurs = FAMILLES.filter((f) => f.nom !== 'Admin').flatMap((f) => f.entrees);
+    expect(ailleurs.map((e) => e.vers)).not.toContain('/espace/documents');
   });
 
-  it('est visible d’un référent comme d’un administrateur — la base ne rend que les PDF de la loge', () => {
-    for (const role of ['referent', 'admin'] as const) {
-      const libelles = famillesDuRole(role).flatMap((f) => f.entrees.map((e) => e.libelle));
-      expect(libelles).toContain('Documents');
-    }
+  it('garde son adresse : les liens déjà donnés restent valables', () => {
+    const admin = FAMILLES.find((f) => f.nom === 'Admin')!;
+    expect(admin.entrees.find((e) => e.libelle === 'Documents')?.vers).toBe('/espace/documents');
+  });
+
+  it('n’est montrée qu’à l’administration', () => {
+    const duRole = (role: 'referent' | 'admin') =>
+      famillesDuRole(role).flatMap((f) => f.entrees.map((e) => e.libelle));
+    expect(duRole('admin')).toContain('Documents');
+    expect(duRole('referent')).not.toContain('Documents');
   });
 });
 
@@ -195,6 +198,7 @@ describe('Réunion', () => {
       'Réunion',
       'Invitations',
       'Nouveau candidat',
+      'Documents',
       'Loges',
       "Secteur d'activité",
       'Comptes',

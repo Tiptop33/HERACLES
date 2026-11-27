@@ -28,7 +28,8 @@ export const SIGNAL_MENU = 'heracles:menu';
 /**
  * Les entrées que le téléphone range dans sa barre d'onglets, et non dans le
  * panneau « Plus ». L'aide les désigne dans la barre : le panneau n'a pas à
- * s'ouvrir pour elles.
+ * s'ouvrir pour elles. « Documents » n'y est que pour l'administration, à qui
+ * seule l'aide la désigne.
  */
 export const ANCRES_DES_ONGLETS: readonly string[] = [
   'menu:/espace/referents',

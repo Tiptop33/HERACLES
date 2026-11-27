@@ -133,9 +133,12 @@ const MENU_REUNION: Etape = {
   court: 'Sous « Plus », famille « Admin », touchez « Réunion ».',
 };
 
+// « Documents » est dans la famille Admin depuis le 27 novembre 2026, et son
+// onglet du téléphone n'est montré qu'à l'administration : tout parcours qui
+// passe par elle lui est réservé.
 const MENU_DOCUMENTS: Etape = {
   ancre: `menu:${DOCUMENTS}`,
-  texte: 'Dans la colonne de gauche, famille « Membres Héraclés », cliquez sur « Documents ».',
+  texte: 'Dans la colonne de gauche, famille « Admin », cliquez sur « Documents ».',
   court: 'Dans la barre du bas, touchez « Documents ».',
 };
 
@@ -242,7 +245,7 @@ const BOUTON_AFFICHETTE: Etape = {
 function rangeDansDocuments(ou: string, suite: string): Etape {
   return {
     ...MENU_DOCUMENTS,
-    texte: `Chaque clic range un exemplaire dans « Documents » (famille « Membres Héraclés »), ${ou} ; l’accueil le montre aussi. ${suite}`,
+    texte: `Chaque clic range un exemplaire dans « Documents » (famille « Admin »), ${ou} ; l’accueil le montre aussi. ${suite}`,
     court: 'Un exemplaire est rangé sous l’onglet « Documents », en bas de l’écran.',
   };
 }
@@ -646,6 +649,7 @@ export const PARCOURS: readonly Parcours[] = [
       'documents',
       'onglet documents',
     ],
+    roles: ['admin'],
     destination: DOCUMENTS,
     etapes: [
       MENU_DOCUMENTS,
@@ -1285,6 +1289,7 @@ export const PARCOURS: readonly Parcours[] = [
     id: 'effacer-un-pdf',
     titre: 'Effacer un compte rendu, une affiche ou une affichette archivés',
     motsCles: ['effacer un pdf', 'supprimer un pdf', 'effacer un compte rendu', 'supprimer une affiche', 'supprimer une affichette', 'document en trop', 'mauvais document', 'corbeille'],
+    roles: ['admin'],
     destination: DOCUMENTS,
     etapes: [
       MENU_DOCUMENTS,

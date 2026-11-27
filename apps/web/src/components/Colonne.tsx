@@ -90,8 +90,9 @@ export default function Colonne({
   // même repliée — sans toucher au choix retenu.
   const [ancreDeLAide, setAncreDeLAide] = useState<string | null>(null);
   useEffect(() => {
-    // Candidats, Référents et Documents sont dans la barre d'onglets, pas dans
-    // le panneau : l'aide les y désigne, et le panneau reste replié.
+    // Candidats, Référents et — pour l'administration — Documents sont dans la
+    // barre d'onglets, pas dans le panneau : l'aide les y désigne, et le
+    // panneau reste replié.
     const entendre = (e: Event) => {
       const ancre = (e as CustomEvent<string | null>).detail;
       setPourLAide(typeof ancre === 'string' && !ANCRES_DES_ONGLETS.includes(ancre));
@@ -125,7 +126,7 @@ export default function Colonne({
     setOuvertSur(null);
   };
 
-  // Les trois écrans de la barre du téléphone. Tout le reste est sous « Plus »,
+  // Les écrans de la barre du téléphone. Tout le reste est sous « Plus »,
   // qui s'allume donc aussi quand on est sur l'un de ces autres écrans.
   const ONGLETS = [
     { libelle: 'Référents', vers: '/espace/referents', racines: ['/espace/referents'], Icone: OngletReferents },
@@ -136,7 +137,12 @@ export default function Colonne({
       racines: ['/espace/candidats', '/espace/referent'],
       Icone: OngletCandidats,
     },
-    { libelle: 'Documents', vers: '/espace/documents', racines: ['/espace/documents'], Icone: OngletDocuments },
+    // Pour l'administration seulement, depuis le 27 novembre 2026 : l'entrée
+    // de la colonne est passée dans la famille Admin. Un référent n'a plus
+    // que deux onglets et « Plus ».
+    ...(profil.role === 'admin'
+      ? [{ libelle: 'Documents', vers: '/espace/documents', racines: ['/espace/documents'], Icone: OngletDocuments }]
+      : []),
   ];
   const sous = (racine: string) => chemin === racine || chemin.startsWith(`${racine}/`);
   const ongletCourant = menuOuvert
@@ -287,8 +293,8 @@ export default function Colonne({
       </button>
     </nav>
 
-    {/* La barre du téléphone, comme dans une application : trois écrans sous le
-        pouce, et « Plus » pour le reste. Elle n'existe que sous la largeur d'un
+    {/* La barre du téléphone, comme dans une application : deux ou trois
+        écrans sous le pouce, et « Plus » pour le reste. Elle n'existe que sous la largeur d'un
         téléphone ; ailleurs la colonne est là, et cette barre n'est pas
         affichée. */}
     <nav className="barre-onglets" aria-label="Navigation du téléphone">
