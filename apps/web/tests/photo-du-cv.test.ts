@@ -1,6 +1,6 @@
 import zlib from 'node:zlib';
 import JSZip from 'jszip';
-import { PDFDocument, PDFName, PDFNumber, PDFRawStream } from 'pdf-lib';
+import { PDFDocument, PDFName, PDFNumber, PDFRawStream, PDFStream } from 'pdf-lib';
 import { describe, expect, it } from 'vitest';
 import {
   MAXIMUM_D_IMAGES_MONTREES,
@@ -232,7 +232,9 @@ describe('les images d’un PDF qui ne sont pas des JPEG', () => {
       { Width: 100, Height: 100, ColorSpace: 'DeviceRGB', BitsPerComponent: 8, Filter: 'FlateDecode' },
       zlib.deflateSync(new Uint8Array(100 * 100 * 3).fill(60)),
     );
-    document.context.lookup(photo, PDFRawStream).dict.set(PDFName.of('SMask'), masque);
+    // `lookup` n'a pas de surcharge pour PDFRawStream : on passe par sa classe
+    // mère, PDFStream, que pdf-lib vérifie aussi à l'exécution.
+    document.context.lookup(photo, PDFStream).dict.set(PDFName.of('SMask'), masque);
     imagePdf(
       document,
       { Width: 100, Height: 100, ColorSpace: 'DeviceCMYK', BitsPerComponent: 8, Filter: 'FlateDecode' },
