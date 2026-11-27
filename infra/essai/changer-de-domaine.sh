@@ -5,7 +5,7 @@
 #   sudo ./changer-de-domaine.sh            oaf-heracles.fr api.oaf-heracles.fr
 #
 # Le premier ne change rien : il dit si le DNS est prêt et ce qui serait fait.
-# Le second fait le changement. La procédure entière, zone DNS chez Hostinger
+# Le second fait le changement. La procédure entière, zone DNS chez IONOS
 # comprise, est dans docs/changer-de-domaine.md.
 #
 # À lancer depuis la copie du déploiement automatique,
@@ -26,8 +26,8 @@
 #      anonymes — portent l'ancien nom. Ils doivent aboutir encore : l'ancien
 #      nom renvoie vers le nouveau, chemin compris, et le `www.` aussi.
 #
-# Ce que le script ne fait pas : toucher au DNS (c'est chez Hostinger, à la
-# main), ni à Brevo (l'adresse d'expédition reste celle d'avant, déjà
+# Ce que le script ne fait pas : toucher au DNS (c'est chez IONOS, qui gère
+# oaf-heracles.fr, à la main), ni à Brevo (l'adresse d'expédition reste celle d'avant, déjà
 # authentifiée), ni à Bubble.
 
 set -euo pipefail
@@ -227,10 +227,12 @@ done
 if [[ -n "$MANQUE_DNS" ]]; then
   rouge "Ces noms ne mènent pas encore à ce serveur :$MANQUE_DNS"
   echo  "Adresses de ce serveur :$LOCALES"
-  echo  "Chez Hostinger : hPanel → Noms de domaine → le domaine → DNS / Serveurs de"
-  echo  "noms (pas le « Gestionnaire DNS » du VPS). Voir docs/changer-de-domaine.md."
+  echo  "La zone DNS se règle chez le gestionnaire du domaine — pour oaf-heracles.fr,"
+  echo  "IONOS : Domaines & SSL → oaf-heracles.fr → DNS. Voir docs/changer-de-domaine.md."
   echo  "Une modification met de quelques minutes à quelques heures à se propager,"
-  echo  "selon le TTL de l'ancienne entrée."
+  echo  "selon le TTL de l'ancienne entrée. Un nom tout juste créé peut rester « sans"
+  echo  "adresse » une dizaine de minutes : ce serveur garde en mémoire la réponse"
+  echo  "« n'existe pas » qu'il a reçue avant la création."
   if [[ "${HERACLES_SANS_VERIFIER_DNS:-}" != "oui" ]]; then
     exit 1
   fi
