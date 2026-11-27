@@ -4,6 +4,10 @@ Le compte rendu, l'affiche et l'affichette sortent **à l'identique** de ceux qu
 produisait l'application Bubble, et leur présentation se règle dans
 **Paramètres › Mise en page** (administration seulement), sans mise en ligne.
 
+Pour les produire, l'aide intégrée montre le chemin pas à pas, de « Ouvrir
+l'appel » jusqu'à l'exemplaire rangé dans Documents : voir `docs/aide.md`,
+« Le compte rendu, l'affiche et l'affichette ».
+
 ## Où est quoi
 
 | | |

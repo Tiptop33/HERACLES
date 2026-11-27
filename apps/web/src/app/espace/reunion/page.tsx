@@ -211,7 +211,7 @@ function OuvrirUneReunion({ aujourdhui }: { aujourdhui: string }) {
           placeholder="Lieu (facultatif)"
           aria-label="Lieu de la réunion"
         />
-        <button className="bouton bouton--fort" type="submit">
+        <button className="bouton bouton--fort" type="submit" data-aide="bouton-ouvrir-appel">
           Ouvrir l’appel
         </button>
       </form>
@@ -276,7 +276,7 @@ function FeuilleDAppel({
           )}
         </div>
 
-        <div className="appel-compte">
+        <div className="appel-compte" data-aide="compte-de-l-appel">
           <span className="etat etat--suivi">{n.presents} présents</span>
           <span className="etat etat--attente">{n.excuses} excusés</span>
           <span className="etat etat--clos">{n.absents} absents</span>
@@ -360,6 +360,7 @@ function FeuilleDAppel({
               précédent du même nom, et suit la feuille tant qu'on la corrige. */}
           <a
             className="bouton"
+            data-aide="bouton-affiche"
             href={`/api/reunions/${reunion.id}/affiche`}
             target="_blank"
             rel="noopener"
@@ -368,6 +369,7 @@ function FeuilleDAppel({
           </a>
           <a
             className="bouton"
+            data-aide="bouton-compte-rendu"
             href={`/api/reunions/${reunion.id}/compte-rendu`}
             target="_blank"
             rel="noopener"
@@ -379,6 +381,7 @@ function FeuilleDAppel({
           {affichette ? (
             <a
               className="bouton"
+              data-aide="bouton-affichette"
               href={`/api/reunions/${reunion.id}/affichette`}
               target="_blank"
               rel="noopener"
@@ -386,11 +389,15 @@ function FeuilleDAppel({
               Affichette
             </a>
           ) : (
-            <span className="bouton bouton--eteint" title="Choisissez d’abord le dossier de l’affichette">
+            <span
+              className="bouton bouton--eteint"
+              title="Choisissez d’abord le dossier de l’affichette"
+              data-aide="bouton-affichette"
+            >
               Affichette
             </span>
           )}
-          <button className="bouton" type="submit">
+          <button className="bouton" type="submit" data-aide="fermer-la-feuille">
             Fermer la feuille
           </button>
         </span>

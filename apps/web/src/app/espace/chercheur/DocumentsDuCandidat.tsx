@@ -105,7 +105,12 @@ export default function DocumentsDuCandidat({ initiaux }: { initiaux: DocumentDu
   }
 
   return (
-    <section className="pc-bloc" id="pc-documents" aria-labelledby="pc-documents-titre">
+    <section
+      className="pc-bloc"
+      id="pc-documents"
+      aria-labelledby="pc-documents-titre"
+      data-aide="candidat-documents"
+    >
       <header>
         <h2 id="pc-documents-titre">Mes documents</h2>
       </header>
@@ -154,7 +159,12 @@ export default function DocumentsDuCandidat({ initiaux }: { initiaux: DocumentDu
                           En faire le principal
                         </button>
                       )}
-                      <button type="button" className="pc-lien pc-lien--alerte" onClick={() => setAConfirmer(d.id)}>
+                      <button
+                        type="button"
+                        className="pc-lien pc-lien--alerte"
+                        data-aide="candidat-supprimer-document"
+                        onClick={() => setAConfirmer(d.id)}
+                      >
                         Supprimer
                       </button>
                     </span>
