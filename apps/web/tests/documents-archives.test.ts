@@ -197,7 +197,9 @@ describe('le nombre de PDF sur le titre d’une colonne', () => {
 
 describe('les refus de la corbeille', () => {
   it('traduit un code connu, et ne répète jamais ce que dit l’adresse', () => {
-    expect(phraseDeRefusDocument('droit')).toMatch(/Vénérable Maître/);
+    // Depuis 0119, l'administration seule.
+    expect(phraseDeRefusDocument('droit')).toMatch(/administration/);
+    expect(phraseDeRefusDocument('droit')).not.toMatch(/Vénérable|Secrétaire/);
     expect(phraseDeRefusDocument('<script>')).toBe(phraseDeRefusDocument('echec'));
     expect(phraseDeRefusDocument('')).toBeNull();
   });

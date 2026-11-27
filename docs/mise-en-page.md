@@ -191,8 +191,9 @@ Migration 0071.
   --pdf-commission`.
 - **Effacer** : la corbeille rouge, sur la ligne du PDF, dans Documents et
   Paramètres › Archives — **pas à l'accueil**, qui n'en porte plus depuis le
-  27 novembre 2026 —, pour l'administrateur, le Vénérable Maître et le
-  Secrétaire (`puis_je_effacer_des_documents()`), après une fenêtre de
+  27 novembre 2026 —, pour **l'administration seule** depuis le même jour
+  (`puis_je_effacer_des_documents()`, migration 0119 ; le Vénérable Maître et
+  le Secrétaire le pouvaient dans leur loge jusque-là), après une fenêtre de
   confirmation. Un PDF d'HERACLES quitte la base et le
   seau. Un PDF de Bubble reste en base, marqué `efface_le`, sans fichier : la
   reprise finale ne le fera pas revenir, et `rapatrier-fichiers.mjs` le saute.

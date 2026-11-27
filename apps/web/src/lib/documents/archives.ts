@@ -229,7 +229,8 @@ export function rangerParSorte(lignes: readonly DocumentArchive[]): Record<Sorte
  * qu'un lien fabriqué fait dire ce qu'il veut.
  */
 const REFUS: Record<string, string> = {
-  droit: 'Seuls l’administrateur, le Vénérable Maître et le Secrétaire peuvent effacer un PDF.',
+  // Depuis le 27 novembre 2026 (migration 0119), l'administration seule.
+  droit: 'Seule l’administration peut effacer un PDF.',
   introuvable: 'Ce PDF n’existe plus, ou il n’est pas de votre loge.',
   session: 'Votre session a expiré. Reconnectez-vous.',
   echec: 'Le PDF n’a pas pu être effacé. Réessayez dans un instant.',

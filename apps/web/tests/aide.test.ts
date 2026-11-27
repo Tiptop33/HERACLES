@@ -714,7 +714,10 @@ describe('les retraits plus fins', () => {
     expect(texte).toMatch(/confirmation/);
     expect(texte).toMatch(/ne se défait pas/);
     expect(texte).toMatch(/toute la loge/);
-    expect(derniere('effacer-un-pdf').siAbsent).toMatch(/Vénérable Maître/);
+    // Réservé à l'administration depuis 0119 : l'aide ne promet plus le geste
+    // au Vénérable Maître ni au Secrétaire.
+    expect(derniere('effacer-un-pdf').siAbsent).toMatch(/aucun PDF/);
+    expect(derniere('effacer-un-pdf').siAbsent).not.toMatch(/Vénérable|Secrétaire/);
   });
 
   it('dit ce que garde une fiche quand son titre est retiré', () => {
