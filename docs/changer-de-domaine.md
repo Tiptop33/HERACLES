@@ -42,63 +42,83 @@ par `https://essai.oaf-heracles.cloud/…` aboutit à la même page sur
 redirection, et c'est aussi le nom sous lequel le déploiement automatique
 (`VPS_HOTE`) et la sauvegarde du Mac (`infra/poste/`) joignent le serveur.
 
-## Avant : la veille, ou plus tôt
+## Où se règle le DNS : chez IONOS
 
-1. **Fusionner la PR qui apporte le script**, puis laisser passer le
-   déploiement automatique. Vérifier qu'il est arrivé :
+`oaf-heracles.fr` est enregistré **chez IONOS**, pas chez Hostinger : le compte
+Hostinger ne porte que `oaf-heracles.cloud`, le domaine du site d'essai. La zone
+se règle sur ionos.fr → **Domaines & SSL** → `oaf-heracles.fr` → onglet
+**DNS**. Chaque ligne s'y modifie par son crayon.
+
+État relevé le 27 novembre 2026 :
+
+| Lignes | Ce qu'elles font | Le jour J |
+| --- | --- | --- |
+| `MX` (`mx00`, `mx01.ionos.fr`), `TXT` (SPF), les trois `CNAME` `…_domainkey`, `autodiscover`, `_dmarc`, `_domainconnect` | la messagerie IONOS du domaine | **ne jamais y toucher** |
+| `A` · `@` → `104.16.42.105` | le site Bubble | → l'adresse du VPS |
+| `A` · `www` → `104.16.42.105` | le site Bubble | → l'adresse du VPS |
+| `A` · `api` → l'adresse du VPS | l'API de HERACLES | déjà en place, ajoutée le 27 novembre 2026 |
+
+L'adresse du VPS est celle que porte `essai.oaf-heracles.cloud`.
+
+- **Aucune entrée `AAAA` ni `CAA`** : il n'y a rien à supprimer, et rien
+  n'empêche Let's Encrypt de délivrer le certificat.
+- **Le TTL de `@` et de `www` est déjà de 60 secondes** : rien à abaisser
+  avant le jour J. Le changement se propagera en une minute environ.
+- **« Protection de domaine est activé »** bloque le transfert du domaine, pas
+  les modifications du DNS.
+
+## Avant le jour J
+
+1. **Le script est sur le serveur** depuis la fusion de la PR n° 206, le
+   27 novembre 2026. Pour le vérifier :
    ```bash
    ls /opt/heracles-essai-depot/infra/essai/changer-de-domaine.sh
    ```
-   Ce déploiement ne change rien à l'écran : la redirection qu'il pose reste
-   inactive tant qu'aucun ancien nom n'est déclaré.
 
-2. **Trouver la zone DNS de `oaf-heracles.fr`.** hPanel → **Noms de domaine** →
-   `oaf-heracles.fr` → **DNS / Serveurs de noms**. Ce n'est pas le
-   « Gestionnaire DNS » du VPS (`docs/brevo.md`, « Les deux pièges »). Si
-   `oaf-heracles.fr` n'apparaît pas dans **Noms de domaine**, le domaine est
-   géré ailleurs : les mêmes changements se font chez cet hébergeur-là.
+2. **La ligne `api` est en place** chez IONOS (voir le tableau ci-dessus).
+   Elle ne gêne pas Bubble.
 
-3. **Faire une capture de toutes les entrées de la zone.** C'est le plan de
-   retour en arrière.
+3. **La veille, revoir la zone** chez IONOS et la comparer au tableau
+   ci-dessus. Faire une capture de toutes les lignes : c'est le plan de
+   retour en arrière. Une ligne apparue entre-temps se règle avant le jour J :
+   - une `AAAA` sur `@` ou sur `www` : la supprimer ;
+   - une `CAA` : y ajouter `0 issue "letsencrypt.org"`.
 
-4. **Abaisser le TTL** des entrées `@` et `www` (A, AAAA, CNAME) à `300`. Le
-   jour J, le changement se propagera en cinq minutes au lieu de plusieurs
-   heures.
-
-5. **Regarder les entrées `CAA`.** S'il y en a et qu'aucune ne mentionne
-   `letsencrypt.org`, ajouter `CAA` · `@` · `0 issue "letsencrypt.org"`. Sinon
-   le certificat sera refusé.
-
-6. **Ajouter tout de suite** l'entrée `A` · `api` · l'adresse du VPS (celle que
-   porte déjà `essai` dans la zone `oaf-heracles.cloud`). Elle ne gêne pas
-   Bubble.
-
-7. **Ne pas toucher** aux entrées `MX` et `TXT` : elles servent le courrier
-   du domaine, s'il en a un.
+4. **Vérifier depuis le serveur.** Cette commande ne modifie rien :
+   ```bash
+   sudo /opt/heracles-essai-depot/infra/essai/changer-de-domaine.sh --verifier oaf-heracles.fr api.oaf-heracles.fr
+   ```
+   Avant le jour J, elle doit ne signaler que `oaf-heracles.fr` et `www`,
+   tous deux encore chez Bubble (104.16.42.105).
 
 ## Le jour J
 
 1. **Dernière reprise complète** depuis Bubble (`docs/MAJBUBBLE.md`).
 
-2. **Dans la zone de `oaf-heracles.fr` :**
-   - `@` : une seule entrée `A`, l'adresse du VPS, à la place de celles de
-     Bubble ;
-   - `www` : un `CNAME` vers `oaf-heracles.fr` (ou un `A` vers l'adresse du VPS) ;
-   - **supprimer toutes les entrées `AAAA`** de `@` et de `www`. Celles de
-     Bubble enverraient les accès en IPv6 chez Bubble, et Let's Encrypt
-     échouerait.
+2. **Chez IONOS**, onglet **DNS** de `oaf-heracles.fr`, deux lignes à modifier
+   et rien d'autre :
+   - la ligne `A` · `@` : crayon, remplacer `104.16.42.105` par l'adresse du
+     VPS, enregistrer ;
+   - la ligne `A` · `www` : de même.
 
 3. **Attendre que le DNS suive.** Sur le serveur, autant de fois que
-   nécessaire — cette commande ne change rien :
+   nécessaire :
    ```bash
    sudo /opt/heracles-essai-depot/infra/essai/changer-de-domaine.sh --verifier oaf-heracles.fr api.oaf-heracles.fr
    ```
-   Tant qu'un nom ne mène pas au serveur, elle le nomme et dit pourquoi
-   (entrée `A` restée chez Bubble, `AAAA` oubliée…). Elle compare le DNS aux
-   adresses que porte la machine (`hostname -I`). Si l'adresse publique n'y
-   figure pas, ce qui n'est pas le cas chez Hostinger, et seulement après
-   avoir vérifié le DNS autrement : `HERACLES_SANS_VERIFIER_DNS=oui` lève ce
-   contrôle.
+   Tant qu'un nom ne mène pas au serveur, la commande le nomme et dit
+   pourquoi : entrée `A` restée chez Bubble, `AAAA` qui mène ailleurs…
+
+   Un nom créé depuis peu peut rester « sans adresse » une dizaine de minutes,
+   même une fois enregistré chez IONOS. Le serveur garde en mémoire la réponse
+   « n'existe pas » qu'il a reçue avant la création : cette mémoire dure au
+   plus 10 minutes chez IONOS. Constaté le 27 novembre 2026 avec `api`.
+
+   La commande compare le DNS aux adresses que porte la machine
+   (`hostname -I`). Sur le VPS Hostinger, l'adresse publique y figure :
+   vérifié le 27 novembre 2026. Sur une autre machine où elle n'y figurerait
+   pas, `HERACLES_SANS_VERIFIER_DNS=oui` lève ce contrôle, mais seulement après
+   avoir vérifié le DNS autrement.
 
 4. **Changer :**
    ```bash
@@ -163,9 +183,11 @@ manque.
 - **L'adresse d'où partent les courriels** reste `no-reply@essai.oaf-heracles.cloud`,
   déjà authentifiée chez Brevo. Passer à une adresse en `@oaf-heracles.fr` est
   une étape à part, à faire après la bascule et pas le même jour :
-  authentifier `oaf-heracles.fr` chez Brevo (`docs/brevo.md`, § 2). Un domaine
-  n'a droit qu'à **un seul** enregistrement SPF : si `oaf-heracles.fr` envoie
-  déjà du courrier, il faut compléter l'existant, pas en ajouter un second.
+  authentifier `oaf-heracles.fr` chez Brevo (`docs/brevo.md`, § 2), en posant
+  ses enregistrements chez IONOS. Un domaine n'a droit qu'à **un seul**
+  enregistrement SPF. Or `oaf-heracles.fr` a déjà le sien, celui de sa
+  messagerie IONOS (`v=spf1 include:_spf-eu.ionos.com ~all`) : il faudra y
+  ajouter Brevo, et non en créer un second.
 - **Les noms internes** — dossier `heracles-essai`, ports 3003 et 8101 —
   restent ceux de l'essai. C'est une dette de nommage, sans effet sur le
   service.
@@ -174,7 +196,9 @@ manque.
 
 ## Revenir en arrière
 
-1. Dans la zone de `oaf-heracles.fr`, remettre les entrées relevées la veille.
+1. Chez IONOS, remettre `104.16.42.105` dans les lignes `A` · `@` et
+   `A` · `www` de `oaf-heracles.fr`, comme sur la capture de la veille. La
+   ligne `api` peut rester : elle ne gêne pas Bubble.
 2. Une fois le DNS revenu, relancer le script vers les anciens noms :
    ```bash
    sudo /opt/heracles-essai-depot/infra/essai/changer-de-domaine.sh essai.oaf-heracles.cloud <ancienne-api>

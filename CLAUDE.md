@@ -36,9 +36,10 @@ remplace sur les fiches communes ce que Bubble renseigne.
 
 Décision du 27 novembre 2026 : **à la bascule, HERACLES prend `oaf-heracles.fr`**, son API
 `api.oaf-heracles.fr`, et `essai.oaf-heracles.cloud` redirige vers le nouveau nom. C'est le
-DNS de `oaf-heracles.fr` qui change, chez Hostinger, pas Bubble. Le changement de DNS *est*
-la bascule : il se fait après la dernière reprise, selon `docs/changer-de-domaine.md`, et
-jamais en passant. Ce tableau se met à jour le jour où c'est fait.
+DNS de `oaf-heracles.fr` qui change, chez IONOS, où le domaine est enregistré, pas Bubble.
+Le changement de DNS *est* la bascule : il se fait après la dernière reprise, selon
+`docs/changer-de-domaine.md`, et jamais en passant. Ce tableau se met à jour le jour où
+c'est fait.
 
 ## Langue
 
@@ -202,7 +203,7 @@ sert**, pas la liste des fichiers touchés.
   Toute PR qui ajoute une donnée personnelle, un écran qui en montre ou un
   prestataire qui en voit passer le met à jour.
 - **Changer de domaine** — `docs/changer-de-domaine.md` : le passage de HERACLES sur
-  `oaf-heracles.fr` le jour de la bascule, la zone DNS chez Hostinger,
+  `oaf-heracles.fr` le jour de la bascule, la zone DNS chez IONOS,
   `changer-de-domaine.sh`, la redirection des anciens liens et le retour en arrière.
 - **Sauvegarde** — `docs/sauvegarde.md`. Le serveur porte des données réelles :
   base, fichiers, et la copie qui doit en sortir. À lire avant toute opération
