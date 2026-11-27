@@ -1,8 +1,8 @@
 # Déploie l'instance d'ESSAI de HERACLES sur le VPS.
 #
-# Rien n'est déployé sans avoir passé lint, tests unitaires, construction et
-# toute la suite SQL — y compris les contrôles de RLS. Une règle d'accès cassée
-# n'atteint pas le serveur.
+# Rien n'est déployé sans avoir passé lint, vérification des types, tests
+# unitaires, construction et toute la suite SQL — y compris les contrôles de
+# RLS. Une règle d'accès cassée n'atteint pas le serveur.
 #
 # Deux installations à la main, une seule fois chacune :
 #
@@ -124,6 +124,13 @@ jobs:
       - name: Lint
         working-directory: apps/web
         run: npm run lint
+
+      - name: Types
+        working-directory: apps/web
+        # Ni Vitest ni `next build` ne vérifient les types des tests : Vitest
+        # les exécute sans les contrôler, et la construction les exclut. Seul
+        # `tsc` couvre tout le projet, tests compris.
+        run: npx tsc --noEmit -p .
 
       - name: Tests unitaires
         working-directory: apps/web
