@@ -125,10 +125,12 @@ function versUneRubrique(
   };
 }
 
+// « Réunion » est dans la famille Admin depuis le 27 novembre 2026 (migration
+// 0117) : tout parcours qui passe par elle est réservé à l'administration.
 const MENU_REUNION: Etape = {
   ancre: `menu:${REUNION}`,
-  texte: 'Dans la colonne de gauche, famille « Réseau », cliquez sur « Réunion ».',
-  court: 'Sous « Plus », famille « Réseau », touchez « Réunion ».',
+  texte: 'Dans la colonne de gauche, famille « Admin », cliquez sur « Réunion ».',
+  court: 'Sous « Plus », famille « Admin », touchez « Réunion ».',
 };
 
 const MENU_DOCUMENTS: Etape = {
@@ -419,6 +421,7 @@ export const PARCOURS: readonly Parcours[] = [
     id: 'faire-l-appel',
     titre: 'Faire l’appel d’une réunion',
     motsCles: ['appel', 'réunion', 'présence', 'présents', 'absents', 'excusés', 'feuille', 'feuille d’appel', 'commission', 'tenue'],
+    roles: ['admin'],
     destination: REUNION,
     arrivee: 1,
     etapes: [
@@ -451,6 +454,7 @@ export const PARCOURS: readonly Parcours[] = [
       'pv',
       'présences',
     ],
+    roles: ['admin'],
     destination: REUNION,
     arrivee: 1,
     etapes: [
@@ -478,6 +482,7 @@ export const PARCOURS: readonly Parcours[] = [
       'diffuser',
       'afficher',
     ],
+    roles: ['admin'],
     destination: REUNION,
     arrivee: 1,
     etapes: [
@@ -500,6 +505,7 @@ export const PARCOURS: readonly Parcours[] = [
       'dossier du mois',
       'qr code',
     ],
+    roles: ['admin'],
     destination: REUNION,
     arrivee: 1,
     etapes: [
@@ -540,6 +546,7 @@ export const PARCOURS: readonly Parcours[] = [
       'commission',
       'réunion',
     ],
+    roles: ['admin'],
     destination: REUNION,
     arrivee: 1,
     etapes: [
@@ -772,6 +779,7 @@ export const PARCOURS: readonly Parcours[] = [
     id: 'affichette-de-la-reunion',
     titre: 'Choisir le dossier de l’affichette d’une réunion',
     motsCles: ['choisir le dossier', 'dossier de l’affichette', 'affichette grisée', 'affichette éteinte', 'retenir un dossier'],
+    roles: ['admin'],
     destination: REUNION,
     etapes: [
       MENU_REUNION,
@@ -795,6 +803,7 @@ export const PARCOURS: readonly Parcours[] = [
       'reporter la réunion',
       'date du compte rendu',
     ],
+    roles: ['admin'],
     destination: REUNION,
     etapes: [
       MENU_REUNION,
@@ -811,6 +820,7 @@ export const PARCOURS: readonly Parcours[] = [
     id: 'registre-des-reunions',
     titre: 'Retrouver une réunion passée',
     motsCles: ['registre', 'réunion passée', 'réunions passées', 'ancienne réunion', 'reprendre un appel', 'historique des réunions', 'présences passées'],
+    roles: ['admin'],
     destination: REUNION,
     etapes: [
       MENU_REUNION,
@@ -1169,6 +1179,7 @@ export const PARCOURS: readonly Parcours[] = [
     id: 'retirer-une-reunion',
     titre: 'Retirer une réunion du registre',
     motsCles: ['retirer une réunion', 'supprimer une réunion', 'enlever une réunion', 'réunion en trop', 'annuler une réunion', 'corbeille'],
+    roles: ['admin'],
     destination: REUNION,
     etapes: [
       MENU_REUNION,
@@ -1185,6 +1196,7 @@ export const PARCOURS: readonly Parcours[] = [
     id: 'rendre-une-reunion',
     titre: 'Remettre au registre une réunion retirée',
     motsCles: ['rendre', 'remettre', 'récupérer', 'restaurer', 'réunion retirée', 'réunions retirées', 'retirée par erreur', 'retiré une réunion par erreur', 'annuler le retrait'],
+    roles: ['admin'],
     destination: REUNION,
     arrivee: 1,
     etapes: [
@@ -1206,6 +1218,7 @@ export const PARCOURS: readonly Parcours[] = [
     id: 'effacer-une-reunion',
     titre: 'Effacer définitivement une réunion',
     motsCles: ['effacer', 'définitivement', 'pour de bon', 'effacer une réunion', 'détruire', 'croix'],
+    roles: ['admin'],
     destination: REUNION,
     etapes: [
       MENU_REUNION,

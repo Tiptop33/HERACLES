@@ -26,7 +26,8 @@ describe('les cinq familles', () => {
     // candidat » ajouté à Admin le 8 novembre 2026, plus « Province » ajoutée
     // à Réseau le 10 novembre 2026, plus « Documents » ajouté à Réseau le
     // 11 novembre 2026, plus « Comptes » et « Connexions » ajoutés à Admin le
-    // 26 novembre 2026.
+    // 26 novembre 2026. « Réunion », passée de Réseau à Admin le 27 novembre
+    // 2026, ne change pas le compte.
     expect(total).toBe(20);
   });
 
@@ -109,12 +110,11 @@ describe('Nouveau candidat', () => {
 });
 
 describe('Province', () => {
-  it('suit les entrées de Réseau qui existaient, sans les déplacer', () => {
+  it('suit les entrées de Réseau qui existaient — « Réunion » partie en Admin', () => {
     const reseau = FAMILLES.find((f) => f.nom === 'Réseau')!;
-    expect(reseau.entrees.map((e) => e.libelle).slice(0, 4)).toEqual([
+    expect(reseau.entrees.map((e) => e.libelle).slice(0, 3)).toEqual([
       'Référents',
       'Correspondants',
-      'Réunion',
       'Province',
     ]);
   });
@@ -167,7 +167,6 @@ describe('Documents', () => {
     expect(reseau.entrees.map((e) => e.libelle)).toEqual([
       'Référents',
       'Correspondants',
-      'Réunion',
       'Province',
       'Documents',
     ]);
@@ -183,6 +182,39 @@ describe('Documents', () => {
       const libelles = famillesDuRole(role).flatMap((f) => f.entrees.map((e) => e.libelle));
       expect(libelles).toContain('Documents');
     }
+  });
+});
+
+describe('Réunion', () => {
+  it('ferme la famille Admin, après « Connexions », sans déplacer les autres', () => {
+    const admin = FAMILLES.find((f) => f.nom === 'Admin')!;
+    expect(admin.entrees.map((e) => e.libelle)).toEqual([
+      'Invitations',
+      'Nouveau candidat',
+      'Loges',
+      "Secteur d'activité",
+      'Comptes',
+      'Connexions',
+      'Réunion',
+    ]);
+  });
+
+  it('garde son adresse : les liens déjà donnés restent valables', () => {
+    const admin = FAMILLES.find((f) => f.nom === 'Admin')!;
+    expect(admin.entrees.find((e) => e.libelle === 'Réunion')?.vers).toBe('/espace/reunion');
+  });
+
+  it('n’est plus dans Réseau, ni nulle part ailleurs', () => {
+    const ailleurs = FAMILLES.filter((f) => f.nom !== 'Admin').flatMap((f) => f.entrees);
+    expect(ailleurs.map((e) => e.libelle)).not.toContain('Réunion');
+    expect(ailleurs.map((e) => e.vers)).not.toContain('/espace/reunion');
+  });
+
+  it('est invisible d’un référent, visible d’un administrateur', () => {
+    const vers = (role: 'referent' | 'admin') =>
+      famillesDuRole(role).flatMap((f) => f.entrees.map((e) => e.vers));
+    expect(vers('referent')).not.toContain('/espace/reunion');
+    expect(vers('admin')).toContain('/espace/reunion');
   });
 });
 

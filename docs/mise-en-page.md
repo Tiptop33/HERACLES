@@ -77,8 +77,12 @@ Sur la feuille d'appel, « Dossier de l'affichette » propose les dossiers en
 cours de la loge ; le choix s'enregistre aussitôt (`reunion.affichette_candidat_id`,
 migration 0068) et le bouton « Affichette » le tire, à côté de l'affiche et du
 compte rendu, sous le nom `<numéro> du <jour où on la tire>.pdf`. Toute la loge
-peut choisir, comme pour l'appel. Un dossier refermé depuis ne s'imprime plus.
-Le bouton « Affichette » de la fiche du candidat reste disponible.
+pouvait choisir, comme pour l'appel ; depuis le 27 novembre 2026, l'écran
+Réunion est dans la famille « Admin » et réservé à l'administration
+(migration 0117) : c'est elle qui choisit, et elle seule qui tire le compte
+rendu, l'affiche et l'affichette de la réunion. Un dossier refermé depuis ne
+s'imprime plus. Le bouton « Affichette » de la fiche du candidat reste
+disponible pour les référents.
 
 ## Chaque PDF tiré de la feuille d'appel est archivé
 
