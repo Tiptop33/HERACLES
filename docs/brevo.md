@@ -1,11 +1,13 @@
 # Les courriels : paramétrer Brevo
 
 - **Date :** 2026-11-08 — mis à jour le même jour, après la mise en service
-  sur l'instance d'essai.
+  sur l'instance d'essai ; le 28 novembre 2026, après le changement de domaine
+  (§ 10).
 - **Ce document ne contient aucun secret**, ni adresse de serveur, ni
   identifiant de compte. Les clés se créent chez Brevo, se saisissent sur le
-  VPS, et n'en sortent pas. Les domaines sont des exemples :
-  `mondomaine.fr`, `essai.mondomaine.fr`.
+  VPS, et n'en sortent pas. Aux §§ 1 à 9, les domaines sont des exemples :
+  `mondomaine.fr`, `essai.mondomaine.fr`. Le § 10 nomme les vrais, déjà
+  publics dans `CLAUDE.md` et `docs/changer-de-domaine.md`.
 - Les noms de menus de Brevo et de Hostinger sont ceux de novembre 2026.
 
 ## Ce qui est en service
@@ -19,8 +21,12 @@ canaux. Vérifié par de vrais envois vers une boîte Gmail :
 | DKIM / DMARC | `PASS` | `PASS` / `PASS` |
 | Liens | — | directs, non réécrits par Brevo |
 
-**La production reste à faire** : même procédure (§ 9), avec son propre
-domaine authentifié et ses propres clés.
+Depuis le 27 novembre 2026, cette instance est **celle en service**, sur
+`oaf-heracles.fr` (`docs/changer-de-domaine.md`). Ses courriels partent
+toujours de `no-reply@essai.oaf-heracles.cloud` : ce domaine reste authentifié
+chez Brevo, DKIM et DMARC passent, rien n'est en panne. Le passage à une
+adresse en `@oaf-heracles.fr` est décrit au § 10, à faire **après le
+5 décembre**.
 
 ## Deux canaux, deux clés
 
@@ -60,7 +66,7 @@ C'est le prérequis qui bloque tout le reste. **Une adresse `@gmail.com` ne
 peut pas être expéditrice** : sa politique DMARC fait rejeter par Gmail et
 Yahoo tout courriel qui s'en réclame sans venir de Google.
 
-**On authentifie le domaine de l'instance** — `essai.mondomaine.fr` pour
+**On authentifie le domaine de l'expéditeur** — `essai.mondomaine.fr` pour
 l'essai. Ce choix a été fait le 8 novembre : il ne touche ni au domaine
 racine ni aux boîtes mail de l'organisation, mais il oblige à refaire cette
 étape pour la production, sur son propre domaine.
@@ -70,7 +76,9 @@ racine ni aux boîtes mail de l'organisation, mais il oblige à refaire cette
 2. Brevo affiche les enregistrements à créer : un `TXT` (`brevo-code:…`) et
    deux `CNAME` DKIM (`brevo1._domainkey…`, `brevo2._domainkey…`). **Les
    recopier par les boutons « Copier »**, pas à la main.
-3. Les poser **dans la zone DNS du domaine**, chez Hostinger : **hPanel →
+3. Les poser **dans la zone DNS du domaine**, là où elle est gérée — pour
+   `oaf-heracles.cloud`, chez Hostinger ; pour `oaf-heracles.fr`, **chez
+   IONOS** (§ 10). Chez Hostinger : **hPanel →
    Noms de domaine → le domaine → DNS / Serveurs de noms**. Le champ « Nom »
    ne prend que ce qui précède le domaine (`brevo1._domainkey.essai`) :
    Hostinger ajoute le reste tout seul.
@@ -328,6 +336,11 @@ dans la même boîte et n'est inscrite nulle part.
 
 ## 9. La production
 
+Depuis le 27 novembre 2026, l'instance en service est celle qui garde ses
+noms d'essai (`heracles-essai`) : c'est elle que décrivent les §§ 7, 8 et 10.
+Ce qui suit vaut pour une pile `heracles-prod` séparée, si elle devait être
+montée un jour.
+
 Les mêmes étapes, avec :
 
 - **son domaine** authentifié chez Brevo (§ 2), et son expéditeur (§ 3) ;
@@ -339,6 +352,115 @@ Les mêmes étapes, avec :
   `docker compose --env-file .env -f infra/docker-compose.prod.yml -p heracles-prod up -d`
   — sans reconstruire : aucune de ces variables n'est figée dans l'image ;
 - conteneurs à vérifier : `heracles-auth` et `heracles-prod-web-1`.
+
+## 10. Passer l'expéditeur sur `oaf-heracles.fr`
+
+**Pourquoi.** Depuis le 27 novembre, les courriels partent de
+`no-reply@essai.oaf-heracles.cloud` mais leurs liens mènent à
+`oaf-heracles.fr`. Ça marche, mais un expéditeur qui ne ressemble pas au site
+inquiète un candidat, et les filtres anti-spam n'aiment pas ce décalage.
+
+**Quand.** Après le 5 décembre 2026, **un jour sans autre changement**. Si
+l'opération rate, plus aucune invitation ne part ; on ne veut pas le découvrir
+le jour de la bascule.
+
+**Ce qu'on ne touche pas.** La zone de `oaf-heracles.fr` porte déjà la
+messagerie IONOS de l'organisation : `MX`, `TXT` SPF
+(`v=spf1 include:_spf-eu.ionos.com ~all`), les trois `CNAME …_domainkey`
+d'IONOS, `_dmarc`, `autodiscover`, `_domainconnect`. **Aucun ne se modifie
+ni ne se supprime** : on ajoute à côté. Une erreur sur l'un d'eux couperait
+la messagerie de l'organisation, pas seulement HERACLES.
+
+### 10.1 Le domaine est-il déjà connu de Brevo ?
+
+Bubble envoyait par le même compte (§ 1). Avant d'ajouter quoi que ce soit,
+regarder Brevo → **Paramètres → Expéditeurs, domaine, IP → onglet
+Domaines** :
+
+- `oaf-heracles.fr` y est et marqué **Authentifié** : vérifier que ses
+  enregistrements sont toujours publiés (10.3) — la zone est passée chez
+  IONOS, ils ont pu se perdre en route. S'ils le sont, passer à 10.4 ;
+- il y est sans être authentifié, ou n'y est pas : 10.2.
+
+### 10.2 Authentifier `oaf-heracles.fr`
+
+1. Brevo → onglet **Domaines → Ajouter un domaine** : `oaf-heracles.fr`.
+2. Brevo affiche ce qu'il attend — le 8 novembre, pour l'essai : un `TXT`
+   `brevo-code:…` sur le domaine lui-même, et deux `CNAME`
+   `brevo1._domainkey` et `brevo2._domainkey`. Les copier par les boutons
+   « Copier ».
+3. Chez **IONOS** : **Domaines & SSL → `oaf-heracles.fr` → DNS → Ajouter un
+   enregistrement** (noms de menus à vérifier, IONOS les change). Le champ
+   « Nom d'hôte » prend ce qui précède le domaine — `brevo1._domainkey` — et
+   `@` pour le domaine lui-même.
+   - Le `TXT` `brevo-code` est **un enregistrement de plus** sur `@`, à côté
+     du SPF. Ne pas l'écrire dans la ligne SPF.
+   - Les `CNAME` Brevo ne portent pas le même nom que ceux d'IONOS
+     (`s1-ionos._domainkey`…) : aucun conflit.
+4. **Le SPF.** Brevo ne l'a pas demandé le 8 novembre et n'en a pas besoin
+   pour que DMARC passe : la signature DKIM, alignée sur `oaf-heracles.fr`,
+   suffit. S'il en réclame un tout de même, **ne jamais créer un second
+   enregistrement SPF** — deux SPF sur un domaine les rendent invalides tous
+   les deux, messagerie IONOS comprise. On ajoute l'`include` que Brevo
+   affiche dans la ligne existante, avant `~all` :
+   `v=spf1 include:_spf-eu.ionos.com include:<ce que Brevo indique> ~all`.
+5. **Le DMARC** reste celui d'IONOS. Noter sa politique (`p=`) avant de
+   commencer : avec `p=quarantine` ou `p=reject`, une signature qui échoue
+   envoie les courriels en spam ou les fait rejeter — d'où l'essai de 10.5
+   avant tout envoi réel.
+6. Vérifier la publication (10.3), puis **Authentifier** dans Brevo.
+
+### 10.3 Vérifier que c'est publié
+
+```bash
+# Depuis n'importe quel poste. Le premier doit montrer le SPF d'IONOS ET le brevo-code.
+for q in "oaf-heracles.fr TXT" "_dmarc.oaf-heracles.fr TXT" \
+         "brevo1._domainkey.oaf-heracles.fr CNAME" "brevo2._domainkey.oaf-heracles.fr CNAME"; do
+  set -- $q; echo "$1 $2 →"; curl -s "https://dns.google/resolve?name=$1&type=$2" | grep -o '"data":"[^"]*"'
+done
+```
+
+Une seule ligne `v=spf1` doit sortir. Deux, c'est l'erreur du point 4 : la
+corriger avant tout.
+
+### 10.4 L'expéditeur
+
+Brevo → onglet **Expéditeurs → Ajouter un expéditeur** :
+`no-reply@oaf-heracles.fr`, nom « HERACLES ». Le domaine étant authentifié,
+Brevo le vérifie aussitôt (§ 3).
+
+### 10.5 Brancher, sur le VPS
+
+Les règles du § 7 valent : chemins écrits en entier, ligne sacrifiée en tête.
+Aucune clé ne change.
+
+```bash
+echo --- debut
+EXP=no-reply@oaf-heracles.fr
+sed -i "s|^SMTP_ADMIN_EMAIL=.*|SMTP_ADMIN_EMAIL=$EXP|" /opt/supabase-heracles-essai/.env
+sed -i "s|^COURRIEL_EXPEDITEUR=.*|COURRIEL_EXPEDITEUR=$EXP|" /opt/heracles-essai-depot/.env.essai
+grep -E '^SMTP_ADMIN_EMAIL=' /opt/supabase-heracles-essai/.env
+grep -E '^COURRIEL_EXPEDITEUR=' /opt/heracles-essai-depot/.env.essai
+```
+
+Puis relancer comme au § 7 (`mettre-a-jour.sh`). `deployer.sh` affichera
+désormais l'avertissement « l'ancienne valeur par défaut », puisque l'adresse
+est sur le domaine de l'application : il est sans objet une fois
+`oaf-heracles.fr` authentifié.
+
+Vérifier enfin comme au § 8 — sans rien envoyer, puis par les deux vrais
+envois. Dans *Afficher l'original* de Gmail : l'expéditeur en
+`@oaf-heracles.fr`, DKIM `PASS` avec `d=oaf-heracles.fr`, DMARC `PASS`.
+
+### 10.6 Revenir en arrière
+
+Remettre `no-reply@essai.oaf-heracles.cloud` dans les deux fichiers (même
+bloc, autre `EXP`), puis relancer. C'est possible tant que
+`essai.oaf-heracles.cloud` reste authentifié : **ne retirer ses
+enregistrements Brevo chez Hostinger** (`brevo-code`, `brevo1` et `brevo2`
+`._domainkey.essai`) **que deux semaines après** un passage réussi. Les
+retirer avant, sans avoir changé d'expéditeur, enverrait tous les courriels en
+spam.
 
 ## RGPD
 
