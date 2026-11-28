@@ -26,7 +26,8 @@ Depuis le 27 novembre 2026, cette instance est **celle en service**, sur
 
 **Depuis le 28 novembre 2026, ses courriels partent de
 `no-reply@oaf-heracles.fr`** (§ 10), sur les deux canaux. Vérifié le jour
-même par un envoi de contrôle par canal (§ 8) : boîte de réception, DKIM (`d=oaf-heracles.fr`) et DMARC à `PASS`,
+même par un envoi de contrôle par canal (§ 8) et par une vraie invitation
+lancée depuis l'écran de HERACLES : boîte de réception, DKIM (`d=oaf-heracles.fr`) et DMARC à `PASS`,
 liens en `https://oaf-heracles.fr/`.
 
 Le même jour, avant ce passage, avec l'ancien expéditeur
