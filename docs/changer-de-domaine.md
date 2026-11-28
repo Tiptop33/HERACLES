@@ -193,11 +193,11 @@ manque.
 - **L'adresse d'où partent les courriels** reste `no-reply@essai.oaf-heracles.cloud`,
   déjà authentifiée chez Brevo. Passer à une adresse en `@oaf-heracles.fr` est
   une étape à part, à faire après la bascule et pas le même jour :
-  authentifier `oaf-heracles.fr` chez Brevo (`docs/brevo.md`, § 2), en posant
-  ses enregistrements chez IONOS. Un domaine n'a droit qu'à **un seul**
-  enregistrement SPF. Or `oaf-heracles.fr` a déjà le sien, celui de sa
-  messagerie IONOS (`v=spf1 include:_spf-eu.ionos.com ~all`) : il faudra y
-  ajouter Brevo, et non en créer un second.
+  `docs/brevo.md`, § 10 — authentifier `oaf-heracles.fr` chez Brevo, en
+  posant ses enregistrements chez IONOS à côté de ceux de la messagerie, sans
+  en modifier aucun. Si Brevo réclamait un SPF, on l'ajoute à la ligne
+  existante (`v=spf1 include:_spf-eu.ionos.com ~all`) : un domaine n'a droit
+  qu'à **un seul** enregistrement SPF.
 - **Les noms internes** — dossier `heracles-essai`, ports 3003 et 8101 —
   restent ceux de l'essai. C'est une dette de nommage, sans effet sur le
   service.
