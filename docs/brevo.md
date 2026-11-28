@@ -24,7 +24,17 @@ canaux. Vérifié par de vrais envois vers une boîte Gmail :
 Depuis le 27 novembre 2026, cette instance est **celle en service**, sur
 `oaf-heracles.fr` (`docs/changer-de-domaine.md`). Ses courriels partent
 toujours de `no-reply@essai.oaf-heracles.cloud` : ce domaine reste authentifié
-chez Brevo, DKIM et DMARC passent, rien n'est en panne. Le passage à une
+chez Brevo, DKIM et DMARC passent, rien n'est en panne.
+
+**Revérifié le 28 novembre 2026**, après le changement de domaine : un envoi
+de contrôle par chaque canal, lancé depuis le serveur avec les réglages en
+service — par SMTP pour l'authentification, par l'API depuis le conteneur de
+l'application —, vers une boîte Gmail. Les deux sont arrivés en boîte de
+réception, DKIM et DMARC à `PASS`, et le lien commence par
+`https://oaf-heracles.fr/`, non réécrit par Brevo. Ce contrôle éprouve Brevo
+et les réglages, pas le texte des courriels de l'application.
+
+Le passage à une
 adresse en `@oaf-heracles.fr` est décrit au § 10, à faire **après le
 5 décembre**.
 
