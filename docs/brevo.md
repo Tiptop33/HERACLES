@@ -22,21 +22,21 @@ canaux. Vérifié par de vrais envois vers une boîte Gmail :
 | Liens | — | directs, non réécrits par Brevo |
 
 Depuis le 27 novembre 2026, cette instance est **celle en service**, sur
-`oaf-heracles.fr` (`docs/changer-de-domaine.md`). Ses courriels partent
-toujours de `no-reply@essai.oaf-heracles.cloud` : ce domaine reste authentifié
-chez Brevo, DKIM et DMARC passent, rien n'est en panne.
+`oaf-heracles.fr` (`docs/changer-de-domaine.md`).
 
-**Revérifié le 28 novembre 2026**, après le changement de domaine : un envoi
+**Depuis le 28 novembre 2026, ses courriels partent de
+`no-reply@oaf-heracles.fr`** (§ 10), sur les deux canaux. Vérifié le jour
+même par un envoi de contrôle par canal (§ 8) : boîte de réception, DKIM (`d=oaf-heracles.fr`) et DMARC à `PASS`,
+liens en `https://oaf-heracles.fr/`.
+
+Le même jour, avant ce passage, avec l'ancien expéditeur
+`no-reply@essai.oaf-heracles.cloud` : un envoi
 de contrôle par chaque canal, lancé depuis le serveur avec les réglages en
 service — par SMTP pour l'authentification, par l'API depuis le conteneur de
 l'application —, vers une boîte Gmail. Les deux sont arrivés en boîte de
 réception, DKIM et DMARC à `PASS`, et le lien commence par
 `https://oaf-heracles.fr/`, non réécrit par Brevo. Ce contrôle éprouve Brevo
 et les réglages, pas le texte des courriels de l'application.
-
-Le passage à une
-adresse en `@oaf-heracles.fr` est décrit au § 10, à faire **après le
-5 décembre**.
 
 ## Deux canaux, deux clés
 
@@ -365,6 +365,31 @@ Les mêmes étapes, avec :
 
 ## 10. Passer l'expéditeur sur `oaf-heracles.fr`
 
+**Fait le 28 novembre 2026**, plus tôt que prévu, sans incident :
+
+- `oaf-heracles.fr` était **déjà déclaré et authentifié** chez Brevo,
+  vraisemblablement par Bubble. Ses enregistrements étaient publiés chez
+  IONOS (`brevo-code`, `brevo1` et `brevo2._domainkey`) : rien n'a été
+  touché dans la zone. 10.2 n'a pas servi.
+- L'expéditeur `HERACLES <no-reply@oaf-heracles.fr>` a été créé et vérifié
+  aussitôt.
+- Un envoi d'essai depuis la nouvelle adresse, **avant** de changer quoi que
+  ce soit sur le serveur, a été accepté par Brevo et reçu en boîte de
+  réception, DKIM et DMARC à `PASS`. Cette précaution, absente du plan
+  d'origine, est désormais l'étape 10.4 bis.
+- Puis 10.5, et les contrôles du § 8.
+- Brevo affiche, pour cet expéditeur, l'avertissement DMARC « la balise
+  `rua` est manquante » : le `_dmarc` d'IONOS (`v=DMARC1; p=none;`) ne
+  désigne pas d'adresse pour les rapports. **Il ne bloque pas l'envoi** ;
+  Gmail, Yahoo et Microsoft n'exigent qu'un DMARC présent. On ne l'a pas
+  corrigé : le `_dmarc` est géré par IONOS pour la messagerie de
+  l'organisation.
+- **Reste à faire, pas avant le 12 décembre 2026** : 10.6, dernier
+  paragraphe — retirer l'ancien expéditeur et l'ancien domaine.
+
+La suite décrit la procédure telle qu'elle a été écrite avant, pour mémoire
+et pour un retour en arrière.
+
 **Pourquoi.** Depuis le 27 novembre, les courriels partent de
 `no-reply@essai.oaf-heracles.cloud` mais leurs liens mènent à
 `oaf-heracles.fr`. Ça marche, mais un expéditeur qui ne ressemble pas au site
@@ -439,6 +464,17 @@ Brevo → onglet **Expéditeurs → Ajouter un expéditeur** :
 `no-reply@oaf-heracles.fr`, nom « HERACLES ». Le domaine étant authentifié,
 Brevo le vérifie aussitôt (§ 3).
 
+### 10.4 bis Un envoi d'essai, sans rien changer
+
+Depuis le conteneur de l'application, un courriel par l'API avec le nouvel
+expéditeur écrit en dur — les réglages en service ne bougent pas :
+
+```bash
+echo --- debut; read -rp "Adresse de test : " A; docker exec -e A="$A" heracles-essai-web-web-1 node -e 'fetch("https://api.brevo.com/v3/smtp/email",{method:"POST",headers:{"api-key":process.env.BREVO_API_KEY,"content-type":"application/json"},body:JSON.stringify({sender:{email:"no-reply@oaf-heracles.fr",name:"HERACLES"},to:[{email:process.env.A}],subject:"HERACLES - essai nouvel expediteur",htmlContent:"<p>Essai.</p><p><a href=\"https://oaf-heracles.fr/connexion\">Lien de test</a></p>"})}).then(async r=>console.log(r.status===201?"✅ accepté par Brevo":"❌ "+r.status+" "+await r.text()))'; unset A
+```
+
+Boîte de réception, DKIM et DMARC à `PASS` : alors seulement, 10.5.
+
 ### 10.5 Brancher, sur le VPS
 
 Les règles du § 7 valent : chemins écrits en entier, ligne sacrifiée en tête.
@@ -465,7 +501,14 @@ envois. Dans *Afficher l'original* de Gmail : l'expéditeur en
 ### 10.6 Revenir en arrière
 
 Remettre `no-reply@essai.oaf-heracles.cloud` dans les deux fichiers (même
-bloc, autre `EXP`), puis relancer. C'est possible tant que
+bloc, autre `EXP`), puis relancer. Vérifier ensuite que les conteneurs l'ont
+lue :
+
+```bash
+docker inspect -f '{{range .Config.Env}}{{println .}}{{end}}' heracles-essai-auth | grep -E '^GOTRUE_SMTP_ADMIN_EMAIL='
+docker exec heracles-essai-web-web-1 printenv COURRIEL_EXPEDITEUR
+```
+ C'est possible tant que
 `essai.oaf-heracles.cloud` reste authentifié : **ne retirer ses
 enregistrements Brevo chez Hostinger** (`brevo-code`, `brevo1` et `brevo2`
 `._domainkey.essai`) **que deux semaines après** un passage réussi. Les

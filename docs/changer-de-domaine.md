@@ -190,14 +190,11 @@ manque.
 
 ## Ce qui ne change pas
 
-- **L'adresse d'où partent les courriels** reste `no-reply@essai.oaf-heracles.cloud`,
-  déjà authentifiée chez Brevo. Passer à une adresse en `@oaf-heracles.fr` est
-  une étape à part, à faire après la bascule et pas le même jour :
-  `docs/brevo.md`, § 10 — authentifier `oaf-heracles.fr` chez Brevo, en
-  posant ses enregistrements chez IONOS à côté de ceux de la messagerie, sans
-  en modifier aucun. Si Brevo réclamait un SPF, on l'ajoute à la ligne
-  existante (`v=spf1 include:_spf-eu.ionos.com ~all`) : un domaine n'a droit
-  qu'à **un seul** enregistrement SPF.
+- **L'adresse d'où partent les courriels** est restée
+  `no-reply@essai.oaf-heracles.cloud` le jour du changement de domaine. Elle
+  est passée à `no-reply@oaf-heracles.fr` le lendemain, 28 novembre 2026, à
+  part : `docs/brevo.md`, § 10. Le domaine était déjà authentifié chez Brevo ;
+  la zone IONOS n'a pas été touchée.
 - **Les noms internes** — dossier `heracles-essai`, ports 3003 et 8101 —
   restent ceux de l'essai. C'est une dette de nommage, sans effet sur le
   service.
